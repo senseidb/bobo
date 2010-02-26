@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<bean name="browseSvcImpl" class="com.browseengine.bobo.impl.BrowseServiceImpl">
+		<constructor-arg value="file:${index.directory}" />
+	</bean>
+	
+	<bean name="analyzer" class="org.apache.lucene.analysis.standard.StandardAnalyzer" />
+	
+	<bean name="qparser" class="org.apache.lucene.queryParser.QueryParser">
+	   <constructor-arg value="contents"/>
+	   <constructor-arg ref="analyzer" />
+	</bean>
+	
+	<bean name="bobo-svc" class="com.browseengine.bobo.svc.impl.BoboSearchServiceImpl">
+	    <constructor-arg ref="browseSvcImpl" />
+	    <constructor-arg ref="qparser" />
+	</bean>
+</beans>

@@ -1,0 +1,79 @@
+<html>
+<head><title></title>
+<link rel=StyleSheet href="style.css" type="text/css">
+
+<script type="text/javascript" src="browse.js">
+</script>
+
+<script type="text/javascript" src="json.js">
+</script>
+<script type="text/javascript" src="remote.js">
+</script>
+<script type="text/javascript" src="bobobase.js">
+</script>
+<script type="text/javascript" src="widgets.js">
+</script>
+<script type="text/javascript" src="application.js">
+</script>
+
+</head>
+
+<body onload="javascript:loadBody()">
+
+<table width="100%" border="0" summary="">
+	<tr>
+		<td align="left">
+			<span class="text">Cars Found: </span><span id="hitcount" class="hitstat"> </span>		
+		</td>
+		<td align="right">
+			<span class="text">e.g. red AND ferrari</span> <input id="search"></input>
+			<button onclick="javascript:handleSearch()">Search</button>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="2" align="right">
+			<a href="javascript:reset()">reset all</a>
+		</td>
+	</tr>
+</table>
+
+<table width="100%" border="1" summary="">
+	<tr valign="top">
+		<td width="50%">
+			<div id="makemodel"></div>
+		</td>			
+		<td width="50%">
+			<div id="city"></div>
+		</td>
+	</tr>
+</table>
+
+<div id="tags"></div>
+
+<table width="100%" border="1" summary="">
+	<tr valign="top">
+				<td align="left">
+					<div id="color"></div>
+				</td>
+				<td align="left">
+					<div id="category"></div>
+				</td>
+				<td align="left">
+					<div id="price"></div>
+				</td>
+				<td align="left">
+					<div id="year"></div>
+				</td>
+				<td align="left">
+					<div id="mileage"></div>
+				</td></tr>
+</table>
+
+<div id="resultset"></div>
+
+<script type="text/javascript">
+	app_setup();
+</script>
+
+</body>
+</html>

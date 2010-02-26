@@ -1,0 +1,339 @@
+color,year,price,tags,mileage,category,makemodel
+color:blue
+color:gold
+color:green
+color:red
+color:silver
+color:white
+color:yellow
+year:[00000000000000001994 TO 00000000000000001995]
+year:[00000000000000001996 TO 00000000000000001997]
+year:[00000000000000001998 TO 00000000000000001999]
+year:[00000000000000002001 TO 00000000000000002002]
+price:[00000000000000002000 TO 00000000000000003000]
+price:[00000000000000004000 TO 00000000000000005000]
+price:[00000000000000006000 TO 00000000000000007000]
+price:[00000000000000008000 TO 00000000000000009000]
+price:[00000000000000010000 TO 00000000000000011000]
+price:[00000000000000012000 TO 00000000000000013000]
+price:[00000000000000014000 TO 00000000000000015000]
+price:[00000000000000016000 TO 00000000000000017000]
+price:[00000000000000018000 TO 00000000000000019000]
+price:[00000000000000020000 TO 00000000000000021000]
+//tags:chick magnet
+//tags:cool
+//tags:electric
+//tags:expensive
+//tags:family
+//tags:favorite
+//tags:highend
+//tags:hybrid
+//tags:leather
+//tags:macho
+//tags:manly
+//tags:moon-roof
+//tags:mp3
+//tags:navigation
+//tags:reliable
+//tags:soccer mom
+//tags:towing
+mileage:[* TO 12500]
+mileage:[12501 TO 15000]
+mileage:[15001 TO 17500]
+mileage:[17501 TO *]
+category:exotic
+category:luxury
+category:mini-van
+category:sedan
+category:sports car
+category:station wagon
+category:sub-compact
+category:suv
+category:truck
+category:van
+makemodel:asian/acura/3.2tl
+makemodel:asian/acura/3.5rl
+makemodel:asian/acura/cl
+makemodel:asian/acura/integra
+makemodel:asian/acura/legend
+makemodel:asian/acura/nsx
+makemodel:asian/acura/tl
+makemodel:asian/acura/vigor
+makemodel:asian/honda/accord
+makemodel:asian/honda/civic
+makemodel:asian/honda/delsol
+makemodel:asian/honda/insight
+makemodel:asian/honda/odyssey
+makemodel:asian/honda/prelude
+makemodel:asian/honda/s2000
+makemodel:asian/hyundai/accent
+makemodel:asian/hyundai/elantra
+makemodel:asian/hyundai/scoupe
+makemodel:asian/hyundai/sonata
+makemodel:asian/hyundai/tiburon
+makemodel:asian/infiniti/g20
+makemodel:asian/infiniti/i20
+makemodel:asian/infiniti/i30
+makemodel:asian/infiniti/j30
+makemodel:asian/infiniti/q45
+makemodel:asian/infiniti/qx4
+makemodel:asian/isuzu/hombre
+makemodel:asian/isuzu/pickup
+makemodel:asian/isuzu/rodeo
+makemodel:asian/isuzu/trooper
+makemodel:asian/kia/sephia
+makemodel:asian/kia/sportage
+makemodel:asian/lexus/es
+makemodel:asian/lexus/gs
+makemodel:asian/lexus/ls
+makemodel:asian/lexus/lx
+makemodel:asian/lexus/rx
+makemodel:asian/mazda/323
+makemodel:asian/mazda/626 cronos
+makemodel:asian/mazda/b-series
+makemodel:asian/mazda/millenia
+makemodel:asian/mazda/mpv
+makemodel:asian/mazda/mx-3 precidia
+makemodel:asian/mazda/mx-5 miata
+makemodel:asian/mazda/mx-6 mystere
+makemodel:asian/mazda/prot?g?
+makemodel:asian/mazda/rx-7
+makemodel:asian/nissan/200sx
+makemodel:asian/nissan/240sx
+makemodel:asian/nissan/300zx
+makemodel:asian/nissan/altima
+makemodel:asian/nissan/axxess
+makemodel:asian/nissan/frontier
+makemodel:asian/nissan/maxima
+makemodel:asian/nissan/quest
+makemodel:asian/nissan/sentra
+makemodel:asian/nissan/sentra classic
+makemodel:asian/subaru/forester
+makemodel:asian/subaru/impreza
+makemodel:asian/subaru/justy
+makemodel:asian/suzuki/esteem
+makemodel:asian/suzuki/grand vitara
+makemodel:asian/toyota/4runner
+makemodel:asian/toyota/camry
+makemodel:asian/toyota/camry solara
+makemodel:asian/toyota/celica
+makemodel:asian/toyota/corolla
+makemodel:asian/toyota/corolla wagon
+makemodel:asian/toyota/paseo
+makemodel:asian/toyota/pickup
+makemodel:asian/toyota/previa
+makemodel:asian/toyota/rav4
+makemodel:asian/toyota/sienna
+makemodel:asian/toyota/supra
+makemodel:asian/toyota/tercel
+makemodel:european/alfa-romeo/164
+makemodel:european/alfa-romeo/spider
+makemodel:european/aston martin/db7
+makemodel:european/audi/100
+makemodel:european/audi/90
+makemodel:european/audi/a4
+makemodel:european/audi/a6
+makemodel:european/audi/a8
+makemodel:european/audi/cabriolet
+makemodel:european/audi/s4
+makemodel:european/audi/s6
+makemodel:european/bentley/arnage
+makemodel:european/bentley/azure
+makemodel:european/bentley/brooklands
+makemodel:european/bmw/3-series
+makemodel:european/bmw/5-series
+makemodel:european/bmw/7-series
+makemodel:european/bmw/8-series
+makemodel:european/bmw/m-5
+makemodel:european/bmw/m-coupe
+makemodel:european/bmw/m-roadster
+makemodel:european/bmw/x5 4.4i
+makemodel:european/bmw/z3
+makemodel:european/bmw/z8
+makemodel:european/ferrari/348 spider
+makemodel:european/ferrari/355
+makemodel:european/ferrari/360 modena
+makemodel:european/ferrari/456
+makemodel:european/ferrari/512
+makemodel:european/ferrari/550
+makemodel:european/jaguar/s-type
+makemodel:european/jaguar/vanden plas
+makemodel:european/jaguar/xj6
+makemodel:european/jaguar/xjr
+makemodel:european/jaguar/xjs
+makemodel:european/jaguar/xk8
+makemodel:european/jaguar/xkr
+makemodel:european/lamborghini/diablo
+makemodel:european/land rover/defender
+makemodel:european/land rover/discovery
+makemodel:european/land rover/discovery series ii
+makemodel:european/land rover/range rover
+makemodel:european/lotus/esprit
+makemodel:european/lotus/esprit/griffith
+makemodel:european/lotus/esprit/plus 8
+makemodel:european/mercedes/190 series
+makemodel:european/mercedes/c-class
+makemodel:european/mercedes/cl-class
+makemodel:european/mercedes/clk
+makemodel:european/mercedes/e-class
+makemodel:european/mercedes/ml
+makemodel:european/mercedes/s-class
+makemodel:european/mercedes/sl-class
+makemodel:european/mercedes/slk
+makemodel:european/porsche/911 carrera
+makemodel:european/porsche/928 gts
+makemodel:european/porsche/968
+makemodel:european/porsche/boxster
+makemodel:european/rolls royce/corniche
+makemodel:european/rolls royce/silver seraph
+makemodel:european/rolls royce/silver spur
+makemodel:european/saab/900
+makemodel:european/saab/900 convertible
+makemodel:european/saab/9000
+makemodel:european/volkswagen/golf
+makemodel:european/volvo/960
+makemodel:european/volvo/c70
+makemodel:european/volvo/s80
+makemodel:european/volvo/s90
+makemodel:european/volvo/v70
+makemodel:european/volvo/v90
+makemodel:north american/am general/hummer
+makemodel:north american/asuna/se/gt
+makemodel:north american/asuna/sunfire
+makemodel:north american/asuna/sunrunner
+makemodel:north american/buick/park avenue
+makemodel:north american/buick/skylark
+makemodel:north american/cadillac/allante
+makemodel:north american/cadillac/catera
+makemodel:north american/cadillac/lse
+makemodel:north american/cadillac/seville
+makemodel:north american/cadillac/sixty special
+makemodel:north american/chevrolet/astro van
+makemodel:north american/chevrolet/beretta
+makemodel:north american/chevrolet/blazer
+makemodel:north american/chevrolet/c/k pickup
+makemodel:north american/chevrolet/camaro
+makemodel:north american/chevrolet/caprice
+makemodel:north american/chevrolet/tahoe
+makemodel:north american/chevrolet/tracker
+makemodel:north american/chevrolet/venture
+makemodel:north american/chrysler/300m
+makemodel:north american/chrysler/cirrus
+makemodel:north american/chrysler/concorde
+makemodel:north american/chrysler/daytona
+makemodel:north american/chrysler/lhs
+makemodel:north american/chrysler/sebring coupe
+makemodel:north american/chrysler/town & country
+makemodel:north american/dodge/caravan
+makemodel:north american/dodge/colt
+makemodel:north american/dodge/colt wagon
+makemodel:north american/dodge/dakota
+makemodel:north american/dodge/durango
+makemodel:north american/dodge/neon
+makemodel:north american/dodge/ram 50 pickup
+makemodel:north american/dodge/ram pickup
+makemodel:north american/dodge/ram wagon/van
+makemodel:north american/dodge/ramcharger
+makemodel:north american/dodge/shadow
+makemodel:north american/dodge/spirit
+makemodel:north american/dodge/stealth
+makemodel:north american/dodge/stratus
+makemodel:north american/dodge/viper
+makemodel:north american/eagle/2000
+makemodel:north american/eagle/summit
+makemodel:north american/eagle/summit wagon
+makemodel:north american/eagle/talon
+makemodel:north american/eagle/vision
+makemodel:north american/ford/aerostar
+makemodel:north american/ford/aspire
+makemodel:north american/ford/bronco
+makemodel:north american/ford/club wagon
+makemodel:north american/ford/contour
+makemodel:north american/ford/crown victoria
+makemodel:north american/ford/econoline
+makemodel:north american/ford/escort
+makemodel:north american/ford/escort zx2
+makemodel:north american/ford/excursion
+makemodel:north american/ford/expedition
+makemodel:north american/ford/explorer
+makemodel:north american/ford/f-150
+makemodel:north american/ford/mustang
+makemodel:north american/ford/probe
+makemodel:north american/ford/ranger
+makemodel:north american/ford/taurus
+makemodel:north american/ford/tempo
+makemodel:north american/geo/metro
+makemodel:north american/geo/prizm
+makemodel:north american/geo/storm
+makemodel:north american/geo/tracker
+makemodel:north american/gmc/full size pickup
+makemodel:north american/gmc/jimmy
+makemodel:north american/gmc/rally van
+makemodel:north american/gmc/safari
+makemodel:north american/gmc/sonoma
+makemodel:north american/gmc/suburban
+makemodel:north american/gmc/yukon
+makemodel:north american/gmc/yukon xl
+makemodel:north american/jeep/cherokee
+makemodel:north american/jeep/grand cherokee
+makemodel:north american/jeep/tj
+makemodel:north american/jeep/yj
+makemodel:north american/lincoln/continental
+makemodel:north american/lincoln/mark viii
+makemodel:north american/lincoln/town car
+makemodel:north american/mercury/cougar
+makemodel:north american/mercury/grand marquis
+makemodel:north american/mercury/mystique
+makemodel:north american/mercury/sable
+makemodel:north american/mercury/topaz
+makemodel:north american/mercury/tracer
+makemodel:north american/mercury/villager
+makemodel:north american/oldsmobile/aurora
+makemodel:north american/oldsmobile/cutlass ciera
+makemodel:north american/oldsmobile/cutlass supreme
+makemodel:north american/plymouth/neon
+makemodel:north american/plymouth/prowler
+makemodel:north american/plymouth/sundance
+makemodel:north american/plymouth/voyager
+makemodel:north american/pontiac/bonneville
+makemodel:north american/pontiac/firebird
+makemodel:north american/pontiac/grand am
+makemodel:north american/pontiac/grand prix
+makemodel:north american/pontiac/montana
+makemodel:north american/pontiac/sunfire
+makemodel:north american/pontiac/sunrunner
+makemodel:north american/pontiac/trans sport
+makemodel:north american/saturn/sc
+makemodel:north american/saturn/sl
+makemodel:north american/saturn/sw
+city:australia/gold coast
+city:australia/melbourn
+city:australia/perth
+city:australia/sydney
+city:australia/wollongong
+city:china/beijing
+city:china/hongkong
+city:china/shanghai
+city:u.s.a./california/los angeles
+city:u.s.a./california/sacramento
+city:u.s.a./california/san diego
+city:u.s.a./california/san francisco
+city:u.s.a./california/san jose
+city:u.s.a./california/sunnyvale
+city:u.s.a./florida/miami
+city:u.s.a./florida/orlando
+city:u.s.a./florida/palm beach
+city:u.s.a./florida/tampa
+city:u.s.a./new york/albany
+city:u.s.a./new york/binghamton
+city:u.s.a./new york/buffalo
+city:u.s.a./new york/new york
+city:u.s.a./new york/rochester
+city:u.s.a./new york/syracuse
+city:u.s.a./texas/austin
+city:u.s.a./texas/dallas
+city:u.s.a./texas/houston
+city:u.s.a./texas/san antonio
+city:u.s.a./utah/provo
+city:u.s.a./utah/salt lake city
+city:u.s.a./washington d.c.

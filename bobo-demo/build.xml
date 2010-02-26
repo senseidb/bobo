@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="bobo-demo" default="dist">
+	    <property name="bobo.root" location="../"/>
+		<property name="demo.src" value="src"/>
+	    <property name="lib.dir" value="${bobo.root}/lib"/>
+		    
+        <property name="lib.master" value="${lib.dir}/master"/>
+	    <property name="lib.gui" value="${lib.dir}/gui"/>
+	    <property name="dist" value="${bobo.root}/dist"/>
+        <property name="build" value="build"/>
+	    <property name="demo.webapp" value="webapp"/>
+	    <property name="gwtc-out" value="gwtc-out"/>
+	
+	    <property name="demo.settings" value="settings" />
+	    <property name="demo.conf" value="conf"/>
+	
+	    <property file="${bobo.root}/version.properties" />
+	
+        <path id="project.class.path">
+            <fileset dir="${lib.master}">
+                <include name="*.jar"/>
+			</fileset>
+        	<fileset dir="${lib.gui}" includes="*.jar"/>
+        	<fileset dir="${dist}">
+        	    <include name="bobo-browse-${version}.jar" />
+        	    <include name="bobo-gwt-${version}.jar" />
+        	</fileset>
+        </path>
+
+        <target name="clean">
+             <delete dir="${build}"/>
+        	 <delete dir="${gwtc-out}"/>
+        </target>
+
+        <target name="init">
+                <mkdir dir="${build}"/>
+        </target>
+
+        <target name="compile" depends="init">                
+                <javac debug="true" destdir="${build}">
+                      <src path="${demo.src}"/>
+                      <classpath refid="project.class.path"/>
+                </javac>
+        	    <copy todir="${build}">
+        	      <fileset dir="${demo.src}" excludes="**/*.java"/>
+        	    </copy>
+        </target>
+	
+	  <target name="devmode" depends="compile" description="Run development mode">
+	    <java failonerror="true" fork="true" classname="com.google.gwt.dev.DevMode">
+	      <classpath>
+	        <pathelement location="${demo.src}"/>
+	        <path refid="project.class.path"/>
+	      </classpath>
+	      <jvmarg value="-Xmx256M"/>
+	      <arg value="-startupUrl"/>
+	      <arg value="BoboDemo.html"/>
+	      <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+	      <arg line="-war ${dist}" />
+	      <arg value="com.browseengine.bobo.demo.BoboDemo"/>
+	    </java>
+	  </target>
+	
+	  <target name="hosted" depends="devmode" description="Run development mode (NOTE: the 'hosted' target is deprecated)" />
+	
+	   <target name="gwtc" depends="compile" description="GWT compile to JavaScript">
+	    <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+	      <classpath>
+	        <pathelement location="${demo.src}"/>
+	        <path refid="project.class.path"/>
+	      </classpath>
+	      <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+	      <jvmarg value="-Xmx256M"/>
+	      <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+
+	      <arg line="-war ${gwtc-out}" />
+	      <arg value="com.browseengine.bobo.demo.BoboDemo"/>
+	    </java>
+	  </target>
+
+        <target name="dist" depends="gwtc">
+        	<copy file="${demo.settings}/index.properties" todir="${build}" />
+        	<replace file="${build}/index.properties" token="@bobo.root@" value="${bobo.root}" />
+        	<war destfile="${dist}/bobo-demo.war" webxml="${demo.webapp}/web.xml" >
+        	                <fileset dir="${demo.webapp}">
+        	                        <exclude name="web.xml"/>
+        	                </fileset>
+        	                <fileset dir="${gwtc-out}"/>
+        	                <classes dir="${build}"/>
+        	                <classes dir="${demo.conf}"/>
+        	                <lib dir="${lib.gui}" excludes="gwt-dev.jar"/>
+        	                <lib dir="${lib.master}"/>
+        	                <lib dir="${dist}" includes="bobo-browse-${version}.jar" />
+                			<lib dir="${dist}" includes="bobo-gwt-${version}.jar" />
+        	        </war>
+        </target>
+</project>

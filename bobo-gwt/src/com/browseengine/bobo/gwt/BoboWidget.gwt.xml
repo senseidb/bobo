@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module>
+  <inherits name='com.google.gwt.user.User'/>
+  <inherits name='com.google.gwt.event.Event'/>
+  <inherits name='com.google.gwt.visualization.Visualization'/>
+  <!-- Specify the paths for translatable code                    -->
+  <source path='widgets'/>
+</module>

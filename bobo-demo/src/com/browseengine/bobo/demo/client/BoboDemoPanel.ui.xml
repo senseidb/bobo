@@ -1,0 +1,42 @@
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g='urn:import:com.google.gwt.user.client.ui'
+			 xmlns:bobo='urn:import:com.browseengine.bobo.gwt.widgets' >
+	<g:HTMLPanel>
+	    <LINK href="search.css" rel="stylesheet" type="text/css"/>
+	    <p align="right">
+	      <g:TextBox ui:field='queryInput' maxLength='512' visibleLength='25'/>
+	      hits: <span ui:field="hitcountLabel"></span>
+			(<span ui:field="searchtimeLabel"></span> ms)
+		  <g:Button ui:field='searchButton' text='Search' focus='true'/>
+		  <g:Button ui:field='clearButton' text='Clear'/>
+		</p>
+		<table width="100%" border="1">
+		  <tr valign="top">
+		    <td>
+		      <bobo:CheckBoxFacetView ui:field='colorView' name='color'/>
+		    </td>
+		    <td>
+		      <bobo:CheckBoxFacetView ui:field='categoryView' name='category'/>
+		    </td>
+		    <td>
+		      <bobo:CheckBoxFacetView ui:field='priceView' name='price'/>
+		    </td>
+		    <td>
+		      <bobo:CheckBoxFacetView ui:field='mileageView' name='mileage'/>
+		    </td>
+		    <td>
+		      <bobo:CheckBoxFacetView ui:field='yearView' name='year'/>
+		    </td>
+		  </tr>
+		  <!-- 
+		  <bobo:TagCloudFacetView ui:field='tagsView' name='tags'/>
+		   -->
+		   <tr>
+		   <td colspan="5">
+		     <bobo:ResultTableView ui:field='resultsView' fieldNames='color,category,price,mileage,year' /> 
+		   </td>
+		   </tr>
+		</table>
+		
+	</g:HTMLPanel>
+</ui:UiBinder>
