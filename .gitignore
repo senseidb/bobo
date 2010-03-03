@@ -1,0 +1,13 @@
+bobo-browse/build/
+bobo-gwt/build/
+bobo-service/build/
+bobo-solr/build/
+build-test/
+dist/
+ivy/
+lib/gui/
+lib/jetty/
+lib/master
+lib/solr/
+lib/test/
+
