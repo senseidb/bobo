@@ -224,15 +224,15 @@ public class IndexReaderTestCase extends TestCase {
 	
 	public void testFastMatchAllDocs() throws Exception{
 		  File idxFile = new File("/Users/jwang/dataset/idx");
-		  Directory idxDir = FSDirectory.getDirectory(idxFile);
+		  Directory idxDir = FSDirectory.open(idxFile);
 		
-	      BoboIndexReader reader = BoboIndexReader.getInstance(IndexReader.open(idxDir));
+	      BoboIndexReader reader = BoboIndexReader.getInstance(IndexReader.open(idxDir,true));
 	      IndexSearcher searcher = new IndexSearcher(reader);
 	      
 	      //Query q = reader.getFastMatchAllDocsQuery();
 	      //Query q = new MatchAllDocsQuery();
 	      
-	      QueryParser qp = new QueryParser("contents",new StandardAnalyzer());
+	      QueryParser qp = new QueryParser(Version.LUCENE_CURRENT,"contents",new StandardAnalyzer(Version.LUCENE_CURRENT));
 	      Query q = qp.parse("*:*");
 	      TopDocs topDocs = searcher.search(q, 100);
 	      assertEquals(reader.numDocs(), topDocs.totalHits);
