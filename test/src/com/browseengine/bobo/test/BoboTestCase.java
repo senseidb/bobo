@@ -78,7 +78,6 @@ import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.client.GeoExample;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
@@ -87,6 +86,7 @@ import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
+import com.browseengine.bobo.facets.impl.GeoFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
@@ -150,7 +150,7 @@ public class BoboTestCase extends TestCase {
 		
 	public static Field buildMetaField(String name,String val)
 	{
-	  Field f = new Field(name,val,Field.Store.NO,Index.NOT_ANALYZED_NO_NORMS);
+	  Field f = new Field(name,val,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS);
 	  f.setOmitTermFreqAndPositions(true);
 	  return f;
 	}
@@ -454,6 +454,7 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new RangeFacetHandler("latitude", Arrays.asList(new String[]{"[* TO 30]", "[35 TO 60]", "[70 TO 120]"})));
 		facetHandlers.add(new RangeFacetHandler("longitude", Arrays.asList(new String[]{"[* TO 30]", "[35 TO 60]", "[70 TO 120]"})));
 		facetHandlers.add(new GeoExample("distance", "latitude", "longitude"));
+		facetHandlers.add(new GeoFacetHandler("correctDistance", "latitude", "longitude"));
 		
 		LinkedHashSet<String> dependsNames=new LinkedHashSet<String>();
 		dependsNames.add("color");
@@ -642,7 +643,11 @@ public class BoboTestCase extends TestCase {
 		doTest(br,7,answer,null);
 	}
 
-	public void testGeo() throws Exception{
+	/**
+	 * This tests GeoSimpleFacetHandler
+	 * @throws Exception
+	 */
+	public void testSimpleGeo() throws Exception{
 		// testing facet counts for two distance facets - <30,70,5>, <60,120,1>
 		BrowseRequest br=new BrowseRequest();
 		br.setCount(10);
@@ -706,7 +711,76 @@ public class BoboTestCase extends TestCase {
 		doTest(br3, 1 , answer, null);
 
 	}
-	
+
+	/**
+	 * This tests GeoFacetHandler
+	 * @throws Exception
+	 */
+	public void testGeo() throws Exception{
+		// testing facet counts for two distance facets - <30,70,5>, <60,120,1>
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+
+        BrowseSelection sel=new BrowseSelection("correctDistance");
+        sel.addValue("30,75:100");
+        sel.addValue("60,120:1");
+        br.addSelection(sel); 
+		
+		FacetSpec geoSpec=new FacetSpec();
+		geoSpec.setMinHitCount(0);
+		geoSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
+		br.setFacetSpec("correctDistance", geoSpec);
+		
+		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+		answer.put("correctDistance", Arrays.asList(new BrowseFacet[]{new BrowseFacet("30,75:100",1),new BrowseFacet("60,120:1",2)}));
+		doTest(br,3,answer,null);
+
+		// testing for selection of facet <60,120,1> and verifying that 2 documents match this facet.
+		BrowseRequest br2 = new BrowseRequest();
+		br2.setCount(10);
+		br2.setOffset(0);	
+
+		BrowseSelection sel2 = new BrowseSelection("correctDistance");
+		sel2.addValue("60,120:1");
+		HashMap map = new HashMap<String, Float>();
+		map.put("60,120:1", 3.0f);
+		FacetTermQuery geoQ = new FacetTermQuery(sel2,map);
+		
+		BoboBrowser b = newBrowser();
+		Explanation expl = b.explain(geoQ, 0);
+		System.out.println(expl);
+		
+		br2.setQuery(geoQ);
+		doTest(br2,2,null,new String[]{"1","5"});
+
+		expl = b.explain(geoQ, 1);
+	    System.out.println(expl);
+	    
+	    // facet query for color "red" and getting facet counts for the distance facet.
+		BrowseRequest br3 = new BrowseRequest();
+		br3.setCount(10);
+		br3.setOffset(0);	
+
+		BrowseSelection sel3 = new BrowseSelection("color");
+		sel3.addValue("red");
+		HashMap map3 = new HashMap<String, Float>();
+		map3.put("red", 3.0f);
+		FacetTermQuery colorQ = new FacetTermQuery(sel3,map3);
+
+		BoboBrowser b2 = newBrowser();
+		Explanation expl2 = b.explain(colorQ, 0);
+		System.out.println(expl2);
+
+		br3.setFacetSpec("correctDistance", geoSpec);
+		geoSpec.setMinHitCount(0);
+		br3.setQuery(colorQ);             // query is color=red
+		br3.addSelection(sel);			  // count facets <30,70,5> and <60,120,1>
+		answer.clear();
+		answer.put("correctDistance", Arrays.asList(new BrowseFacet[]{new BrowseFacet("60,120:1",1)}));		
+		doTest(br3, 1 , answer, null);
+	}
+
 	public void testMultiPath() throws Exception{
 		BrowseRequest br=new BrowseRequest();
 		br.setCount(10);

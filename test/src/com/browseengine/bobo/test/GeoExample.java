@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.browseengine.bobo.client;
+package com.browseengine.bobo.test;
 
 import java.util.ArrayList;
 import java.util.Collections;

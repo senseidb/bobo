@@ -46,7 +46,6 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		_predefinedRanges = predefinedRanges;
 		
 		if(predefinedRanges != null) {
-			System.out.println("predefinedRanges size is : " + predefinedRanges.size());
 			_latPredefinedRangeIndexes = new int[_predefinedRanges.size()][2];
 			_longPredefinedRangeIndexes = new int[_predefinedRanges.size()][2];
 			int i = 0;
@@ -152,7 +151,6 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 					if (_latCount[i] >0 ){
 						for (int k=0;k<_latPredefinedRangeIndexes.length;++k)
 						{
-							System.out.println("latpredefinedRangeIndexes values: " + _latPredefinedRangeIndexes[k][0] + " TO " + _latPredefinedRangeIndexes[k][1]);
 							if (i>=_latPredefinedRangeIndexes[k][0] && i<=_latPredefinedRangeIndexes[k][1])
 							{
 								rangeCounts[k]+=_latCount[i];
@@ -161,17 +159,13 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 					}
 				}
 				List<BrowseFacet> list=new ArrayList<BrowseFacet>(rangeCounts.length);
-				System.out.println("Range counts: " + rangeCounts.length);
 				for (int i=0;i<rangeCounts.length;++i)
 				{
-					System.out.println("Predefined range value (before minCount check): " + _predefinedRanges.get(i));
-					System.out.println("Range count value: " + rangeCounts[i] + " and mincount value: " + minCount);
 					if (rangeCounts[i]>=minCount)
 					{
 						BrowseFacet choice=new BrowseFacet();
 						choice.setHitCount(rangeCounts[i]);
 						choice.setValue(_predefinedRanges.get(i));
-						System.out.println("Predefined range value (after minCount check): " + _predefinedRanges.get(i));
 						list.add(choice);
 					}
 				}
