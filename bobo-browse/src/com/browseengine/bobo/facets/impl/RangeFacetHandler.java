@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
-import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
