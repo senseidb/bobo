@@ -677,15 +677,12 @@ public class BoboTestCase extends TestCase {
 		map.put("<60,120,1>", 3.0f);
 		FacetTermQuery geoQ = new FacetTermQuery(sel2,map);
 		
-		System.out.println("Testing GeoFacet Filters");
 		BoboBrowser b = newBrowser();
 		Explanation expl = b.explain(geoQ, 0);
-		System.out.println(expl);
 		
 		br2.setQuery(geoQ);
 		doTest(br2,2,null,new String[]{"1","5"});
 		expl = b.explain(geoQ, 1);
-	    System.out.println(expl);
 	    
 	    // facet query for color "red" and getting facet counts for the distance facet.
 		BrowseRequest br3 = new BrowseRequest();
@@ -700,8 +697,7 @@ public class BoboTestCase extends TestCase {
 
 		BoboBrowser b2 = newBrowser();
 		Explanation expl2 = b.explain(colorQ, 0);
-		System.out.println(expl2);
-
+		
 		br3.setFacetSpec("distance", geoSpec);
 		geoSpec.setMinHitCount(0);
 		br3.setQuery(colorQ);             // query is color=red
@@ -749,13 +745,11 @@ public class BoboTestCase extends TestCase {
 		
 		BoboBrowser b = newBrowser();
 		Explanation expl = b.explain(geoQ, 0);
-		System.out.println(expl);
 		
 		br2.setQuery(geoQ);
 		doTest(br2,2,null,new String[]{"1","5"});
 
 		expl = b.explain(geoQ, 1);
-	    System.out.println(expl);
 	    
 	    // facet query for color "red" and getting facet counts for the distance facet.
 		BrowseRequest br3 = new BrowseRequest();
@@ -770,7 +764,6 @@ public class BoboTestCase extends TestCase {
 
 		BoboBrowser b2 = newBrowser();
 		Explanation expl2 = b.explain(colorQ, 0);
-		System.out.println(expl2);
 
 		br3.setFacetSpec("correctDistance", geoSpec);
 		geoSpec.setMinHitCount(0);
@@ -1704,12 +1697,10 @@ public class BoboTestCase extends TestCase {
 		
 		BoboBrowser b = newBrowser();
 		Explanation expl = b.explain(colorQ, 0);
-		System.out.println(expl);
 		
 		br.setQuery(tagQ);
 		doTest(br,4,null,new String[]{"7","1","3","2"});
 		expl = b.explain(tagQ, 6);
-	    System.out.println(expl);
 		
 	}
 	
