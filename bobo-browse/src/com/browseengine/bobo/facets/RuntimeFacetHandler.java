@@ -52,4 +52,7 @@ public abstract class RuntimeFacetHandler<D> extends FacetHandler<D>
     reader.putRuntimeFacetData(_name, load(reader));
   }
 
+  public void close()
+  {
+  }
 }
