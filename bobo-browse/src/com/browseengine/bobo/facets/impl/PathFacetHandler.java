@@ -19,7 +19,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
@@ -34,7 +33,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
 
-public class PathFacetHandler extends FacetHandler<FacetDataCache> implements FacetHandlerFactory<PathFacetHandler> 
+public class PathFacetHandler extends FacetHandler<FacetDataCache> 
 {
 	private static final String DEFAULT_SEP = "/";
 	
@@ -58,11 +57,6 @@ public class PathFacetHandler extends FacetHandler<FacetDataCache> implements Fa
 		_separator=DEFAULT_SEP;
 	}
 	
-	public PathFacetHandler newInstance()
-	{
-		return new PathFacetHandler(getName(),_multiValue);
-	}
-		
 	/**
      * Sets is strict applied for counting. Used if the field is of type <b><i>path</i></b>.
      * @param strict is strict applied

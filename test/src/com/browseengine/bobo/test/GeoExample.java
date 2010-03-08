@@ -86,10 +86,4 @@ public class GeoExample extends GeoSimpleFacetHandler{
 	protected String getValueFromRangeString(String rangeString) {
 		return null;
 	}
-
-	@Override
-	public GeoSimpleFacetHandler newInstance() {
-		return null;
-	}
-
 }

@@ -17,7 +17,6 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -28,7 +27,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
  * @author ymatsuda
  *
  */
-public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<FacetDataNone> implements FacetHandlerFactory<DynamicRangeFacetHandler>
+public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<FacetDataNone>
 {
   protected final String _dataFacetName;
   protected RangeFacetHandler _dataFacetHandler;
@@ -42,7 +41,6 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
   protected abstract String buildRangeString(String val);
   protected abstract List<String> buildAllRangeStrings();
   protected abstract String getValueFromRangeString(String rangeString);
-  public abstract DynamicRangeFacetHandler newInstance();
   
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String val, Properties props) throws IOException

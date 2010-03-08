@@ -13,7 +13,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
@@ -25,7 +24,7 @@ import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter.FacetRangeValueConverter;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
-public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements FacetHandlerFactory<RangeFacetHandler>{
+public class RangeFacetHandler extends FacetHandler<FacetDataCache>{
 	private static Logger logger = Logger.getLogger(RangeFacetHandler.class);
 	private final String _indexFieldName;
 	private final TermListFactory _termListFactory;
@@ -54,12 +53,6 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
         this(name,indexFieldName,null,predefinedRanges);
     }
 	
-	
-	public RangeFacetHandler newInstance()
-    {
-	  return new RangeFacetHandler(getName(),_indexFieldName,_termListFactory,_predefinedRanges);
-    }
-
 	@Override
 	public DocComparatorSource getDocComparatorSource() {
 		return new FacetDataCache.FacetDocComparatorSource(this);

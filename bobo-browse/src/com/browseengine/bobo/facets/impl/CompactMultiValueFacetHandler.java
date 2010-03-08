@@ -26,7 +26,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
@@ -46,7 +45,7 @@ import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.StringArrayComparator;
 
-public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> implements FacetHandlerFactory<CompactMultiValueFacetHandler>,FacetScoreable
+public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> implements FacetScoreable
 {
 	private static Logger logger = Logger.getLogger(CompactMultiValueFacetHandler.class);
 	
@@ -70,11 +69,6 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
 	
 	public CompactMultiValueFacetHandler(String name) {
       this(name,name,null);
-    }
-	
-	public CompactMultiValueFacetHandler newInstance()
-    {
-      return new CompactMultiValueFacetHandler(getName(),_indexFieldName,_termListFactory);
     }
 	
 	@Override

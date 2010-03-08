@@ -13,7 +13,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
@@ -26,7 +25,7 @@ import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
-public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements FacetHandlerFactory<SimpleFacetHandler>,FacetScoreable
+public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements FacetScoreable
 {
 	private static Logger logger = Logger.getLogger(SimpleFacetHandler.class);
 	
@@ -55,11 +54,6 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		this(name,indexFieldName,null);
 	}
 	
-	public SimpleFacetHandler newInstance()
-	{
-	  return new SimpleFacetHandler(getName(),_indexFieldName,_termListFactory);
-	}
-
 	@Override
 	public DocComparatorSource getDocComparatorSource() {
 		return new FacetDataCache.FacetDocComparatorSource(this);

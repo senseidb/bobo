@@ -23,7 +23,6 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
@@ -31,7 +30,7 @@ import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
 
-public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> implements FacetHandlerFactory<SimpleGroupbyFacetHandler>{
+public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 	private final LinkedHashSet<String> _fieldsSet;
 	private ArrayList<SimpleFacetHandler> _facetHandlers;
 	private Map<String,SimpleFacetHandler> _facetHandlerMap;
@@ -144,11 +143,6 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> imple
 		return FacetDataNone.instance;
 	}
 
-	public SimpleGroupbyFacetHandler newInstance() {
-		return new SimpleGroupbyFacetHandler(_name,_fieldsSet);
-	}
-	
-	
 	private static class GroupbyDocComparator extends DocComparator{
 		private DocComparator[] _comparators;
 

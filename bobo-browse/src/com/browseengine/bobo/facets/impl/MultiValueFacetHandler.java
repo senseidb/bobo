@@ -20,7 +20,6 @@ import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
@@ -36,7 +35,7 @@ import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
-public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCache> implements FacetHandlerFactory<MultiValueFacetHandler>,FacetScoreable 
+public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCache> implements FacetScoreable 
 {
   private static Logger logger = Logger.getLogger(MultiValueFacetHandler.class);
 
@@ -99,11 +98,6 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   public MultiValueFacetHandler(String name, Set<String> depends)
   {
     this(name, name, null, null, depends);
-  }
-
-  public MultiValueFacetHandler newInstance()
-  {
-    return new MultiValueFacetHandler(getName(), _indexFieldName, _termListFactory, _sizePayloadTerm, _depends);
   }
 
   public void setMaxItems(int maxItems)

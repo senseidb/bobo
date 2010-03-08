@@ -21,7 +21,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.GeoFacetFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
@@ -40,7 +39,7 @@ import com.browseengine.bobo.util.GeoMatchUtil;
  *
  */
 
-public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> implements FacetHandlerFactory<GeoFacetHandler>{
+public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> {
 	
 	private static Logger logger = Logger.getLogger(GeoFacetHandler.class);
 //	private String _name;
@@ -53,10 +52,6 @@ public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> 
 		_lonFieldName = lonFieldName;
 	}
 
-	public GeoFacetHandler newInstance() {
-		return new GeoFacetHandler(_name, _latFieldName, _lonFieldName);
-	}
-	
 	public static class GeoFacetData {
 		private BigFloatArray _xValArray;
 		private BigFloatArray _yValArray;

@@ -20,7 +20,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -34,7 +33,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
  *
  */
 
-public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDataNone> implements FacetHandlerFactory<GeoSimpleFacetHandler> {
+public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDataNone> {
 
 	private static Logger logger = Logger.getLogger(RangeFacetHandler.class);
 	protected final String _latFacetName;
@@ -52,7 +51,6 @@ public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDat
 	protected abstract String buildLongRangeString(String val);
 	protected abstract List<String> buildAllRangeStrings(String[] values);
 	protected abstract String getValueFromRangeString(String rangeString);
-	public abstract GeoSimpleFacetHandler newInstance();
 	
 	@Override
 	public RandomAccessFilter buildRandomAccessFilter(String val, Properties props) throws IOException {

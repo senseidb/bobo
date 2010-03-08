@@ -12,13 +12,12 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerFactory;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
-public class FilteredRangeFacetHandler extends FacetHandler<FacetDataNone> implements FacetHandlerFactory<FilteredRangeFacetHandler> {
+public class FilteredRangeFacetHandler extends FacetHandler<FacetDataNone> {
     private final List<String> _predefinedRanges;
     private final String _inner;
     private RangeFacetHandler _innerHandler;
@@ -88,9 +87,5 @@ public class FilteredRangeFacetHandler extends FacetHandler<FacetDataNone> imple
 		else{
 			throw new IOException("inner handler is not instance of "+RangeFacetHandler.class);
 		}
-	}
-
-	public FilteredRangeFacetHandler newInstance() {
-		return new FilteredRangeFacetHandler(_name,_inner, _predefinedRanges);
 	}
 }
