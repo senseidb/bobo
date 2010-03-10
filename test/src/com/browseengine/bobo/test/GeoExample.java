@@ -92,7 +92,7 @@ public class GeoExample extends GeoSimpleFacetHandler<DefaultFacetHandlerInitial
   public void init(DefaultFacetHandlerInitializerParam params)
   {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException();
+    return;
   }
 
   public RuntimeFacetHandler<FacetDataNone, DefaultFacetHandlerInitializerParam> newInstance()
