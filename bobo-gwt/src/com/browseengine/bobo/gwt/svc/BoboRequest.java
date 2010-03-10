@@ -13,6 +13,7 @@ public class BoboRequest implements IsSerializable {
 	private Map<String,BoboSelection> _selections;
 	private List<BoboSortSpec> _sortSpecs;
 	private Map<String,BoboFacetSpec> _facetSpecMap;
+	private Map<String,BoboDefaultFacetHandlerInitializerParam> _facetHandlerDataMap;
 	
 	public String getQuery() {
 		return _query;
@@ -50,5 +51,12 @@ public class BoboRequest implements IsSerializable {
 	public void setFacetSpecMap(Map<String, BoboFacetSpec> facetSpecMap) {
 		_facetSpecMap = facetSpecMap;
 	}
-	
+	public Map<String, BoboDefaultFacetHandlerInitializerParam> getFacetHandlerDataMap()
+	{
+	  return _facetHandlerDataMap;
+	}
+	public void setFacetHandlerDataMap(Map<String, BoboDefaultFacetHandlerInitializerParam> facetHandlerDataMap)
+	{
+	  _facetHandlerDataMap = facetHandlerDataMap;
+	}
 }

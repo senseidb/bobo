@@ -25,9 +25,12 @@ public final class GeoSimpleFacetFilter extends RandomAccessFilter {
 	private final FacetHandler<FacetDataCache> _longFacetHandler;
 	private final String _latRangeString;
 	private final String _longRangeString;
-	
+
 	/**
-	 * @param filters
+	 * @param latHandler
+	 * @param longHandler
+	 * @param latRangeString
+	 * @param longRangeString
 	 */
 	public GeoSimpleFacetFilter(FacetHandler<FacetDataCache> latHandler, FacetHandler<FacetDataCache> longHandler, String latRangeString, String longRangeString) {
 		_latFacetHandler = latHandler;

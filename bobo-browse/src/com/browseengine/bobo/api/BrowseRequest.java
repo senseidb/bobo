@@ -36,6 +36,8 @@ import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 
+import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+
 /**
  * Browse Request.
  * @author jwang
@@ -49,7 +51,8 @@ public class BrowseRequest implements Serializable{
 	private HashMap<String,BrowseSelection> _selections;
 	private ArrayList<SortField> _sortSpecs;
 	private Map<String,FacetSpec> _facetSpecMap;
-	private Query _query;
+	private Map<String,FacetHandlerInitializerParam> _facetHandlerDataMap;
+  private Query _query;
 	private int _offset;
 	private int _count;
 	private boolean _fetchStoredFields;
@@ -73,6 +76,23 @@ public class BrowseRequest implements Serializable{
 		return _facetSpecMap;
 	}
 	
+  /**
+   * @return The map between <b>RuntimeFacetHandler</b> names and their corresponding initialization data.
+   */
+  public Map<String, FacetHandlerInitializerParam> getFacetHandlerDataMap()
+  {
+    return _facetHandlerDataMap;
+  }
+
+  /**
+   * Sets the map between RuntimeFacetHandler names and their corresponding initialization data.
+   * @param facetHandlerDataMap
+   */
+  public void setFacetHandlerDataMap(
+      Map<String, FacetHandlerInitializerParam> facetHandlerDataMap)
+  {
+    _facetHandlerDataMap = facetHandlerDataMap;
+  }
 	
 	public int getSelectionCount()
 	{
@@ -116,6 +136,7 @@ public class BrowseRequest implements Serializable{
 		_selections=new HashMap<String,BrowseSelection>();
 		_sortSpecs=new ArrayList<SortField>();
 		_facetSpecMap=new HashMap<String,FacetSpec>();
+		_facetHandlerDataMap = new HashMap<String, FacetHandlerInitializerParam>();
 		_filter = null;
 		_fetchStoredFields = false;
 	}
@@ -151,7 +172,25 @@ public class BrowseRequest implements Serializable{
 	public FacetSpec getFacetSpec(String name){
 		return _facetSpecMap.get(name);
 	}
-	
+
+	/**
+	 * @param name is the name of the <b>RuntimeFacetHandler</b>.
+	 * @param data is the data Bobo is to use to initialize the corresponding RuntimeFacetHandler.
+	 */
+	public void setFacetHandlerData(String name, FacetHandlerInitializerParam data)
+	{
+	  _facetHandlerDataMap.put(name, data);
+	}
+
+	/**
+	 * @param name is the name of the <b>RuntimeFacetHandler</b>.
+	 * @return the data Bobo is to use to initialize the corresponding RuntimeFacetHandler.
+	 */
+	public FacetHandlerInitializerParam getFacethandlerData(String name)
+	{
+	  return _facetHandlerDataMap.get(name);
+	}
+
 	/**
 	 * Gets the number of hits to return. Part of the paging parameters.
 	 * @return number of hits to return.

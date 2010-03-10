@@ -25,8 +25,10 @@ import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
+import com.browseengine.bobo.gwt.svc.BoboDefaultFacetHandlerInitializerParam;
 import com.browseengine.bobo.gwt.svc.BoboFacetSpec;
 import com.browseengine.bobo.gwt.svc.BoboHit;
 import com.browseengine.bobo.gwt.svc.BoboRequest;
@@ -56,7 +58,43 @@ public class BoboSearchServiceImpl implements BoboSearchService {
 		fspec.setOrderBy(spec.isOrderByHits() ? FacetSortSpec.OrderHitsDesc : FacetSortSpec.OrderValueAsc);
 		return fspec;
 	}
-	
+
+	private static DefaultFacetHandlerInitializerParam convert(BoboDefaultFacetHandlerInitializerParam param)
+	{
+	  DefaultFacetHandlerInitializerParam data = new DefaultFacetHandlerInitializerParam();
+	  Set<String> names = param.getBooleanParamNames();
+	  for(String name : names)
+	  {
+	    data.putBooleanParam(name, param.getBooleanParam(name));
+	  }
+	  names = param.getByteArrayParamNames();
+    for(String name : names)
+    {
+      data.putByteArrayParam(name, param.getByteArrayParam(name));
+    }
+	  names = param.getDoubleParamNames();
+    for(String name : names)
+    {
+      data.putDoubleParam(name, param.getDoubleParam(name));
+    }
+	  names = param.getIntParamNames();
+    for(String name : names)
+    {
+      data.putIntParam(name, param.getIntParam(name));
+    }
+	  names = param.getLongParamNames();
+    for(String name : names)
+    {
+      data.putLongParam(name, param.getLongParam(name));
+    }
+	  names = param.getStringParamNames();
+    for(String name : names)
+    {
+      data.putStringParam(name, param.getStringParam(name));
+    }
+    return data;
+  }
+
 	private static Comparator<FacetValue> getComparator(FacetSpec fspec){
 		ComparatorFactory compFactory = null;
 		
@@ -138,6 +176,15 @@ public class BoboSearchServiceImpl implements BoboSearchService {
 			for (Entry<String,BoboFacetSpec> entry : entrySet){
 				breq.setFacetSpec(entry.getKey(), convert(entry.getValue()));
 			}
+		}
+		Map<String,BoboDefaultFacetHandlerInitializerParam> facetHandlerDataMap = req.getFacetHandlerDataMap();
+		if (facetHandlerDataMap!=null && facetHandlerDataMap.size()>0)
+		{
+      Set<Entry<String,BoboDefaultFacetHandlerInitializerParam>> entrySet = facetHandlerDataMap.entrySet();
+      for (Entry<String,BoboDefaultFacetHandlerInitializerParam> entry : entrySet)
+      {
+        breq.setFacetHandlerData(entry.getKey(), convert(entry.getValue()));
+      }
 		}
 		return breq;
 	}

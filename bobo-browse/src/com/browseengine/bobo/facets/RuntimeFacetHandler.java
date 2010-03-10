@@ -12,7 +12,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
  * @author ymatsuda
  *
  */
-public abstract class RuntimeFacetHandler<D> extends FacetHandler<D>
+public abstract class RuntimeFacetHandler<D, P extends FacetHandlerInitializerParam> extends FacetHandler<D> implements RuntimeInitializable<P>, FacetHandlerFactory<RuntimeFacetHandler<D,P>>
 {
   /**
    * Constructor
