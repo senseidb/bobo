@@ -5,6 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The 'generic' type for FacetHandler initialization parameters for the purpose of easy serialization.
+ * When this type is used, it is completely up to the program logic of the utilizing RuntimeFacetHandler
+ * and its client code to find the data at the right place.
+ * @author ymatsuda
+ *
+ */
 public class DefaultFacetHandlerInitializerParam implements FacetHandlerInitializerParam
 {
   /**

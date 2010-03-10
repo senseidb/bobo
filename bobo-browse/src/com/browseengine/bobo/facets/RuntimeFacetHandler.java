@@ -9,15 +9,20 @@ import java.util.Set;
 import com.browseengine.bobo.api.BoboIndexReader;
 
 /**
+ * Abstract class for RuntimeFacetHandlers. A concrete RuntimeFacetHandler should implement
+ * the FacetHandlerFactory and RuntimeInitializable so that bobo knows how to create new
+ * instance of the handler at run time and how to initialize it at run time respectively.
  * @author ymatsuda
- *
+ * @param <D> type parameter for FacetData
+ * @param <P> type parameter for Data used in RuntimeFacetHandler initialization.
  */
 public abstract class RuntimeFacetHandler<D, P extends FacetHandlerInitializerParam> extends FacetHandler<D> implements RuntimeInitializable<P>, FacetHandlerFactory<RuntimeFacetHandler<D,P>>
 {
   /**
-   * Constructor
-   * @param name name
-   * @param dependsOn Set of names of facet handlers this facet handler depend on for loading
+   * Constructor that specifying the dependent facet handlers using names.
+   * @param name the name of this FacetHandler, which is used in FacetSpec and Selection to specify
+   * the facet. If we regard a facet as a field, the name is like a field name.
+   * @param dependsOn Set of names of facet handlers this facet handler depend on for loading.
    */
   public RuntimeFacetHandler(String name, Set<String> dependsOn)
   {
@@ -26,7 +31,8 @@ public abstract class RuntimeFacetHandler<D, P extends FacetHandlerInitializerPa
   
   /**
    * Constructor
-   * @param name name
+   * @param name the name of this FacetHandler, which is used in FacetSpec and Selection to specify
+   * the facet. If we regard a facet as a field, the name is like a field name.
    */
   public RuntimeFacetHandler(String name)
   {
