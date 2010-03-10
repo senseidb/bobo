@@ -124,7 +124,7 @@ public class FacetHandlerTest extends TestCase {
 		list.add(h5);
 		
 		
-		BoboIndexReader boboReader = BoboIndexReader.getInstance(reader,list);
+		BoboIndexReader boboReader = BoboIndexReader.getInstance(reader,list, null);
 		
 		BoboBrowser browser = new BoboBrowser(boboReader);
 		HashSet<String> s6 = new HashSet<String>();
@@ -201,7 +201,7 @@ public class FacetHandlerTest extends TestCase {
 		list.add(h5);
 		
 		
-		BoboIndexReader boboReader = BoboIndexReader.getInstance(reader,list);
+		BoboIndexReader boboReader = BoboIndexReader.getInstance(reader,list, null);
 		
 		BoboBrowser browser = new BoboBrowser(boboReader);
 		

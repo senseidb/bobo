@@ -133,7 +133,7 @@ public class BoboTestCase extends TestCase {
 	private BoboIndexReader newIndexReader(boolean readonly) throws IOException{
 	  IndexReader srcReader=IndexReader.open(_indexDir,readonly);
       try{
-        BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,_fconf);
+        BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,_fconf, null);
         return reader;
       }
       catch(IOException ioe){
@@ -1020,7 +1020,7 @@ public class BoboTestCase extends TestCase {
         List<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
         facetHandlers.add(new SimpleFacetHandler("id"));
         
-        BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,facetHandlers);       // not facet handlers to help
+        BoboIndexReader reader= BoboIndexReader.getInstance(srcReader,facetHandlers, null);       // not facet handlers to help
         BoboBrowser browser = new BoboBrowser(reader);
         
         BrowseRequest browseRequest = new BrowseRequest();

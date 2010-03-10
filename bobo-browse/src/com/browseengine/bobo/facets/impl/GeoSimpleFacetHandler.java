@@ -20,7 +20,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -34,7 +33,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
  *
  */
 
-public abstract class GeoSimpleFacetHandler<P extends FacetHandlerInitializerParam> extends RuntimeFacetHandler<FacetDataNone,P> {
+public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDataNone> {
 
 	private static Logger logger = Logger.getLogger(RangeFacetHandler.class);
 	protected final String _latFacetName;

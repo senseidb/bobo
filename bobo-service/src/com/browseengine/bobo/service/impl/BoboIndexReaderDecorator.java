@@ -1,6 +1,7 @@
 package com.browseengine.bobo.service.impl;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -10,21 +11,24 @@ import proj.zoie.api.indexing.IndexReaderDecorator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 
 public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexReader> {
 	private final List<FacetHandler<?>> _facetHandlers;
 	private static final Logger log = Logger.getLogger(BoboIndexReaderDecorator.class);
 	
+  private final Collection<RuntimeFacetHandlerFactory<?,?>> _facetHandlerFactories;
 	private final ClassLoader _classLoader;
-	public BoboIndexReaderDecorator(List<FacetHandler<?>> facetHandlers)
+	public BoboIndexReaderDecorator(List<FacetHandler<?>> facetHandlers, Collection<RuntimeFacetHandlerFactory<?,?>> facetHandlerFactories)
 	{
 	  _facetHandlers = facetHandlers;
+	  _facetHandlerFactories = facetHandlerFactories;
 		_classLoader = Thread.currentThread().getContextClassLoader();
 	}
 	
 	public BoboIndexReaderDecorator()
 	{
-		this(null);
+		this(null, null);
 	}
 	
 	public BoboIndexReader decorate(ZoieIndexReader<BoboIndexReader> zoieReader) throws IOException {
@@ -33,7 +37,7 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
     		Thread.currentThread().setContextClassLoader(_classLoader);
     		if (_facetHandlers!=null)
     		{
-    		  return BoboIndexReader.getInstanceAsSubReader(zoieReader, _facetHandlers);
+    		  return BoboIndexReader.getInstanceAsSubReader(zoieReader, _facetHandlers, _facetHandlerFactories);
     		}
     		else
     		{

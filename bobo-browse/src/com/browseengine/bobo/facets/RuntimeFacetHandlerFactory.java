@@ -11,10 +11,16 @@ package com.browseengine.bobo.facets;
  * @author xiaoyang
  *
  */
-public interface FacetHandlerFactory<F extends FacetHandler<?>>
+public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerParam, F extends RuntimeFacetHandler<?>>
 {
   /**
-   * @return a new instance of of type F.
+   * @return the facet name of the RuntimeFacetHandler it creates.
    */
-  F newInstance();
+  String getName();
+  
+  /**
+   * @param params the data used to initialize the RuntimeFacetHandler.
+   * @return a new instance of 
+   */
+  F get(P params);
 }

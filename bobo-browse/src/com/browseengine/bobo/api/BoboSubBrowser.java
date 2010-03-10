@@ -3,13 +3,11 @@ package com.browseengine.bobo.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
@@ -28,6 +26,7 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
+import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 import com.browseengine.bobo.facets.filter.AndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.search.BoboSearcher2;
@@ -42,6 +41,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
   private static Logger                   logger = Logger.getLogger(BoboSubBrowser.class);
   
   private final BoboIndexReader           _reader;
+  private final Map<String, RuntimeFacetHandlerFactory<?,?>> _runtimeFacetHandlerFactoryMap;
   private final HashMap<String, FacetHandler<?>> _runtimeFacetHandlerMap;
   private HashMap<String, FacetHandler<?>> _allFacetHandlerMap;
 
@@ -61,49 +61,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     super(reader);
     _reader = reader;
     _runtimeFacetHandlerMap = new HashMap<String, FacetHandler<?>>();
-    _allFacetHandlerMap = new HashMap<String,FacetHandler<?>>();
-    Map<String,FacetHandler<?>> inheritedMap = _reader.getFacetHandlerMap();
-    Set<Entry<String, FacetHandler<?>>> entries = inheritedMap.entrySet();
-    for(Entry<String, FacetHandler<?>> entry : entries)
-    {
-      String name = entry.getKey();
-      FacetHandler<?> handler = entry.getValue();
-      if (handler instanceof RuntimeFacetHandler<?,?>)
-      {
-        RuntimeFacetHandler<?,?> myhandler = ((RuntimeFacetHandler<?,?>) handler).newInstance();
-        Set<String> dependsOn = myhandler.getDependsOn();
-        if (dependsOn.size() > 0)
-        {
-          Iterator<String> iter = dependsOn.iterator();
-          while(iter.hasNext())
-          {
-            String fn = iter.next();
-            FacetHandler<?> f = _runtimeFacetHandlerMap.get(fn);
-            if (f == null)
-            {
-              f = reader.getFacetHandler(fn);
-            }
-            if (f==null)
-            {
-              logger.warn("depended on facet handler: "+fn+", but is not found");
-            }
-            myhandler.putDependedFacetHandler(f);
-          }
-        }
-        try
-        {
-          myhandler.loadFacetData(reader);
-        } catch (IOException e)
-        {
-          logger.warn("error trying to loadFacetData on " + myhandler + " : " + e);
-        }
-        _runtimeFacetHandlerMap.put(name, myhandler);
-      } else
-      {
-        _allFacetHandlerMap.put(name, handler);
-      }
-    }
-    _allFacetHandlerMap.putAll(_runtimeFacetHandlerMap);
+    _runtimeFacetHandlerFactoryMap = reader.getRuntimeFacetHandlerFactoryMap();
+    _allFacetHandlerMap = null;
   }
   
   private static boolean isNoQueryNoFilter(BrowseRequest req)
@@ -214,15 +173,22 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     Set<String> fields = getFacetNames();
     
     //      initialize all RuntimeFacetHandlers with data supplied by user at run-time.
-    Set<String> runtimeFacetNames = this.getRuntimeFacetHandlerMap().keySet();
+    ArrayList<RuntimeFacetHandler<?>> runtimeFacetHandlers =
+      new ArrayList<RuntimeFacetHandler<?>>(_runtimeFacetHandlerFactoryMap.size());
+
+    Set<String> runtimeFacetNames = _runtimeFacetHandlerFactoryMap.keySet();
     for(String facetName : runtimeFacetNames)
     {
-      FacetHandler<?> facetHandler = _runtimeFacetHandlerMap.get(facetName);
-      if (facetHandler instanceof RuntimeFacetHandler<?,?>)
+      RuntimeFacetHandlerFactory<FacetHandlerInitializerParam,?> factory = (RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, ?>) _runtimeFacetHandlerFactoryMap.get(facetName);
+      FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
+      RuntimeFacetHandler<?> facetHandler =  factory.get(data);
+      runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
+      try
       {
-        RuntimeFacetHandler<?, FacetHandlerInitializerParam> runtimeHandler = (RuntimeFacetHandler<?, FacetHandlerInitializerParam>) facetHandler;
-        FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
-        runtimeHandler.init(data);
+        this.setFacetHandler(facetHandler);
+      } catch (IOException e)
+      {
+        logger.warn("error trying to set FacetHandler : " + facetHandler);
       }
     }
     // done initialize all RuntimeFacetHandlers with data supplied by user at run-time.
@@ -373,6 +339,12 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     catch (IOException ioe)
     {
       throw new BrowseException(ioe.getMessage(), ioe);
+    } finally
+    {
+      for(RuntimeFacetHandler<?> handler : runtimeFacetHandlers)
+      {
+        handler.close();
+      }
     }
   }
   

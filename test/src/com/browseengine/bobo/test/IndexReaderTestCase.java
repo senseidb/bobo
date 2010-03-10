@@ -58,7 +58,7 @@ public class IndexReaderTestCase extends TestCase {
             for(int j = 0; j < 50; j++)
             {
               IndexReader idxReader = IndexReader.open(idxDir,true);
-              BoboIndexReader reader = BoboIndexReader.getInstance(idxReader,_fconf,workArea);
+              BoboIndexReader reader = BoboIndexReader.getInstance(idxReader,_fconf, null, workArea);
               
               req = new BrowseRequest();
               sel = new BrowseSelection("color");

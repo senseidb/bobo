@@ -9,15 +9,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.browseengine.bobo.facets.DefaultFacetHandlerInitializerParam;
-import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.impl.GeoSimpleFacetHandler;
 
 /**
  * @author nnarkhed
  *
  */
-public class GeoExample extends GeoSimpleFacetHandler<DefaultFacetHandlerInitializerParam>{
+public class GeoExample extends GeoSimpleFacetHandler{
 	private static Logger logger = Logger.getLogger(GeoSimpleFacetHandler.class);
 
 	public GeoExample(String name, String latFacetName, String longFacetName) {
@@ -88,16 +86,4 @@ public class GeoExample extends GeoSimpleFacetHandler<DefaultFacetHandlerInitial
 	protected String getValueFromRangeString(String rangeString) {
 		return null;
 	}
-
-  public void init(DefaultFacetHandlerInitializerParam params)
-  {
-    // TODO Auto-generated method stub
-    return;
-  }
-
-  public RuntimeFacetHandler<FacetDataNone, DefaultFacetHandlerInitializerParam> newInstance()
-  {
-    // TODO Auto-generated method stub
-    return this;
-  }
 }

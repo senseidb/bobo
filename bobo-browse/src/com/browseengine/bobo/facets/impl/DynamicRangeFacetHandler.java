@@ -17,7 +17,6 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
-import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -28,7 +27,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
  * @author ymatsuda
  *
  */
-public abstract class DynamicRangeFacetHandler<P extends FacetHandlerInitializerParam> extends RuntimeFacetHandler<FacetDataNone,P>
+public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<FacetDataNone>
 {
   protected final String _dataFacetName;
   protected RangeFacetHandler _dataFacetHandler;

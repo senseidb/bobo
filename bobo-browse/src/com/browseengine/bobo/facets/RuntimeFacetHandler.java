@@ -16,7 +16,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
  * @param <D> type parameter for FacetData
  * @param <P> type parameter for Data used in RuntimeFacetHandler initialization.
  */
-public abstract class RuntimeFacetHandler<D, P extends FacetHandlerInitializerParam> extends FacetHandler<D> implements RuntimeInitializable<P>, FacetHandlerFactory<RuntimeFacetHandler<D,P>>
+public abstract class RuntimeFacetHandler<D> extends FacetHandler<D>
 {
   /**
    * Constructor that specifying the dependent facet handlers using names.
