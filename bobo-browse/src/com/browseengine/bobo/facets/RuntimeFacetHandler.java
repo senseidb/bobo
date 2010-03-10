@@ -58,4 +58,7 @@ public abstract class RuntimeFacetHandler<D, P extends FacetHandlerInitializerPa
     reader.putRuntimeFacetData(_name, load(reader));
   }
 
+  public void close()
+  {
+  }
 }
