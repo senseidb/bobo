@@ -170,7 +170,6 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     if (_reader == null)
       return;
 
-    Set<String> fields = getFacetNames();
     
     //      initialize all RuntimeFacetHandlers with data supplied by user at run-time.
     ArrayList<RuntimeFacetHandler<?>> runtimeFacetHandlers =
@@ -192,6 +191,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
       }
     }
     // done initialize all RuntimeFacetHandlers with data supplied by user at run-time.
+
+    Set<String> fields = getFacetNames();
 
     LinkedList<Filter> preFilterList = new LinkedList<Filter>();
     List<FacetHitCollector> facetHitCollectorList = new LinkedList<FacetHitCollector>();
