@@ -16,6 +16,11 @@ import com.google.gwt.user.client.rpc.IsSerializable;
  */
 public class BoboDefaultFacetHandlerInitializerParam implements IsSerializable
 {
+  /**
+   * The transaction ID
+   */
+  private long tid = -1;
+
   private Map<String, boolean[]> _boolMap;
   private Map<String, int[]> _intMap;
   private Map<String, long[]> _longMap;
@@ -31,6 +36,24 @@ public class BoboDefaultFacetHandlerInitializerParam implements IsSerializable
     _stringMap = new HashMap<String, List<String>>();
     _byteMap = new HashMap<String, byte[]>();
     _doubleMap = new HashMap<String, double[]>();
+  }
+
+  /**
+   * Get the transaction ID.
+   * @return the transaction ID.
+   */
+  public final long getTid()
+  {
+    return tid;
+  }
+
+  /**
+   * Set the transaction ID;
+   * @param tid
+   */
+  public final void setTid(long tid)
+  {
+    this.tid = tid;
   }
 
   public Set<String> getBooleanParamNames()

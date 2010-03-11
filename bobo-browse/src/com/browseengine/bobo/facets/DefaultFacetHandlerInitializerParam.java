@@ -12,7 +12,7 @@ import java.util.Set;
  * @author ymatsuda
  *
  */
-public class DefaultFacetHandlerInitializerParam implements FacetHandlerInitializerParam
+public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializerParam
 {
   /**
    * 

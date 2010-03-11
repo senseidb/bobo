@@ -44,7 +44,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
   private final Map<String, RuntimeFacetHandlerFactory<?,?>> _runtimeFacetHandlerFactoryMap;
   private final HashMap<String, FacetHandler<?>> _runtimeFacetHandlerMap;
   private HashMap<String, FacetHandler<?>> _allFacetHandlerMap;
-
+  private ArrayList<RuntimeFacetHandler<?>> _runtimeFacetHandlers = null;
   public BoboIndexReader getIndexReader()
   {
     return _reader;
@@ -173,16 +173,21 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     Set<String> fields = getFacetNames();
     
     //      initialize all RuntimeFacetHandlers with data supplied by user at run-time.
-    ArrayList<RuntimeFacetHandler<?>> runtimeFacetHandlers =
-      new ArrayList<RuntimeFacetHandler<?>>(_runtimeFacetHandlerFactoryMap.size());
+    _runtimeFacetHandlers = new ArrayList<RuntimeFacetHandler<?>>(_runtimeFacetHandlerFactoryMap.size());
 
     Set<String> runtimeFacetNames = _runtimeFacetHandlerFactoryMap.keySet();
     for(String facetName : runtimeFacetNames)
     {
       RuntimeFacetHandlerFactory<FacetHandlerInitializerParam,?> factory = (RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, ?>) _runtimeFacetHandlerFactoryMap.get(facetName);
       FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
-      RuntimeFacetHandler<?> facetHandler =  factory.get(data);
-      runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
+      FacetHandler<?> sfacetHandler = this.getFacetHandler(facetName);
+      if (sfacetHandler==null)
+      {
+        logger.warn("attempting to reset facetHandler: " + sfacetHandler);
+        continue;
+      }
+      RuntimeFacetHandler<?>facetHandler =  factory.get(data);
+      _runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
       try
       {
         this.setFacetHandler(facetHandler);
@@ -339,12 +344,6 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     catch (IOException ioe)
     {
       throw new BrowseException(ioe.getMessage(), ioe);
-    } finally
-    {
-      for(RuntimeFacetHandler<?> handler : runtimeFacetHandlers)
-      {
-        handler.close();
-      }
     }
   }
   
@@ -464,6 +463,13 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
   
   public void close() throws IOException
   {
+    if (_runtimeFacetHandlers!=null)
+    {
+      for(RuntimeFacetHandler<?> handler : _runtimeFacetHandlers)
+      {
+        handler.close();
+      }
+    }
     if(_reader != null) _reader.clearRuntimeFacetData();
     super.close();
   }

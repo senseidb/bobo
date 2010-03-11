@@ -38,6 +38,28 @@ import java.util.Map.Entry;
  */
 public class BrowseResult implements Serializable{
 	private static final long serialVersionUID = -8620935391852879446L;
+  /**
+   * The transaction ID
+   */
+  private long tid = -1;
+  /**
+   * Get the transaction ID.
+   * @return the transaction ID.
+   */
+  public final long getTid()
+  {
+    return tid;
+  }
+
+  /**
+   * Set the transaction ID;
+   * @param tid
+   */
+  public final void setTid(long tid)
+  {
+    this.tid = tid;
+  }
+
 	private int numHits;
 	private int totalDocs;
 	private Map<String,FacetAccessible> _facetMap;

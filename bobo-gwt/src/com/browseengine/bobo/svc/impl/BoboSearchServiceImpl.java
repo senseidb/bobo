@@ -62,6 +62,7 @@ public class BoboSearchServiceImpl implements BoboSearchService {
 	private static DefaultFacetHandlerInitializerParam convert(BoboDefaultFacetHandlerInitializerParam param)
 	{
 	  DefaultFacetHandlerInitializerParam data = new DefaultFacetHandlerInitializerParam();
+	  data.setTid(param.getTid());
 	  Set<String> names = param.getBooleanParamNames();
 	  for(String name : names)
 	  {
