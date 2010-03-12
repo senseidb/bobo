@@ -152,6 +152,8 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
     result.addAll(facetCollectors);
     long end = System.currentTimeMillis();
     result.setTime(end - start);
+    // set the transaction ID to trace transactions
+    result.setTid(req.getTid());
     return result;
   }
   

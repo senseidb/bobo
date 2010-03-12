@@ -177,14 +177,14 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     Set<String> runtimeFacetNames = _runtimeFacetHandlerFactoryMap.keySet();
     for(String facetName : runtimeFacetNames)
     {
-      RuntimeFacetHandlerFactory<FacetHandlerInitializerParam,?> factory = (RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, ?>) _runtimeFacetHandlerFactoryMap.get(facetName);
-      FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
       FacetHandler<?> sfacetHandler = this.getFacetHandler(facetName);
-      if (sfacetHandler==null)
+      if (sfacetHandler!=null)
       {
         logger.warn("attempting to reset facetHandler: " + sfacetHandler);
         continue;
       }
+      RuntimeFacetHandlerFactory<FacetHandlerInitializerParam,?> factory = (RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, ?>) _runtimeFacetHandlerFactoryMap.get(facetName);
+      FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
       RuntimeFacetHandler<?>facetHandler =  factory.get(data);
       _runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
       try
