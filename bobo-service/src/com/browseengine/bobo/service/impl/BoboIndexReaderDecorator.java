@@ -17,13 +17,18 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
 	private final List<FacetHandler<?>> _facetHandlers;
 	private static final Logger log = Logger.getLogger(BoboIndexReaderDecorator.class);
 	
-  private final Collection<RuntimeFacetHandlerFactory<?,?>> _facetHandlerFactories;
+    private final Collection<RuntimeFacetHandlerFactory<?,?>> _facetHandlerFactories;
 	private final ClassLoader _classLoader;
 	public BoboIndexReaderDecorator(List<FacetHandler<?>> facetHandlers, Collection<RuntimeFacetHandlerFactory<?,?>> facetHandlerFactories)
 	{
 	  _facetHandlers = facetHandlers;
 	  _facetHandlerFactories = facetHandlerFactories;
 		_classLoader = Thread.currentThread().getContextClassLoader();
+	}
+	
+	public BoboIndexReaderDecorator(List<FacetHandler<?>> facetHandlers)
+	{
+	  this(facetHandlers,null);
 	}
 	
 	public BoboIndexReaderDecorator()

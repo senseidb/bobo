@@ -74,7 +74,7 @@ public class MakeUITask extends Task {
 		pw.println("</tr></table>");
 	}
 	
-	public void writeHTML(File location,List<FacetHandler> fconf) throws IOException{
+	public void writeHTML(File location,List<FacetHandler<?>> fconf) throws IOException{
 		File webXml=new File(location,"index.html");
 		FileOutputStream fout=null;
 		try{
@@ -113,7 +113,7 @@ public class MakeUITask extends Task {
 			ArrayList<String> pathFields=new ArrayList<String>();
 			ArrayList<String> tagFields=new ArrayList<String>();
 			
-			for (FacetHandler fPlugin : fconf){
+			for (FacetHandler<?> fPlugin : fconf){
 				String name = fPlugin.getName();
 				if (fPlugin instanceof SimpleFacetHandler || fPlugin instanceof RangeFacetHandler){
 					simpleFields.add(name);
@@ -186,11 +186,11 @@ public class MakeUITask extends Task {
 	
 	//var sortnames=new Array("color","category","price","year","mileage");
 	
-	public void writeApplicationJS(File location,List<FacetHandler> fConf) throws IOException{
+	public void writeApplicationJS(File location,List<FacetHandler<?>> fConf) throws IOException{
 		File appJS=new File(location,"application.js");
 		
-		ArrayList<FacetHandler> sortableList=new ArrayList<FacetHandler>();
-		for (FacetHandler plugin : fConf){
+		ArrayList<FacetHandler<?>> sortableList=new ArrayList<FacetHandler<?>>();
+		for (FacetHandler<?> plugin : fConf){
 			if (plugin instanceof SimpleFacetHandler || plugin instanceof RangeFacetHandler) {
 				sortableList.add(plugin);
 			}
@@ -208,7 +208,7 @@ public class MakeUITask extends Task {
 			out.write("var sortnames=new Array(");
 			
 			int i=0;
-			for (FacetHandler sortHandler : sortableList){
+			for (FacetHandler<?> sortHandler : sortableList){
 				if (i!=0){
 					out.write(",");
 				}
@@ -218,7 +218,7 @@ public class MakeUITask extends Task {
 			out.write(");\n\n\n");
 			
 			out.write("function app_setup(){\n");
-			for (FacetHandler plugin : fConf){
+			for (FacetHandler<?> plugin : fConf){
 				String name = plugin.getName();
 				if (plugin instanceof SimpleFacetHandler) {
 					// setup the widget
@@ -366,13 +366,13 @@ public class MakeUITask extends Task {
 		}
 		
 		
-		List<FacetHandler> fConf=null;
+		List<FacetHandler<?>> fConf=null;
 		
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		ApplicationContext appCtx=null;
 		try{
 			appCtx=new FileSystemXmlApplicationContext("file:"+fConfFile.getAbsolutePath());
-			fConf =  (List<FacetHandler>)appCtx.getBean("handlers");
+			fConf =  (List<FacetHandler<?>>)appCtx.getBean("handlers");
 		}
 		catch(Exception e){
 			throw new BuildException(e.getMessage(),e);

@@ -52,6 +52,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
@@ -304,6 +305,14 @@ public class BoboIndexReader extends FilterIndexReader
     return (_subReaders != null ? _subReaders[0].directory() : super.directory());
   }
   
+  private static Collection<FacetHandler<?>> loadFromIndex(File file) throws IOException
+  {
+    File springFile = new File(file, SPRING_CONFIG);
+    FileSystemXmlApplicationContext appCtx =
+        new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
+    return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
+  }
+  
   protected void initialize(Collection<FacetHandler<?>> facetHandlers) throws IOException
   {
     if (facetHandlers == null) // try to load from index
@@ -314,7 +323,14 @@ public class BoboIndexReader extends FilterIndexReader
         FSDirectory fsDir = (FSDirectory) idxDir;
         File file = fsDir.getFile();
 
-        facetHandlers = new ArrayList<FacetHandler<?>>();
+        if (new File(file, SPRING_CONFIG).exists())
+        {
+          facetHandlers = loadFromIndex(file);
+        }
+        else
+        {
+          facetHandlers = new ArrayList<FacetHandler<?>>();
+        }
       }
       else
       {

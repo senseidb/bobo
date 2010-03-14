@@ -63,7 +63,7 @@ public class BrowseServiceFactory {
             
         IndexReader reader=null;
         try{
-            reader=IndexReader.open(idxDir);
+            reader=IndexReader.open(idxDir,true);
         }
         catch(IOException ioe){
             throw new BrowseException(ioe.getMessage(),ioe);
