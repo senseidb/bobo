@@ -25,8 +25,6 @@
 
 package com.browseengine.bobo.index;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -35,13 +33,8 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.IndexInput;
-import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.util.Version;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.config.FieldConfiguration;
-import com.browseengine.bobo.config.impl.XMLFieldConfigurationBuilder;
 import com.browseengine.bobo.index.digest.DataDigester;
 
 public class BoboIndexer {	

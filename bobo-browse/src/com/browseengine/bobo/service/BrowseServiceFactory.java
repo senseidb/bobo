@@ -34,7 +34,6 @@ import org.apache.lucene.store.Directory;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseException;
-import com.browseengine.bobo.config.FieldConfiguration;
 import com.browseengine.bobo.impl.BrowseServiceImpl;
 import com.browseengine.bobo.impl.DefaultBrowseServiceImpl;
 

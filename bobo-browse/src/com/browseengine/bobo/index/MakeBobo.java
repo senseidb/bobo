@@ -39,9 +39,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.lucene.store.FSDirectory;
-
-import com.browseengine.bobo.config.FieldConfiguration;
-import com.browseengine.bobo.config.impl.XMLFieldConfigurationBuilder;
 import com.browseengine.bobo.index.digest.FileDigester;
 
 public class MakeBobo {
@@ -129,13 +126,7 @@ public class MakeBobo {
     		catch(Exception e){
     			maxDocs=100;
     		}
-        	
-    		FieldConfiguration fConf=null;
-    		if (fConf==null){
-            	File fieldConf=new File(line.getOptionValue("conf"));
-    			fConf=XMLFieldConfigurationBuilder.loadFieldConfiguration(fieldConf);
-    		}
-    		
+       
         	FileDigester digester;
         	try {
         		Constructor constructor=digesterClass.getConstructor(new Class[]{File.class});        		
