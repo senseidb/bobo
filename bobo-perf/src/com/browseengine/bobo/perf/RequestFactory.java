@@ -87,5 +87,9 @@ public class RequestFactory{
 			  return null;
 			}
 		}
+		
+		public void reset(){
+			idx = 0;
+		}
 	}
 }
