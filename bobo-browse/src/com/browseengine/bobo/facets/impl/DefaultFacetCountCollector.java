@@ -15,6 +15,8 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
@@ -103,7 +105,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
         		  throw new IllegalArgumentException("facet comparator factory not specified");
         	  }
         	  
-        	  final Comparator<Integer> comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
+        	  final IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
 
 				public String getFormatedValue(int index) {
 					return _dataCache.valArray.get(index);
@@ -116,7 +118,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
         	  }, _count);
               facetColl=new LinkedList<BrowseFacet>();
               
-              BoundedPriorityQueue<Integer> pq=new BoundedPriorityQueue<Integer>(comparator,max);
+              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max);
               
               for (int i=1;i<_count.length;++i)
               {

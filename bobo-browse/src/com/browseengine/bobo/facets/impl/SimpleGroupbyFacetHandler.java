@@ -29,6 +29,8 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 	private final LinkedHashSet<String> _fieldsSet;
@@ -316,7 +318,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 		        		  throw new IllegalArgumentException("facet comparator factory not specified");
 		        	  }
 		        	  
-		        	  Comparator<Integer> comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
+		        	  IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
 
 						public String getFormatedValue(int index) {
 							return getFacetString(index);
@@ -328,7 +330,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 		        		  
 		        	  }, _count);
 		              facetColl=new LinkedList<BrowseFacet>();    
-		              BoundedPriorityQueue<Integer> pq=new BoundedPriorityQueue<Integer>(comparator,max);
+		              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max);
 		              
 		              for (int i=1;i<_count.length;++i) // exclude zero
 		              {

@@ -8,6 +8,10 @@
 	
 	<bean id="idxDecorator" class="com.browseengine.bobo.service.impl.BoboIndexReaderDecorator">
 		<constructor-arg ref="handlers" />
+		<constructor-arg>
+			<list>
+			</list>
+		</constructor-arg>
 	</bean>
 	
 	<bean id="interpreter" class="com.browseengine.bobo.service.dataprovider.PropertiesIndexDataInterpreter"/>

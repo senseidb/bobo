@@ -97,6 +97,7 @@ import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class BoboTestCase extends TestCase {
 	private Directory _indexDir;
@@ -824,9 +825,9 @@ public class BoboTestCase extends TestCase {
 		pathSpec.setOrderBy(FacetSortSpec.OrderByCustom);
 		pathSpec.setCustomComparatorFactory(new ComparatorFactory(){
 
-			public Comparator<Integer> newComparator(
+			public IntComparator newComparator(
 					FieldValueAccessor fieldValueAccessor, final int[] counts) {
-				return new Comparator<Integer>(){
+				return new IntComparator(){
 
 					public int compare(Integer f1, Integer f2) {
 						int val = counts[f2] - counts[f1];
@@ -837,6 +838,15 @@ public class BoboTestCase extends TestCase {
 				        return val;
 					}
 					
+					public int compare(int f1, int f2) {
+					  int val = counts[f2] - counts[f1];
+					  if (val==0)
+					  {
+					    val=f2-f1;
+					  }
+					  return val;
+					}
+          
 				};
 			}
 
@@ -1723,10 +1733,10 @@ public class BoboTestCase extends TestCase {
 		FacetSpec numberSpec = new FacetSpec();
 		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
 			
-			public Comparator<Integer> newComparator(final FieldValueAccessor fieldValueAccessor,
+			public IntComparator newComparator(final FieldValueAccessor fieldValueAccessor,
 					final int[] counts) {
 				
-				return new Comparator<Integer>(){
+				return new IntComparator(){
 
 					public int compare(Integer v1, Integer v2) {
 						Integer size1 = (Integer)fieldValueAccessor.getRawValue(v1);
@@ -1739,6 +1749,16 @@ public class BoboTestCase extends TestCase {
 						return val;
 					}
 					
+          public int compare(int v1, int v2) {
+            int size1 = (Integer)fieldValueAccessor.getRawValue(v1);
+            int size2 = (Integer)fieldValueAccessor.getRawValue(v2);
+            
+            int val = size1-size2;
+            if (val == 0){
+              val = counts[v1]-counts[v2];
+            }
+            return val;
+          }
 				};
 			}
 
