@@ -36,13 +36,14 @@ public class BoboPerf extends AbstractPerfTest{
 	  _reqFactory = RequestFactory.load(qlogFile, numReq);
 
 	  _reqIter = _reqFactory.iterator();
+	  
   }
   
   
   
   @Override
   public Thread buildWorkThread() {
-	  return new BrowseThread(boboReader,_reqIter,throttleWait,this);
+	  return new BrowseThread(boboReader,_reqIter,throttleWait,runForever,this);
   }
   
   public static void main(String[] args) throws Exception{

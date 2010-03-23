@@ -48,9 +48,9 @@
         		<arg value="${conf}/bobo-perf.properties" />
 				<jvmarg value="-server" />
         		<jvmarg value="-d64" />
-        		<!--
+        		
 				<jvmarg value="-agentlib:yjpagent" />
-				-->
+				
         	</java>
         </target>
 	

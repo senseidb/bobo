@@ -78,7 +78,7 @@ public abstract class SortCollector extends Collector {
 		if (SortField.FIELD_DOC.equals(sf)){
 			compSource = new DocIdDocComparatorSource();
 		}
-		else if (SortField.FIELD_SCORE.equals(sf)){
+		else if (SortField.FIELD_SCORE.equals(sf) || sf.getType() == SortField.SCORE){
 			// we want to do reverse sorting regardless for relevance
 			compSource = new ReverseDocComparatorSource(new RelevanceDocComparatorSource());
 		}

@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
+
 import proj.zoie.api.IndexReaderFactory;
 import proj.zoie.api.ZoieIndexReader;
 
@@ -23,6 +25,7 @@ import com.browseengine.bobo.service.BrowseService;
 import com.browseengine.bobo.service.SerializedFacetAccessible;
 
 public class BoboBrowseServiceImpl implements BrowseService {
+	private static final Logger log = Logger.getLogger(BoboBrowseServiceImpl.class);
     private final IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> _indexReaderFactory;
     
 	public BoboBrowseServiceImpl(IndexReaderFactory<ZoieIndexReader<BoboIndexReader>> indexReaderFactory)
@@ -50,9 +53,13 @@ public class BoboBrowseServiceImpl implements BrowseService {
 	}
 	
 	public BrowseResult browse(BrowseRequest req) throws BrowseException {
+		MultiBoboBrowser browsable = null;
+		List<ZoieIndexReader<BoboIndexReader>> readerList = null;
 		try
 		{
-			Browsable browsable = buildBrowsable();
+			readerList = _indexReaderFactory.getIndexReaders();
+			browsable = new MultiBoboBrowser(BoboBrowser.createBrowsables(ZoieIndexReader.extractDecoratedReaders(readerList)));
+			
 			BrowseResult res = browsable.browse(req);
 			
 			BrowseResult serializableResult = new BrowseResult();
@@ -74,6 +81,21 @@ public class BoboBrowseServiceImpl implements BrowseService {
 		catch(IOException ioe)
 		{
 			throw new BrowseException(ioe.getMessage(),ioe);
+		}
+		finally{
+			try{
+			  if (browsable!=null){
+				browsable.close();
+			  }
+			}
+			catch(Exception e){
+			  log.error(e.getMessage(),e);
+			}
+			finally{
+				if (readerList!=null){
+					_indexReaderFactory.returnIndexReaders(readerList);
+				}
+			}
 		}
 	}
 

@@ -30,7 +30,6 @@
 	<classpathentry kind="lib" path="lib/master/protobuf-java-2.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/master/lucene-core.jar"/>
 	<classpathentry kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
-	<classpathentry kind="lib" path="lib/master/zoie-2.0.0-rc1.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-configuration.jar"/>
 	<classpathentry kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry kind="lib" path="lib/solr/solr-core.jar"/>
@@ -38,5 +37,6 @@
 	<classpathentry kind="lib" path="lib/gui/gwt-user.jar"/>
 	<classpathentry kind="lib" path="lib/gui/gwt-visualization.jar"/>
 	<classpathentry kind="lib" path="lib/master/ant.jar"/>
+	<classpathentry kind="lib" path="lib/master/zoie-2.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

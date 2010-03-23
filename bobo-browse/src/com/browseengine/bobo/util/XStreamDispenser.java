@@ -11,10 +11,8 @@ import java.util.LinkedList;
 
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.config.FieldConfiguration;
 import com.browseengine.bobo.service.BrowseHitConverter;
 import com.browseengine.bobo.service.BrowseResultConverter;
-import com.browseengine.bobo.service.FieldConfConverter;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.io.HierarchicalStreamDriver;
@@ -38,9 +36,6 @@ public class XStreamDispenser {
 	  
 	  converterSet.add(new BrowseResultConverter());
       aliasMap.put(BrowseResult.class, "result");
-      
-      converterSet.add(new FieldConfConverter());
-      aliasMap.put(FieldConfiguration.class, "field-info"); 
 	}
 	
 	private static class DOMXStream extends ThreadLocal {

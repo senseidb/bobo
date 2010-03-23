@@ -39,14 +39,16 @@ public class BrowseThread extends Thread {
 	private ReqIterator _iter;
 	private long _throttleWait;
 	private StatsCollector _collector;
+	private boolean _runForever;
 
 	public BrowseThread(BoboIndexReader reader, ReqIterator reqIter,
-			long throttleWait, StatsCollector statsCollector) {
+			long throttleWait, boolean  runForever,StatsCollector statsCollector) {
 		super("bobo perf thread");
 		_reader = reader;
 		_iter = reqIter;
 		_throttleWait = throttleWait;
 		_collector = statsCollector;
+		_runForever = runForever;
 	}
 
 	public void run() {
@@ -81,7 +83,15 @@ public class BrowseThread extends Thread {
 					e.printStackTrace();
 				}
 			} else {
-				break;
+				if (_runForever){
+					_iter.reset();
+					System.out.println("reseting...");
+				}
+				else{
+
+					System.out.println("ending...");
+				  break;
+				}
 			}
 		}
 	}

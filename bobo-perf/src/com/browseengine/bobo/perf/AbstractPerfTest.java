@@ -26,11 +26,13 @@ public abstract class AbstractPerfTest implements StatsCollector {
 	public static final String NUM_REQ = "num.req";
 	public static final String NUM_THREADS = "num.threads";
 	public static final String THROTTLE_WAIT = "throttle.wait";
+	public static final String RUN_FOR_EVER_FLAG="runforever";
 
 	protected Directory idxDir;
 	protected int numReq;
 	protected int numThreads;
 	protected long throttleWait;
+	protected boolean runForever;
 	
 	protected BoboIndexReader boboReader = null;
 	protected IndexReader luceneReader = null;
@@ -51,10 +53,14 @@ public abstract class AbstractPerfTest implements StatsCollector {
 		numThreads = _propConf.getInt(NUM_THREADS, 10);
 		throttleWait = _propConf.getLong(THROTTLE_WAIT, 500L);
 
+		runForever = _propConf.getBoolean(RUN_FOR_EVER_FLAG, false);
+		  
 		System.out.println("index dir: " + idxFile.getAbsolutePath());
 		System.out.println("number of reqs: " + numReq);
 		System.out.println("number of threads: " + numThreads);
 		System.out.println("throttle wait: " + throttleWait);
+
+		System.out.println("run for ever: " + runForever);
 
 		idxDir = FSDirectory.open(idxFile);
 		

@@ -26,13 +26,14 @@
 package com.browseengine.bobo.index.digest;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 
-import com.browseengine.bobo.config.FieldConfiguration;
+import com.browseengine.bobo.facets.FacetHandler;
 
 public abstract class DataDigester {
 
@@ -45,18 +46,17 @@ public abstract class DataDigester {
 	}		
 	
 	//public static void populateDocument(Document doc,Map data,FieldConfiguration fConf){
-	public static void populateDocument(Document doc,FieldConfiguration fConf){		
-		String[] fields=fConf.getFieldNames();
-		
+	public static void populateDocument(Document doc,Collection<FacetHandler<?>> handlers){
 		StringBuilder tokenBuffer=new StringBuilder();
 		
-		for (int i=0;i<fields.length;++i){
-			String[] values=doc.getValues(fields[i]);
+		for (FacetHandler<?> handler : handlers){
+			String name = handler.getName();
+			String[] values=doc.getValues(name);
 			if (values!=null){
-				doc.removeFields(fields[i]);
-				for (int k=0;k<values.length;++k){
-					doc.add(new Field(fields[i], values[i],Store.NO, Index.NOT_ANALYZED));
-					tokenBuffer.append(' ').append(values[i]);
+				doc.removeFields(name);
+				for (String value : values){
+					doc.add(new Field(name, value,Store.NO, Index.NOT_ANALYZED));
+					tokenBuffer.append(' ').append(value);
 				}
 			}
 		}
