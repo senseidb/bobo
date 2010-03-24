@@ -49,6 +49,7 @@ import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
@@ -218,6 +219,9 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("custom","000003"));
 		d1.add(buildMetaField("latitude", "60"));
 		d1.add(buildMetaField("longitude", "120"));
+		
+		Field sf = new Field("testStored","stored",Store.YES,Index.NO);
+		d1.add(sf);
 		
 		Document d2=new Document();
 		d2.add(buildMetaField("id","2"));
@@ -424,7 +428,7 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(colorHandler);
 
 		SimpleFacetHandler shapeHandler = new SimpleFacetHandler("shape");
-		colorHandler.setTermCountSize(TermCountSize.medium);
+		shapeHandler.setTermCountSize(TermCountSize.medium);
 		facetHandlers.add(new SimpleFacetHandler("shape"));
 		facetHandlers.add(new RangeFacetHandler("size", Arrays.asList(new String[]{"[* TO 4]", "[5 TO 8]", "[9 TO *]"})));
 		String[] ranges = new String[]{"[000000 TO 000005]", "[000006 TO 000010]", "[000011 TO 000020]"};
@@ -578,6 +582,62 @@ public class BoboTestCase extends TestCase {
 		}
 		buffer.append("}").append('\n');
 		return buffer.toString();
+	}
+	
+	public void testStoredField() throws Exception{
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+
+        BrowseSelection colorSel=new BrowseSelection("color");
+        colorSel.addValue("red");
+        br.addSelection(colorSel); 
+
+        BrowseSelection shapeSel=new BrowseSelection("shape");
+        shapeSel.addValue("square");
+        br.addSelection(shapeSel);
+        
+        BrowseSelection sizeSel=new BrowseSelection("size");
+        sizeSel.addValue("[4 TO 4]");
+        br.addSelection(sizeSel);
+
+        BrowseResult result;
+        BoboBrowser boboBrowser=null;
+	  	try {
+	  		boboBrowser=newBrowser();
+	  	  
+	        result = boboBrowser.browse(br);
+	        assertEquals(1,result.getNumHits());
+	        BrowseHit hit = result.getHits()[0];
+	        assertNull(hit.getStoredFields());
+	        
+	        br.setFetchStoredFields(true);
+	        result = boboBrowser.browse(br);
+	        assertEquals(1,result.getNumHits());
+	        hit = result.getHits()[0];
+	        Document storedFields = hit.getStoredFields();
+	        assertNotNull(storedFields);
+	        
+	        String stored = storedFields.get("testStored");
+	        assertTrue("stored".equals(stored));
+	        
+	  	} catch (BrowseException e) {
+	  		e.printStackTrace();
+	  		fail(e.getMessage());
+	  	}
+	  	catch(IOException ioe){
+	  	  fail(ioe.getMessage());
+	  	}
+	  	finally{
+	  	  if (boboBrowser!=null){
+	  	    try {
+	  			boboBrowser.close();
+	  		} catch (IOException e) {
+	  			fail(e.getMessage());
+	  		}
+	  	  }
+	  	}
+        
 	}
 	
 	public void testExpandSelection()
