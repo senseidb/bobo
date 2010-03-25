@@ -117,8 +117,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
         		  
         	  }, _count);
               facetColl=new LinkedList<BrowseFacet>();
-              
-              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max);
+              final int forbidden = -1;
+              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
               
               for (int i=1;i<_count.length;++i)
               {
@@ -129,8 +129,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
                 }
               }
               
-              Integer val;
-              while((val = pq.poll()) != null)
+              int val;
+              while((val = pq.pollInt()) != forbidden)
               {
                   BrowseFacet facet=new BrowseFacet(valList.get(val),_count[val]);
                   ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);

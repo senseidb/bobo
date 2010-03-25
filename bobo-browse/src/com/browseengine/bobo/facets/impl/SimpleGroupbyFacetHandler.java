@@ -329,8 +329,9 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 						}
 		        		  
 		        	  }, _count);
-		              facetColl=new LinkedList<BrowseFacet>();    
-		              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max);
+		              facetColl=new LinkedList<BrowseFacet>();
+		              final int forbidden = -1;
+		              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
 		              
 		              for (int i=1;i<_count.length;++i) // exclude zero
 		              {
@@ -345,8 +346,8 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 		                }
 		              }
 		              
-		              Integer val;
-		              while((val = pq.poll()) != null)
+		              int val;
+		              while((val = pq.pollInt()) != forbidden)
 		              {
 		                  BrowseFacet facet=new BrowseFacet(getFacetString(val),_count[val]);
 		                  ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);

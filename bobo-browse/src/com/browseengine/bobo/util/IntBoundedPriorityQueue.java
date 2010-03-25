@@ -25,17 +25,19 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
   private final int[]             _items;
   private int                   _size = 0;
   private IntComparator _comp;
+  private final int _forbiddenValue;
 
   /**
    * @param capacity the maximum number of items the queue accepts
    * @param comparator a comparator that is used to order the items. 
    */
   @SuppressWarnings("unchecked")
-  public IntBoundedPriorityQueue(IntComparator comparator, int capacity)
+  public IntBoundedPriorityQueue(IntComparator comparator, int capacity, int forbiddenValue)
   {
     _capacity = capacity;
     _comp = comparator;
     _items = new int[capacity];// java.lang.reflect.Array.newInstance(, capacity);
+    _forbiddenValue = forbiddenValue;
   }
 
   /**
@@ -166,10 +168,15 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
     return _items[0];
   }
 
+  /**
+   * Retrieves, but does not remove, the head of this queue, returning the <b>forbidden value</b>
+   * if the queue is empty.
+   * @return 
+   */
   public int peekInt()
   {
     if (_size == 0)
-      throw new NoSuchElementException("last element reached in queue");
+      return _forbiddenValue;
     return _items[0];
   }
 
@@ -191,10 +198,14 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
     return ret;
   }
 
+  /**
+   * Retrieves and removes the head of this queue, or the <b>forbidden value</b> if this queue is empty.
+   * @return
+   */
   public int pollInt()
   {
     if (_size == 0)
-      throw new NoSuchElementException("last element reached in queue");
+      return _forbiddenValue;
     int ret = _items[0];
     _size--;
     _items[0] = _items[_size];
