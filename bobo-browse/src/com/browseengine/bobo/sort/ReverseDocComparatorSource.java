@@ -1,6 +1,7 @@
 package com.browseengine.bobo.sort;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
@@ -34,7 +35,12 @@ public class ReverseDocComparatorSource extends DocComparatorSource {
 			
 		}
 		
-		private static class ReverseComparable implements Comparable{
+		private static class ReverseComparable implements Comparable,Serializable{
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+			
 			final Comparable _inner;
 			
 			ReverseComparable(Comparable inner){
