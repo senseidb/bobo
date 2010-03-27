@@ -156,7 +156,9 @@ public class CombinedFacetAccessible implements FacetAccessible {
 	 * 	@see com.browseengine.bobo.api.FacetAccessible.visitFacets()		
 	 */
 	public void visitFacets(FacetVisitor visitor) {
-		throw new UnsupportedOperationException("visitFacets currently not supported for CombinedFacetAccessible");
+		for (FacetAccessible facetAccessor : _list) {
+			facetAccessor.visitFacets(visitor);			
+		}
 	}
 
 }
