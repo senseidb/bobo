@@ -9,6 +9,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -142,5 +143,16 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       {
           return FacetCountCollector.EMPTY_FACET_LIST;
       }
+  }
+
+  /**
+   * @see com.browseengine.bobo.api.FacetAccessible.visitFacets()
+   */
+  public void visitFacets(FacetVisitor visitor) {
+      List<String> valList=_dataCache.valArray;
+	  for (int i = 1; i < _count.length;++i) // exclude zero
+	  {
+		  visitor.visit(valList.get(i), _count[i]);
+	  }	  
   }
 }

@@ -23,6 +23,7 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.google.protobuf.TextFormat;
@@ -58,6 +59,12 @@ public class BrowseProtobufConverter {
 			ArrayList<BrowseFacet> list = new ArrayList<BrowseFacet>(set.size());
 			list.addAll(set);
 			return list;
+		}
+		
+		public void visitFacets(FacetVisitor visitor) {
+			for(BrowseFacet facet : _data.values()) {
+				visitor.visit(facet.getValue(), facet.getHitCount());
+			}
 		}
 	}
 	

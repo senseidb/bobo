@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +12,9 @@ import java.util.TreeMap;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.impl.DefaultFacetVisitor;
 
 public class CombinedFacetAccessible implements FacetAccessible {
 
@@ -50,60 +51,66 @@ public class CombinedFacetAccessible implements FacetAccessible {
 	}
 
 	public List<BrowseFacet> getFacets() {
-		Map<String,BrowseFacet> facetMap;
-		if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
-		{
-			facetMap= new TreeMap<String,BrowseFacet>();
-		}
-		else
-		{
-			facetMap = new HashMap<String,BrowseFacet>();
-		}
-		
+//		Map<String,BrowseFacet> facetMap;
+//		if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
+//		{
+//			facetMap= new TreeMap<String,BrowseFacet>();
+//		}
+//		else
+//		{
+//			facetMap = new HashMap<String,BrowseFacet>();
+//		}
+//		
+		// instantiate a facet visitor for the list of facetaccessibles
+		DefaultFacetVisitor visitor = new DefaultFacetVisitor();
 		for (FacetAccessible facetAccessor : _list)
 		{
-			Iterator<BrowseFacet> iter = facetAccessor.getFacets().iterator();
-			if (facetMap.size() == 0)
-			{
-				while(iter.hasNext())
-				{
-					BrowseFacet facet = iter.next();
-					facetMap.put(facet.getValue(),facet);
-				}
-			}
-			else
-			{
-				while(iter.hasNext())
-				{
-					BrowseFacet facet = iter.next();
-					BrowseFacet existing = facetMap.get(facet.getValue());
-					if (existing == null)
-					{
-						facetMap.put(facet.getValue(), facet);
-					}
-					else
-					{
-						existing.setHitCount(existing.getHitCount() + facet.getHitCount());
-					}
-				}
-			}
+//			Iterator<BrowseFacet> iter = facetAccessor.getFacets().iterator();
+//			if (facetMap.size() == 0)
+//			{
+//				while(iter.hasNext())
+//				{
+//					BrowseFacet facet = iter.next();
+//					facetMap.put(facet.getValue(),facet);
+//				}
+//			}
+//			else
+//			{
+//				while(iter.hasNext())
+//				{
+//					BrowseFacet facet = iter.next();
+//					BrowseFacet existing = facetMap.get(facet.getValue());
+//					if (existing == null)
+//					{
+//						facetMap.put(facet.getValue(), facet);
+//					}
+//					else
+//					{
+//						existing.setHitCount(existing.getHitCount() + facet.getHitCount());
+//					}
+//				}
+//			}
+			facetAccessor.visitFacets(visitor);
 		}
 		
+		// create the final list of BrowseFacets only once for all the facet accessibles
         int cnt = 0;
         int maxCnt = _fspec.getMaxCount();
         if(maxCnt <= 0) maxCnt = Integer.MAX_VALUE;
         int minHits = _fspec.getMinHitCount();
         List<BrowseFacet> list = new LinkedList<BrowseFacet>();
+		Map<String,Integer> facetMap = visitor.getFacetMap();
 		
 		if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
 		{
-		  for(BrowseFacet facet : facetMap.values())
+		  for(String facet : facetMap.keySet())
 		  {
-		    if(facet.getHitCount() >= minHits)
-		    {
-		      list.add(facet);
-		      if(++cnt >= maxCnt) break;			      
-		    }
+			  int hitcount = facetMap.get(facet);
+			  if(hitcount >= minHits)
+			  {
+				  list.add(new BrowseFacet(facet, hitcount));
+				  if(++cnt >= maxCnt) break;			      
+			  }
 		  }
 		}
 		else
@@ -128,7 +135,10 @@ public class CombinedFacetAccessible implements FacetAccessible {
 		  {
 		    comparator = _fspec.getCustomComparatorFactory().newComparator();
 		  }
-		  ArrayList<BrowseFacet> facets = new ArrayList<BrowseFacet>(facetMap.values());
+		  ArrayList<BrowseFacet> facets = new ArrayList<BrowseFacet>();
+		  for(String facet : facetMap.keySet()) {
+			  facets.add(new BrowseFacet(facet, facetMap.get(facet)));
+		  }
 		  Collections.sort(facets, comparator);
 		  for(BrowseFacet facet : facets)
 		  {
@@ -140,6 +150,13 @@ public class CombinedFacetAccessible implements FacetAccessible {
 		  }
 		}
 		return list;
+	}
+
+	/**
+	 * 	@see com.browseengine.bobo.api.FacetAccessible.visitFacets()		
+	 */
+	public void visitFacets(FacetVisitor visitor) {
+		throw new UnsupportedOperationException("visitFacets currently not supported for CombinedFacetAccessible");
 	}
 
 }

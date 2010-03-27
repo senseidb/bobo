@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
@@ -179,6 +180,25 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		else
 		{
 			return FacetCountCollector.EMPTY_FACET_LIST;
+		}
+	}
+
+	public void visitFacets(FacetVisitor visitor) {
+		// each range is of the form <lat, lon, radius>
+		int[] rangeCounts = new int[_latPredefinedRangeIndexes.length];
+		for (int i=0;i<_latCount.length;++i){
+			if (_latCount[i] >0 ){
+				for (int k=0;k<_latPredefinedRangeIndexes.length;++k)
+				{
+					if (i>=_latPredefinedRangeIndexes[k][0] && i<=_latPredefinedRangeIndexes[k][1])
+					{
+						rangeCounts[k]+=_latCount[i];
+					}
+				}
+			}
+		}
+		for(int i = 0;i < rangeCounts.length;i ++) {
+			visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
 		}
 	}
 

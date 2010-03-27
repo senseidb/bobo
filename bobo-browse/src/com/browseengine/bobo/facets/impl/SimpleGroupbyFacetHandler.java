@@ -18,6 +18,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -358,6 +359,13 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			else{
 				return FacetCountCollector.EMPTY_FACET_LIST;
 			}
+		}
+
+		public void visitFacets(FacetVisitor visitor) {
+			for (int i = 1; i < _count.length;++i) // exclude zero
+			{
+				visitor.visit(getFacetString(i), _count[i]);
+			}	  
 		}
 	}
 }

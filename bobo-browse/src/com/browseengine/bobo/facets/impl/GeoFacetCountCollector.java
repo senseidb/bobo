@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.filter.GeoFacetFilter;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler.GeoFacetData;
@@ -235,4 +236,9 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		return new GeoRange(lat, lon, rad);
 	}
 
+	public void visitFacets(FacetVisitor visitor) {
+		for(int i = 0; i < _count.length; i++) {
+			visitor.visit(_predefinedRanges.get(i), _count[i]);
+		}
+	}
 }
