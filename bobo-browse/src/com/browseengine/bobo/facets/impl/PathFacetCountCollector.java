@@ -260,6 +260,12 @@ public class PathFacetCountCollector implements FacetCountCollector
 	    }
 		return finalList;
 	}
+
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
 	
 }
 

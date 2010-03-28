@@ -245,5 +245,11 @@ public class RangeFacetCountCollector implements FacetCountCollector
         setValue(new StringBuilder("[").append(_lower).append(" TO ").append(_upper).append(']').toString());
     }
   }
+
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
 }
 

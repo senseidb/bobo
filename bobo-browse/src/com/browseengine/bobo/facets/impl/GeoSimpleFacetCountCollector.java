@@ -182,4 +182,10 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		}
 	}
 
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
 }

@@ -276,6 +276,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     @Override
     public final void collectAll()
     {
+      intarraymgr.release(_count);
       _count = _dataCache.freqs;
     }
   }

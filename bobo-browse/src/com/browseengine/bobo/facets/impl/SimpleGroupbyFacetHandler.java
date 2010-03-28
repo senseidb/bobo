@@ -359,5 +359,11 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 				return FacetCountCollector.EMPTY_FACET_LIST;
 			}
 		}
+
+    public void close()
+    {
+      // TODO Auto-generated method stub
+      
+    }
 	}
 }

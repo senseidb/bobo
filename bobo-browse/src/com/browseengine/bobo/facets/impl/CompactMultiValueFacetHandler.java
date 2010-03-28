@@ -369,6 +369,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
 	  @Override
 	  public final void collectAll()
 	  {
+	    intarraymgr.release(_count);
 	    _count = _dataCache.freqs;
 	    _aggregated = true;
 	  }

@@ -235,4 +235,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		return new GeoRange(lat, lon, rad);
 	}
 
+  public void close()
+  {    
+  }
 }
