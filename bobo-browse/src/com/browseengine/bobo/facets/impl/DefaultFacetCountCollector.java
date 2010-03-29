@@ -139,7 +139,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 				}
 
 				public Object getRawValue(int index) {
-					return _dataCache.valArray.getInnerList().get(index);
+					return _dataCache.valArray.getRawValue(index);
 				}
         		  
         	  }, _count);

@@ -2,14 +2,21 @@ package com.browseengine.bobo.facets.data;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
 
 public class TermLongList extends TermNumberList {
+  private static Logger                   log = Logger.getLogger(TermLongList.class);
   private boolean simpleFormat;
   private BoboSimpleDecimalFormat _simpleFormatter;
+  private ArrayList<String> _innerTermList = new ArrayList<String>();
+  private String zero = "0".intern();
 	private static long parse(String s)
 	{
 		if (s==null || s.length() == 0)
@@ -36,8 +43,41 @@ public class TermLongList extends TermNumberList {
 	
 	@Override
 	public boolean add(String o) {
+    log.info("add xxx " + o);
+    _innerTermList.add(o==null||o.length()==0?zero:o.intern());
 		return ((LongArrayList)_innerList).add(parse(o));
 	}
+
+  @Override
+	public void clear() {
+    super.clear();
+    _innerTermList.clear();
+  }
+
+  @Override
+  public String get(int index) {
+    return _innerTermList.get(index);
+  }
+
+  @Override
+  public Iterator<String> iterator() {
+    final Iterator<String> iter=_innerTermList.iterator();
+    
+    return new Iterator<String>()
+    {
+      public final boolean hasNext() {
+        return iter.hasNext();
+      }
+
+      public final String next() {
+        return iter.next();
+      }
+
+      public final void remove() {
+        throw new UnsupportedOperationException();
+      }
+    };
+  }
 
 	@Override
 	protected List<?> buildPrimitiveList(int capacity) {
@@ -54,6 +94,7 @@ public class TermLongList extends TermNumberList {
 	@Override
 	public void seal() {
 		((LongArrayList)_innerList).trim();
+    _innerTermList.trimToSize();
 	}
 	
 	@Override
@@ -73,6 +114,8 @@ public class TermLongList extends TermNumberList {
       simpleFormat = false;
       super.setFormatString(formatString);
     }
+    zero = format(0).intern();
+    log.info("xxx zero " + zero);
   }
 
   @Override

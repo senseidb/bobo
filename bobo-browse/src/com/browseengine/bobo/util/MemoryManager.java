@@ -52,13 +52,13 @@ public class MemoryManager<T>
         if(buf != null)
         {
           initializer.init(buf);
-          log.info("array hit " + size);
+//          log.info("array hit " + size);
           return buf;
         }
       }
       else
       {
-        log.info("array miss " + size);
+//        log.info("array miss " + size);
         return initializer.newInstance(size);
       }
     }

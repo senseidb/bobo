@@ -2,19 +2,15 @@ package com.browseengine.bobo.util;
 
 import org.apache.log4j.Logger;
 
-import com.browseengine.bobo.api.BoboSubBrowser;
-
 public class BoboSimpleDecimalFormat
 {
 
-  private static Logger                   log = Logger.getLogger(BoboSubBrowser.class);
+  private static Logger                   log = Logger.getLogger(BoboSimpleDecimalFormat.class);
   /**
    * 
    */
   private static final long serialVersionUID = 1L;
   private static final int _maxPadding = 80;
-
-  private static final BoboSimpleDecimalFormat[] _allBoboSimpleDecimalFormat = new BoboSimpleDecimalFormat[_maxPadding];
 
   private static final String [] _paddings = new String[_maxPadding];
   static{
@@ -22,13 +18,6 @@ public class BoboSimpleDecimalFormat
     for(int i=0; i<_maxPadding - 1; i++)
     {
       _paddings[i+1] = _paddings[i]+"0";
-    }
-  }
-
-  static {
-    for(int i=0; i<_maxPadding - 1; i++)
-    {
-      _allBoboSimpleDecimalFormat[i] = new BoboSimpleDecimalFormat(i);
     }
   }
 
@@ -48,10 +37,10 @@ public class BoboSimpleDecimalFormat
   {
     if (xx < 10)
     {
-      log.info("simpleFormat " + padding);
+      log.info("BoboSimpleDecimalFormat xxxx " + padding);
       xx++;
     }
-    return _allBoboSimpleDecimalFormat[padding];
+    return new BoboSimpleDecimalFormat(padding);
   }
 
   /**
@@ -61,6 +50,7 @@ public class BoboSimpleDecimalFormat
    */
   public String format(short number)
   {
+    log.info("xxx format short " + number);
     if (number>=0)
     {
       int i = _padLength - stringSizeOfShort(number);
@@ -85,6 +75,8 @@ public class BoboSimpleDecimalFormat
    */
   public String format(int number)
   {
+    log.info("log xxx format int " + number);
+    System.out.println("print xxx format int " + number);
     if (number>=0)
     {
       int i = _padLength - stringSizeOfInt(number);
@@ -109,6 +101,7 @@ public class BoboSimpleDecimalFormat
    */
   public String format(long number)
   {
+    log.info("xxx format long " + number);
     if (number>=0)
     {
       int i = _padLength - stringSizeOfLong(number);
