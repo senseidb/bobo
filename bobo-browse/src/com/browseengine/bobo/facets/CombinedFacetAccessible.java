@@ -116,7 +116,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
 	}
 
 	/**
-	 * 	@see com.browseengine.bobo.api.FacetAccessible.visitFacets()		
+	 * 	@see com.browseengine.bobo.api.FacetAccessible#visitFacets(FacetVisitor)		
 	 */
 	public void visitFacets(FacetVisitor visitor) {
 		for (FacetAccessible facetAccessor : _list) {

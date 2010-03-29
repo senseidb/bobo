@@ -18,8 +18,8 @@ public interface FacetAccessible
 	BrowseFacet getFacet(String value);
 	
 	/**
-	 * Accumulates the hit counts for list of facets within this FacetAccessible
-	 * @param visitor	the FacetVisitor used to accumulate the hit counts
+	 * Visits the list of facets within this FacetAccessible 
+	 * @param visitor	the FacetVisitor used to process the list of facets
 	 */
 	void visitFacets(FacetVisitor visitor);
 }

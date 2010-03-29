@@ -827,7 +827,7 @@ public class BoboTestCase extends TestCase {
 		Explanation expl2 = b.explain(colorQ, 0);
 
 		br3.setFacetSpec("correctDistance", geoSpec);
-		geoSpec.setMinHitCount(0);
+		geoSpec.setMinHitCount(1);
 		br3.setQuery(colorQ);             // query is color=red
 		br3.addSelection(sel);			  // count facets <30,70,5> and <60,120,1>
 		answer.clear();

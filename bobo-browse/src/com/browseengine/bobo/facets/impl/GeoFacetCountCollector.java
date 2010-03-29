@@ -197,7 +197,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 				int countIndex = -1;
 				for(String value : _predefinedRanges) {
 					countIndex++;
-					if(_count[countIndex] > minHitCount) {
+					if(_count[countIndex] >= minHitCount) {
 						BrowseFacet choice = new BrowseFacet();
 						choice.setHitCount(_count[countIndex]);
 						choice.setValue(value);
@@ -240,9 +240,8 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		if(_spec != null) {
 			int minHitCount = _spec.getMinHitCount();
 			for(int i = 0; i < _count.length; i++) {
-				if(_count[i] > minHitCount) {
+				if(_count[i] >= minHitCount) 
 					visitor.visit(_predefinedRanges.get(i), _count[i]);
-				}
 			}
 		}
 		else {

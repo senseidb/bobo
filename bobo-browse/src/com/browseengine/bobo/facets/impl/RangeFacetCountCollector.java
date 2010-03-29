@@ -248,44 +248,24 @@ public class RangeFacetCountCollector implements FacetCountCollector
   }
 
   public void visitFacets(FacetVisitor visitor) {
-	  if (_ospec!=null){
-		  if (_predefinedRangeIndexes!=null)
-		  {
-			  int minCount=_ospec.getMinHitCount();
-			  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
-			  for (int i=0;i<_count.length;++i){
-				  if (_count[i] >0 ){
-					  for (int k=0;k<_predefinedRangeIndexes.length;++k)
+	  if (_predefinedRangeIndexes!=null)
+	  {
+		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
+		  for (int i=0;i<_count.length;++i){
+			  if (_count[i] >0 ){
+				  for (int k=0;k<_predefinedRangeIndexes.length;++k)
+				  {
+					  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
 					  {
-						  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
-						  {
-							  rangeCounts[k]+=_count[i];
-						  }
+						  rangeCounts[k]+=_count[i];
 					  }
 				  }
 			  }
-			  for (int i=0;i<rangeCounts.length;++i)
-			  {
-				  if (rangeCounts[i]>=minCount)
-					  visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
-			  }
 		  }
-		  else
+		  for (int i=0;i<rangeCounts.length;++i)
 		  {
-			  List<String> valList=_dataCache.valArray;
-			  for (int i = 1; i < _count.length;++i) // exclude zero
-			  {
-				  visitor.visit(valList.get(i), _count[i]);
-			  }	  
+			  visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
 		  }
-	  }
-	  else
-	  {
-		  List<String> valList=_dataCache.valArray;
-		  for (int i = 1; i < _count.length;++i) // exclude zero
-		  {
-			  visitor.visit(valList.get(i), _count[i]);
-		  }	  
 	  }
   }
 }

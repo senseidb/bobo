@@ -146,7 +146,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   }
 
   /**
-   * @see com.browseengine.bobo.api.FacetAccessible.visitFacets()
+   * @see com.browseengine.bobo.api.FacetAccessible#visitFacets(FacetVisitor)
    */
   public void visitFacets(FacetVisitor visitor) {
       List<String> valList=_dataCache.valArray;
