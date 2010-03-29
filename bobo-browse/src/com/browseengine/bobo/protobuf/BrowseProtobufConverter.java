@@ -59,6 +59,11 @@ public class BrowseProtobufConverter {
 			list.addAll(set);
 			return list;
 		}
+    public void close()
+    {
+      // TODO Auto-generated method stub
+      // nothing yet
+    }
 	}
 	
 	public static BrowseHit convert(BrowseResultBPO.Hit hit){

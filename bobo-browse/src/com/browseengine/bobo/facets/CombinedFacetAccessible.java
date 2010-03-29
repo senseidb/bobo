@@ -142,4 +142,15 @@ public class CombinedFacetAccessible implements FacetAccessible {
 		return list;
 	}
 
+  public void close()
+  {
+    if (_list!=null)
+    {
+      for(FacetAccessible fa : _list)
+      {
+        fa.close();
+      }
+    }
+  }
+
 }

@@ -31,4 +31,10 @@ public class MappedFacetAccessible implements FacetAccessible, Serializable {
 		return Arrays.asList(_facets);
 	}
 
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
 }

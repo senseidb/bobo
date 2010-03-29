@@ -30,5 +30,10 @@ public class SerializedFacetAccessible implements FacetAccessible,Serializable {
 	public List<BrowseFacet> getFacets() {
 		return _facets;
 	}
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
 
 }

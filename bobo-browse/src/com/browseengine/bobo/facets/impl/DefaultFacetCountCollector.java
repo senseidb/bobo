@@ -32,7 +32,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
   private int _docBase;
-  private LinkedList<int[]> intarraylist = new LinkedList<int[]>();
+  protected LinkedList<int[]> intarraylist = new LinkedList<int[]>();
   protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
   {
 

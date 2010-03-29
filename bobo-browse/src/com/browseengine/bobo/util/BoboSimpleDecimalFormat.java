@@ -46,10 +46,12 @@ public class BoboSimpleDecimalFormat
   private static long xx =0;
   public static BoboSimpleDecimalFormat getInstance(int padding)
   {
-    if (xx < 1000) log.info("simpleFormat " + padding);
-    xx++;
-    BoboSimpleDecimalFormat x =  _allBoboSimpleDecimalFormat[padding];
-    return x;
+    if (xx < 10)
+    {
+      log.info("simpleFormat " + padding);
+      xx++;
+    }
+    return _allBoboSimpleDecimalFormat[padding];
   }
 
   /**

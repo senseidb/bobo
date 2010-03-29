@@ -152,9 +152,8 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		}
 		
 		public final void collectAll() {
-		  intarraymgr.release(_count);
 		  _count = _dataCache.freqs;
-        }
+		}
 	}
 	
 	public static final class SimpleBoboDocScorer extends BoboDocScorer{

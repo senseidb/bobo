@@ -235,6 +235,9 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		return new GeoRange(lat, lon, rad);
 	}
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.api.FacetAccessible#close()
+   */
   public void close()
   {    
   }
