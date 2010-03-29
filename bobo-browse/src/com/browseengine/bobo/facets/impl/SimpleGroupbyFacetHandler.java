@@ -362,10 +362,78 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 		}
 
 		public void visitFacets(FacetVisitor visitor) {
-			for (int i = 1; i < _count.length;++i) // exclude zero
-			{
-				visitor.visit(getFacetString(i), _count[i]);
-			}	  
+			if (_fspec!=null){
+				int minCount=_fspec.getMinHitCount();
+		          int max=_fspec.getMaxCount();
+		          if (max <= 0) max=_count.length;
+
+		          FacetSortSpec sortspec = _fspec.getOrderBy();
+		          if (sortspec == FacetSortSpec.OrderValueAsc){
+			          int facetCount = 0;
+		              for (int i = 1; i < _count.length;++i) // exclude zero
+		              {
+		                int hits=_count[i];
+		                if (hits>=minCount)
+		                {
+		                	facetCount++;
+		                	visitor.visit(getFacetString(i), hits);
+		                }
+		                if(facetCount >= max) break;
+		              }
+		          }
+		          else{
+		        	  ComparatorFactory comparatorFactory;
+		        	  if (sortspec == FacetSortSpec.OrderHitsDesc){
+		        		  comparatorFactory = new FacetHitcountComparatorFactory();
+		        	  }
+		        	  else{
+		        		  comparatorFactory = _fspec.getCustomComparatorFactory();
+		        	  }
+		        	  
+		        	  if (comparatorFactory == null){
+		        		  throw new IllegalArgumentException("facet comparator factory not specified");
+		        	  }
+		        	  
+		        	  IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
+
+						public String getFormatedValue(int index) {
+							return getFacetString(index);
+						}
+
+						public Object getRawValue(int index) {
+							return getRawFaceValue(index);
+						}
+		        		  
+		        	  }, _count);
+		              final int forbidden = -1;
+		              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
+		              
+		              for (int i=1;i<_count.length;++i) // exclude zero
+		              {
+		                int hits=_count[i];
+		                if (hits>=minCount)
+		                {
+		                  if(!pq.offer(i))
+		                  {
+		                    // pq is full. we can safely ignore any facet with <=hits.
+		                    minCount = hits + 1;
+		                  }
+		                }
+		              }
+		              
+		              int val;
+		              while((val = pq.pollInt()) != forbidden)
+		              {
+		            	  visitor.visit(getFacetString(val), _count[val]);
+		              }
+		          }
+			}
+			else{
+				for (int i = 1; i < _count.length;++i) // exclude zero
+				{
+					visitor.visit(getFacetString(i), _count[i]);
+				}	  
+			}
 		}
 	}
 }

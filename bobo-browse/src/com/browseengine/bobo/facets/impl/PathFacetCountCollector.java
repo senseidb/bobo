@@ -263,12 +263,50 @@ public class PathFacetCountCollector implements FacetCountCollector
 	}
 
 	public void visitFacets(FacetVisitor visitor) {
-		List<String> valList=_dataCache.valArray;
-		for (int i = 1; i < _count.length;++i) // exclude zero
+		Properties props = _sel == null ? null : _sel.getSelectionProperties();
+		int depth = PathFacetHandler.getDepth(props);
+		boolean strict = PathFacetHandler.isStrict(props);
+		List<BrowseFacet> finalList;
+		
+		String[] paths= _sel == null ? null : _sel.getValues();
+		if (paths==null || paths.length == 0)
 		{
-			visitor.visit(valList.get(i), _count[i]);
-		}	  
+			finalList = getFacetsForPath(null, depth, strict, _minHitCount,_maxCount);
+			visitFacetsHelper(visitor, finalList);
+			return;
+		}
+		
+		if (paths.length==1) {
+			finalList = getFacetsForPath(paths[0],depth,strict,_minHitCount,_maxCount);
+			visitFacetsHelper(visitor, finalList);
+			return;
+		}
+
+		finalList=new LinkedList<BrowseFacet>();
+		ArrayList<Iterator<BrowseFacet>> iterList = new ArrayList<Iterator<BrowseFacet>>(paths.length);
+		for (String path : paths)
+		{
+			List<BrowseFacet> subList=getFacetsForPath(path, depth, strict,  _minHitCount,_maxCount);
+			if (subList.size() > 0)
+			{
+				iterList.add(subList.iterator());
+			}
+		}
+		
+		Iterator<BrowseFacet> finalIter = ListMerger.mergeLists(iterList.toArray((Iterator<BrowseFacet>[])new Iterator[iterList.size()]), _comparatorFactory==null ? new FacetValueComparatorFactory().newComparator(): _comparatorFactory.newComparator());
+		while (finalIter.hasNext())
+	    {
+			BrowseFacet f = finalIter.next();
+			visitor.visit(f.getValue(), f.getHitCount());
+	    }
 	}
 
+	private static void visitFacetsHelper(FacetVisitor visitor, List<BrowseFacet> facets) {
+		Iterator<BrowseFacet> iter = facets.iterator();
+		while(iter.hasNext()) {
+			BrowseFacet facet = iter.next();
+			visitor.visit(facet.getValue(), facet.getHitCount());
+		}
+	}
 }
 

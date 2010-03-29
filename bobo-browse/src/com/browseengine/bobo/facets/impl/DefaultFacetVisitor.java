@@ -1,13 +1,16 @@
 /**
- * 
+ * The purpose of this class is to visit the facets and accumulate the hit counts
  */
 package com.browseengine.bobo.facets.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.browseengine.bobo.api.FacetVisitor;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 
 /**
  * @author nnarkhed
@@ -17,8 +20,12 @@ public class DefaultFacetVisitor implements FacetVisitor {
 
 	private Map<String, Integer> _facetMap;
 	
-	public DefaultFacetVisitor() {
-		_facetMap = new HashMap<String, Integer>();
+	public DefaultFacetVisitor(FacetSortSpec fspec) {
+		if(FacetSortSpec.OrderValueAsc.equals(fspec)) {
+			_facetMap = new TreeMap<String, Integer>();
+		}else {
+			_facetMap = new HashMap<String, Integer>();
+		}
 	}
 	
 	/* (non-Javadoc)
