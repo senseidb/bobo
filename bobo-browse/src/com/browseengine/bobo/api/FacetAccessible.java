@@ -18,4 +18,10 @@ public interface FacetAccessible
 	BrowseFacet getFacet(String value);
   
   public void close();
+	
+	/**
+	 * Visits the list of facets within this FacetAccessible 
+	 * @param visitor	the FacetVisitor used to process the list of facets
+	 */
+	void visitFacets(FacetVisitor visitor);
 }

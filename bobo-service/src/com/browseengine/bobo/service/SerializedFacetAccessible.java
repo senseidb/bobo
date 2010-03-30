@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetVisitor;
 
 public class SerializedFacetAccessible implements FacetAccessible,Serializable {
 
@@ -35,5 +36,12 @@ public class SerializedFacetAccessible implements FacetAccessible,Serializable {
     // TODO Auto-generated method stub
     
   }
+	
+	public void visitFacets(FacetVisitor visitor) {
+		for (BrowseFacet facet : _facets)
+		{
+			visitor.visit(facet.getValue(), facet.getHitCount());
+		}		
+	}
 
 }

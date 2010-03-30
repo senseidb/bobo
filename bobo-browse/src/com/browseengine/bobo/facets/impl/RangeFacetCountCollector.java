@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
@@ -249,7 +250,28 @@ public class RangeFacetCountCollector implements FacetCountCollector
   public void close()
   {
     // TODO Auto-generated method stub
-    
+  }    
+
+  public void visitFacets(FacetVisitor visitor) {
+	  if (_predefinedRangeIndexes!=null)
+	  {
+		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
+		  for (int i=0;i<_count.length;++i){
+			  if (_count[i] >0 ){
+				  for (int k=0;k<_predefinedRangeIndexes.length;++k)
+				  {
+					  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
+					  {
+						  rangeCounts[k]+=_count[i];
+					  }
+				  }
+			  }
+		  }
+		  for (int i=0;i<rangeCounts.length;++i)
+		  {
+			  visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
+		  }
+	  }
   }
 }
 

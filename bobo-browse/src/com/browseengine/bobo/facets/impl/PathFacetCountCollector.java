@@ -12,6 +12,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -85,18 +86,17 @@ public class PathFacetCountCollector implements FacetCountCollector
 		LinkedList<BrowseFacet> list=new LinkedList<BrowseFacet>();
 
         BoundedPriorityQueue<BrowseFacet> pq=null;
-        
         if (_comparatorFactory!=null){
         	final Comparator<BrowseFacet> comparator = _comparatorFactory.newComparator();
-        	
+
         	pq=new BoundedPriorityQueue<BrowseFacet>(new Comparator<BrowseFacet>(){
 
-				public int compare(BrowseFacet o1, BrowseFacet o2) {
-					return -comparator.compare(o1,o2);				}
-        		
+        		public int compare(BrowseFacet o1, BrowseFacet o2) {
+        			return -comparator.compare(o1,o2);				}
+
         	},maxCount);
         }
-        
+
 		String[] startParts=null;
 		int startDepth=0;
 		
@@ -267,5 +267,51 @@ public class PathFacetCountCollector implements FacetCountCollector
     
   }
 	
+	public void visitFacets(FacetVisitor visitor) {
+		Properties props = _sel == null ? null : _sel.getSelectionProperties();
+		int depth = PathFacetHandler.getDepth(props);
+		boolean strict = PathFacetHandler.isStrict(props);
+		List<BrowseFacet> finalList;
+		
+		String[] paths= _sel == null ? null : _sel.getValues();
+		if (paths==null || paths.length == 0)
+		{
+			finalList = getFacetsForPath(null, depth, strict, Integer.MIN_VALUE, _count.length);
+			visitFacetsHelper(visitor, finalList);
+			return;
+		}
+		
+		if (paths.length==1) {
+			finalList = getFacetsForPath(paths[0],depth,strict, Integer.MIN_VALUE, _count.length);
+			visitFacetsHelper(visitor, finalList);
+			return;
+		}
+
+		finalList=new LinkedList<BrowseFacet>();
+		ArrayList<Iterator<BrowseFacet>> iterList = new ArrayList<Iterator<BrowseFacet>>(paths.length);
+		for (String path : paths)
+		{
+			List<BrowseFacet> subList=getFacetsForPath(path, depth, strict, Integer.MIN_VALUE, _count.length);
+			if (subList.size() > 0)
+			{
+				iterList.add(subList.iterator());
+			}
+		}
+		
+		Iterator<BrowseFacet> finalIter = ListMerger.mergeLists(iterList.toArray((Iterator<BrowseFacet>[])new Iterator[iterList.size()]), _comparatorFactory==null ? new FacetValueComparatorFactory().newComparator(): _comparatorFactory.newComparator());
+		while (finalIter.hasNext())
+	    {
+			BrowseFacet f = finalIter.next();
+			visitor.visit(f.getValue(), f.getHitCount());
+	    }
+	}
+
+	private static void visitFacetsHelper(FacetVisitor visitor, List<BrowseFacet> facets) {
+		Iterator<BrowseFacet> iter = facets.iterator();
+		while(iter.hasNext()) {
+			BrowseFacet facet = iter.next();
+			visitor.visit(facet.getValue(), facet.getHitCount());
+		}
+	}
 }
 
