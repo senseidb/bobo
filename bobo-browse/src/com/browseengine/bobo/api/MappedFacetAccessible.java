@@ -31,6 +31,11 @@ public class MappedFacetAccessible implements FacetAccessible, Serializable {
 		return Arrays.asList(_facets);
 	}
 
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
 	public void visitFacets(FacetVisitor visitor) {
 		for (BrowseFacet facet : _facets){
 			visitor.visit(facet.getValue(), facet.getHitCount());

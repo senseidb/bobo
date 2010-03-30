@@ -79,6 +79,7 @@ public class FacetTest {
 		long end=System.currentTimeMillis();
 		System.out.println("result: "+res);
 		System.out.println("took: "+(end-start));
+		browser.close();
 	}
 
 }

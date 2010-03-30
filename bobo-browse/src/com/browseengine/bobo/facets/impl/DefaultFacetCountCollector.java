@@ -1,9 +1,12 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -17,10 +20,12 @@ import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
+import com.browseengine.bobo.util.MemoryManager;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
+  private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
   protected final FacetSpec _ospec;
   protected int[] _count;
   protected FacetDataCache _dataCache;
@@ -28,6 +33,27 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
   private int _docBase;
+  protected LinkedList<int[]> intarraylist = new LinkedList<int[]>();
+  protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
+  {
+
+    public void init(int[] buf)
+    {
+      Arrays.fill(buf, 0);
+    }
+
+    public int[] newInstance(int size)
+    {
+      return new int[size];
+    }
+
+    public int size(int[] buf)
+    {
+      assert buf!=null;
+      return buf.length;
+    }
+
+  });
   
   public DefaultFacetCountCollector(String name,FacetDataCache dataCache,int docBase,
 		  						    BrowseSelection sel,FacetSpec ospec)
@@ -36,7 +62,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       _ospec = ospec;
       _name = name;
 	  _dataCache=dataCache;
-	  _count = new int[_dataCache.freqs.length];
+	  _count = intarraymgr.get(_dataCache.freqs.length);//new int[_dataCache.freqs.length];
+	  intarraylist.add(_count);
       _array = _dataCache.orderArray;
 	  _docBase = docBase;
   }
@@ -113,7 +140,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 				}
 
 				public Object getRawValue(int index) {
-					return _dataCache.valArray.getInnerList().get(index);
+					return _dataCache.valArray.getRawValue(index);
 				}
         		  
         	  }, _count);
@@ -143,6 +170,14 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       {
           return FacetCountCollector.EMPTY_FACET_LIST;
       }
+  }
+  
+  public void close()
+  {
+    for(int[] buf: intarraylist)
+    {
+      intarraymgr.release(buf);
+    }
   }
 
   /**

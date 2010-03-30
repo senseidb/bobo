@@ -270,7 +270,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     @Override
     public final void collect(int docid) 
     {
-      _array.count(docid, _count);
+      _array.countNoReturn(docid, _count);
     }
 
     @Override

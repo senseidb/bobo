@@ -279,7 +279,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			for (int len : _lens){
 				int adjusted=idx*len;
 				int bucket = adjusted/_count.length;
-				retVal[i++]=_subcollectors[i]._dataCache.valArray.getInnerList().get(bucket);
+				retVal[i++]=_subcollectors[i]._dataCache.valArray.getRawValue(bucket);
 				idx=adjusted%_count.length;
 			}
 			return retVal;
@@ -361,6 +361,11 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			}
 		}
 
+    public void close()
+    {
+      // TODO Auto-generated method stub
+      
+    }
 		public void visitFacets(FacetVisitor visitor) {
 			for (int i = 1; i < _count.length;++i) // exclude zero
 			{

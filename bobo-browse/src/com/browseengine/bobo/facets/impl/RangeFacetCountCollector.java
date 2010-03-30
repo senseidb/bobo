@@ -247,6 +247,11 @@ public class RangeFacetCountCollector implements FacetCountCollector
     }
   }
 
+  public void close()
+  {
+    // TODO Auto-generated method stub
+  }    
+
   public void visitFacets(FacetVisitor visitor) {
 	  if (_predefinedRangeIndexes!=null)
 	  {

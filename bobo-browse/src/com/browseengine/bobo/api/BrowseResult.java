@@ -27,6 +27,7 @@ package com.browseengine.bobo.api;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -208,5 +209,15 @@ public class BrowseResult implements Serializable{
 		buf.append("facets: ").append(toString(_facetMap));
 		buf.append("hits: ").append(Arrays.toString(hits));
 		return buf.toString();
+	}
+	
+	public void close()
+	{
+	  if (_facetMap == null) return;
+	  Collection<FacetAccessible> accessibles = _facetMap.values();
+	  for(FacetAccessible fa : accessibles)
+	  {
+	    fa.close();
+	  }
 	}
 }

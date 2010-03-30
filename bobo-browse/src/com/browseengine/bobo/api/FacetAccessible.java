@@ -16,6 +16,8 @@ public interface FacetAccessible
 	 * @return a facet with count filled in
 	 */
 	BrowseFacet getFacet(String value);
+  
+  public void close();
 	
 	/**
 	 * Visits the list of facets within this FacetAccessible 

@@ -60,6 +60,11 @@ public class BrowseProtobufConverter {
 			list.addAll(set);
 			return list;
 		}
+    public void close()
+    {
+      // TODO Auto-generated method stub
+      // nothing yet
+    }
 		
 		public void visitFacets(FacetVisitor visitor) {
 			for(BrowseFacet facet : _data.values()) {

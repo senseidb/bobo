@@ -183,6 +183,11 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		}
 	}
 
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
 	public void visitFacets(FacetVisitor visitor) {
 		// each range is of the form <lat, lon, radius>
 		int[] rangeCounts = new int[_latPredefinedRangeIndexes.length];

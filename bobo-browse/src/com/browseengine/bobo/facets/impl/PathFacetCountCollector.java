@@ -347,6 +347,12 @@ public class PathFacetCountCollector implements FacetCountCollector
 		return finalList;
 	}
 
+  public void close()
+  {
+    // TODO Auto-generated method stub
+    
+  }
+	
 	public void visitFacets(FacetVisitor visitor) {
 		Properties props = _sel == null ? null : _sel.getSelectionProperties();
 		int depth = PathFacetHandler.getDepth(props);

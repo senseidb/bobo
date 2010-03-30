@@ -531,6 +531,14 @@ public class BoboTestCase extends TestCase {
 	
 	
 	
+	/**
+	 * check results
+	 * @param result
+	 * @param req
+	 * @param numHits
+	 * @param choiceMap
+	 * @param ids
+	 */
 	private void doTest(BrowseResult result,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
 			if (!check(result,numHits,choiceMap,ids)){
 				StringBuilder buffer=new StringBuilder();
@@ -602,7 +610,7 @@ public class BoboTestCase extends TestCase {
         sizeSel.addValue("[4 TO 4]");
         br.addSelection(sizeSel);
 
-        BrowseResult result;
+        BrowseResult result = null;
         BoboBrowser boboBrowser=null;
 	  	try {
 	  		boboBrowser=newBrowser();
@@ -632,6 +640,7 @@ public class BoboTestCase extends TestCase {
 	  	finally{
 	  	  if (boboBrowser!=null){
 	  	    try {
+	  	      if(result!=null) result.close();
 	  			boboBrowser.close();
 	  		} catch (IOException e) {
 	  			fail(e.getMessage());
@@ -1050,19 +1059,27 @@ public class BoboTestCase extends TestCase {
       doTest(br,2,answer,new String[]{"3","1"});
     }
 	
-	private BrowseResult doTest(BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
-	  return doTest((BoboBrowser)null,req,numHits,choiceMap,ids);
+	/**
+	 * Do the test and check result. 
+	 * @param req
+	 * @param numHits
+	 * @param choiceMap
+	 * @param ids
+	 */
+	private void  doTest(BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
+	  doTest((BoboBrowser)null,req,numHits,choiceMap,ids);
+	  return;
     }
 	
-	private BrowseResult doTest(BoboBrowser boboBrowser,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids) {
-	  	BrowseResult result;
+	private void doTest(BoboBrowser boboBrowser,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids) {
+	  	BrowseResult result = null;
 	  	try {
 	        if (boboBrowser==null) {
 	  		boboBrowser=newBrowser();
 	  	  }
 	        result = boboBrowser.browse(req);
 	        doTest(result,req,numHits,choiceMap,ids);
-	        return result;
+	        return;// result;
 	  	} catch (BrowseException e) {
 	  		e.printStackTrace();
 	  		fail(e.getMessage());
@@ -1073,13 +1090,14 @@ public class BoboTestCase extends TestCase {
 	  	finally{
 	  	  if (boboBrowser!=null){
 	  	    try {
+	  	      if (result!=null)result.close();
 	  			boboBrowser.close();
 	  		} catch (IOException e) {
 	  			fail(e.getMessage());
 	  		}
 	  	  }
 	  	}
-	  	return null;
+	  	return;// null;
 	  }
 	
 	public void testLuceneSort() throws IOException
@@ -1300,6 +1318,7 @@ public class BoboTestCase extends TestCase {
       
       assertEquals(facet.getValue(), "0005");
       assertEquals(facet.getHitCount(), 1);
+      res.close();
 	}
 	
 	public void testQueryWithScore() throws Exception{
@@ -1612,7 +1631,7 @@ public class BoboTestCase extends TestCase {
 		
 		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 		answer.put("date",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("[2000/01/01 TO 2003/05/05]", 4), new BrowseFacet("[2003/05/06 TO 2005/04/04]",1)}));
-		BrowseResult result = doTest(br,7,answer,null);
+		doTest(br,7,answer,null);
 	}
 	
 	/**
@@ -1629,7 +1648,7 @@ public class BoboTestCase extends TestCase {
 		
 		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 		answer.put("numendorsers",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("[000000 TO 000005]", 2), new BrowseFacet("[000006 TO 000010]",2), new BrowseFacet("[000011 TO 000020]",3)}));
-		BrowseResult result = doTest(br,7,answer,null);
+		doTest(br,7,answer,null);
 	}
 	
 	public void testBrowse(){
@@ -1738,6 +1757,8 @@ public class BoboTestCase extends TestCase {
       browseRequest.setSort(new SortField[]{new SortField("multinum",SortField.CUSTOM,true)});
       mergedResult = multiBoboBrowser.browse(browseRequest);
       doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
+      mergedResult.close();
+      multiBoboBrowser.close();
 	}
 	
 	public void testFacetQuery() throws Exception{
