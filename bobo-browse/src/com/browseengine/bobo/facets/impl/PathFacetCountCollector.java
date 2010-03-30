@@ -1,12 +1,14 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -32,7 +34,11 @@ public class PathFacetCountCollector implements FacetCountCollector
 	private final ComparatorFactory _comparatorFactory;
 	private final int _minHitCount;
 	private int _maxCount;
-	
+	private static Pattern _splitPat;
+	private String[] _stringData;
+	private char[] _sepArray;
+	private int _patStart;
+	private int _patEnd;
 	
 	PathFacetCountCollector(String name,String sep,BrowseSelection sel,FacetSpec ospec,FacetDataCache dataCache)
 	{
@@ -41,6 +47,7 @@ public class PathFacetCountCollector implements FacetCountCollector
 		_name = name;
         _dataCache = dataCache;
         _sep = sep;
+        _sepArray = sep.toCharArray();
 		_count=new int[_dataCache.freqs.length];
 		_orderArray = _dataCache.orderArray;
 		_minHitCount = ospec.getMinHitCount();
@@ -55,8 +62,13 @@ public class PathFacetCountCollector implements FacetCountCollector
 		case OrderByCustom: _comparatorFactory=ospec.getCustomComparatorFactory(); break;
 		default: throw new IllegalArgumentException("invalid sort option: "+sortOption);
 		}
+		_splitPat = Pattern.compile(_sep);
+		_stringData = new String[10];
+		_patStart = 0;
+		_patEnd = 0;
 	}
-	
+
+
 	public int[] getCountDistribution()
 	{
 	  return _count;
@@ -79,6 +91,71 @@ public class PathFacetCountCollector implements FacetCountCollector
 	public BrowseFacet getFacet(String value)
 	{
 	  return null;	
+	}
+	
+	private void ensureCapacity(int minCapacity) {
+		int oldCapacity = _stringData.length;
+		if (minCapacity > oldCapacity) {
+			Object oldData[] = _stringData;
+			int newCapacity = (oldCapacity * 3)/2 + 1;
+			if (newCapacity < minCapacity)
+				newCapacity = minCapacity;
+			// minCapacity is usually close to size, so this is a win:
+			_stringData = new String[newCapacity];
+			System.arraycopy(oldData, 0, _stringData, Math.min(oldData.length, newCapacity), newCapacity);
+		}
+	}
+
+	private int patListSize() {
+		return (_patEnd - _patStart);
+	}
+	
+	public boolean splitString(String input) {
+		_patStart = 0;
+		_patEnd = 0;
+		char[] str = input.toCharArray();
+		int index = 0;
+		int sepindex = 0;
+		int tokStart = -1;
+		int tokEnd = 0;
+		while(index < input.length()) {
+			for(sepindex = 0; (sepindex < _sepArray.length) && (str[index+sepindex] == _sepArray[sepindex]); sepindex++);
+			if(sepindex == _sepArray.length) {
+				index += _sepArray.length;
+				if(tokStart >= 0) {
+					ensureCapacity(_patEnd + 1);
+					tokEnd++;
+					_stringData[_patEnd++] = input.substring(tokStart, tokEnd);
+				}
+				tokStart = -1;
+			} else {
+				if(tokStart < 0) {
+					tokStart = index;
+					tokEnd = index;
+				}else {
+					tokEnd++;
+				}
+				index++;
+			}
+		}
+		
+		if(_patEnd == 0)
+			return false;
+		
+		if(tokStart >= 0) { 
+			ensureCapacity(_patEnd + 1);
+			tokEnd++;
+			_stringData[_patEnd++] = input.substring(tokStart, tokEnd);
+		}
+			
+		// let gc do its job 
+		str = null;
+		
+		// Construct result
+		while (_patEnd > 0 && _stringData[patListSize()-1].equals("")) {
+			_patEnd--;
+		}
+		return true;
 	}
 	
 	private List<BrowseFacet> getFacetsForPath(String selectedPath,int depth,boolean strict,int minCount,int maxCount)
@@ -122,23 +199,32 @@ public class PathFacetCountCollector implements FacetCountCollector
 			}
 		}
 		
+		String[] pathParts;
+		StringBuffer buf = new StringBuffer();
 		for (int i=index;i<_count.length;++i){
 			if (_count[i] >= minCount){
 				String path=_dataCache.valArray.get(i);
 				//if (path==null || path.equals(selectedPath)) continue;						
 				
 				int subCount=_count[i];
-			
-				String[] pathParts=path.split(_sep);
+
+				// do not use Java split string in a loop !
+//				String[] pathParts=path.split(_sep);
+				int pathDepth = 0;
+				if(!splitString(path)) {
+					pathDepth = 0;
+				}else {
+					pathDepth = patListSize();
+				}
 				
-				int pathDepth=pathParts.length;
-							
+				int tmpdepth = 0;
 				if ((startDepth==0) || (startDepth>0 && path.startsWith(selectedPath))){
-						StringBuffer buf=new StringBuffer();
+						buf.delete(0, buf.length());
 						int minDepth=Math.min(wantedDepth, pathDepth);
-						for(int k=0;k<minDepth;++k){
-							buf.append(pathParts[k]);
-							if (!pathParts[k].endsWith(_sep)){
+						tmpdepth = 0;
+						for(int k = _patStart; ((k < _patEnd) && (tmpdepth < minDepth)); ++k, tmpdepth++){
+							buf.append(_stringData[k]);
+							if (!_stringData[k].endsWith(_sep)){
 								if (pathDepth!=wantedDepth || k<(wantedDepth-1))
 									buf.append(_sep);
 							}

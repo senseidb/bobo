@@ -49,7 +49,7 @@
 				<jvmarg value="-server" />
         		<jvmarg value="-d64" />
         		
-				<jvmarg value="-agentlib:yjpagent" />
+                <jvmarg value="-agentpath:/Users/nnarkhed/opensource/libyjpagent.jnilib" />
 				
         	</java>
         </target>
@@ -69,7 +69,7 @@
 	        		<arg value="${conf}/bobo-perf.properties" />
 					<jvmarg value="-server" />
 	        		<jvmarg value="-d64" />
-				  <jvmarg value="-agentlib:yjpagent" />
+                                  <jvmarg value="-agentpath:/Users/nnarkhed/opensource/libyjpagent.jnilib" />
 				</java>
 	        </target>
 </project>
