@@ -32,14 +32,9 @@ public class BoboSimpleDecimalFormat
     this._padLength = padding;
     this._builder = new StringBuilder(padding + 1);
   }
-  private static long xx =0;
+
   public static BoboSimpleDecimalFormat getInstance(int padding)
   {
-    if (xx < 10)
-    {
-      log.info("BoboSimpleDecimalFormat xxxx " + padding);
-      xx++;
-    }
     return new BoboSimpleDecimalFormat(padding);
   }
 
@@ -50,7 +45,6 @@ public class BoboSimpleDecimalFormat
    */
   public String format(short number)
   {
-    log.info("xxx format short " + number);
     if (number>=0)
     {
       int i = _padLength - stringSizeOfShort(number);
@@ -75,8 +69,6 @@ public class BoboSimpleDecimalFormat
    */
   public String format(int number)
   {
-    log.info("log xxx format int " + number);
-    System.out.println("print xxx format int " + number);
     if (number>=0)
     {
       int i = _padLength - stringSizeOfInt(number);
@@ -101,7 +93,6 @@ public class BoboSimpleDecimalFormat
    */
   public String format(long number)
   {
-    log.info("xxx format long " + number);
     if (number>=0)
     {
       int i = _padLength - stringSizeOfLong(number);
