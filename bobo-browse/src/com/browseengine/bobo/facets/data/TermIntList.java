@@ -43,7 +43,6 @@ public class TermIntList extends TermNumberList {
 
 	@Override
 	public boolean add(String o) {
-	  log.info("add xxx " + o);
     _innerTermList.add(o==null||o.length()==0?zero:o.intern());
 		return ((IntArrayList)_innerList).add(parse(o));
 	}
@@ -114,7 +113,6 @@ public class TermIntList extends TermNumberList {
       super.setFormatString(formatString);
     }
     zero = format(0).intern();
-    log.info("xxx zero " + zero);
   }
 
   @Override
