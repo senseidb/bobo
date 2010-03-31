@@ -94,10 +94,10 @@ public abstract class SortCollector extends Collector {
 			if (facetNames.contains(sortName)){
 				FacetHandler<?> handler = browser.getFacetHandler(sortName);
 				assert handler!=null;
-				return handler.getDocComparatorSource();
+				compSource = handler.getDocComparatorSource();
 			}
 			else{		// default lucene field
-				return getNonFacetComparatorSource(sf);
+				compSource = getNonFacetComparatorSource(sf);
 			}
 		}
 		boolean reverse = sf.getReverse();
