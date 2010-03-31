@@ -15,6 +15,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
@@ -150,6 +151,22 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
         }
       }
       return retList;
+    }
+
+    public void visitFacets(final FacetVisitor visitor)
+    {
+      FacetVisitor fv = new FacetVisitor()
+      {
+
+        public void visit(String facet, int count)
+        {
+          String facetstr = getValueFromRangeString(facet);
+          if (facetstr!=null)
+            visitor.visit(facetstr, count);
+        }
+        
+      };
+      super.visitFacets(fv);
     }
   }
 }
