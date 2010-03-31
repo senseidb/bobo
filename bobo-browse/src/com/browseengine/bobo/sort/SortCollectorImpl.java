@@ -25,8 +25,8 @@ public class SortCollectorImpl extends SortCollector {
   private final LinkedList<DocIDPriorityQueue> _pqList;
   private final int _numHits;
   private int _totalHits;
-  private MyScoreDoc _bottom;
-  private MyScoreDoc _tmpScoreDoc;
+  private ScoreDoc _bottom;
+  private ScoreDoc _tmpScoreDoc;
   private boolean _queueFull;
   private DocComparator _currentComparator;
   private DocComparatorSource _compSource;
@@ -34,7 +34,6 @@ public class SortCollectorImpl extends SortCollector {
   private BoboIndexReader _currentReader=null;
   
   private final boolean _doScoring;
-  private float _maxScore;
   private Scorer _scorer;
   private final int _offset;
   private final int _count;
@@ -45,7 +44,7 @@ public class SortCollectorImpl extends SortCollector {
     private static final long serialVersionUID = 1L;
     
     DocIDPriorityQueue queue;
-    BoboIndexReader _srcReader;
+    BoboIndexReader reader;
     public MyScoreDoc(){
     	this(0,0.0f,null,null);
     }
@@ -53,7 +52,7 @@ public class SortCollectorImpl extends SortCollector {
     public MyScoreDoc(int docid, float score, DocIDPriorityQueue queue,BoboIndexReader reader) {
       super(docid, score);
       this.queue = queue;
-      _srcReader = reader;
+      this.reader = reader;
     }
     
     Comparable getValue(){
@@ -71,7 +70,6 @@ public class SortCollectorImpl extends SortCollector {
     _offset = offset;
     _count = count;
     _totalHits = 0;
-    _maxScore = 0.0f;
     _queueFull = false;
     _doScoring = doScoring;
     _tmpScoreDoc = new MyScoreDoc();
@@ -85,14 +83,7 @@ public class SortCollectorImpl extends SortCollector {
   @Override
   public void collect(int doc) throws IOException {
     _totalHits++;
-    float score;
-    if (_doScoring){
- 	   score = _scorer.score();
- 	   _maxScore+=score;
-    }
-    else{
- 	   score = 0.0f;
-    }
+    final float score = (_doScoring ? _scorer.score() : 0.0f);
     
     if (_queueFull){
       _tmpScoreDoc.doc = doc;
@@ -101,12 +92,12 @@ public class SortCollectorImpl extends SortCollector {
       if (_currentComparator.compare(_bottom,_tmpScoreDoc)<=0){
         return;
       }
-      MyScoreDoc tmp = _bottom;
-      _bottom = (MyScoreDoc)_currentQueue.replace(_tmpScoreDoc);
+      ScoreDoc tmp = _bottom;
+      _bottom = _currentQueue.replace(_tmpScoreDoc);
       _tmpScoreDoc = tmp;
     }
     else{ 
-      _bottom = (MyScoreDoc)_currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
+      _bottom = _currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
       _queueFull = (_currentQueue.size() >= _numHits);
     }
     
@@ -118,11 +109,10 @@ public class SortCollectorImpl extends SortCollector {
 	assert reader instanceof BoboIndexReader;
 	_currentReader = (BoboIndexReader)reader;
     _currentComparator = _compSource.getComparator(reader,docBase);
-    _currentQueue = new DocIDPriorityQueue(_currentComparator,
-                                           _numHits, docBase);
-
-    _tmpScoreDoc.queue = _currentQueue;
-    _tmpScoreDoc._srcReader = _currentReader;
+    _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
+    MyScoreDoc myScoreDoc = (MyScoreDoc)_tmpScoreDoc;
+    myScoreDoc.queue = _currentQueue;
+    myScoreDoc.reader = _currentReader;
     _pqList.add(_currentQueue);
     _queueFull = false;
   }
@@ -186,7 +176,7 @@ public class SortCollectorImpl extends SortCollector {
     Collection<FacetHandler<?>> facetHandlers= facetHandlerMap.values();
     for (MyScoreDoc fdoc : scoreDocs)
     {
-      BoboIndexReader reader = fdoc._srcReader;
+      BoboIndexReader reader = fdoc.reader;
       BrowseHit hit=new BrowseHit();
       if (fetchStoredFields){
          
