@@ -338,7 +338,9 @@ public class PathFacetCountCollector implements FacetCountCollector
 				iterList.add(subList.iterator());
 			}
 		}
-		Iterator<BrowseFacet> finalIter = ListMerger.mergeLists(iterList.toArray((Iterator<BrowseFacet>[])new Iterator[iterList.size()]), _comparatorFactory==null ? new FacetValueComparatorFactory().newComparator(): _comparatorFactory.newComparator());
+		Iterator<BrowseFacet> finalIter = ListMerger.mergeLists(
+				iterList.toArray((Iterator<BrowseFacet>[])new Iterator[iterList.size()]), 
+				_comparatorFactory==null ? new FacetValueComparatorFactory().newComparator(): _comparatorFactory.newComparator());
 		while (finalIter.hasNext())
 	    {
 			BrowseFacet f = finalIter.next();
@@ -398,6 +400,47 @@ public class PathFacetCountCollector implements FacetCountCollector
 			BrowseFacet facet = iter.next();
 			visitor.visit(facet.getValue(), facet.getHitCount());
 		}
+	}
+
+
+	public Iterator iterator() {
+		Properties props = _sel == null ? null : _sel.getSelectionProperties();
+		int depth = PathFacetHandler.getDepth(props);
+		boolean strict = PathFacetHandler.isStrict(props);
+		List<BrowseFacet> finalList;
+		
+		String[] paths= _sel == null ? null : _sel.getValues();
+		if (paths==null || paths.length == 0)
+		{
+			finalList = getFacetsForPath(null, depth, strict, Integer.MIN_VALUE, _count.length);
+			return new PathFacetIterator(finalList);
+		}
+		
+		if (paths.length==1) {
+			finalList = getFacetsForPath(paths[0],depth,strict, Integer.MIN_VALUE, _count.length);
+			return new PathFacetIterator(finalList);
+		}
+
+		finalList=new LinkedList<BrowseFacet>();
+		ArrayList<Iterator<BrowseFacet>> iterList = new ArrayList<Iterator<BrowseFacet>>(paths.length);
+		for (String path : paths)
+		{
+			List<BrowseFacet> subList=getFacetsForPath(path, depth, strict, Integer.MIN_VALUE, _count.length);
+			if (subList.size() > 0)
+			{
+				iterList.add(subList.iterator());
+			}
+		}
+		
+		Iterator<BrowseFacet> finalIter = ListMerger.mergeLists(
+				iterList.toArray((Iterator<BrowseFacet>[])new Iterator[iterList.size()]), 
+				_comparatorFactory==null ? new FacetValueComparatorFactory().newComparator(): _comparatorFactory.newComparator());
+		while (finalIter.hasNext())
+	    {
+			BrowseFacet f = finalIter.next();
+			finalList.add(f);
+	    }
+		return new PathFacetIterator(finalList);
 	}
 }
 

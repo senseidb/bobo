@@ -1,6 +1,8 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -30,7 +32,12 @@ public class RangeFacetCountCollector implements FacetCountCollector
       _array = _dataCache.orderArray;
       _docBase = docBase;
       _ospec=ospec;
-      _predefinedRanges = predefinedRanges;
+      if(predefinedRanges != null) {
+    	  _predefinedRanges = new ArrayList<String>(predefinedRanges);
+    	  Collections.sort(_predefinedRanges);
+      }else {
+    	  _predefinedRanges = null;
+      }
       
       if (_predefinedRanges!=null)
       {
@@ -252,6 +259,25 @@ public class RangeFacetCountCollector implements FacetCountCollector
     // TODO Auto-generated method stub
   }    
 
+  public Iterator iterator() {
+	  if(_predefinedRanges != null) {
+		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
+		  for (int i=0;i<_count.length;++i){
+			  if (_count[i] >0 ){
+				  for (int k=0;k<_predefinedRangeIndexes.length;++k)
+				  {
+					  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
+					  {
+						  rangeCounts[k]+=_count[i];
+					  }
+				  }
+			  }
+		  }
+		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts);
+	  }
+	  return null;
+  }
+  
   public void visitFacets(FacetVisitor visitor) {
 	  if (_predefinedRangeIndexes!=null)
 	  {
@@ -271,6 +297,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 		  {
 			  visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
 		  }
+		  rangeCounts = null;
 	  }
   }
 }

@@ -26,6 +26,7 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.impl.PathFacetIterator;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.TextFormat.ParseException;
 
@@ -60,16 +61,20 @@ public class BrowseProtobufConverter {
 			list.addAll(set);
 			return list;
 		}
-    public void close()
-    {
-      // TODO Auto-generated method stub
-      // nothing yet
-    }
-		
+
+		public void close() {
+			// TODO Auto-generated method stub
+			// nothing yet
+		}
+
 		public void visitFacets(FacetVisitor visitor) {
 			for(BrowseFacet facet : _data.values()) {
 				visitor.visit(facet.getValue(), facet.getHitCount());
 			}
+		}
+		
+		public Iterator iterator() {
+			return new PathFacetIterator(new ArrayList<BrowseFacet>(_data.values()));
 		}
 	}
 	

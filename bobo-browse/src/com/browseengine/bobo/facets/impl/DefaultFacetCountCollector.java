@@ -2,7 +2,7 @@ package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FieldValueAccessor;
@@ -18,7 +19,6 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.util.BigSegmentedArray;
-import com.browseengine.bobo.util.BoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.MemoryManager;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
@@ -28,12 +28,14 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
   protected final FacetSpec _ospec;
   protected int[] _count;
-  protected FacetDataCache _dataCache;
+  protected final FacetDataCache _dataCache;
   private final String _name;
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
   private int _docBase;
   protected LinkedList<int[]> intarraylist = new LinkedList<int[]>();
+  private Iterator _iterator;
+  
   protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
   {
 
@@ -114,6 +116,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
                 if (hits>=minCount)
                 {
                     BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
+                    System.out.println("DefaultFacetCountCollector: Value --> " + valList.get(i));
                     facetColl.add(facet);
                 }
                 if (facetColl.size()>=max) break;
@@ -181,13 +184,20 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   }
 
   /**
+   * This function returns an Iterator to visit the facets in value order
+   * @return	The Iterator to iterate over the facets in value order
+   */
+  public Iterator iterator() {
+	  return new DefaultFacetIterator(_dataCache.valArray, _count);
+  }
+  
+  /**
    * @see com.browseengine.bobo.api.FacetAccessible#visitFacets(FacetVisitor)
    */
   public void visitFacets(FacetVisitor visitor) {
-      List<String> valList=_dataCache.valArray;
 	  for (int i = 1; i < _count.length;++i) // exclude zero
 	  {
-		  visitor.visit(valList.get(i), _count[i]);
+		  visitor.visit(_dataCache.valArray.get(i), _count[i]);
 	  }	  
   }
 }

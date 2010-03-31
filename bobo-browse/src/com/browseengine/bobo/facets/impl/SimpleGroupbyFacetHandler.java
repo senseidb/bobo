@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 
 import org.apache.lucene.index.IndexReader;
@@ -17,6 +19,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FieldValueAccessor;
@@ -179,6 +182,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 	}
 	
 	private static class GroupbyFacetCountCollector implements FacetCountCollector{
+		
 		private final DefaultFacetCountCollector[] _subcollectors;
 		private final String _name;
 		private final FacetSpec _fspec;
@@ -361,16 +365,73 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			}
 		}
 
-    public void close()
-    {
-      // TODO Auto-generated method stub
-      
-    }
+		public void close()
+		{
+			// TODO Auto-generated method stub
+
+		}
+		
 		public void visitFacets(FacetVisitor visitor) {
 			for (int i = 1; i < _count.length;++i) // exclude zero
 			{
 				visitor.visit(getFacetString(i), _count[i]);
 			}	  
 		}
+
+		public Iterator iterator() {
+			return new GroupByFacetIterator();
+		}
+		
+		public class GroupByFacetIterator implements FacetIterator {
+
+			private int _index;
+			
+			public GroupByFacetIterator() {
+				_index = 1;
+			}
+			
+			/* (non-Javadoc)
+			 * @see com.browseengine.bobo.api.FacetIterator#getFacet()
+			 */
+			public String getFacet() {
+				if(!hasNext())
+					throw new NoSuchElementException("No more facets in this iteration");
+				return getFacetString(_index);
+			}
+
+			/* (non-Javadoc)
+			 * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
+			 */
+			public int getFacetCount() {
+				if(!hasNext())
+					throw new NoSuchElementException("No more facets in this iteration");
+				return _count[_index];
+			}
+
+			/* (non-Javadoc)
+			 * @see com.browseengine.bobo.api.FacetIterator#next()
+			 */
+			public Object next() {
+				if(!hasNext())
+					throw new NoSuchElementException("No more facets in this iteration");
+				_index++;
+				return null;
+			}
+
+			/* (non-Javadoc)
+			 * @see java.util.Iterator#hasNext()
+			 */
+			public boolean hasNext() {
+				return (_index < _count.length);
+			}
+
+			/* (non-Javadoc)
+			 * @see java.util.Iterator#remove()
+			 */
+			public void remove() {
+				throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
+			}
+		}
+
 	}
 }

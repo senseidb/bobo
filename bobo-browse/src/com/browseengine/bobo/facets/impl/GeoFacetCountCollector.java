@@ -4,6 +4,8 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -81,7 +83,8 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		_yvals = dataCache.get_yValArray();
 		_zvals = dataCache.get_zValArray();
 		_spec = fspec;
-		_predefinedRanges = predefinedRanges;
+		_predefinedRanges = new ArrayList<String>(predefinedRanges);
+		Collections.sort(_predefinedRanges);
 		_docBase = docBase;
 		_count = new int[predefinedRanges.size()];
 		_ranges = new GeoRange[predefinedRanges.size()];
@@ -236,24 +239,29 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		return new GeoRange(lat, lon, rad);
 	}
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetAccessible#close()
-   */
-  public void close()
-  {    
-  }
+	/* (non-Javadoc)
+	 * @see com.browseengine.bobo.api.FacetAccessible#close()
+	 */
+	public void close()
+	{    
+	}
+	
+	public Iterator iterator() {
+		return new DefaultFacetIterator(_predefinedRanges, _count);
+	}
+	
 	public void visitFacets(FacetVisitor visitor) {
-		if(_spec != null) {
-			int minHitCount = _spec.getMinHitCount();
-			for(int i = 0; i < _count.length; i++) {
-				if(_count[i] >= minHitCount) 
-					visitor.visit(_predefinedRanges.get(i), _count[i]);
-			}
-		}
-		else {
+//		if(_spec != null) {
+//			int minHitCount = _spec.getMinHitCount();
+//			for(int i = 0; i < _count.length; i++) {
+//				if(_count[i] >= minHitCount) 
+//					visitor.visit(_predefinedRanges.get(i), _count[i]);
+//			}
+//		}
+//		else {
 			for(int i = 0; i < _count.length; i++) {
 				visitor.visit(_predefinedRanges.get(i), _count[i]);
 			}			
-		}
+//		}
 	}
 }
