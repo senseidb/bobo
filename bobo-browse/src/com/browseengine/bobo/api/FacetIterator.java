@@ -9,7 +9,7 @@ import java.util.Iterator;
  * @author nnarkhed
  *
  */
-public interface FacetIterator extends Iterator{
+public interface FacetIterator extends Iterator<String>{
 
 	/**
 	 * Returns the facet name of the current facet in the iteration
@@ -29,5 +29,5 @@ public interface FacetIterator extends Iterator{
 	 * Moves the iteration to the next facet
 	 * @return	null
 	 */
-	Object next();
+	String next();
 }

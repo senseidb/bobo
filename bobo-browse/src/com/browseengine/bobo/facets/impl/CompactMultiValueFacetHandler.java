@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,6 +21,7 @@ import org.apache.lucene.search.ScoreDoc;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -442,7 +442,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
       }
 
       @Override
-      public Iterator iterator() {
+      public FacetIterator iterator() {
           if(!_aggregated) aggregateCounts();
     	  return super.iterator();
       }

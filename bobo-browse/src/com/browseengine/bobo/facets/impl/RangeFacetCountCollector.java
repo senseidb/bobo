@@ -2,10 +2,10 @@ package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -259,7 +259,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
     // TODO Auto-generated method stub
   }    
 
-  public Iterator iterator() {
+  public FacetIterator iterator() {
 	  if(_predefinedRanges != null) {
 		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
 		  for (int i=0;i<_count.length;++i){
@@ -273,7 +273,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 				  }
 			  }
 		  }
-		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts);
+		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
 	  }
 	  return null;
   }

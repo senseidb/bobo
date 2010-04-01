@@ -378,7 +378,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			}	  
 		}
 
-		public Iterator iterator() {
+		public FacetIterator iterator() {
 			return new GroupByFacetIterator();
 		}
 		
@@ -387,15 +387,13 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			private int _index;
 			
 			public GroupByFacetIterator() {
-				_index = 1;
+				_index = 0;
 			}
 			
 			/* (non-Javadoc)
 			 * @see com.browseengine.bobo.api.FacetIterator#getFacet()
 			 */
 			public String getFacet() {
-				if(!hasNext())
-					throw new NoSuchElementException("No more facets in this iteration");
 				return getFacetString(_index);
 			}
 
@@ -403,26 +401,24 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			 * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
 			 */
 			public int getFacetCount() {
-				if(!hasNext())
-					throw new NoSuchElementException("No more facets in this iteration");
 				return _count[_index];
 			}
 
 			/* (non-Javadoc)
 			 * @see com.browseengine.bobo.api.FacetIterator#next()
 			 */
-			public Object next() {
-				if(!hasNext())
+			public String next() {
+				if((_index >= 0) && !hasNext())
 					throw new NoSuchElementException("No more facets in this iteration");
 				_index++;
-				return null;
+				return getFacetString(_index);
 			}
 
 			/* (non-Javadoc)
 			 * @see java.util.Iterator#hasNext()
 			 */
 			public boolean hasNext() {
-				return (_index < _count.length);
+				return (_index < (_count.length-1));
 			}
 
 			/* (non-Javadoc)

@@ -45,7 +45,7 @@ public class MappedFacetAccessible implements FacetAccessible, Serializable {
 		}
 	}
 
-	public Iterator iterator() {
+	public FacetIterator iterator() {
 		return new PathFacetIterator(Arrays.asList(_facets));
 	}
 

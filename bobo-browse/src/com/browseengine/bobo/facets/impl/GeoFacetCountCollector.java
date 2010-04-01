@@ -5,10 +5,10 @@ package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -246,8 +246,8 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	{    
 	}
 	
-	public Iterator iterator() {
-		return new DefaultFacetIterator(_predefinedRanges, _count);
+	public FacetIterator iterator() {
+		return new DefaultFacetIterator(_predefinedRanges, _count, true);
 	}
 
 	public void visitFacets(FacetVisitor visitor) {
