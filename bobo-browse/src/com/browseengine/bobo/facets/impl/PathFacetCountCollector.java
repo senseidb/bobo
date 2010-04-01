@@ -1,18 +1,17 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
@@ -403,7 +402,7 @@ public class PathFacetCountCollector implements FacetCountCollector
 	}
 
 
-	public Iterator iterator() {
+	public FacetIterator iterator() {
 		Properties props = _sel == null ? null : _sel.getSelectionProperties();
 		int depth = PathFacetHandler.getDepth(props);
 		boolean strict = PathFacetHandler.isStrict(props);

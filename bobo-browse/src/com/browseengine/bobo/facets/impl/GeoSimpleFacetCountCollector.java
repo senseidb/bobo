@@ -5,11 +5,10 @@ package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 
 import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -193,7 +192,7 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 
 	}
 	
-	public Iterator iterator() {
+	public FacetIterator iterator() {
 		// each range is of the form <lat, lon, radius>
 		int[] rangeCounts = new int[_latPredefinedRangeIndexes.length];
 		for (int i=0;i<_latCount.length;++i){
@@ -207,7 +206,7 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 				}
 			}
 		}
-		return new DefaultFacetIterator(_predefinedRanges, rangeCounts);
+		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
 	}
 	
 	public void visitFacets(FacetVisitor visitor) {

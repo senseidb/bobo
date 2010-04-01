@@ -1,11 +1,11 @@
 package com.browseengine.bobo.service;
 
 import java.io.Serializable;
-import java.util.Iterator;
 import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.impl.PathFacetIterator;
 
@@ -46,7 +46,7 @@ public class SerializedFacetAccessible implements FacetAccessible,Serializable {
 		}		
 	}
 	
-	public Iterator iterator() {
+	public FacetIterator iterator() {
 		return new PathFacetIterator(_facets);
 	}
 

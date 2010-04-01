@@ -21,7 +21,7 @@ public class GeoSimpleFacetIterator implements FacetIterator {
 	public GeoSimpleFacetIterator(List<String> ranges, int[] rangeCounts) {
 		_ranges = ranges;
 		_count = rangeCounts;
-		_index = 0;
+		_index = -1;
 	}
 	
 	/* (non-Javadoc)
@@ -45,11 +45,11 @@ public class GeoSimpleFacetIterator implements FacetIterator {
 	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetIterator#next()
 	 */
-	public Object next() {
+	public String next() {
 		if(!hasNext())
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
-		return null;
+		return _ranges.get(_index);
 	}
 
 	/* (non-Javadoc)

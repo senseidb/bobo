@@ -1,6 +1,5 @@
 package com.browseengine.bobo.api;
 
-import java.util.Iterator;
 import java.util.List;
 
 public interface FacetAccessible 
@@ -30,5 +29,5 @@ public interface FacetAccessible
 	 * Returns an iterator to visit all the facets
 	 * @return	Returns a FacetIterator to iterate over all the facets
 	 */
-	Iterator iterator();
+	FacetIterator iterator();
 }

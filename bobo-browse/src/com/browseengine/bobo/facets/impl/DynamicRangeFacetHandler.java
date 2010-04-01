@@ -16,6 +16,7 @@ import java.util.Properties;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -162,7 +163,7 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
       return retList;
     }
 
-    public Iterator iterator()
+    public FacetIterator iterator()
     {
       List<BrowseFacet> facets = getFacets();
       ArrayList<String> valList = new ArrayList<String>(facets.size());
@@ -173,7 +174,7 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
         valList.add(facet.getValue());
         rangeCounts[i++] = facet.getHitCount();
       }
-      return new DefaultFacetIterator(valList, rangeCounts);
+      return new DefaultFacetIterator(valList, rangeCounts, false);
     }
 
     public void visitFacets(final FacetVisitor visitor)

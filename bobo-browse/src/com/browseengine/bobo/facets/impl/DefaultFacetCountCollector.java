@@ -187,8 +187,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
    * This function returns an Iterator to visit the facets in value order
    * @return	The Iterator to iterate over the facets in value order
    */
-  public Iterator iterator() {
-	  return new DefaultFacetIterator(_dataCache.valArray, _count);
+  public FacetIterator iterator() {
+	  return new DefaultFacetIterator(_dataCache.valArray, _count, false);
   }
   
   /**
