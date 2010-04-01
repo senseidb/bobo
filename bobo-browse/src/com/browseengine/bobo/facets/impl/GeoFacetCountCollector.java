@@ -4,10 +4,13 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.filter.GeoFacetFilter;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler.GeoFacetData;
@@ -80,7 +83,8 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		_yvals = dataCache.get_yValArray();
 		_zvals = dataCache.get_zValArray();
 		_spec = fspec;
-		_predefinedRanges = predefinedRanges;
+		_predefinedRanges = new ArrayList<String>(predefinedRanges);
+		Collections.sort(_predefinedRanges);
 		_docBase = docBase;
 		_count = new int[predefinedRanges.size()];
 		_ranges = new GeoRange[predefinedRanges.size()];
@@ -196,7 +200,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 				int countIndex = -1;
 				for(String value : _predefinedRanges) {
 					countIndex++;
-					if(_count[countIndex] > minHitCount) {
+					if(_count[countIndex] >= minHitCount) {
 						BrowseFacet choice = new BrowseFacet();
 						choice.setHitCount(_count[countIndex]);
 						choice.setValue(value);
@@ -235,4 +239,20 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		return new GeoRange(lat, lon, rad);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.browseengine.bobo.api.FacetAccessible#close()
+	 */
+	public void close()
+	{    
+	}
+	
+	public FacetIterator iterator() {
+		return new DefaultFacetIterator(_predefinedRanges, _count, true);
+	}
+
+	public void visitFacets(FacetVisitor visitor) {
+		for(int i = 0; i < _count.length; i++) {
+			visitor.visit(_predefinedRanges.get(i), _count[i]);
+		}			
+	}
 }

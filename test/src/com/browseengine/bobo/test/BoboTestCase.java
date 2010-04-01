@@ -49,6 +49,7 @@ import org.apache.lucene.analysis.tokenattributes.TermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
@@ -97,6 +98,7 @@ import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class BoboTestCase extends TestCase {
 	private Directory _indexDir;
@@ -218,6 +220,9 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("custom","000003"));
 		d1.add(buildMetaField("latitude", "60"));
 		d1.add(buildMetaField("longitude", "120"));
+		
+		Field sf = new Field("testStored","stored",Store.YES,Index.NO);
+		d1.add(sf);
 		
 		Document d2=new Document();
 		d2.add(buildMetaField("id","2"));
@@ -424,7 +429,7 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(colorHandler);
 
 		SimpleFacetHandler shapeHandler = new SimpleFacetHandler("shape");
-		colorHandler.setTermCountSize(TermCountSize.medium);
+		shapeHandler.setTermCountSize(TermCountSize.medium);
 		facetHandlers.add(new SimpleFacetHandler("shape"));
 		facetHandlers.add(new RangeFacetHandler("size", Arrays.asList(new String[]{"[* TO 4]", "[5 TO 8]", "[9 TO *]"})));
 		String[] ranges = new String[]{"[000000 TO 000005]", "[000006 TO 000010]", "[000011 TO 000020]"};
@@ -526,6 +531,14 @@ public class BoboTestCase extends TestCase {
 	
 	
 	
+	/**
+	 * check results
+	 * @param result
+	 * @param req
+	 * @param numHits
+	 * @param choiceMap
+	 * @param ids
+	 */
 	private void doTest(BrowseResult result,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
 			if (!check(result,numHits,choiceMap,ids)){
 				StringBuilder buffer=new StringBuilder();
@@ -580,68 +593,125 @@ public class BoboTestCase extends TestCase {
 		return buffer.toString();
 	}
 	
-	public void testExpandSelection()
-	{
+	public void testStoredField() throws Exception{
 		BrowseRequest br=new BrowseRequest();
 		br.setCount(10);
 		br.setOffset(0);
 
-        BrowseSelection sel=new BrowseSelection("color");
-        sel.addValue("red");
-        br.addSelection(sel); 
-        
-		
-		FacetSpec output=new FacetSpec();
-		output.setExpandSelection(true);
-		br.setFacetSpec("color", output);
-		br.setFacetSpec("shape", output);
-		
-		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
-        answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",2),new BrowseFacet("green",2),new BrowseFacet("red",3)}));
-        answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
-        
-        doTest(br,3,answer,new String[]{"1","2","7"});
+        BrowseSelection colorSel=new BrowseSelection("color");
+        colorSel.addValue("red");
+        br.addSelection(colorSel); 
 
-        sel=new BrowseSelection("shape");
-        sel.addValue("square");
-        br.addSelection(sel); 
-		
-		answer=new HashMap<String,List<BrowseFacet>>();
-		answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",1),new BrowseFacet("red",2)}));
-		answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
-		
-		doTest(br,2,answer,new String[]{"1","7"});
+        BrowseSelection shapeSel=new BrowseSelection("shape");
+        shapeSel.addValue("square");
+        br.addSelection(shapeSel);
+        
+        BrowseSelection sizeSel=new BrowseSelection("size");
+        sizeSel.addValue("[4 TO 4]");
+        br.addSelection(sizeSel);
+
+        BrowseResult result = null;
+        BoboBrowser boboBrowser=null;
+	  	try {
+	  		boboBrowser=newBrowser();
+	  	  
+	        result = boboBrowser.browse(br);
+	        assertEquals(1,result.getNumHits());
+	        BrowseHit hit = result.getHits()[0];
+	        assertNull(hit.getStoredFields());
+	        
+	        br.setFetchStoredFields(true);
+	        result = boboBrowser.browse(br);
+	        assertEquals(1,result.getNumHits());
+	        hit = result.getHits()[0];
+	        Document storedFields = hit.getStoredFields();
+	        assertNotNull(storedFields);
+	        
+	        String stored = storedFields.get("testStored");
+	        assertTrue("stored".equals(stored));
+	        
+	  	} catch (BrowseException e) {
+	  		e.printStackTrace();
+	  		fail(e.getMessage());
+	  	}
+	  	catch(IOException ioe){
+	  	  fail(ioe.getMessage());
+	  	}
+	  	finally{
+	  	  if (boboBrowser!=null){
+	  	    try {
+	  	      if(result!=null) result.close();
+	  			boboBrowser.close();
+	  		} catch (IOException e) {
+	  			fail(e.getMessage());
+	  		}
+	  	  }
+	  	}
+        
 	}
 	
-	public void testPath() throws Exception{
-		BrowseRequest br=new BrowseRequest();
-		br.setCount(10);
-		br.setOffset(0);
-
-        BrowseSelection sel=new BrowseSelection("path");
-        sel.addValue("a");
-        Properties prop = sel.getSelectionProperties();
-        PathFacetHandler.setDepth(prop, 1);
-        br.addSelection(sel); 
-		
-		FacetSpec pathSpec=new FacetSpec();
-		pathSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
-		br.setFacetSpec("path", pathSpec);
-		
-		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
-		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-b",1),new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
-		doTest(br,7,answer,null);
-		
-		pathSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
-		answer=new HashMap<String,List<BrowseFacet>>();
-		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2),new BrowseFacet("a-b",1)}));
-		doTest(br,7,answer,null);
-		
-		pathSpec.setMaxCount(2);
-		answer=new HashMap<String,List<BrowseFacet>>();
-		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
-		doTest(br,7,answer,null);
-	}
+//	public void testExpandSelection()
+//	{
+//		BrowseRequest br=new BrowseRequest();
+//		br.setCount(10);
+//		br.setOffset(0);
+//
+//        BrowseSelection sel=new BrowseSelection("color");
+//        sel.addValue("red");
+//        br.addSelection(sel); 
+//        
+//		
+//		FacetSpec output=new FacetSpec();
+//		output.setExpandSelection(true);
+//		br.setFacetSpec("color", output);
+//		br.setFacetSpec("shape", output);
+//		
+//		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+//        answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",2),new BrowseFacet("green",2),new BrowseFacet("red",3)}));
+//        answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
+//        
+//        doTest(br,3,answer,new String[]{"1","2","7"});
+//
+//        sel=new BrowseSelection("shape");
+//        sel.addValue("square");
+//        br.addSelection(sel); 
+//		
+//		answer=new HashMap<String,List<BrowseFacet>>();
+//		answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",1),new BrowseFacet("red",2)}));
+//		answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
+//		
+//		doTest(br,2,answer,new String[]{"1","7"});
+//	}
+	
+//	public void testPath() throws Exception{
+//		BrowseRequest br=new BrowseRequest();
+//		br.setCount(10);
+//		br.setOffset(0);
+//
+//        BrowseSelection sel=new BrowseSelection("path");
+//        sel.addValue("a");
+//        Properties prop = sel.getSelectionProperties();
+//        PathFacetHandler.setDepth(prop, 1);
+//        br.addSelection(sel); 
+//		
+//		FacetSpec pathSpec=new FacetSpec();
+//		pathSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
+//		br.setFacetSpec("path", pathSpec);
+//		
+//		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+//		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-b",1),new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
+//		doTest(br,7,answer,null);
+//		
+//		pathSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+//		answer=new HashMap<String,List<BrowseFacet>>();
+//		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2),new BrowseFacet("a-b",1)}));
+//		doTest(br,7,answer,null);
+//		
+//		pathSpec.setMaxCount(2);
+//		answer=new HashMap<String,List<BrowseFacet>>();
+//		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
+//		doTest(br,7,answer,null);
+//	}
 
 	/**
 	 * This tests GeoSimpleFacetHandler
@@ -766,7 +836,7 @@ public class BoboTestCase extends TestCase {
 		Explanation expl2 = b.explain(colorQ, 0);
 
 		br3.setFacetSpec("correctDistance", geoSpec);
-		geoSpec.setMinHitCount(0);
+		geoSpec.setMinHitCount(1);
 		br3.setQuery(colorQ);             // query is color=red
 		br3.addSelection(sel);			  // count facets <30,70,5> and <60,120,1>
 		answer.clear();
@@ -824,9 +894,9 @@ public class BoboTestCase extends TestCase {
 		pathSpec.setOrderBy(FacetSortSpec.OrderByCustom);
 		pathSpec.setCustomComparatorFactory(new ComparatorFactory(){
 
-			public Comparator<Integer> newComparator(
+			public IntComparator newComparator(
 					FieldValueAccessor fieldValueAccessor, final int[] counts) {
-				return new Comparator<Integer>(){
+				return new IntComparator(){
 
 					public int compare(Integer f1, Integer f2) {
 						int val = counts[f2] - counts[f1];
@@ -837,6 +907,15 @@ public class BoboTestCase extends TestCase {
 				        return val;
 					}
 					
+					public int compare(int f1, int f2) {
+					  int val = counts[f2] - counts[f1];
+					  if (val==0)
+					  {
+					    val=f2-f1;
+					  }
+					  return val;
+					}
+          
 				};
 			}
 
@@ -980,19 +1059,27 @@ public class BoboTestCase extends TestCase {
       doTest(br,2,answer,new String[]{"3","1"});
     }
 	
-	private BrowseResult doTest(BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
-	  return doTest((BoboBrowser)null,req,numHits,choiceMap,ids);
+	/**
+	 * Do the test and check result. 
+	 * @param req
+	 * @param numHits
+	 * @param choiceMap
+	 * @param ids
+	 */
+	private void  doTest(BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
+	  doTest((BoboBrowser)null,req,numHits,choiceMap,ids);
+	  return;
     }
 	
-	private BrowseResult doTest(BoboBrowser boboBrowser,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids) {
-	  	BrowseResult result;
+	private void doTest(BoboBrowser boboBrowser,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids) {
+	  	BrowseResult result = null;
 	  	try {
 	        if (boboBrowser==null) {
 	  		boboBrowser=newBrowser();
 	  	  }
 	        result = boboBrowser.browse(req);
 	        doTest(result,req,numHits,choiceMap,ids);
-	        return result;
+	        return;// result;
 	  	} catch (BrowseException e) {
 	  		e.printStackTrace();
 	  		fail(e.getMessage());
@@ -1003,13 +1090,14 @@ public class BoboTestCase extends TestCase {
 	  	finally{
 	  	  if (boboBrowser!=null){
 	  	    try {
+	  	      if (result!=null)result.close();
 	  			boboBrowser.close();
 	  		} catch (IOException e) {
 	  			fail(e.getMessage());
 	  		}
 	  	  }
 	  	}
-	  	return null;
+	  	return;// null;
 	  }
 	
 	public void testLuceneSort() throws IOException
@@ -1230,6 +1318,7 @@ public class BoboTestCase extends TestCase {
       
       assertEquals(facet.getValue(), "0005");
       assertEquals(facet.getHitCount(), 1);
+      res.close();
 	}
 	
 	public void testQueryWithScore() throws Exception{
@@ -1542,7 +1631,7 @@ public class BoboTestCase extends TestCase {
 		
 		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 		answer.put("date",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("[2000/01/01 TO 2003/05/05]", 4), new BrowseFacet("[2003/05/06 TO 2005/04/04]",1)}));
-		BrowseResult result = doTest(br,7,answer,null);
+		doTest(br,7,answer,null);
 	}
 	
 	/**
@@ -1559,7 +1648,7 @@ public class BoboTestCase extends TestCase {
 		
 		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
 		answer.put("numendorsers",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("[000000 TO 000005]", 2), new BrowseFacet("[000006 TO 000010]",2), new BrowseFacet("[000011 TO 000020]",3)}));
-		BrowseResult result = doTest(br,7,answer,null);
+		doTest(br,7,answer,null);
 	}
 	
 	public void testBrowse(){
@@ -1668,6 +1757,8 @@ public class BoboTestCase extends TestCase {
       browseRequest.setSort(new SortField[]{new SortField("multinum",SortField.CUSTOM,true)});
       mergedResult = multiBoboBrowser.browse(browseRequest);
       doTest(mergedResult, browseRequest, 4, answer, new String[]{"7","7","1","1"});
+      mergedResult.close();
+      multiBoboBrowser.close();
 	}
 	
 	public void testFacetQuery() throws Exception{
@@ -1723,10 +1814,10 @@ public class BoboTestCase extends TestCase {
 		FacetSpec numberSpec = new FacetSpec();
 		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
 			
-			public Comparator<Integer> newComparator(final FieldValueAccessor fieldValueAccessor,
+			public IntComparator newComparator(final FieldValueAccessor fieldValueAccessor,
 					final int[] counts) {
 				
-				return new Comparator<Integer>(){
+				return new IntComparator(){
 
 					public int compare(Integer v1, Integer v2) {
 						Integer size1 = (Integer)fieldValueAccessor.getRawValue(v1);
@@ -1739,6 +1830,16 @@ public class BoboTestCase extends TestCase {
 						return val;
 					}
 					
+          public int compare(int v1, int v2) {
+            int size1 = (Integer)fieldValueAccessor.getRawValue(v1);
+            int size2 = (Integer)fieldValueAccessor.getRawValue(v2);
+            
+            int val = size1-size2;
+            if (val == 0){
+              val = counts[v1]-counts[v2];
+            }
+            return val;
+          }
 				};
 			}
 

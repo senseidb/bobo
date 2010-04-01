@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Properties;
 
 import org.apache.lucene.index.IndexReader;
@@ -17,7 +19,9 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -29,6 +33,8 @@ import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue;
+import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 	private final LinkedHashSet<String> _fieldsSet;
@@ -176,6 +182,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 	}
 	
 	private static class GroupbyFacetCountCollector implements FacetCountCollector{
+		
 		private final DefaultFacetCountCollector[] _subcollectors;
 		private final String _name;
 		private final FacetSpec _fspec;
@@ -276,7 +283,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 			for (int len : _lens){
 				int adjusted=idx*len;
 				int bucket = adjusted/_count.length;
-				retVal[i++]=_subcollectors[i]._dataCache.valArray.getInnerList().get(bucket);
+				retVal[i++]=_subcollectors[i]._dataCache.valArray.getRawValue(bucket);
 				idx=adjusted%_count.length;
 			}
 			return retVal;
@@ -316,7 +323,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 		        		  throw new IllegalArgumentException("facet comparator factory not specified");
 		        	  }
 		        	  
-		        	  Comparator<Integer> comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
+		        	  IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
 
 						public String getFormatedValue(int index) {
 							return getFacetString(index);
@@ -327,8 +334,9 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 						}
 		        		  
 		        	  }, _count);
-		              facetColl=new LinkedList<BrowseFacet>();    
-		              BoundedPriorityQueue<Integer> pq=new BoundedPriorityQueue<Integer>(comparator,max);
+		              facetColl=new LinkedList<BrowseFacet>();
+		              final int forbidden = -1;
+		              IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
 		              
 		              for (int i=1;i<_count.length;++i) // exclude zero
 		              {
@@ -343,8 +351,8 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 		                }
 		              }
 		              
-		              Integer val;
-		              while((val = pq.poll()) != null)
+		              int val;
+		              while((val = pq.pollInt()) != forbidden)
 		              {
 		                  BrowseFacet facet=new BrowseFacet(getFacetString(val),_count[val]);
 		                  ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
@@ -356,5 +364,70 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 				return FacetCountCollector.EMPTY_FACET_LIST;
 			}
 		}
+
+		public void close()
+		{
+			// TODO Auto-generated method stub
+
+		}
+		
+		public void visitFacets(FacetVisitor visitor) {
+			for (int i = 1; i < _count.length;++i) // exclude zero
+			{
+				visitor.visit(getFacetString(i), _count[i]);
+			}	  
+		}
+
+		public FacetIterator iterator() {
+			return new GroupByFacetIterator();
+		}
+		
+		public class GroupByFacetIterator implements FacetIterator {
+
+			private int _index;
+			
+			public GroupByFacetIterator() {
+				_index = 0;
+			}
+			
+			/* (non-Javadoc)
+			 * @see com.browseengine.bobo.api.FacetIterator#getFacet()
+			 */
+			public String getFacet() {
+				return getFacetString(_index);
+			}
+
+			/* (non-Javadoc)
+			 * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
+			 */
+			public int getFacetCount() {
+				return _count[_index];
+			}
+
+			/* (non-Javadoc)
+			 * @see com.browseengine.bobo.api.FacetIterator#next()
+			 */
+			public String next() {
+				if((_index >= 0) && !hasNext())
+					throw new NoSuchElementException("No more facets in this iteration");
+				_index++;
+				return getFacetString(_index);
+			}
+
+			/* (non-Javadoc)
+			 * @see java.util.Iterator#hasNext()
+			 */
+			public boolean hasNext() {
+				return (_index < (_count.length-1));
+			}
+
+			/* (non-Javadoc)
+			 * @see java.util.Iterator#remove()
+			 */
+			public void remove() {
+				throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
+			}
+		}
+
 	}
 }

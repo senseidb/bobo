@@ -1,9 +1,12 @@
 package com.browseengine.bobo.perf;
 
+import java.util.Collection;
+
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
+import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.perf.RequestFactory.ReqIterator;
 
 public class BrowseThread extends Thread {
@@ -51,6 +54,13 @@ public class BrowseThread extends Thread {
 		_runForever = runForever;
 	}
 
+	private static void getFacets(BrowseResult res) {
+		Collection<FacetAccessible> facets = res.getFacetMap().values();
+		for(FacetAccessible facet : facets) {
+			facet.getFacets();
+		}
+	}
+
 	public void run() {
 		while (true) {
 			BrowseRequest req = _iter.next();
@@ -62,6 +72,7 @@ public class BrowseThread extends Thread {
 					svc = new BoboBrowser(_reader);
 					BrowseResult res = svc.browse(req);
 					// System.out.println("num hits: "+res.getNumHits());
+					getFacets(res);
 					time = res.getTime();
 				} catch (Exception e) {
 					e.printStackTrace();

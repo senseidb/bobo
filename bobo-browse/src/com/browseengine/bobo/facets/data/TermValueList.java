@@ -34,6 +34,12 @@ public abstract class TermValueList implements List<String>{
 		_innerList=buildPrimitiveList(capacity);
 	}
 	
+	/**
+	 * The user of this method should not try to alter the content of the list,
+	 * which may result in data inconsistency.
+	 * And of the content can be accessed using the getRawValue(int) method.
+	 * @return the inner list
+	 */
 	public List<?> getInnerList(){
 		return _innerList;
 	}

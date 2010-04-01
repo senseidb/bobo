@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,11 +21,12 @@ import org.apache.lucene.search.ScoreDoc;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.data.TermStringList;
@@ -440,5 +440,19 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
         }
         _aggregated = true;
       }
-    }
+
+      @Override
+      public FacetIterator iterator() {
+          if(!_aggregated) aggregateCounts();
+    	  return super.iterator();
+      }
+      
+      /**
+       * @see com.browseengine.bobo.api.FacetAccessible.visitFacets()
+       */
+      public void visitFacets(FacetVisitor visitor) {
+          if(!_aggregated) aggregateCounts();
+          super.visitFacets(visitor);
+      }
+	}
 }

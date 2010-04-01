@@ -5,7 +5,7 @@ import java.text.DecimalFormat;
 
 public abstract class TermNumberList extends TermValueList {
 
-	private ThreadLocal<DecimalFormat> _formatter = null;
+	protected ThreadLocal<DecimalFormat> _formatter = null;
 	protected String _formatString = null;
 	
 	protected TermNumberList()
@@ -25,7 +25,7 @@ public abstract class TermNumberList extends TermValueList {
 		setFormatString(formatString);
 	}
 	
-	private void setFormatString(String formatString)
+	protected void setFormatString(String formatString)
 	{
 		_formatString=formatString;
 		_formatter = new ThreadLocal<DecimalFormat>() {
@@ -62,7 +62,7 @@ public abstract class TermNumberList extends TermValueList {
 		{
 			DecimalFormat formatter=_formatter.get();
 			if (formatter==null) return String.valueOf(o);
-			return _formatter.get().format(o);
+			return formatter.format(o);
 		}
 	}
 }

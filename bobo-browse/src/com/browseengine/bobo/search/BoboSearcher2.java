@@ -303,7 +303,7 @@ public class BoboSearcher2 extends IndexSearcher{
 	        	DocIdSetIterator filterDocIdIterator = filterDocIdSet.iterator(); // CHECKME: use ConjunctionScorer here?
 	        	
 	        	target = filterDocIdIterator.nextDoc();
-	            if(target == DocIdSetIterator.NO_MORE_DOCS) return;
+	            if(target == DocIdSetIterator.NO_MORE_DOCS) continue;
 	            
 	            int doc = -1;
 	            while(true)

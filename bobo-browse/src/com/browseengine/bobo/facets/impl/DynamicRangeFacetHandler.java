@@ -6,6 +6,8 @@ package com.browseengine.bobo.facets.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -14,7 +16,9 @@ import java.util.Properties;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.RuntimeFacetHandler;
@@ -150,6 +154,44 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
         }
       }
       return retList;
+    }
+
+    public FacetIterator iterator()
+    {
+      FacetIterator iter = super.iterator();
+
+      List<BrowseFacet> facets = new ArrayList<BrowseFacet>();
+      while(iter.hasNext())
+      {
+        String facet = iter.next();
+        int count = iter.getFacetCount();
+//        System.out.println("Visiting Facet: " + getValueFromRangeString(facet));
+        facets.add(new BrowseFacet(getValueFromRangeString(facet), count));
+      }
+      Collections.sort(facets, new Comparator<BrowseFacet>()
+                       {
+                         public int compare(BrowseFacet o1, BrowseFacet o2)
+                         {
+                           return o1.getValue().compareTo(o2.getValue());
+                         }
+                       });
+      return new PathFacetIterator(facets);
+    }
+
+    public void visitFacets(final FacetVisitor visitor)
+    {
+      FacetVisitor fv = new FacetVisitor()
+      {
+
+        public void visit(String facet, int count)
+        {
+          String facetstr = getValueFromRangeString(facet);
+          if (facetstr!=null)
+            visitor.visit(facetstr, count);
+        }
+        
+      };
+      super.visitFacets(fv);
     }
   }
 }
