@@ -268,7 +268,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
             }
             rangeCounts[k] += count;
           }
-		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, false);
+		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
 	  }
 	  return null;
   }

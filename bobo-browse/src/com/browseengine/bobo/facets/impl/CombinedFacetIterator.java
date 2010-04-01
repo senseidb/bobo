@@ -107,33 +107,22 @@ public class CombinedFacetIterator implements FacetIterator {
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    IteratorNode ctx = (IteratorNode)_queue.top();
-    _facet = ctx._curFacet;
-    _count = ctx._curFacetCount;
-    
-    if (ctx.fetch())
-      _queue.updateTop();
-    else
-      _queue.pop();
-    
-    if(_queue.size() == 0)
-      return _facet;
-    
     IteratorNode node = (IteratorNode) _queue.top();
     
-    String next = node._curFacet;
-
-    while((next != null) && (next.equals(_facet)))
+    _facet = node._curFacet;
+    String next = null;
+    _count = 0;
+    while(hasNext())
     {
-      _count += node._curFacetCount;
-      if(_queue.size() == 0)
-        break;
       node = (IteratorNode) _queue.top();
+      next = node._curFacet;
+      if( (next != null) && (!next.equals(_facet)) )
+        break;
+      _count += node._curFacetCount;
       if(node.fetch())
         _queue.updateTop();
       else
         _queue.pop();
-      next = node._curFacet;
     }
     return _facet;
   }

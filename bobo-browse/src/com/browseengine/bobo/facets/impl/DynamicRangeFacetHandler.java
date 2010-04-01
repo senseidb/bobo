@@ -153,28 +153,29 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
           retList.add(convertedFacet);
         }
       }
-      Collections.sort(retList, new Comparator<BrowseFacet>()
-      {
-        public int compare(BrowseFacet o1, BrowseFacet o2)
-        {
-          return o1.getValue().compareTo(o2.getValue());
-        }
-      });
       return retList;
     }
 
     public FacetIterator iterator()
     {
-      List<BrowseFacet> facets = getFacets();
-      ArrayList<String> valList = new ArrayList<String>(facets.size());
-      int[] rangeCounts = new int[facets.size()];
-      int i = 0;
-      for(BrowseFacet facet : facets)
+      FacetIterator iter = super.iterator();
+
+      List<BrowseFacet> facets = new ArrayList<BrowseFacet>();
+      while(iter.hasNext())
       {
-        valList.add(facet.getValue());
-        rangeCounts[i++] = facet.getHitCount();
+        String facet = iter.next();
+        int count = iter.getFacetCount();
+//        System.out.println("Visiting Facet: " + getValueFromRangeString(facet));
+        facets.add(new BrowseFacet(getValueFromRangeString(facet), count));
       }
-      return new DefaultFacetIterator(valList, rangeCounts, false);
+      Collections.sort(facets, new Comparator<BrowseFacet>()
+                       {
+                         public int compare(BrowseFacet o1, BrowseFacet o2)
+                         {
+                           return o1.getValue().compareTo(o2.getValue());
+                         }
+                       });
+      return new PathFacetIterator(facets);
     }
 
     public void visitFacets(final FacetVisitor visitor)
