@@ -6,6 +6,8 @@ package com.browseengine.bobo.facets.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -150,7 +152,28 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
           retList.add(convertedFacet);
         }
       }
+      Collections.sort(retList, new Comparator<BrowseFacet>()
+      {
+        public int compare(BrowseFacet o1, BrowseFacet o2)
+        {
+          return o1.getValue().compareTo(o2.getValue());
+        }
+      });
       return retList;
+    }
+
+    public Iterator iterator()
+    {
+      List<BrowseFacet> facets = getFacets();
+      ArrayList<String> valList = new ArrayList<String>(facets.size());
+      int[] rangeCounts = new int[facets.size()];
+      int i = 0;
+      for(BrowseFacet facet : facets)
+      {
+        valList.add(facet.getValue());
+        rangeCounts[i++] = facet.getHitCount();
+      }
+      return new DefaultFacetIterator(valList, rangeCounts);
     }
 
     public void visitFacets(final FacetVisitor visitor)

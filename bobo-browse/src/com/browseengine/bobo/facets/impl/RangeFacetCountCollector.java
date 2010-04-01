@@ -199,28 +199,23 @@ public class RangeFacetCountCollector implements FacetCountCollector
 		  if (_predefinedRangeIndexes!=null)
 		  {
 			  int minCount=_ospec.getMinHitCount();
-			  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
-			  for (int i=0;i<_count.length;++i){
-				  if (_count[i] >0 ){
-					  for (int k=0;k<_predefinedRangeIndexes.length;++k)
-					  {
-						  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
-						  {
-							  rangeCounts[k]+=_count[i];
-						  }
-					  }
-				  }
-			  }
-			  List<BrowseFacet> list=new ArrayList<BrowseFacet>(rangeCounts.length);
-			  for (int i=0;i<rangeCounts.length;++i)
+			  List<BrowseFacet> list=new ArrayList<BrowseFacet>(_predefinedRangeIndexes.length);
+			  for (int k=0;k<_predefinedRangeIndexes.length;++k)
 			  {
-				  if (rangeCounts[i]>=minCount)
-				  {
-					  BrowseFacet choice=new BrowseFacet();
-					  choice.setHitCount(rangeCounts[i]);
-					  choice.setValue(_predefinedRanges.get(i));
-					  list.add(choice);
-				  }
+			    int count = 0;
+			    int idx = _predefinedRangeIndexes[k][0];
+			    int end = _predefinedRangeIndexes[k][1];
+			    while(idx <= end)
+			    {
+			      count += _count[idx++];
+			    }
+			    if(count >= minCount)
+			    {
+			      BrowseFacet choice=new BrowseFacet();
+			      choice.setHitCount(count);
+			      choice.setValue(_predefinedRanges.get(k));
+			      list.add(choice);
+			    }
 			  }
 			  return list;
 		  }
@@ -262,17 +257,17 @@ public class RangeFacetCountCollector implements FacetCountCollector
   public Iterator iterator() {
 	  if(_predefinedRanges != null) {
 		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
-		  for (int i=0;i<_count.length;++i){
-			  if (_count[i] >0 ){
-				  for (int k=0;k<_predefinedRangeIndexes.length;++k)
-				  {
-					  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
-					  {
-						  rangeCounts[k]+=_count[i];
-					  }
-				  }
-			  }
-		  }
+          for (int k=0;k<_predefinedRangeIndexes.length;++k)
+          {
+            int count = 0;
+            int idx = _predefinedRangeIndexes[k][0];
+            int end = _predefinedRangeIndexes[k][1];
+            while(idx <= end)
+            {
+              count += _count[idx++];
+            }
+            rangeCounts[k] += count;
+          }
 		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts);
 	  }
 	  return null;
@@ -281,24 +276,17 @@ public class RangeFacetCountCollector implements FacetCountCollector
   public void visitFacets(FacetVisitor visitor) {
 	  if (_predefinedRangeIndexes!=null)
 	  {
-		  int[] rangeCounts = new int[_predefinedRangeIndexes.length];
-		  for (int i=0;i<_count.length;++i){
-			  if (_count[i] >0 ){
-				  for (int k=0;k<_predefinedRangeIndexes.length;++k)
-				  {
-					  if (i>=_predefinedRangeIndexes[k][0] && i<=_predefinedRangeIndexes[k][1])
-					  {
-						  rangeCounts[k]+=_count[i];
-					  }
-				  }
-			  }
-		  }
-		  for (int i=0;i<rangeCounts.length;++i)
-		  {
-			  visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
-		  }
-		  rangeCounts = null;
+        for (int k=0;k<_predefinedRangeIndexes.length;++k)
+        {
+          int count = 0;
+          int idx = _predefinedRangeIndexes[k][0];
+          int end = _predefinedRangeIndexes[k][1];
+          while(idx <= end)
+          {
+            count += _count[idx++];
+          }
+          visitor.visit(_predefinedRanges.get(k), count);
+        }
 	  }
   }
 }
-
