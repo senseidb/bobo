@@ -36,13 +36,8 @@ public class CombinedFacetIterator implements FacetIterator {
     {
       if(minHits > 0)
         minHits = 1;
-      else
-        minHits = 0;
       if( (_curFacet = _iterator.next(minHits)) != null)
       {
-//      if(_iterator.hasNext())
-//      {
-//        _curFacet = _iterator.next();
         _curFacetCount = _iterator.getFacetCount();
         return true;
       }

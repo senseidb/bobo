@@ -72,27 +72,17 @@ public class PathFacetIterator implements FacetIterator {
    */
   public String next(int minHits)
   {
-    if( ((_index >= 0) && !hasNext()) || (_facets.length == 0) )
+    while(++_index < _facets.length)
     {
-      _facet = null;
-      _count = 0;
-      return null;
+      if(_facets[_index].getHitCount() >= minHits)
+      {
+        _facet = _facets[_index].getValue();
+        _count = _facets[_index].getHitCount();
+        return _facet;
+      }
     }
-
-    do
-    {
-      _index++;
-    }while( (_index < (_facets.length-1)) && (_facets[_index].getHitCount() < minHits) );
-    if(_facets[_index].getHitCount() >= minHits)
-    {
-      _facet = _facets[_index].getValue();
-      _count = _facets[_index].getHitCount();
-    }
-    else
-    {
-      _count = 0;
-      _facet = null;
-    }
+    _facet = null;
+    _count = 0;
     return _facet;  
   }
 }

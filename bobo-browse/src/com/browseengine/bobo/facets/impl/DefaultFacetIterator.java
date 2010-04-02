@@ -75,27 +75,17 @@ public class DefaultFacetIterator implements FacetIterator {
    */
   public String next(int minHits)
   {
-    if( ((_index >= 0) && (_index >= (_count.length-1))) || (_count.length == 0) )
+    while(++_index < _count.length)
     {
-      _facet = null;
-      _cnt = 0;
-      return _facet;
+      if(_count[_index] >= minHits)
+      {
+        _facet = _valList.get(_index);
+        _cnt = _count[_index];
+        return _facet;
+      }
     }
-    
-    do
-    {
-      _index++;
-    }while( (_index < (_count.length-1)) && (_count[_index] < minHits) );
-    if(_count[_index] >= minHits)
-    {
-      _facet = _valList.get(_index);
-      _cnt = _count[_index];
-    }
-    else
-    {
-      _facet = null;
-      _cnt = 0;
-    }
+    _facet = null;
+    _cnt = 0;
     return _facet;    
   }
 }
