@@ -27,7 +27,14 @@ public interface FacetIterator extends Iterator<String>{
 	
 	/**
 	 * Moves the iteration to the next facet
-	 * @return	null
+	 * @return	 the next facet value
 	 */
 	String next();
+	
+    /**
+     * Moves the iteration to the next facet whose hitcount >= minHits. returns null if there is no facet whose hitcount >= minHits.
+     * Hence while using this method, it is useless to use hasNext() with it. 
+     * @return   The next facet value. It returns null if there is no facet whose hitcount >= minHits.
+     */	
+	String next(int minHits);
 }

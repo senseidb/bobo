@@ -3,7 +3,6 @@
  */
 package com.browseengine.bobo.facets.impl;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -18,24 +17,28 @@ public class PathFacetIterator implements FacetIterator {
 
 	private BrowseFacet[] _facets;
 	private int _index;
+	private String _facet;
+	private int _count;
 	
 	public PathFacetIterator(List<BrowseFacet> facets) {
 		_facets = facets.toArray(new BrowseFacet[facets.size()]);
 		_index = -1;
+		_facet = null;
+		_count = 0;
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetIterator#getFacet()
 	 */
 	public String getFacet() {
-		return _facets[_index].getValue();
+      return _facet;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
 	 */
 	public int getFacetCount() {
-		return _facets[_index].getHitCount();
+      return _count;
 	}
 
 	/* (non-Javadoc)
@@ -45,14 +48,16 @@ public class PathFacetIterator implements FacetIterator {
 		if((_index >= 0) && !hasNext())
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
-		return _facets[_index].getValue();
+		_facet = _facets[_index].getValue();
+		_count = _facets[_index].getHitCount();
+		return _facet;
 	}
 
 	/* (non-Javadoc)
 	 * @see java.util.Iterator#hasNext()
 	 */
 	public boolean hasNext() {
-		return (_index < (_facets.length-1));
+		return ( (_index >= 0) && (_index < (_facets.length-1)) );
 	}
 
 	/* (non-Javadoc)
@@ -62,4 +67,32 @@ public class PathFacetIterator implements FacetIterator {
 		throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
 	}
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.api.FacetIterator#next(int)
+   */
+  public String next(int minHits)
+  {
+    if( ((_index >= 0) && !hasNext()) || (_facets.length == 0) )
+    {
+      _facet = null;
+      _count = 0;
+      return null;
+    }
+
+    do
+    {
+      _index++;
+    }while( (_index < (_facets.length-1)) && (_facets[_index].getHitCount() < minHits) );
+    if(_facets[_index].getHitCount() >= minHits)
+    {
+      _facet = _facets[_index].getValue();
+      _count = _facets[_index].getHitCount();
+    }
+    else
+    {
+      _count = 0;
+      _facet = null;
+    }
+    return _facet;  
+  }
 }

@@ -17,6 +17,8 @@ public class DefaultFacetIterator implements FacetIterator {
   private List<String> _valList;
   private int[] _count;
   private int _index;
+  private String _facet;
+  private int _cnt;
 
   public DefaultFacetIterator(List<String> valList, int[] count, boolean zeroBased) {
     _valList = valList;
@@ -24,20 +26,22 @@ public class DefaultFacetIterator implements FacetIterator {
     _index = -1;
     if(!zeroBased)
       _index++;
-  }
+    _facet = null;
+    _cnt = 0;
+ }
 
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
   public String getFacet() {
-    return _valList.get(_index);
+    return _facet;
   }
 
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
    */
   public int getFacetCount() {
-    return _count[_index];
+    return _cnt;
   }
 
   /* (non-Javadoc)
@@ -54,6 +58,8 @@ public class DefaultFacetIterator implements FacetIterator {
     if((_index >= 0) && (_index >= (_count.length-1)))
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
+    _facet = _valList.get(_index);
+    _cnt = _count[_index];
     return _valList.get(_index);
   }
 
@@ -64,4 +70,32 @@ public class DefaultFacetIterator implements FacetIterator {
     throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
   }
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.api.FacetIterator#next(int)
+   */
+  public String next(int minHits)
+  {
+    if( ((_index >= 0) && (_index >= (_count.length-1))) || (_count.length == 0) )
+    {
+      _facet = null;
+      _cnt = 0;
+      return _facet;
+    }
+    
+    do
+    {
+      _index++;
+    }while( (_index < (_count.length-1)) && (_count[_index] < minHits) );
+    if(_count[_index] >= minHits)
+    {
+      _facet = _valList.get(_index);
+      _cnt = _count[_index];
+    }
+    else
+    {
+      _facet = null;
+      _cnt = 0;
+    }
+    return _facet;    
+  }
 }

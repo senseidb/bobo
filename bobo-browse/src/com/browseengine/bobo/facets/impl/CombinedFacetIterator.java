@@ -32,11 +32,17 @@ public class CombinedFacetIterator implements FacetIterator {
       _curFacetCount = 0;
     }
 
-    public boolean fetch()
+    public boolean fetch(int minHits)
     {
-      if(_iterator.hasNext())
+      if(minHits > 0)
+        minHits = 1;
+      else
+        minHits = 0;
+      if( (_curFacet = _iterator.next(minHits)) != null)
       {
-        _curFacet = _iterator.next();
+//      if(_iterator.hasNext())
+//      {
+//        _curFacet = _iterator.next();
         _curFacetCount = _iterator.getFacetCount();
         return true;
       }
@@ -44,7 +50,7 @@ public class CombinedFacetIterator implements FacetIterator {
       _curFacetCount = 0;
       return false;
     }
-    
+
     public String peek()
     {
       if(_iterator.hasNext()) 
@@ -79,7 +85,19 @@ public class CombinedFacetIterator implements FacetIterator {
     _iterators = iterators;
     for(FacetIterator iterator : iterators) {
       IteratorNode node = new IteratorNode(iterator);
-      if(node.fetch())
+      if(node.fetch(1))
+        _queue.add(node);
+    }
+    _facet = null;
+    _count = 0;
+  }
+
+  public CombinedFacetIterator(final List<FacetIterator> iterators, int minHits) {
+    this(iterators.size());
+    _iterators = iterators;
+    for(FacetIterator iterator : iterators) {
+      IteratorNode node = new IteratorNode(iterator);
+      if(node.fetch(minHits))
         _queue.add(node);
     }
     _facet = null;
@@ -108,7 +126,7 @@ public class CombinedFacetIterator implements FacetIterator {
       throw new NoSuchElementException("No more facets in this iteration");
 
     IteratorNode node = (IteratorNode) _queue.top();
-    
+
     _facet = node._curFacet;
     String next = null;
     _count = 0;
@@ -119,10 +137,55 @@ public class CombinedFacetIterator implements FacetIterator {
       if( (next != null) && (!next.equals(_facet)) )
         break;
       _count += node._curFacetCount;
-      if(node.fetch())
+      if(node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
+    }
+    return _facet;
+  }
+
+  /**
+   * This version of the next() method applies the minHits from the facet spec before returning the facet and its hitcount
+   * @param minHits the minHits from the facet spec for CombinedFacetAccessible
+   * @return        The next facet that obeys the minHits 
+   */
+  public String next(int minHits) {
+    if(!hasNext())
+    {
+      _facet = null;
+      _count = 0;
+      return null;
+    }
+
+    IteratorNode node = (IteratorNode) _queue.top();    
+    _facet = node._curFacet;
+    String next = null;
+    _count = 0;
+    while(hasNext())
+    {
+      node = (IteratorNode) _queue.top();
+      next = node._curFacet;
+      if( (next != null) && (!next.equals(_facet)) )
+      {
+        // check if this facet obeys the minHits
+        if(_count >= minHits)
+          break;
+        // else, continue iterating to the next facet
+        _facet = next;
+        _count = 0;
+      }
+      _count += node._curFacetCount;
+      if(node.fetch(minHits))
+        _queue.updateTop();
+      else
+        _queue.pop();
+    }
+    if(_count < minHits)
+    {
+      // if the loop exited because the queue was empty
+      _facet = null;
+      _count = 0;
     }
     return _facet;
   }

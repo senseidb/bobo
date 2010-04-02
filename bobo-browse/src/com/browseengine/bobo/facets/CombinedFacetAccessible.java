@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+
+import org.apache.lucene.util.PriorityQueue;
 
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
@@ -22,6 +22,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
 
   private final List<FacetAccessible> _list;
   private final FacetSpec _fspec;
+  
   public CombinedFacetAccessible(FacetSpec fspec,List<FacetAccessible> list)
   {
     _list = list;
@@ -53,78 +54,135 @@ public class CombinedFacetAccessible implements FacetAccessible {
   }
 
   public List<BrowseFacet> getFacets() {
-    int cnt = 0;
     int maxCnt = _fspec.getMaxCount();
-    if(maxCnt <= 0) maxCnt = Integer.MAX_VALUE;
+    if(maxCnt <= 0)
+      maxCnt = Integer.MAX_VALUE;
     int minHits = _fspec.getMinHitCount();
+    LinkedList<BrowseFacet> list = new LinkedList<BrowseFacet>();
 
-    Map<String, Integer> facetMap;
-    if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy())) {
-      facetMap = new TreeMap<String, Integer>();
-    }else {
-      facetMap = new HashMap<String, Integer>();
-    }
-    FacetIterator iter = (FacetIterator)this.iterator();
-    String facetValue = null;
+    int cnt = 0;
+    String facet = null;
+    CombinedFacetIterator iter = (CombinedFacetIterator)this.iterator();
     int count = 0;
-    while(iter.hasNext()) 
-    {
-      facetValue = iter.next();
-      count = iter.getFacetCount();
-      facetMap.put(facetValue, count);
-    }
-
-    List<BrowseFacet> list = new LinkedList<BrowseFacet>();
-
+    Comparator<BrowseFacet> comparator;
     if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
     {
-      for(String facet : facetMap.keySet())
+      while((facet = iter.next(minHits)) != null) 
       {
-        int hitcount = facetMap.get(facet);
-        if(hitcount >= minHits)
-        {
-          list.add(new BrowseFacet(facet, hitcount));
-          if(++cnt >= maxCnt) break;			      
-        }
+        // find the next facet whose combined hit count obeys minHits
+        count = iter.getFacetCount();
+        list.add(new BrowseFacet(facet, count));
+        if(++cnt >= maxCnt) break;                  
       }
     }
-    else
+    else if(FacetSortSpec.OrderHitsDesc.equals(_fspec.getOrderBy()))
     {
-      Comparator<BrowseFacet> comparator;
-      if (FacetSortSpec.OrderHitsDesc.equals(_fspec.getOrderBy()))
+      comparator = new Comparator<BrowseFacet>()
       {
-        comparator = new Comparator<BrowseFacet>()
+        public int compare(BrowseFacet f1, BrowseFacet f2)
         {
-          public int compare(BrowseFacet f1, BrowseFacet f2)
+          int val=f2.getHitCount() - f1.getHitCount();
+          if (val==0)
           {
-            int val=f2.getHitCount() - f1.getHitCount();
-            if (val==0)
-            {
-              val = (f1.getValue().compareTo(f2.getValue()));
-            }
-            return val;
+            val = (f1.getValue().compareTo(f2.getValue()));
           }
-        };
-      }
-      else // FacetSortSpec.OrderByCustom.equals(_fspec.getOrderBy()
-      {
-        comparator = _fspec.getCustomComparatorFactory().newComparator();
-      }
-      ArrayList<BrowseFacet> facets = new ArrayList<BrowseFacet>();
-      for(String facet : facetMap.keySet()) {
-        facets.add(new BrowseFacet(facet, facetMap.get(facet)));
-      }
-      Collections.sort(facets, comparator);
-      for(BrowseFacet facet : facets)
-      {
-        if(facet.getHitCount() >= minHits)
-        {
-          list.add(facet);
-          if(++cnt >= maxCnt) break;                  
+          return val;
         }
+      };       
+      if(maxCnt != Integer.MAX_VALUE)
+      {
+        // we will maintain a min heap of size maxCnt
+        final int max = maxCnt;
+        // Order by hits in descending order and max count is supplied
+        PriorityQueue queue = createPQ(max, comparator);
+        while((facet = iter.next(minHits)) != null)
+        {
+          count = iter.getFacetCount();
+          if(queue.size() < maxCnt)
+            queue.add(new BrowseFacet(facet, count));
+          else 
+          {
+            // check with the top of min heap
+            BrowseFacet browseFacet = (BrowseFacet) queue.top();
+            // if facet count less than top of min heap, it should never be added 
+            if(count > browseFacet.getHitCount())
+            {
+              minHits = count + 1;
+              ((BrowseFacet)queue.top()).setValue(facet);
+              ((BrowseFacet)queue.top()).setHitCount(count);
+              queue.updateTop();
+            }
+          }
+        }
+        // at this point, queue contains top maxCnt facets that have hitcount >= minHits
+        while(queue.size() > 0)
+        {
+          // append each entry to the beginning of the facet list to order facets by hits descending
+          list.addFirst((BrowseFacet) queue.pop());
+        }
+      }
+      else
+      {
+        // no maxCnt specified. So fetch all facets according to minHits and sort them later
+        while((facet = iter.next(minHits)) != null)
+          list.add(new BrowseFacet(facet, iter.getFacetCount()));
+        Collections.sort(list, comparator);
+      }
+    }
+    else // FacetSortSpec.OrderByCustom.equals(_fspec.getOrderBy()
+    {
+      comparator = _fspec.getCustomComparatorFactory().newComparator();
+      if(maxCnt != Integer.MAX_VALUE)
+      {
+        PriorityQueue queue = createPQ(maxCnt, comparator);
+        BrowseFacet browseFacet = new BrowseFacet();        
+        while((facet = iter.next(minHits)) != null)
+        {
+          count = iter.getFacetCount();
+          if(queue.size() < maxCnt)
+            queue.add(new BrowseFacet(facet, count));
+          else 
+          {
+            // check with the top of min heap
+            // if facet count less than top of min heap, it should never be added 
+            browseFacet.setHitCount(count);
+            browseFacet.setValue(facet);
+            BrowseFacet ejectedFacet = (BrowseFacet)queue.insertWithOverflow(browseFacet);
+            if(ejectedFacet != browseFacet)
+              browseFacet = ejectedFacet;
+          }
+        }
+        // remove from queue and add to the list
+        while(queue.size() > 0)
+          list.addFirst((BrowseFacet)queue.pop());
+      }
+      else 
+      {
+        // order by custom but no max count supplied
+        while((facet = iter.next(minHits)) != null)
+          list.add(new BrowseFacet(facet, iter.getFacetCount()));
+        Collections.sort(list, comparator);
       }
     }
     return list;
+  }
+
+  private PriorityQueue createPQ(final int max, final Comparator<BrowseFacet> comparator)
+  {
+    PriorityQueue queue = new PriorityQueue()
+    {
+      {
+        this.initialize(max);
+      }
+      @Override
+      protected boolean lessThan(Object arg0, Object arg1)
+      {
+        BrowseFacet o1 = (BrowseFacet)arg0;
+        BrowseFacet o2 = (BrowseFacet)arg1;
+        return comparator.compare(o1, o2) > 0;
+      }     
+    };
+    return queue;
   }
 
   public void close()
@@ -157,7 +215,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
       if(iter != null)
         iterList.add(iter);
     }
-    return new CombinedFacetIterator(iterList);
+    return new CombinedFacetIterator(iterList, _fspec.getMinHitCount());
   }
 
 }
