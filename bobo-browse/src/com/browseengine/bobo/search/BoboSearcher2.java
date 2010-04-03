@@ -50,8 +50,8 @@ public class BoboSearcher2 extends IndexSearcher{
     {
       protected final FacetHitCollector[] _collectors;
       protected final FacetCountCollectorSource[] _countCollectorSources;
-      protected final FacetCountCollector[] _countCollectors;
       protected final int _numPostFilters;
+      protected FacetCountCollector[] _countCollectors;
       public int _nextTarget;
       
       public FacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectorSources,int numPostFilters) throws IOException
@@ -70,10 +70,16 @@ public class BoboSearcher2 extends IndexSearcher{
         throws IOException;
       
       public void setNextReader(BoboIndexReader reader,int docBase) throws IOException{
-    	  for (int i=0;i<_collectors.length;++i){
-    		  _collectors[i].setNextReader(reader, docBase);
-    		  _countCollectors[i]=_collectors[i]._currentPointers.facetCountCollector;
-    	  }
+        ArrayList<FacetCountCollector> collectorList = new ArrayList<FacetCountCollector>();
+        for (int i=0;i<_collectors.length;++i){
+          _collectors[i].setNextReader(reader, docBase);
+          FacetCountCollector collector = _collectors[i]._currentPointers.facetCountCollector;
+          if(collector != null)
+          {
+            collectorList.add(collector);
+          }
+        }
+        _countCollectors = collectorList.toArray(new FacetCountCollector[collectorList.size()]);
       }
       
     }
@@ -92,32 +98,32 @@ public class BoboSearcher2 extends IndexSearcher{
         public final boolean validate(final int docid)
           throws IOException
         {
-          FacetHitCollector miss = null;
+    	  FacetHitCollector.CurrentPointers miss = null;
           
           for(int i = 0; i < _numPostFilters; i++)
           {
-            FacetHitCollector facetCollector = _collectors[i];
-            int sid = facetCollector._currentPointers.doc;
+            FacetHitCollector.CurrentPointers cur = _collectors[i]._currentPointers;
+            int sid = cur.doc;
             if(sid!=DocIdSetIterator.NO_MORE_DOCS)
             {
               if(sid == docid) continue; // matched
               
               if(sid < docid)
               {
-                DocIdSetIterator iterator = facetCollector._currentPointers.postDocIDSetIterator;
+                DocIdSetIterator iterator = cur.postDocIDSetIterator;
                 sid = iterator.advance(docid);
                 if(sid!=DocIdSetIterator.NO_MORE_DOCS)
                 {
-                	facetCollector._currentPointers.doc = sid;
+                  cur.doc = sid;
                   if(sid == docid) continue; // matched
                 }
                 else
                 {
-                	facetCollector._currentPointers.doc = DocIdSetIterator.NO_MORE_DOCS;
+                  cur.doc = DocIdSetIterator.NO_MORE_DOCS;
                   
                   // move this to front so that the call can find the failure faster
                   FacetHitCollector tmp = _collectors[0];
-                  _collectors[0] = facetCollector;
+                  _collectors[0] = _collectors[i];
                   _collectors[i] = tmp;
                 }
               }  
@@ -126,17 +132,17 @@ public class BoboSearcher2 extends IndexSearcher{
             if(miss != null)
             {
               // failed because we already have a mismatch
-              _nextTarget = (miss._currentPointers.doc < facetCollector._currentPointers.doc ? miss._currentPointers.doc : facetCollector._currentPointers.doc);
+              _nextTarget = (miss.doc < cur.doc ? miss.doc : cur.doc);
               return false;
             }
-            miss = facetCollector;
+            miss = cur;
           }
           
           _nextTarget = docid + 1;
 
           if(miss != null)
           {
-            miss._currentPointers.facetCountCollector.collect(docid);
+            miss.facetCountCollector.collect(docid);
             return false;
           }
           else
@@ -152,25 +158,25 @@ public class BoboSearcher2 extends IndexSearcher{
     
     private final static class OnePostFilterFacetValidator extends FacetValidator{
     	private FacetHitCollector _firsttime;
-    	OnePostFilterFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors,int numPostFilters) throws IOException{
-    		super(collectors,countCollectors,numPostFilters);
+    	OnePostFilterFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors) throws IOException{
+    		super(collectors,countCollectors,1);
     		_firsttime = _collectors[0];
     	}
 
 		@Override
 		public final boolean validate(int docid) throws IOException {
-			FacetHitCollector miss = null;
+			FacetHitCollector.CurrentPointers miss = null;
 			
             RandomAccessDocIdSet set = _firsttime._currentPointers.docidSet;
             if (set!=null && !set.get(docid))
             {
-              miss = _firsttime;
+              miss = _firsttime._currentPointers;
             }
             _nextTarget = docid + 1;
 
             if(miss != null)
             {
-              miss._currentPointers.facetCountCollector.collect(docid);
+              miss.facetCountCollector.collect(docid);
               return false;
             }
             else
@@ -185,29 +191,13 @@ public class BoboSearcher2 extends IndexSearcher{
     }
     
     private final static class NoNeedFacetValidator extends FacetValidator{
-    	private FacetCountCollector[] collList=null;
-    	NoNeedFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors,int numPostFilters) throws IOException{
-    		super(collectors,countCollectors,numPostFilters);
+    	NoNeedFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors) throws IOException{
+    		super(collectors,countCollectors,0);
     	}
     	
 		@Override
-		public void setNextReader(BoboIndexReader reader, int docBase)
-				throws IOException {
-			super.setNextReader(reader, docBase);
-			ArrayList<FacetCountCollector> filteredCollectorList = new ArrayList<FacetCountCollector>();
-			for (FacetCountCollector collector : _countCollectors){
-				if (collector!=null){
-					filteredCollectorList.add(collector);
-				}
-            }
-			collList = filteredCollectorList.toArray(new FacetCountCollector[filteredCollectorList.size()]);
-		}
-
-
-
-		@Override
 		public final boolean validate(int docid) throws IOException {
-			for (FacetCountCollector collector : collList){
+			for (FacetCountCollector collector : _countCollectors){
               collector.collect(docid);
             }
             return true;
@@ -242,10 +232,10 @@ public class BoboSearcher2 extends IndexSearcher{
         numPostFilters = i;
 
       if(numPostFilters == 0){
-        return new NoNeedFacetValidator(collectors,countCollectors,numPostFilters);
+        return new NoNeedFacetValidator(collectors,countCollectors);
       }
       else if (numPostFilters==1){
-    	return new OnePostFilterFacetValidator(collectors,countCollectors,numPostFilters);  
+    	return new OnePostFilterFacetValidator(collectors,countCollectors);  
       }
       else{
         return new DefaultFacetValidator(collectors,countCollectors,numPostFilters);

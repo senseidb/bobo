@@ -19,7 +19,7 @@ public final class FacetHitCollector{
 	public FacetCountCollectorSource _collectAllSource = null;
 	public FacetHandler<?> facetHandler;
 	public RandomAccessFilter _filter;
-	public CurrentPointers _currentPointers = new CurrentPointers();
+	public final CurrentPointers _currentPointers = new CurrentPointers();
 	public LinkedList<FacetCountCollector> _countCollectorList = new LinkedList<FacetCountCollector>();
 	public LinkedList<FacetCountCollector> _collectAllCollectorList = new LinkedList<FacetCountCollector>();
 	
