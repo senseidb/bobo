@@ -146,7 +146,8 @@ public class CombinedFacetIterator implements FacetIterator {
    * @return        The next facet that obeys the minHits 
    */
   public String next(int minHits) {
-    if(!hasNext())
+    int qsize = _queue.size();
+    if(qsize == 0)
     {
       _facet = null;
       _count = 0;
@@ -155,32 +156,45 @@ public class CombinedFacetIterator implements FacetIterator {
 
     IteratorNode node = (IteratorNode) _queue.top();    
     _facet = node._curFacet;
-    String next = null;
-    _count = 0;
-    while(hasNext())
+    _count = node._curFacetCount;
+    while(true)
     {
-      node = (IteratorNode) _queue.top();
-      next = node._curFacet;
-      if( (next != null) && (!next.equals(_facet)) )
+      if(node.fetch(minHits))
+      {
+        node = (IteratorNode)_queue.updateTop();
+      }
+      else
+      {
+        _queue.pop();
+        if(--qsize > 0)
+        {
+          node = (IteratorNode)_queue.top();
+        }
+        else
+        {
+          // we reached the end. check if this facet obeys the minHits
+          if(_count < minHits)
+          {
+            _facet = null;
+            _count = 0;
+          }
+          break;
+        }
+      }
+      String next = node._curFacet;
+      if(!next.equals(_facet))
       {
         // check if this facet obeys the minHits
         if(_count >= minHits)
           break;
         // else, continue iterating to the next facet
         _facet = next;
-        _count = 0;
+        _count = node._curFacetCount;
       }
-      _count += node._curFacetCount;
-      if(node.fetch(minHits))
-        _queue.updateTop();
       else
-        _queue.pop();
-    }
-    if(_count < minHits)
-    {
-      // if the loop exited because the queue was empty
-      _facet = null;
-      _count = 0;
+      {
+        _count += node._curFacetCount;
+      }
     }
     return _facet;
   }
