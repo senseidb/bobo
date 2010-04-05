@@ -80,13 +80,13 @@ public class MemoryManager<T>
         T buf = ref.get();
         if(buf != null)
         {
-          log.info("array hit " + size);
+//          log.info("array hit " + size);
           return buf;
         }
       }
       else
       {
-      log.info("array miss " + size);
+//      log.info("array miss " + size);
         return _initializer.newInstance(size);
       }
     }
