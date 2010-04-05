@@ -26,7 +26,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
   private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
   protected final FacetSpec _ospec;
-  protected int[] _count;
+  public int[] _count;
   protected FacetDataCache _dataCache;
   private final String _name;
   protected final BrowseSelection _sel;

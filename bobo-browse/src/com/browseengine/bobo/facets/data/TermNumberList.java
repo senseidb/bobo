@@ -3,7 +3,7 @@ package com.browseengine.bobo.facets.data;
 import java.text.DecimalFormat;
 
 
-public abstract class TermNumberList extends TermValueList {
+public abstract class TermNumberList<T extends Number> extends TermValueList<T> {
 
 	protected ThreadLocal<DecimalFormat> _formatter = null;
 	protected String _formatString = null;

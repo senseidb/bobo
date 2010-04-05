@@ -11,12 +11,13 @@ import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
 
-public class TermIntList extends TermNumberList {
+public class TermIntList extends TermNumberList<Integer> {
   private static Logger                   log = Logger.getLogger(TermIntList.class);
   private boolean simpleFormat;
   private BoboSimpleDecimalFormat _simpleFormatter;
   private ArrayList<String> _innerTermList = new ArrayList<String>();
   private String zero = "0".intern();
+  private int[] _elements = null;
 	private static int parse(String s)
 	{
 		if (s==null || s.length() == 0)
@@ -90,10 +91,25 @@ public class TermIntList extends TermNumberList {
 		return Arrays.binarySearch(elements, val);
 	}
 
+  /* (non-Javadoc)
+   * @see com.browseengine.bobo.facets.data.TermValueList#indexOfWithType(java.lang.Object)
+   */
+  @Override
+  public int indexOfWithType(Integer val)
+  {
+    return Arrays.binarySearch(_elements, val);
+  }
+
+  public int indexOfWithType(int val)
+  {
+    return Arrays.binarySearch(_elements, val);
+  }
+
 	@Override
 	public void seal() {
 		((IntArrayList)_innerList).trim();
 		_innerTermList.trimToSize();
+		_elements = ((IntArrayList)_innerList).elements();
 	}
 
 	@Override
@@ -129,5 +145,16 @@ public class TermIntList extends TermNumberList {
 
   public String format(final Integer o) {
     return _simpleFormatter.format(o);
+  }
+
+  @Override
+  public boolean containsWithType(Integer val)
+  {
+    return Arrays.binarySearch(_elements, val)>=0;
+  }
+
+  public boolean containsWithType(int val)
+  {
+    return Arrays.binarySearch(_elements, val)>=0;
   }
 }

@@ -254,9 +254,9 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 		
 	}
 
-  private static final class MultiValueFacetCountCollector extends DefaultFacetCountCollector
+  public static final class MultiValueFacetCountCollector extends DefaultFacetCountCollector
   {
-    private final BigNestedIntArray _array;
+    public final BigNestedIntArray _array;
     MultiValueFacetCountCollector(String name,
     							  MultiValueFacetDataCache dataCache,
     							  int docBase,
