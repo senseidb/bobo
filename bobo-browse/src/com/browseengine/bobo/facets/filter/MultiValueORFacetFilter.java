@@ -35,40 +35,33 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
 	_takeCompliment = takeCompliment;
   }
   
-  private final static class MultiValueFacetDocIdSetIterator extends FacetOrDocIdSetIterator
+  private final static class MultiValueOrFacetDocIdSetIterator extends FacetOrDocIdSetIterator
   {
       private final BigNestedIntArray _nestedArray;
-      public MultiValueFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int[] index,BitVector bs) 
+      public MultiValueOrFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int[] index,BitVector bs) 
       {
         super(dataCache,index,bs);
         _nestedArray = dataCache._nestedArray;
       }
       
       @Override
-      final public int nextDoc() throws IOException {
-          while(_doc < _maxID) // not yet reached end
-          {
-              if (_nestedArray.contains(++_doc, _bitset)){
-                  return _doc;
-              }
-          }
-          return DocIdSetIterator.NO_MORE_DOCS;
+      final public int nextDoc() throws IOException
+      {
+        if(_doc < _maxID)
+        {
+          return (_doc = _nestedArray.findValues(_bitset, ++_doc, _maxID));
+        }
+        return DocIdSetIterator.NO_MORE_DOCS;
       }
 
       @Override
-      final public int advance(int id) throws IOException {
+      final public int advance(int id) throws IOException
+      {
         if (_doc < id)
         {
-          _doc=id-1;
+          _doc = id - 1;
         }
-        
-        while(_doc < _maxID) // not yet reached end
-        {
-          if (_nestedArray.contains(++_doc, _bitset)){
-            return _doc;
-          }
-        }
-        return DocIdSetIterator.NO_MORE_DOCS;
+        return nextDoc();
       }
   }
   
@@ -125,7 +118,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
             @Override
             public DocIdSetIterator iterator() 
             {
-                return new MultiValueFacetDocIdSetIterator(dataCache,index,bitset);
+                return new MultiValueOrFacetDocIdSetIterator(dataCache,index,bitset);
             }
 
             @Override

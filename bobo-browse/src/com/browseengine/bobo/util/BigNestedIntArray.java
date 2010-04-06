@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BitVector;
 
 import com.browseengine.bobo.facets.data.TermValueList;
@@ -608,6 +609,72 @@ public final class BigNestedIntArray
       }
     }
     return false;
+  }
+  
+  public final int findValue(int value, int id, int maxID)
+  {
+    int[] page = _list[id >> PAGEID_SHIFT];
+    while(true)
+    {
+      if(page != null)
+      {
+        final int val = page[id & SLOTID_MASK];
+        if (val >= 0)
+        {
+          if(val == value) return id;
+        }
+        else if(val != MISSING)
+        {
+          int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+          int end = idx + (val & COUNT_MASK);
+          while(idx < end)          
+          {
+            if(page[idx++] == value) return id;  
+          }
+        }
+      }
+      if(id >= maxID) break;
+      
+      if(((++id) & SLOTID_MASK) == 0)
+      {
+        page = _list[id >> PAGEID_SHIFT];
+      }
+    }
+    
+    return DocIdSetIterator.NO_MORE_DOCS;
+  }
+  
+  public final int findValues(BitVector values, int id, int maxID)
+  {
+    int[] page = _list[id >> PAGEID_SHIFT];
+    while(true)
+    {
+      if(page != null)
+      {
+        final int val = page[id & SLOTID_MASK];
+        if (val >= 0)
+        {
+          if(values.get(val)) return id;
+        }
+        else if(val != MISSING)
+        {
+          int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+          int end = idx + (val & COUNT_MASK);
+          while(idx < end)          
+          {
+            if(values.get(page[idx++])) return id;  
+          }
+        }
+      }
+      if(id >= maxID) break;
+      
+      if((++id & SLOTID_MASK) == 0)
+      {
+        page = _list[id >> PAGEID_SHIFT];
+      }
+    }
+    
+    return DocIdSetIterator.NO_MORE_DOCS;
   }
   
   public final int count(final int id, final int[] count)
