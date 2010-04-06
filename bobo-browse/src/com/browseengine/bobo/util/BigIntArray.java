@@ -3,6 +3,8 @@ package com.browseengine.bobo.util;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.util.BitVector;
 import org.apache.lucene.util.OpenBitSet;
 
 /**
@@ -47,43 +49,57 @@ public final class BigIntArray extends BigSegmentedArray implements Serializable
   @Override
   public final int findValue(int val, int docId, int maxId)
   {
-    while(docId <= maxId && _array[docId >> SHIFT_SIZE][docId & MASK] != val)
+    while(true)
     {
-      docId++;
+      if(_array[docId >> SHIFT_SIZE][docId & MASK] == val) return docId;
+      if(docId++ >= maxId) break;
     }
-    return docId;
+    return DocIdSetIterator.NO_MORE_DOCS;
   }
   
   @Override
   public final int findValues(OpenBitSet bitset, int docId, int maxId)
   {
-    while(docId <= maxId && !bitset.fastGet(_array[docId >> SHIFT_SIZE][docId & MASK]))
+    while(true)
     {
-      docId++;
+      if(bitset.fastGet(_array[docId >> SHIFT_SIZE][docId & MASK])) return docId;
+      if(docId++ >= maxId) break;
     }
-    return docId;
+    return DocIdSetIterator.NO_MORE_DOCS;
+  }
+  
+  @Override
+  public final int findValues(BitVector bitset, int docId, int maxId)
+  {
+    while(true)
+    {
+      if(bitset.get(_array[docId >> SHIFT_SIZE][docId & MASK])) return docId;
+      if(docId++ >= maxId) break;
+    }
+    return DocIdSetIterator.NO_MORE_DOCS;
   }
   
   @Override
   public final int findValueRange(int minVal, int maxVal, int docId, int maxId)
   {
-    while(docId <= maxId)
+    while(true)
     {
       int val = _array[docId >> SHIFT_SIZE][docId & MASK];
-      if(val >= minVal && val <= maxVal) break;
-      docId++;
+      if(val >= minVal && val <= maxVal) return docId;
+      if(docId++ >= maxId) break;
     }
-    return docId;
+    return DocIdSetIterator.NO_MORE_DOCS;
   }
   
   @Override
   public final int findBits(int bits, int docId, int maxId)
   {
-    while(docId <= maxId && (_array[docId >> SHIFT_SIZE][docId & MASK] & bits) == 0)
+    while(true)
     {
-      docId++;
+      if((_array[docId >> SHIFT_SIZE][docId & MASK] & bits) != 0) return docId;
+      if(docId++ >= maxId) break;
     }
-    return docId;
+    return DocIdSetIterator.NO_MORE_DOCS;
   }
 
   @Override

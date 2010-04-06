@@ -37,10 +37,8 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
 	    private int _doc;
 	    private int _maxID;
 	    private final BigSegmentedArray _orderArray;
-	    private final FacetDataCache _dataCache;
 	    
 		public CompactMultiValueFacetDocIdSetIterator(FacetDataCache dataCache,int[] index,int bits) {
-			_dataCache = dataCache;
 			_bits = bits;
 			_doc = Integer.MAX_VALUE;
 	        _maxID = -1;
@@ -66,30 +64,19 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
 		}
 
 		@Override
-        public final int nextDoc() throws IOException {
-		    while(_doc < _maxID) // not yet reached end
-            {
-                if ((_orderArray.get(++_doc) & _bits) != 0x0){
-                    return _doc;
-                }
-            }
-            return DocIdSetIterator.NO_MORE_DOCS;
+        public final int nextDoc() throws IOException
+        {
+          return (_doc = (_doc < _maxID ? _orderArray.findBits(_bits, (_doc + 1), _maxID) : NO_MORE_DOCS));
         }
 
         @Override
-        public final int advance(int id) throws IOException {
+        public final int advance(int id) throws IOException
+        {
           if (_doc < id)
           {
-            _doc=id-1;
+            return (_doc = (id <= _maxID ? _orderArray.findBits(_bits, id, _maxID) : NO_MORE_DOCS));
           }
-          
-          while(_doc < _maxID) // not yet reached end
-          {
-            if ((_orderArray.get(++_doc) & _bits) != 0x0){
-              return _doc;
-            }
-          }
-          return DocIdSetIterator.NO_MORE_DOCS;
+          return nextDoc();
         }
 	}
 	

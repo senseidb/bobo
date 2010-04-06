@@ -47,11 +47,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
       @Override
       final public int nextDoc() throws IOException
       {
-        if(_doc < _maxID)
-        {
-          return (_doc = _nestedArray.findValues(_bitset, ++_doc, _maxID));
-        }
-        return DocIdSetIterator.NO_MORE_DOCS;
+        return (_doc = (_doc < _maxID ? _nestedArray.findValues(_bitset, (_doc + 1), _maxID) : NO_MORE_DOCS));
       }
 
       @Override
@@ -59,7 +55,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
       {
         if (_doc < id)
         {
-          _doc = id - 1;
+          return (_doc = (id <= _maxID ? _nestedArray.findValues(_bitset, id, _maxID) : NO_MORE_DOCS));
         }
         return nextDoc();
       }
