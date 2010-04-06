@@ -25,7 +25,7 @@ public class MemoryManager<T>
 
 
   private final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>> _sizeMap = new ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>>();
-  private final ConcurrentLinkedQueue<T> _releaseQueue = new ConcurrentLinkedQueue<T>();
+  private final ConcurrentLinkedQueue<WeakReference<T>> _releaseQueue = new ConcurrentLinkedQueue<WeakReference<T>>();
   private final Initializer<T> _initializer;
   private final Thread _cleanThread;
   public MemoryManager(Initializer<T> initializer)
@@ -35,6 +35,7 @@ public class MemoryManager<T>
 
       public void run()
       {
+        WeakReference<T> weakbuf = null;
         T buf = null;
         while(true)
         {
@@ -48,12 +49,16 @@ public class MemoryManager<T>
               log.error(e);
             }
           }
-          while((buf = _releaseQueue.poll()) != null)
+          while((weakbuf = _releaseQueue.poll()) != null)
           {
-            ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(_initializer.size(buf));
-            // buf is wrapped in WeakReference. this allows GC to reclaim the buffer memory
-            _initializer.init(buf);// pre-initializing the buffer in parallel so we save time when it is requested later.
-            queue.offer(new WeakReference<T>(buf));
+            if ((buf = weakbuf.get())!=null)
+            {
+              ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(_initializer.size(buf));
+              // buf is wrapped in WeakReference. this allows GC to reclaim the buffer memory
+              _initializer.init(buf);// pre-initializing the buffer in parallel so we save time when it is requested later.
+              queue.offer(new WeakReference<T>(buf));
+              buf = null;
+            }
           }
         }
       }});
@@ -100,7 +105,7 @@ public class MemoryManager<T>
   {
     if(buf != null)
     {
-      _releaseQueue.offer(buf);
+      _releaseQueue.offer(new WeakReference<T>(buf));
       synchronized(MemoryManager.this)
       {
         MemoryManager.this.notifyAll();
