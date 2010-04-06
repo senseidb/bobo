@@ -29,6 +29,12 @@ public final class BigNestedIntArray
   private static final int ROUNDING = 255;
   
   private static final int MISSING = Integer.MIN_VALUE;
+  private static final int[] MISSING_PAGE;
+  static
+  {
+    MISSING_PAGE = new int[MAX_SLOTS];
+    Arrays.fill(MISSING_PAGE, MISSING);
+  }
 
   private int _maxItems = MAX_ITEMS;
   private int[][] _list;
@@ -614,23 +620,22 @@ public final class BigNestedIntArray
   public final int findValue(int value, int id, int maxID)
   {
     int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) page = MISSING_PAGE;
+    
     while(true)
     {
-      if(page != null)
+      final int val = page[id & SLOTID_MASK];
+      if (val >= 0)
       {
-        final int val = page[id & SLOTID_MASK];
-        if (val >= 0)
+        if(val == value) return id;
+      }
+      else if(val != MISSING)
+      {
+        int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+        int end = idx + (val & COUNT_MASK);
+        while(idx < end)          
         {
-          if(val == value) return id;
-        }
-        else if(val != MISSING)
-        {
-          int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
-          int end = idx + (val & COUNT_MASK);
-          while(idx < end)          
-          {
-            if(page[idx++] == value) return id;  
-          }
+          if(page[idx++] == value) return id;  
         }
       }
       if(id >= maxID) break;
@@ -638,6 +643,7 @@ public final class BigNestedIntArray
       if(((++id) & SLOTID_MASK) == 0)
       {
         page = _list[id >> PAGEID_SHIFT];
+        if(page == null) page = MISSING_PAGE;
       }
     }
     
@@ -647,23 +653,22 @@ public final class BigNestedIntArray
   public final int findValues(BitVector values, int id, int maxID)
   {
     int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) page = MISSING_PAGE;
+
     while(true)
     {
-      if(page != null)
+      final int val = page[id & SLOTID_MASK];
+      if (val >= 0)
       {
-        final int val = page[id & SLOTID_MASK];
-        if (val >= 0)
+        if(values.get(val)) return id;
+      }
+      else if(val != MISSING)
+      {
+        int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+        int end = idx + (val & COUNT_MASK);
+        while(idx < end)          
         {
-          if(values.get(val)) return id;
-        }
-        else if(val != MISSING)
-        {
-          int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
-          int end = idx + (val & COUNT_MASK);
-          while(idx < end)          
-          {
-            if(values.get(page[idx++])) return id;  
-          }
+          if(values.get(page[idx++])) return id;  
         }
       }
       if(id >= maxID) break;
@@ -671,6 +676,7 @@ public final class BigNestedIntArray
       if((++id & SLOTID_MASK) == 0)
       {
         page = _list[id >> PAGEID_SHIFT];
+        if(page == null) page = MISSING_PAGE;
       }
     }
     

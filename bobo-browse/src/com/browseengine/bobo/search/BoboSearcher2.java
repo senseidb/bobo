@@ -110,17 +110,14 @@ public class BoboSearcher2 extends IndexSearcher{
               
               if(sid < docid)
               {
-                DocIdSetIterator iterator = cur.postDocIDSetIterator;
-                sid = iterator.advance(docid);
+                sid = cur.postDocIDSetIterator.advance(docid);
+                cur.doc = sid;
                 if(sid!=DocIdSetIterator.NO_MORE_DOCS)
                 {
-                  cur.doc = sid;
                   if(sid == docid) continue; // matched
                 }
                 else
                 {
-                  cur.doc = DocIdSetIterator.NO_MORE_DOCS;
-                  
                   // move this to front so that the call can find the failure faster
                   FacetHitCollector tmp = _collectors[0];
                   _collectors[0] = _collectors[i];

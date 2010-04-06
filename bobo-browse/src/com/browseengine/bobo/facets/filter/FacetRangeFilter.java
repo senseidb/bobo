@@ -59,30 +59,19 @@ public final class FacetRangeFilter extends RandomAccessFilter
 		}
 
 		@Override
-		final public int nextDoc() throws IOException {
-			int index;
-            while(_doc < _maxID) // not yet reached end
-			{
-				index=_orderArray.get(++_doc);
-				if (index>=_start && index<=_end) return _doc;
-			}
-			return DocIdSetIterator.NO_MORE_DOCS;
+		final public int nextDoc() throws IOException
+		{
+          return (_doc = (_doc < _maxID ? _orderArray.findValueRange(_start, _end, (_doc + 1), _maxID) : NO_MORE_DOCS));
 		}
 
 		@Override
-		final public int advance(int id) throws IOException {
+		final public int advance(int id) throws IOException
+		{
 		  if (_doc < id)
 		  {
-		    _doc=id-1;
+		    return (_doc = (id <= _maxID ? _orderArray.findValueRange(_start, _end, id, _maxID) : NO_MORE_DOCS));
 		  }
-		  
-		  int index;
-		  while(_doc < _maxID) // not yet reached end
-		  {
-		    index=_orderArray.get(++_doc);
-		    if (index>=_start && index<=_end) return _doc;
-		  }
-		  return DocIdSetIterator.NO_MORE_DOCS;
+          return nextDoc();
 		}
 	}
 	
