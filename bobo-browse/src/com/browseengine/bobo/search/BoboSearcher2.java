@@ -104,39 +104,34 @@ public class BoboSearcher2 extends IndexSearcher{
           {
             FacetHitCollector.CurrentPointers cur = _collectors[i]._currentPointers;
             int sid = cur.doc;
-            if(sid!=DocIdSetIterator.NO_MORE_DOCS)
+            
+            if(sid < docid)
             {
-              if(sid == docid) continue; // matched
-              
-              if(sid < docid)
+              sid = cur.postDocIDSetIterator.advance(docid);
+              cur.doc = sid;
+              if(sid == DocIdSetIterator.NO_MORE_DOCS)
               {
-                sid = cur.postDocIDSetIterator.advance(docid);
-                cur.doc = sid;
-                if(sid!=DocIdSetIterator.NO_MORE_DOCS)
-                {
-                  if(sid == docid) continue; // matched
-                }
-                else
-                {
-                  // move this to front so that the call can find the failure faster
-                  FacetHitCollector tmp = _collectors[0];
-                  _collectors[0] = _collectors[i];
-                  _collectors[i] = tmp;
-                }
-              }  
+                // move this to front so that the call can find the failure faster
+                FacetHitCollector tmp = _collectors[0];
+                _collectors[0] = _collectors[i];
+                _collectors[i] = tmp;
+              }
             }
             
-            if(miss != null)
+            if(sid > docid) //mismatch
             {
-              // failed because we already have a mismatch
-              _nextTarget = (miss.doc < cur.doc ? miss.doc : cur.doc);
-              return false;
+              if(miss != null)
+              {
+                // failed because we already have a mismatch
+                _nextTarget = (miss.doc < cur.doc ? miss.doc : cur.doc);
+                return false;
+              }
+              miss = cur;
             }
-            miss = cur;
           }
           
           _nextTarget = docid + 1;
-
+          
           if(miss != null)
           {
             miss.facetCountCollector.collect(docid);
@@ -169,6 +164,7 @@ public class BoboSearcher2 extends IndexSearcher{
             {
               miss = _firsttime._currentPointers;
             }
+
             _nextTarget = docid + 1;
 
             if(miss != null)
@@ -288,17 +284,14 @@ public class BoboSearcher2 extends IndexSearcher{
             if (scorer!=null){
             	collector.setScorer(scorer);
 	        	DocIdSetIterator filterDocIdIterator = filterDocIdSet.iterator(); // CHECKME: use ConjunctionScorer here?
-	        	
-	        	target = filterDocIdIterator.nextDoc();
-	            if(target == DocIdSetIterator.NO_MORE_DOCS) continue;
-	            
+	        		            
 	            int doc = -1;
-	            while(true)
+                target = filterDocIdIterator.nextDoc();
+	            while(target < DocIdSetIterator.NO_MORE_DOCS)
 	            {
 	              if(doc < target)
 	              {
 	            	doc = scorer.advance(target);
-	                if(doc == DocIdSetIterator.NO_MORE_DOCS) break;
 	              }
 	              
 	              if(doc == target) // permitted by filter
@@ -308,22 +301,18 @@ public class BoboSearcher2 extends IndexSearcher{
 	                  collector.collect(doc);
 	                  
 	                  target = filterDocIdIterator.nextDoc();
-	                  if(target == DocIdSetIterator.NO_MORE_DOCS) break;
-	                  continue;
 	                }
 	                else
 	                {
 	                  // skip to the next possible docid
-	                  target = validator._nextTarget;
+	                  target = filterDocIdIterator.advance(validator._nextTarget);
 	                }
 	              }
 	              else // doc > target
 	              {
-	                target = doc;
+                    if(doc == DocIdSetIterator.NO_MORE_DOCS) break;
+	                target = filterDocIdIterator.advance(doc);
 	              }
-	              
-	              target = filterDocIdIterator.advance(target);
-	              if(target == DocIdSetIterator.NO_MORE_DOCS) break;
                 }
             }
         }

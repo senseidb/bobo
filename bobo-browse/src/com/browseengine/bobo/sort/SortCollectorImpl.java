@@ -22,6 +22,34 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.util.ListMerger;
 
 public class SortCollectorImpl extends SortCollector {
+  
+  private static final Comparator<MyScoreDoc> MERGE_COMPATATOR = new Comparator<MyScoreDoc>()
+  {
+    public int compare(MyScoreDoc o1, MyScoreDoc o2) {
+      Comparable s1 = o1.getValue();
+      Comparable s2 = o2.getValue();
+      int r;
+      if (s1 == null) {
+        if (s2 == null) {
+          r = 0;
+        } else {
+          r = -1;
+        }
+      } else if (s2 == null) {
+        r = 1;
+      }
+        else{
+        int v = s1.compareTo(s2);
+        if (v==0){
+          r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
+        } else {
+          r = v;
+        }
+      }
+      return r;
+    }
+  };
+  
   private final LinkedList<DocIDPriorityQueue> _pqList;
   private final int _numHits;
   private int _totalHits;
@@ -89,12 +117,11 @@ public class SortCollectorImpl extends SortCollector {
       _tmpScoreDoc.doc = doc;
       _tmpScoreDoc.score = score;
       
-      if (_currentComparator.compare(_bottom,_tmpScoreDoc)<=0){
-        return;
+      if (_currentComparator.compare(_bottom,_tmpScoreDoc) > 0){
+        ScoreDoc tmp = _bottom;
+        _bottom = _currentQueue.replace(_tmpScoreDoc);
+        _tmpScoreDoc = tmp;
       }
-      ScoreDoc tmp = _bottom;
-      _bottom = _currentQueue.replace(_tmpScoreDoc);
-      _tmpScoreDoc = tmp;
     }
     else{ 
       _bottom = _currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
@@ -140,32 +167,7 @@ public class SortCollectorImpl extends SortCollector {
       iterList.add(Arrays.asList(resList).iterator());
     }
     
-    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, new Comparator<MyScoreDoc>() {
-
-        public int compare(MyScoreDoc o1, MyScoreDoc o2) {
-          Comparable s1 = o1.getValue();
-          Comparable s2 = o2.getValue();
-          int r;
-          if (s1 == null) {
-            if (s2 == null) {
-              r = 0;
-            } else {
-              r = -1;
-            }
-          } else if (s2 == null) {
-            r = 1;
-          }
-            else{
-            int v = s1.compareTo(s2);
-            if (v==0){
-              r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
-            } else {
-              r = v;
-            }
-          }
-          return r;
-        }
-      });
+    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
     return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, _facetHandlerMap, _fetchStoredFields);
   }
   

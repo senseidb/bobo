@@ -26,6 +26,7 @@ import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.ListMerger;
 
 /**
  * @author ymatsuda
@@ -168,13 +169,7 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
 //        System.out.println("Visiting Facet: " + getValueFromRangeString(facet));
         facets.add(new BrowseFacet(getValueFromRangeString(facet), count));
       }
-      Collections.sort(facets, new Comparator<BrowseFacet>()
-                       {
-                         public int compare(BrowseFacet o1, BrowseFacet o2)
-                         {
-                           return o1.getValue().compareTo(o2.getValue());
-                         }
-                       });
+      Collections.sort(facets, ListMerger.FACET_VAL_COMPARATOR);
       return new PathFacetIterator(facets);
     }
 

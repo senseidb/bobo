@@ -20,14 +20,24 @@ import com.browseengine.bobo.util.ListMerger;
 public class MultiSortCollector extends SortCollector {
 
 	private static Logger logger = Logger.getLogger(MultiSortCollector.class);
+	private static final Comparator<BrowseHit> MERGE_COMPARATOR = new Comparator<BrowseHit>()
+	{	
+	  public int compare(BrowseHit o1, BrowseHit o2) {
+	    Comparable c1=o1.getComparable();
+	    Comparable c2=o2.getComparable();
+	    if (c1==null || c2==null){
+	      return o2.getDocid() - o1.getDocid();
+	    }
+	    return c1.compareTo(c2);
+	  }
+	};
+
     private int _totalCount;
     private final MultiBoboBrowser _multiBrowser;
     private final SortCollector[] _subCollectors;
     private final int[] _starts;
     private final int _offset;
     private final int _count;
-    private Scorer _scorer;
-    private int _docBase;
     
     private SortCollector _currentSortCollector;
     private int _currentIndex;
@@ -45,7 +55,6 @@ public class MultiSortCollector extends SortCollector {
 	    }
 	    _starts = _multiBrowser.getStarts();
 	    _totalCount = 0; 
-	    _docBase = 0;
 	    _currentIndex = 0;
 	    _currentSortCollector = null;
 	}
@@ -61,7 +70,6 @@ public class MultiSortCollector extends SortCollector {
 	    
 	    for (int i=0;i<_subCollectors.length;++i)
 	    {
-	      int base = _starts[i];
 	      try
 	      {
 	    	BrowseHit[] subHits = _subCollectors[i].topDocs();
@@ -76,20 +84,7 @@ public class MultiSortCollector extends SortCollector {
 	      }
 	    }
 	    
-	    Comparator<BrowseHit> comparator = new Comparator<BrowseHit>(){
-
-			public int compare(BrowseHit o1, BrowseHit o2) {
-				Comparable c1=o1.getComparable();
-				Comparable c2=o2.getComparable();
-				if (c1==null || c2==null){
-					return o2.getDocid() - o1.getDocid();
-				}
-				return c1.compareTo(c2);
-			}
-	    	
-	    };
-	    
-	    ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(_offset, _count, iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
+	    ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(_offset, _count, iteratorList, MERGE_COMPARATOR);
 	    return mergedList.toArray(new BrowseHit[mergedList.size()]);
 	}
 
@@ -108,14 +103,10 @@ public class MultiSortCollector extends SortCollector {
 	public void setNextReader(IndexReader reader, int docBase) throws IOException {
 		_currentSortCollector = _subCollectors[_currentIndex++];
 		_currentSortCollector.setNextReader(reader, docBase);
-		_docBase = docBase;
 	}
 
 	@Override
 	public void setScorer(Scorer scorer) throws IOException {
 		_currentSortCollector.setScorer(scorer);
-		_scorer = scorer;
 	}
-	
-	
 }

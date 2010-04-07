@@ -158,7 +158,7 @@ public class ListMerger
     return mergedList;
   }
   
-  public static Comparator<BrowseFacet> FACET_VAL_COMPARATOR = new Comparator<BrowseFacet>(){
+  public static final Comparator<BrowseFacet> FACET_VAL_COMPARATOR = new Comparator<BrowseFacet>(){
 
 	public int compare(BrowseFacet o1, BrowseFacet o2) {
 		return o1.getValue().compareTo(o2.getValue());
