@@ -249,10 +249,4 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	public FacetIterator iterator() {
 		return new DefaultFacetIterator(_predefinedRanges, _count, true);
 	}
-
-	public void visitFacets(FacetVisitor visitor) {
-		for(int i = 0; i < _count.length; i++) {
-			visitor.visit(_predefinedRanges.get(i), _count[i]);
-		}			
-	}
 }

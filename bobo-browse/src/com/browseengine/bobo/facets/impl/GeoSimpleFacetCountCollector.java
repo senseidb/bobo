@@ -207,25 +207,5 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 			}
 		}
 		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
-	}
-	
-	public void visitFacets(FacetVisitor visitor) {
-		// each range is of the form <lat, lon, radius>
-		int[] rangeCounts = new int[_latPredefinedRangeIndexes.length];
-		for (int i=0;i<_latCount.length;++i){
-			if (_latCount[i] >0 ){
-				for (int k=0;k<_latPredefinedRangeIndexes.length;++k)
-				{
-					if (i>=_latPredefinedRangeIndexes[k][0] && i<=_latPredefinedRangeIndexes[k][1])
-					{
-						rangeCounts[k]+=_latCount[i];
-					}
-				}
-			}
-		}
-		for(int i = 0;i < rangeCounts.length;i ++) {
-			visitor.visit(_predefinedRanges.get(i), rangeCounts[i]);
-		}
-	}
-
+	}	
 }

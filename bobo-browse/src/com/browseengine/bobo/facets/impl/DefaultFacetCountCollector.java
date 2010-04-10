@@ -190,14 +190,4 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   public FacetIterator iterator() {
 	  return new DefaultFacetIterator(_dataCache.valArray, _count, false);
   }
-  
-  /**
-   * @see com.browseengine.bobo.api.FacetAccessible#visitFacets(FacetVisitor)
-   */
-  public void visitFacets(FacetVisitor visitor) {
-	  for (int i = 1; i < _count.length;++i) // exclude zero
-	  {
-		  visitor.visit(_dataCache.valArray.get(i), _count[i]);
-	  }	  
-  }
 }

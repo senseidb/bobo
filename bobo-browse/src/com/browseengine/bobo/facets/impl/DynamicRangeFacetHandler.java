@@ -166,27 +166,10 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
       {
         String facet = iter.next();
         int count = iter.getFacetCount();
-//        System.out.println("Visiting Facet: " + getValueFromRangeString(facet));
         facets.add(new BrowseFacet(getValueFromRangeString(facet), count));
       }
       Collections.sort(facets, ListMerger.FACET_VAL_COMPARATOR);
       return new PathFacetIterator(facets);
-    }
-
-    public void visitFacets(final FacetVisitor visitor)
-    {
-      FacetVisitor fv = new FacetVisitor()
-      {
-
-        public void visit(String facet, int count)
-        {
-          String facetstr = getValueFromRangeString(facet);
-          if (facetstr!=null)
-            visitor.visit(facetstr, count);
-        }
-        
-      };
-      super.visitFacets(fv);
     }
   }
 }

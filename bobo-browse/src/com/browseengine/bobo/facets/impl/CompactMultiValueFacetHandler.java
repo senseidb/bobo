@@ -446,13 +446,5 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
           if(!_aggregated) aggregateCounts();
     	  return super.iterator();
       }
-      
-      /**
-       * @see com.browseengine.bobo.api.FacetAccessible.visitFacets()
-       */
-      public void visitFacets(FacetVisitor visitor) {
-          if(!_aggregated) aggregateCounts();
-          super.visitFacets(visitor);
-      }
 	}
 }

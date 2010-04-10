@@ -371,13 +371,6 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 
     }
 
-    public void visitFacets(FacetVisitor visitor) {
-      for (int i = 1; i < _count.length;++i) // exclude zero
-      {
-        visitor.visit(getFacetString(i), _count[i]);
-      }	  
-    }
-
     public FacetIterator iterator() {
       return new GroupByFacetIterator();
     }

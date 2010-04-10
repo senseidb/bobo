@@ -20,12 +20,6 @@ public interface FacetAccessible
 	public void close();
 	
 	/**
-	 * Visits the list of facets within this FacetAccessible 
-	 * @param visitor	the FacetVisitor used to process the list of facets
-	 */
-	void visitFacets(FacetVisitor visitor);
-	
-	/**
 	 * Returns an iterator to visit all the facets
 	 * @return	Returns a FacetIterator to iterate over all the facets
 	 */

@@ -68,12 +68,6 @@ public class BrowseProtobufConverter {
 			// nothing yet
 		}
 
-		public void visitFacets(FacetVisitor visitor) {
-			for(BrowseFacet facet : _data.values()) {
-				visitor.visit(facet.getValue(), facet.getHitCount());
-			}
-		}
-		
 		public FacetIterator iterator() {
 			return new PathFacetIterator(new ArrayList<BrowseFacet>(_data.values()));
 		}

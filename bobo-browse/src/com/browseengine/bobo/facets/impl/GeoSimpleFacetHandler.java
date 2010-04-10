@@ -188,19 +188,15 @@ public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDat
 			if (!(reader instanceof BoboIndexReader)) throw new IllegalStateException("reader not instance of "+BoboIndexReader.class);
 			BoboIndexReader boboReader = (BoboIndexReader)reader;                                                                      
 			final FacetDataNone dataCache = _facetHandler.getFacetData((BoboIndexReader) reader);                                                 
-//			final BigSegmentedArray orderArray = dataCache.;                                                                 
 			return new DocComparator() {                                                                                               
 
 				@Override                                                                                                                 
 				public Comparable value(ScoreDoc doc) {
 					return 1;                                                                                   
-//					int index = orderArray.get(doc.doc);                                                                                     
-//					return dataCache.valArray.get(index);                                                                              
 				}                                                                                                                         
 
 				@Override                                                                                                                 
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {                                                                        
-//					return orderArray.get(doc1.doc) - orderArray.get(doc2.doc);
 					return 0;
 				}                                                                                                                         
 			};                                                                                                                         

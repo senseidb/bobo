@@ -271,22 +271,5 @@ public class RangeFacetCountCollector implements FacetCountCollector
 		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
 	  }
 	  return null;
-  }
-  
-  public void visitFacets(FacetVisitor visitor) {
-	  if (_predefinedRangeIndexes!=null)
-	  {
-        for (int k=0;k<_predefinedRangeIndexes.length;++k)
-        {
-          int count = 0;
-          int idx = _predefinedRangeIndexes[k][0];
-          int end = _predefinedRangeIndexes[k][1];
-          while(idx <= end)
-          {
-            count += _count[idx++];
-          }
-          visitor.visit(_predefinedRanges.get(k), count);
-        }
-	  }
-  }
+  }  
 }

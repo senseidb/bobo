@@ -13,7 +13,6 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.impl.CombinedFacetIterator;
 
@@ -21,7 +20,8 @@ import com.browseengine.bobo.facets.impl.CombinedFacetIterator;
  * @author nnarkhed
  *
  */
-public class CombinedFacetAccessible implements FacetAccessible {
+public class CombinedFacetAccessible implements FacetAccessible 
+{
 
   private final List<FacetAccessible> _list;
   private final FacetSpec _fspec;
@@ -32,11 +32,13 @@ public class CombinedFacetAccessible implements FacetAccessible {
     _fspec = fspec;
   }
 
-  public String toString() {
+  public String toString() 
+  {
     return "_list:"+_list+" _fspec:"+_fspec;
   }
 
-  public BrowseFacet getFacet(String value) {
+  public BrowseFacet getFacet(String value) 
+  {
     int sum=-1;
     String foundValue=null;
     if (_list!=null)
@@ -56,7 +58,8 @@ public class CombinedFacetAccessible implements FacetAccessible {
     return new BrowseFacet(foundValue,sum);
   }
 
-  public List<BrowseFacet> getFacets() {
+  public List<BrowseFacet> getFacets() 
+  {
     int maxCnt = _fspec.getMaxCount();
     if(maxCnt <= 0)
       maxCnt = Integer.MAX_VALUE;
@@ -207,15 +210,6 @@ public class CombinedFacetAccessible implements FacetAccessible {
     }
   }
 
-  /**
-   * 	@see com.browseengine.bobo.api.FacetAccessible#visitFacets(FacetVisitor)		
-   */
-  public void visitFacets(FacetVisitor visitor) {
-    for (FacetAccessible facetAccessor : _list) {
-      facetAccessor.visitFacets(visitor);			
-    }
-  }
-
   public FacetIterator iterator() {
 
     ArrayList<FacetIterator> iterList = new ArrayList<FacetIterator>(_list.size());
@@ -228,5 +222,4 @@ public class CombinedFacetAccessible implements FacetAccessible {
     }
     return new CombinedFacetIterator(iterList, _fspec.getMinHitCount());
   }
-
 }
