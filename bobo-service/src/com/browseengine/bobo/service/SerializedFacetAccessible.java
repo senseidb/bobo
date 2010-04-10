@@ -6,7 +6,6 @@ import java.util.List;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetIterator;
-import com.browseengine.bobo.api.FacetVisitor;
 import com.browseengine.bobo.facets.impl.PathFacetIterator;
 
 public class SerializedFacetAccessible implements FacetAccessible,Serializable {
