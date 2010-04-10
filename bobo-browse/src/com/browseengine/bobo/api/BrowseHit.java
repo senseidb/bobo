@@ -2,7 +2,6 @@ package com.browseengine.bobo.api;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +38,17 @@ public class BrowseHit
 	}
 	
 	/**
+	 * Get the raw field values
+	 * @param field field name
+	 * @return field value array
+	 * @see #getRawField(String)
+	 */
+	public Object[] getRawFields(String field)
+	{
+		return _rawFieldValues != null ? _rawFieldValues.get(field) : null;
+	}
+	
+	/**
 	 * Get the field value
 	 * @param field field name
 	 * @return field value
@@ -56,12 +66,32 @@ public class BrowseHit
 			return null;
 		}
 	}
+	
+	/**
+	 * Get the raw field value
+	 * @param field field name
+	 * @return raw field value
+	 * @see #getRawFields(String)
+	 */
+	public Object getRawField(String field)
+	{
+		Object[] fields=getRawFields(field);
+		if (fields!=null && fields.length > 0)
+		{
+			return fields[0];
+		}
+		else
+		{
+			return null;
+		}
+	}
 	                       
 
 	private float score;
 	private int docid;
 	
 	private Map<String,String[]> _fieldValues;
+	private Map<String,Object[]> _rawFieldValues;
 	private Comparable<?> _comparable;
 	private Document _storedFields;
 	
@@ -100,6 +130,24 @@ public class BrowseHit
 	 */
 	public Map<String,String[]> getFieldValues() {
 		return _fieldValues;
+	}
+	
+	/**
+	 * Sets the raw field value map
+	 * @param rawFieldValues raw field value map
+	 * @see #getRawFieldValues()
+	 */
+	public void setRawFieldValues(Map<String,Object[]> rawFieldValues) {
+		_rawFieldValues = rawFieldValues;
+	}
+	
+	/**
+	 * Gets the raw field values
+	 * @return raw field value map
+	 * @see #setRawFieldValues(Map)
+	 */
+	public Map<String,Object[]> getRawFieldValues() {
+		return _rawFieldValues;
 	}
 	
 	/**

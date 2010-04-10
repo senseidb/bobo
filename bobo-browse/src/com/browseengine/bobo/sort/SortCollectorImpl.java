@@ -183,11 +183,14 @@ public class SortCollectorImpl extends SortCollector {
          hit.setStoredFields(reader.document(fdoc.doc));
       }
       Map<String,String[]> map = new HashMap<String,String[]>();
+      Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
       for (FacetHandler<?> facetHandler : facetHandlers)
       {
-          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc));//-fdoc.queue.base));
+          map.put(facetHandler.getName(),facetHandler.getFieldValues(reader,fdoc.doc));
+          rawMap.put(facetHandler.getName(),facetHandler.getRawFieldValues(reader,fdoc.doc));
       }
       hit.setFieldValues(map);
+      hit.setRawFieldValues(rawMap);
       hit.setDocid(fdoc.doc+fdoc.queue.base);
       hit.setScore(fdoc.score);
       hit.setComparable(fdoc.getValue());
