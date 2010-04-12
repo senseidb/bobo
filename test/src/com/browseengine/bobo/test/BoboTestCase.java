@@ -650,68 +650,68 @@ public class BoboTestCase extends TestCase {
         
 	}
 	
-//	public void testExpandSelection()
-//	{
-//		BrowseRequest br=new BrowseRequest();
-//		br.setCount(10);
-//		br.setOffset(0);
-//
-//        BrowseSelection sel=new BrowseSelection("color");
-//        sel.addValue("red");
-//        br.addSelection(sel); 
-//        
-//		
-//		FacetSpec output=new FacetSpec();
-//		output.setExpandSelection(true);
-//		br.setFacetSpec("color", output);
-//		br.setFacetSpec("shape", output);
-//		
-//		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
-//        answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",2),new BrowseFacet("green",2),new BrowseFacet("red",3)}));
-//        answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
-//        
-//        doTest(br,3,answer,new String[]{"1","2","7"});
-//
-//        sel=new BrowseSelection("shape");
-//        sel.addValue("square");
-//        br.addSelection(sel); 
-//		
-//		answer=new HashMap<String,List<BrowseFacet>>();
-//		answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",1),new BrowseFacet("red",2)}));
-//		answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
-//		
-//		doTest(br,2,answer,new String[]{"1","7"});
-//	}
+	public void testExpandSelection()
+	{
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+
+        BrowseSelection sel=new BrowseSelection("color");
+        sel.addValue("red");
+        br.addSelection(sel); 
+        
+		
+		FacetSpec output=new FacetSpec();
+		output.setExpandSelection(true);
+		br.setFacetSpec("color", output);
+		br.setFacetSpec("shape", output);
+		
+		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+        answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",2),new BrowseFacet("green",2),new BrowseFacet("red",3)}));
+        answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
+        
+        doTest(br,3,answer,new String[]{"1","2","7"});
+
+        sel=new BrowseSelection("shape");
+        sel.addValue("square");
+        br.addSelection(sel); 
+		
+		answer=new HashMap<String,List<BrowseFacet>>();
+		answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("blue",1),new BrowseFacet("red",2)}));
+		answer.put("shape", Arrays.asList(new BrowseFacet[]{new BrowseFacet("rectangle",1),new BrowseFacet("square",2)}));
+		
+		doTest(br,2,answer,new String[]{"1","7"});
+	}
 	
-//	public void testPath() throws Exception{
-//		BrowseRequest br=new BrowseRequest();
-//		br.setCount(10);
-//		br.setOffset(0);
-//
-//        BrowseSelection sel=new BrowseSelection("path");
-//        sel.addValue("a");
-//        Properties prop = sel.getSelectionProperties();
-//        PathFacetHandler.setDepth(prop, 1);
-//        br.addSelection(sel); 
-//		
-//		FacetSpec pathSpec=new FacetSpec();
-//		pathSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
-//		br.setFacetSpec("path", pathSpec);
-//		
-//		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
-//		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-b",1),new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
-//		doTest(br,7,answer,null);
-//		
-//		pathSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
-//		answer=new HashMap<String,List<BrowseFacet>>();
-//		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2),new BrowseFacet("a-b",1)}));
-//		doTest(br,7,answer,null);
-//		
-//		pathSpec.setMaxCount(2);
-//		answer=new HashMap<String,List<BrowseFacet>>();
-//		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
-//		doTest(br,7,answer,null);
-//	}
+	public void testPath() throws Exception{
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+
+        BrowseSelection sel=new BrowseSelection("path");
+        sel.addValue("a");
+        Properties prop = sel.getSelectionProperties();
+        PathFacetHandler.setDepth(prop, 1);
+        br.addSelection(sel); 
+		
+		FacetSpec pathSpec=new FacetSpec();
+		pathSpec.setOrderBy(FacetSortSpec.OrderValueAsc);
+		br.setFacetSpec("path", pathSpec);
+		
+		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-b",1),new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
+		doTest(br,7,answer,null);
+		
+		pathSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+		answer=new HashMap<String,List<BrowseFacet>>();
+		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2),new BrowseFacet("a-b",1)}));
+		doTest(br,7,answer,null);
+		
+		pathSpec.setMaxCount(2);
+		answer=new HashMap<String,List<BrowseFacet>>();
+		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
+		doTest(br,7,answer,null);
+	}
 
 	/**
 	 * This tests GeoSimpleFacetHandler
