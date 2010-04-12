@@ -1,15 +1,14 @@
-/**
- * $Id: GeoMatchUtil.java 62709 2008-12-18 22:54:18Z dmccutch $ */
 package com.browseengine.bobo.util;
 
 /**
  * 
- * @author Mitch Stuart
- * @version $Revision: 62709 $
+ * @author nnarkhed
  */
 public class GeoMatchUtil
 {
   public static final float EARTH_RADIUS_MILES = 3956.0f;
+  public static final float EARTH_RADIUS_KM = 6371.0f;
+
   public static final float LATITUDE_DEGREES_MIN = -90.0f;
   public static final float LATITUDE_DEGREES_MAX = 90.0f;
   public static final float LONGITUDE_DEGREES_MIN = -180.0f;
@@ -23,6 +22,12 @@ public class GeoMatchUtil
   public static float getMilesRadiusCosine(float radiusInMiles)
   {
     float radiusCosine = (float) (Math.cos(radiusInMiles / EARTH_RADIUS_MILES));
+    return radiusCosine;
+  }
+  
+  public static float getKMRadiusCosine(float radiusInKM)
+  {
+    float radiusCosine = (float) (Math.cos(radiusInKM / EARTH_RADIUS_KM));
     return radiusCosine;
   }
   

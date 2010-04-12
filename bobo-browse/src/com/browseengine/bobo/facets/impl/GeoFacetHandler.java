@@ -40,16 +40,32 @@ import com.browseengine.bobo.util.GeoMatchUtil;
 public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> {
 	
 	private static Logger logger = Logger.getLogger(GeoFacetHandler.class);
-//	private String _name;
 	private String _latFieldName;
 	private String _lonFieldName;
+	// variable to specify if the geo distance calculations are in miles. Default is miles
+	private boolean _miles;
 	
 	public GeoFacetHandler(String name, String latFieldName, String lonFieldName) {
 		super(name);
 		_latFieldName = latFieldName;
 		_lonFieldName = lonFieldName;
+		_miles = true;
 	}
-
+	
+	/**
+	 * Constructor for GeoFacetHandler
+	 * @param name         name of the geo facet
+	 * @param latFieldName name of the index field that stores the latitude value
+	 * @param lonFieldName name of the index field that stores the longitude value
+	 * @param miles        variable to specify if the geo distance calculations are in miles. False indicates distance calculation is in kilometers
+	 */
+    public GeoFacetHandler(String name, String latFieldName, String lonFieldName, boolean miles) {
+      super(name);
+      _latFieldName = latFieldName;
+      _lonFieldName = lonFieldName;
+      _miles = miles;
+    }
+    
 	public static class GeoFacetData {
 		private BigFloatArray _xValArray;
 		private BigFloatArray _yValArray;
@@ -120,8 +136,6 @@ public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> 
 			if(latFieldName == null) throw new NullPointerException("latitude Field Name is null");
 			if(lonFieldName == null) throw new NullPointerException("longitude Field Name is null");
 			
-			String latField = latFieldName.intern();
-			String lonField = lonFieldName.intern();
 			int maxDoc = reader.maxDoc();
 			
 			BigFloatArray xVals = this._xValArray;
@@ -148,55 +162,48 @@ public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> 
 			Term latTerm = new Term(latFieldName, "");
 			TermDocs termDocs = reader.termDocs(latTerm);
 			TermEnum termEnum = reader.terms(latTerm);
-		
+			
 			float docLat, docLon;
 			int termCount = 1;
 			String lonValue = null;
 			int length = maxDoc+1;
 			int doc;
 			termDocs.next();
-			try {
-				do {
-					Term term = termEnum.term();
-					if(term == null || term.field() != latFieldName) continue;
-					
-					if(termCount > xVals.capacity()) throw new IOException("Maximum number of values cannot exceed: " + xVals.capacity());
-					if(termCount >= length) throw new RuntimeException("There are more terms than documents in field " + latFieldName + " or " + lonFieldName + 
-							", but its impossible to sort on tokenized fields");
-					
-					// pull the termDocs to point to the document for the current term in the termEnum
-					termDocs.seek(termEnum);
-					while(termDocs.next())
-					{
-						doc = termDocs.doc();
+			do {
+			  Term term = termEnum.term();
+			  if(term == null || !term.field().equals(latFieldName)) break;
 
-						// read the latitude value in the current document
-						docLat = Float.parseFloat(term.text().trim());
-						// read the longitude value in the current document
-						Document docVal = reader.document(doc, null);
-						lonValue = docVal.get(lonFieldName);
-						if(lonValue == null)
-							continue;
-						else
-							docLon = Float.parseFloat(lonValue);
+			  if(termCount > xVals.capacity()) throw new IOException("Maximum number of values cannot exceed: " + xVals.capacity());
+			  if(termCount >= length) throw new RuntimeException("There are more terms than documents in field " + latFieldName + " or " + lonFieldName + 
+			  ", but its impossible to sort on tokenized fields");
 
-						// convert the lat, lon values to x,y,z coordinates
-						float[] coords = GeoMatchUtil.geoMatchCoordsFromDegrees(docLat, docLon);
-						_xValArray.add(doc, coords[0]);
-						_yValArray.add(doc, coords[1]);
-						_zValArray.add(doc, coords[2]);
-					}
-				}while(termEnum.next());
-			}catch(Exception e) {
-				//TODO: get rid of this catch phrase
-				e.printStackTrace();
-			}
-			finally {
-				if(termDocs != null)
-					termDocs.close();
-				if(termEnum != null)
-					termEnum.close();
-			}
+			  // pull the termDocs to point to the document for the current term in the termEnum
+			  termDocs.seek(termEnum);
+			  while(termDocs.next())
+			  {
+			    doc = termDocs.doc();
+
+			    // read the latitude value in the current document
+			    docLat = Float.parseFloat(term.text().trim());
+			    // read the longitude value in the current document
+			    Document docVal = reader.document(doc, null);
+			    lonValue = docVal.get(lonFieldName);
+			    if(lonValue == null)
+			      continue;
+			    else
+			      docLon = Float.parseFloat(lonValue);
+
+			    // convert the lat, lon values to x,y,z coordinates
+			    float[] coords = GeoMatchUtil.geoMatchCoordsFromDegrees(docLat, docLon);
+			    _xValArray.add(doc, coords[0]);
+			    _yValArray.add(doc, coords[1]);
+			    _zValArray.add(doc, coords[2]);
+			  }
+			}while(termEnum.next());
+			if(termDocs != null)
+			  termDocs.close();
+			if(termEnum != null)
+			  termEnum.close();
 		}
 	}
 	
@@ -209,7 +216,7 @@ public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> 
 	public RandomAccessFilter buildRandomAccessFilter(String value,
 			Properties selectionProperty) throws IOException {
 		GeoRange range = GeoFacetCountCollector.parse(value);
-		return new GeoFacetFilter(this, range.getLat(), range.getLon(), range.getRad());
+		return new GeoFacetFilter(this, range.getLat(), range.getLon(), range.getRad(), _miles);
 	}
 
 	@Override
@@ -225,7 +232,7 @@ public class GeoFacetHandler extends FacetHandler<GeoFacetHandler.GeoFacetData> 
 			@Override
 			public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase) {
 				GeoFacetData dataCache = getFacetData(reader);
-				return new GeoFacetCountCollector(_name, dataCache, docBase, fspec, ranges);
+				return new GeoFacetCountCollector(_name, dataCache, docBase, fspec, ranges, _miles);
 			}		
 		};
 	}

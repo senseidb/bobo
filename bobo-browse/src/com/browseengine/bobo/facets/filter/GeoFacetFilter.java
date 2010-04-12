@@ -25,18 +25,22 @@ public class GeoFacetFilter extends RandomAccessFilter{
 	private final float _lat;
 	private final float _lon;
 	private final float _rad;
+    // variable to specify if the geo distance calculations are in miles. Default is miles
+    private boolean _miles;
 	
 	/**
 	 * @param  facetHandler The Geo Facet Handler for this instance
-	 * @param  lat latitude value of the user's point of interest
-	 * @param  lon longitude value of the user's point of interest
-	 * @param  radius Radius from the point of interest
+	 * @param  lat         latitude value of the user's point of interest
+	 * @param  lon         longitude value of the user's point of interest
+	 * @param  radius      Radius from the point of interest
+	 * @param  miles       variable to specify if the geo distance calculations are in miles. False indicates distance calculation is in kilometers
 	 */
-	public GeoFacetFilter(FacetHandler<GeoFacetData> facetHandler, float lat, float lon, float radius) {
+	public GeoFacetFilter(FacetHandler<GeoFacetData> facetHandler, float lat, float lon, float radius, boolean miles) {
 		_handler = facetHandler;
 		_lat = lat;
 		_lon = lon;
 		_rad = radius;
+		_miles = miles;
 	}
 
 	/* (non-Javadoc)
@@ -49,7 +53,7 @@ public class GeoFacetFilter extends RandomAccessFilter{
 
 		final GeoFacetData dataCache = _handler.getFacetData(reader);
 		return new GeoDocIdSet(dataCache.get_xValArray(), dataCache.get_yValArray(), dataCache.get_zValArray(),
-				_lat, _lon, _rad, maxDoc);
+				_lat, _lon, _rad, maxDoc, _miles);
 	}
 
 	private static final class GeoDocIdSet extends RandomAccessDocIdSet {
@@ -62,29 +66,39 @@ public class GeoFacetFilter extends RandomAccessFilter{
 		private final float _targetZ;
 		private final float _delta;
 		private final int _maxDoc;
+	    // variable to specify if the geo distance calculations are in miles. Default is miles
+	    private boolean _miles;
 		
 		/**
 		 * 
-		 * @param xvals array of x coordinate values for docid
-		 * @param yvals array of y coordinate values for docid
-		 * @param zvals array of z coordinate values for docid
-		 * @param lat target latitude 
-		 * @param lon target longitude
-		 * @param radius target radius
-		 * @param maxdoc max doc in the docid set
+		 * @param xvals       array of x coordinate values for docid
+		 * @param yvals       array of y coordinate values for docid
+		 * @param zvals       array of z coordinate values for docid
+		 * @param lat         target latitude 
+		 * @param lon         target longitude
+		 * @param radius      target radius
+		 * @param maxdoc      max doc in the docid set
+		 * @param miles       variable to specify if the geo distance calculations are in miles. False indicates distance calculation is in kilometers
 		 */
 		GeoDocIdSet(final BigFloatArray xvals, final BigFloatArray yvals, final BigFloatArray zvals, final float lat, final float lon, 
-				final float radius, final int maxdoc) {
+				final float radius, final int maxdoc, boolean miles) {
 			_xvals = xvals;
 			_yvals = yvals;
 			_zvals = zvals;
-			_radius = GeoMatchUtil.getMilesRadiusCosine(radius);
+            _miles = miles;
+			if(_miles)
+			  _radius = GeoMatchUtil.getMilesRadiusCosine(radius);
+			else
+			  _radius = GeoMatchUtil.getKMRadiusCosine(radius);
 			float[] coords = GeoMatchUtil.geoMatchCoordsFromDegrees(lat, lon);
 			_targetX = coords[0];
 			_targetY = coords[1];
 			_targetZ = coords[2];
-			_delta = (float)(radius/GeoMatchUtil.EARTH_RADIUS_MILES);
-			_maxDoc = maxdoc;
+			if(_miles)
+			  _delta = (float)(radius/GeoMatchUtil.EARTH_RADIUS_MILES);
+			else
+			  _delta = (float)(radius/GeoMatchUtil.EARTH_RADIUS_KM);
+            _maxDoc = maxdoc;
 		}
 		
 		@Override
