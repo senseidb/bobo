@@ -277,6 +277,13 @@ public class BoboIndexReader extends FilterIndexReader
     }
   }
 
+  /**
+   * Find all the leaf sub-readers and wrap each in BoboIndexReader.
+   * @param reader
+   * @param workArea
+   * @return
+   * @throws IOException
+   */
   private static IndexReader[] createSubReaders(IndexReader reader, WorkArea workArea) throws IOException
   {
     List<IndexReader> readerList = new ArrayList<IndexReader>();
@@ -346,6 +353,14 @@ public class BoboIndexReader extends FilterIndexReader
     }
   }
 
+  /**
+   * 
+   * @param reader
+   * @param facetHandlers
+   * @param facetHandlerFactories
+   * @param workArea
+   * @throws IOException
+   */
   protected BoboIndexReader(IndexReader reader,
                             Collection<FacetHandler<?>> facetHandlers,
                             Collection<RuntimeFacetHandlerFactory<?,?>> facetHandlerFactories,
@@ -355,6 +370,15 @@ public class BoboIndexReader extends FilterIndexReader
     _srcReader = reader;
   }
   
+  /**
+   * @param reader
+   * @param facetHandlers
+   * @param facetHandlerFactories
+   * @param workArea
+   * @param useSubReaders true => we create a MultiReader of all the leaf sub-readers as
+   * the inner reader. false => we use the given reader as the inner reader.
+   * @throws IOException
+   */
   protected BoboIndexReader(IndexReader reader,
                             Collection<FacetHandler<?>> facetHandlers,
                             Collection<RuntimeFacetHandlerFactory<?,?>> facetHandlerFactories,

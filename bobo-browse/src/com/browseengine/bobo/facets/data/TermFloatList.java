@@ -5,8 +5,9 @@ import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TermFloatList extends TermNumberList {
+public class TermFloatList extends TermNumberList<Float> {
 
+  private float[] _elements = null;
 	private static float parse(String s)
 	{
 		if (s==null || s.length() == 0)
@@ -51,6 +52,7 @@ public class TermFloatList extends TermNumberList {
 	@Override
 	public void seal() {
 		((FloatArrayList)_innerList).trim();
+		_elements = ((FloatArrayList)_innerList).elements();
 	}
 	
 	@Override
@@ -58,4 +60,25 @@ public class TermFloatList extends TermNumberList {
 		return parse(o);
 	}
 
+  @Override
+  public boolean containsWithType(Float val)
+  {
+    return Arrays.binarySearch(_elements, val)>=0;
+  }
+
+  public boolean containsWithType(float val)
+  {
+    return Arrays.binarySearch(_elements, val)>=0;
+  }
+
+  @Override
+  public int indexOfWithType(Float o)
+  {
+    return Arrays.binarySearch(_elements, o);
+  }
+
+  public int indexOfWithType(float o)
+  {
+    return Arrays.binarySearch(_elements, o);
+  }
 }

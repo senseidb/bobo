@@ -16,7 +16,7 @@ import java.util.ListIterator;
  *   <li> {@link #seal()} is introduce to trim the List size, similar to {@link ArrayList#trimToSize()}, once it is called, no add should be performed.</li>
  *   </u>
  */
-public abstract class TermValueList implements List<String>{
+public abstract class TermValueList<T> implements List<String>{
 	
 	protected abstract List<?> buildPrimitiveList(int capacity);
 	public abstract String format(Object o);
@@ -68,6 +68,9 @@ public abstract class TermValueList implements List<String>{
 	public boolean contains(Object o){
 		return indexOf(o)>=0;
 	}
+	
+	public abstract boolean containsWithType(T val);
+	
 
 	public boolean containsAll(Collection<?> c)
 	{
@@ -84,7 +87,9 @@ public abstract class TermValueList implements List<String>{
 
 	abstract public int indexOf(Object o);
 
-	public boolean isEmpty() {
+  public abstract int indexOfWithType(T o);
+
+  public boolean isEmpty() {
 		return _innerList.isEmpty();
 	}
 

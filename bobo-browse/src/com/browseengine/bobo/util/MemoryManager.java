@@ -6,7 +6,7 @@ package com.browseengine.bobo.util;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 
@@ -17,18 +17,44 @@ import org.apache.log4j.Logger;
 public class MemoryManager<T>
 {
   private static final Logger log = Logger.getLogger(MemoryManager.class.getName());
-  private static final long SWEEP_INTERVAL = 60000; // 1min
-  private static final ReentrantLock _sweepLock = new ReentrantLock();
-
-  private static volatile long _nextSweepTime = System.currentTimeMillis();
-  private static volatile int _nextSweepIndex = 0;
-
 
   private final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>> _sizeMap = new ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>>();
-  private Initializer<T> initializer;
+  private final ConcurrentLinkedQueue<T> _releaseQueue = new ConcurrentLinkedQueue<T>();
+  private final AtomicInteger _releaseQueueSize = new AtomicInteger(0);
+  private final Initializer<T> _initializer;
+  private final Thread _cleanThread;
   public MemoryManager(Initializer<T> initializer)
   {
-    this.initializer = initializer;
+    this._initializer = initializer;
+    _cleanThread = new Thread(new Runnable(){
+
+      public void run()
+      {
+        T buf = null;
+        while(true)
+        {
+          synchronized(MemoryManager.this)
+          {
+            try
+            {
+              MemoryManager.this.wait(200);
+            } catch (InterruptedException e)
+            {
+              log.error(e);
+            }
+          }
+          while((buf = _releaseQueue.poll()) != null)
+          {
+            ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(_initializer.size(buf));
+            // buf is wrapped in WeakReference. this allows GC to reclaim the buffer memory
+            _initializer.init(buf);// pre-initializing the buffer in parallel so we save time when it is requested later.
+            queue.offer(new WeakReference<T>(buf));
+            _releaseQueueSize.decrementAndGet();
+          }
+          buf = null;
+        }
+      }});
+    _cleanThread.start();
   }
 
   /**
@@ -51,15 +77,12 @@ public class MemoryManager<T>
         T buf = ref.get();
         if(buf != null)
         {
-          initializer.init(buf);
-//          log.info("array hit " + size);
           return buf;
         }
       }
       else
       {
-//        log.info("array miss " + size);
-        return initializer.newInstance(size);
+        return _initializer.newInstance(size);
       }
     }
   }
@@ -70,11 +93,19 @@ public class MemoryManager<T>
    */
   public void release(T buf)
   {
+    if (_releaseQueueSize.get()>1000)
+    {
+      log.info("release queue full");
+      return;
+    }
     if(buf != null)
     {
-      ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(initializer.size(buf));
-      // buf is wrapped in WeakReference. this allows GC to reclaim the buffer memory
-      queue.offer(new WeakReference<T>(buf));
+      _releaseQueue.offer(buf);
+      _releaseQueueSize.incrementAndGet();
+      synchronized(MemoryManager.this)
+      {
+        MemoryManager.this.notifyAll();
+      }
     }
   }
 
