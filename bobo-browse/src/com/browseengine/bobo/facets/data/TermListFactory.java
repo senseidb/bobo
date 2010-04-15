@@ -1,13 +1,20 @@
 package com.browseengine.bobo.facets.data;
 
 
-public interface TermListFactory {
-	TermValueList createTermList();
+public interface TermListFactory<T>
+{
+	TermValueList<T> createTermList();
+	Class<?> getType();
 	
-	public static TermListFactory StringListFactory=new TermListFactory()
+	public static TermListFactory<String> StringListFactory=new TermListFactory<String>()
 	{
-		public TermValueList createTermList() {
+		public TermValueList<String> createTermList()
+		{
 			return new TermStringList();
-		}	
+		}
+		public Class<?> getType()
+		{
+		  return String.class;
+		}
 	};
 }
