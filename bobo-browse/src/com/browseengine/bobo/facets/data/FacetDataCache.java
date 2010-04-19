@@ -157,7 +157,7 @@ public class FacetDataCache<T> implements Serializable {
     this.maxIDs = maxIDList.toIntArray();
   }
 	
-	public static int[] convert(FacetDataCache dataCache,String[] vals)
+	private static int[] convertString(FacetDataCache dataCache,String[] vals)
 	{
 	    IntList list = new IntArrayList(vals.length);
 	    for (int i=0;i<vals.length;++i)
@@ -182,6 +182,7 @@ public class FacetDataCache<T> implements Serializable {
    */
   public static <T> int[] convert(FacetDataCache<T> dataCache,T[] vals)
   {
+    if (vals!=null && (vals instanceof String[])) return convertString(dataCache, (String[])vals);
     IntList list = new IntArrayList(vals.length);
     for (int i=0;i<vals.length;++i)
     {

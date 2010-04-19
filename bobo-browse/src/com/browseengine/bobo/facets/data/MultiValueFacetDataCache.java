@@ -30,7 +30,7 @@ import com.browseengine.bobo.util.BigNestedIntArray.Loader;
  * @author ymatsuda
  *
  */
-public class MultiValueFacetDataCache extends FacetDataCache
+public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
 {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(MultiValueFacetDataCache.class);
@@ -52,7 +52,7 @@ public class MultiValueFacetDataCache extends FacetDataCache
   }
   
   @Override
-  public void load(String fieldName, IndexReader reader, TermListFactory listFactory) throws IOException
+  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory) throws IOException
   {
     this.load(fieldName, reader, listFactory, new WorkArea());
   }
@@ -65,14 +65,14 @@ public class MultiValueFacetDataCache extends FacetDataCache
    * @param workArea
    * @throws IOException
    */
-  public void load(String fieldName, IndexReader reader, TermListFactory listFactory, WorkArea workArea) throws IOException
+  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory, WorkArea workArea) throws IOException
   {
     int maxdoc = reader.maxDoc();
     BufferedLoader loader = getBufferedLoader(maxdoc, workArea);
 
     TermEnum tenum = null;
     TermDocs tdoc = null;
-    TermValueList list = (listFactory == null ? new TermStringList() : listFactory.createTermList());
+    TermValueList<T> list = (listFactory == null ? (TermValueList<T>)new TermStringList() : listFactory.createTermList());
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
@@ -180,7 +180,7 @@ public class MultiValueFacetDataCache extends FacetDataCache
    * @param listFactory
    * @throws IOException
    */
-  public void load(String fieldName, IndexReader reader, TermListFactory listFactory, Term sizeTerm) throws IOException
+  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory, Term sizeTerm) throws IOException
   {
     int maxdoc = reader.maxDoc();
     Loader loader = new AllocOnlyLoader(_maxItems, sizeTerm, reader);
@@ -200,7 +200,7 @@ public class MultiValueFacetDataCache extends FacetDataCache
     
     TermEnum tenum = null;
     TermDocs tdoc = null;
-    TermValueList list = (listFactory == null ? new TermStringList() : listFactory.createTermList());
+    TermValueList<T> list = (listFactory == null ? (TermValueList<T>)new TermStringList() : listFactory.createTermList());
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
