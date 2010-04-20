@@ -163,7 +163,7 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
       while(iter.hasNext())
       {
         String facet = iter.next();
-        int count = iter.getFacetCount();
+        int count = iter.count;
         facets.add(new BrowseFacet(getValueFromRangeString(facet), count));
       }
       Collections.sort(facets, ListMerger.FACET_VAL_COMPARATOR);

@@ -13,18 +13,17 @@ import com.browseengine.bobo.api.FacetIterator;
  * @author nnarkhed
  *
  */
-public class PathFacetIterator implements FacetIterator {
+public class PathFacetIterator extends FacetIterator {
 
 	private BrowseFacet[] _facets;
 	private int _index;
 	private String _facet;
-	private int _count;
 	
 	public PathFacetIterator(List<BrowseFacet> facets) {
 		_facets = facets.toArray(new BrowseFacet[facets.size()]);
 		_index = -1;
 		_facet = null;
-		_count = 0;
+		count = 0;
 	}
 	
 	/* (non-Javadoc)
@@ -35,13 +34,6 @@ public class PathFacetIterator implements FacetIterator {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-	 */
-	public int getFacetCount() {
-      return _count;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetIterator#next()
 	 */
 	public String next() {
@@ -49,7 +41,7 @@ public class PathFacetIterator implements FacetIterator {
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
 		_facet = _facets[_index].getValue();
-		_count = _facets[_index].getHitCount();
+		count = _facets[_index].getHitCount();
 		return _facet;
 	}
 
@@ -77,12 +69,12 @@ public class PathFacetIterator implements FacetIterator {
       if(_facets[_index].getHitCount() >= minHits)
       {
         _facet = _facets[_index].getValue();
-        _count = _facets[_index].getHitCount();
+        count = _facets[_index].getHitCount();
         return _facet;
       }
     }
     _facet = null;
-    _count = 0;
+    count = 0;
     return _facet;  
   }
 }

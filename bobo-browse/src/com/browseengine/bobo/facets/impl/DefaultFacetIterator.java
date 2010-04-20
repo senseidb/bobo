@@ -12,37 +12,22 @@ import com.browseengine.bobo.api.FacetIterator;
  * @author nnarkhed
  *
  */
-public class DefaultFacetIterator implements FacetIterator {
+public class DefaultFacetIterator extends FacetIterator {
 
   private List<String> _valList;
   private int[] _count;
   private int _index;
-  private String _facet;
-  private int _cnt;
 
-  public DefaultFacetIterator(List<String> valList, int[] count, boolean zeroBased) {
+  public DefaultFacetIterator(List<String> valList, int[] counts, boolean zeroBased) {
     _valList = valList;
-    _count = count;
+    _count = counts;
     _index = -1;
     if(!zeroBased)
       _index++;
-    _facet = null;
-    _cnt = 0;
+    facet = null;
+    count = 0;
  }
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-   */
-  public String getFacet() {
-    return _facet;
-  }
-
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-   */
-  public int getFacetCount() {
-    return _cnt;
-  }
 
   /* (non-Javadoc)
    * @see java.util.Iterator#hasNext()
@@ -58,9 +43,9 @@ public class DefaultFacetIterator implements FacetIterator {
     if((_index >= 0) && (_index >= (_count.length-1)))
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
-    _facet = _valList.get(_index);
-    _cnt = _count[_index];
-    return _valList.get(_index);
+    facet = _valList.get(_index);
+    count = _count[_index];
+    return facet;
   }
 
   /* (non-Javadoc)
@@ -79,13 +64,13 @@ public class DefaultFacetIterator implements FacetIterator {
     {
       if(_count[_index] >= minHits)
       {
-        _facet = _valList.get(_index);
-        _cnt = _count[_index];
-        return _facet;
+    	  facet = _valList.get(_index);
+        count = _count[_index];
+        return facet;
       }
     }
-    _facet = null;
-    _cnt = 0;
-    return _facet;    
+    facet = null;
+    count = 0;
+    return facet;    
   }
 }

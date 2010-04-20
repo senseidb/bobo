@@ -14,11 +14,8 @@ import com.browseengine.bobo.api.FacetIterator;
  * @author nnarkhed
  *
  */
-public class CombinedFacetIterator implements FacetIterator {
-
-  private String _facet;
-  private int _count;
-
+public class CombinedFacetIterator extends FacetIterator {
+	
   private class IteratorNode
   {
     public FacetIterator _iterator;
@@ -38,7 +35,7 @@ public class CombinedFacetIterator implements FacetIterator {
         minHits = 1;
       if( (_curFacet = _iterator.next(minHits)) != null)
       {
-        _curFacetCount = _iterator.getFacetCount();
+        _curFacetCount = _iterator.count;
         return true;
       }
       _curFacet = null;
@@ -50,7 +47,7 @@ public class CombinedFacetIterator implements FacetIterator {
     {
       if(_iterator.hasNext()) 
       {
-        return _iterator.getFacet();
+        return _iterator.facet;
       }
       return null;
     }
@@ -58,7 +55,7 @@ public class CombinedFacetIterator implements FacetIterator {
 
   private final PriorityQueue _queue;
 
-  private List<FacetIterator> _iterators;
+  //private List<FacetIterator> _iterators;
 
   private CombinedFacetIterator(final int length) {
     _queue = new PriorityQueue() {
@@ -67,8 +64,8 @@ public class CombinedFacetIterator implements FacetIterator {
       }
       @Override
       protected boolean lessThan(Object o1, Object o2) {
-        String v1 = ((IteratorNode)o1)._curFacet;
-        String v2 = ((IteratorNode)o2)._curFacet;
+    	String v1 = ((IteratorNode)o1)._curFacet;
+    	String v2 = ((IteratorNode)o2)._curFacet;
 
         return v1.compareTo(v2) < 0;
       }
@@ -77,40 +74,33 @@ public class CombinedFacetIterator implements FacetIterator {
 
   public CombinedFacetIterator(final List<FacetIterator> iterators) {
     this(iterators.size());
-    _iterators = iterators;
+  //  _iterators = iterators;
     for(FacetIterator iterator : iterators) {
       IteratorNode node = new IteratorNode(iterator);
       if(node.fetch(1))
         _queue.add(node);
     }
-    _facet = null;
-    _count = 0;
+    facet = null;
+    count = 0;
   }
 
   public CombinedFacetIterator(final List<FacetIterator> iterators, int minHits) {
     this(iterators.size());
-    _iterators = iterators;
+ //   _iterators = iterators;
     for(FacetIterator iterator : iterators) {
       IteratorNode node = new IteratorNode(iterator);
       if(node.fetch(minHits))
         _queue.add(node);
     }
-    _facet = null;
-    _count = 0;
-  }
-
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-   */
-  public String getFacet() {
-    return _facet;
+    facet = null;
+    count = 0;
   }
 
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
    */
   public int getFacetCount() {
-    return _count;
+    return count;
   }
 
   /* (non-Javadoc)
@@ -122,22 +112,22 @@ public class CombinedFacetIterator implements FacetIterator {
 
     IteratorNode node = (IteratorNode) _queue.top();
 
-    _facet = node._curFacet;
-    String next = null;
-    _count = 0;
+    facet = node._curFacet;
+    Comparable next = null;
+    count = 0;
     while(hasNext())
     {
       node = (IteratorNode) _queue.top();
       next = node._curFacet;
-      if( (next != null) && (!next.equals(_facet)) )
+      if( (next != null) && (!next.equals(facet)) )
         break;
-      _count += node._curFacetCount;
+      count += node._curFacetCount;
       if(node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
     }
-    return _facet;
+    return facet;
   }
 
   /**
@@ -149,14 +139,14 @@ public class CombinedFacetIterator implements FacetIterator {
     int qsize = _queue.size();
     if(qsize == 0)
     {
-      _facet = null;
-      _count = 0;
+      facet = null;
+      count = 0;
       return null;
     }
 
     IteratorNode node = (IteratorNode) _queue.top();    
-    _facet = node._curFacet;
-    _count = node._curFacetCount;
+    facet = node._curFacet;
+    count = node._curFacetCount;
     while(true)
     {
       if(node.fetch(minHits))
@@ -173,30 +163,30 @@ public class CombinedFacetIterator implements FacetIterator {
         else
         {
           // we reached the end. check if this facet obeys the minHits
-          if(_count < minHits)
+          if(count < minHits)
           {
-            _facet = null;
-            _count = 0;
+            facet = null;
+            count = 0;
           }
           break;
         }
       }
       String next = node._curFacet;
-      if(!next.equals(_facet))
+      if(!next.equals(facet))
       {
         // check if this facet obeys the minHits
-        if(_count >= minHits)
+        if(count >= minHits)
           break;
         // else, continue iterating to the next facet
-        _facet = next;
-        _count = node._curFacetCount;
+        facet = next;
+        count = node._curFacetCount;
       }
       else
       {
-        _count += node._curFacetCount;
+        count += node._curFacetCount;
       }
     }
-    return _facet;
+    return facet;
   }
 
   /* (non-Javadoc)

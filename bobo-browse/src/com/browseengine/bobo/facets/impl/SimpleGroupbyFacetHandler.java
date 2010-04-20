@@ -371,16 +371,15 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       return new GroupByFacetIterator();
     }
 
-    public class GroupByFacetIterator implements FacetIterator {
+    public class GroupByFacetIterator extends FacetIterator {
 
       private int _index;
       private String _facet;
-      private int _cnt;
       
       public GroupByFacetIterator() {
         _index = 0;
         _facet = null;
-        _cnt = 0;
+        count = 0;
       }
 
       /* (non-Javadoc)
@@ -391,13 +390,6 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       }
 
       /* (non-Javadoc)
-       * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-       */
-      public int getFacetCount() {
-        return _cnt;
-      }
-
-      /* (non-Javadoc)
        * @see com.browseengine.bobo.api.FacetIterator#next()
        */
       public String next() {
@@ -405,7 +397,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
           throw new NoSuchElementException("No more facets in this iteration");
         _index++;
         _facet = getFacetString(_index);
-        _cnt = _count[_index];
+        count = _count[_index];
         return _facet;
       }
 
@@ -430,7 +422,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       {
         if((_index >= 0) && !hasNext())
         {
-          _cnt = 0;
+        	count = 0;
           _facet = null;
           return null;
         }
@@ -441,11 +433,11 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         if(_count[_index] >= minHits)
         {
           _facet = getFacetString(_index);
-          _cnt = _count[_index];
+          count = _count[_index];
         }
         else
         {
-          _cnt = 0;
+        	count = 0;
           _facet = null;
         }
         return _facet;    
