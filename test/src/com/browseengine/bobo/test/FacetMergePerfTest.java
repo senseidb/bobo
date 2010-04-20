@@ -22,7 +22,7 @@ import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
 public class FacetMergePerfTest {
 	static int numVals = 100000;
 	static int numDocs = 5000000;
-	static int numSegs = 20;
+	static int numSegs =20;
 	static int numDocsPerSeg = numDocs/numSegs;
 	static Random rand = new Random();
 	
@@ -57,7 +57,7 @@ public class FacetMergePerfTest {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception{
-		int nThreads = 20;
+		int nThreads = 10;
 		final int numIters = 5;
 		int numSegs = 20;
 		
@@ -83,15 +83,15 @@ public class FacetMergePerfTest {
 		Thread[] threads = new Thread[nThreads];
 		for (int i =0;i<threads.length;++i){
 			threads[i]=new Thread(new Runnable(){
-
+				
 				public void run() {
 					
 					for (int i=0;i<numIters;++i){
 					  long start = System.nanoTime();
 					  final CombinedFacetAccessible combined1 = new CombinedFacetAccessible(fspec, list1);
-					  final CombinedFacetAccessible combined2 = new CombinedFacetAccessible(fspec, list2);
+					 // final CombinedFacetAccessible combined2 = new CombinedFacetAccessible(fspec, list2);
 					  List<BrowseFacet> facets1 = combined1.getFacets();
-					  List<BrowseFacet> facets2 = combined2.getFacets();
+					  //List<BrowseFacet> facets2 = combined2.getFacets();
 					  long end= System.nanoTime();
 					  timeCounter.getAndAdd(end-start);
 					}
@@ -117,6 +117,25 @@ public class FacetMergePerfTest {
 		
 		System.out.println("average time: "+timeCounter.get()/numIters/nThreads/1000000+" ms");
 		
+	}
+	
+	public static void main2(String[] args) {
+		//Comparable c = "00000000001";
+		//Comparable c2 ="00000000002";
+	//	Comparable c = Integer.valueOf(1);
+	//	Comparable c2 = Integer.valueOf(2);
+		
+		int v1 =1;
+		int v2=2;
+		long s=System.currentTimeMillis();
+		for (int i =0;i<1000000;++i){
+			//c.compareTo(c2);
+			//c.equals(c2);
+			boolean b = v1==v2;
+		}
+		long e=System.currentTimeMillis();
+		
+		System.out.println("timeL: "+(e-s));
 	}
 
 }

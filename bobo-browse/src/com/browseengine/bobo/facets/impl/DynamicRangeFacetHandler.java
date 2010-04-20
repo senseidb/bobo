@@ -162,9 +162,9 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
       List<BrowseFacet> facets = new ArrayList<BrowseFacet>();
       while(iter.hasNext())
       {
-        String facet = iter.next();
+        Comparable facet = iter.next();
         int count = iter.count;
-        facets.add(new BrowseFacet(getValueFromRangeString(facet), count));
+        facets.add(new BrowseFacet(getValueFromRangeString(String.valueOf(facet)), count));
       }
       Collections.sort(facets, ListMerger.FACET_VAL_COMPARATOR);
       return new PathFacetIterator(facets);

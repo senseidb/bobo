@@ -3,10 +3,10 @@
  */
 package com.browseengine.bobo.facets.impl;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.FacetIterator;
+import com.browseengine.bobo.facets.data.TermValueList;
 
 /**
  * @author nnarkhed
@@ -14,11 +14,11 @@ import com.browseengine.bobo.api.FacetIterator;
  */
 public class DefaultFacetIterator extends FacetIterator {
 
-  private List<String> _valList;
+  private TermValueList _valList;
   private int[] _count;
   private int _index;
 
-  public DefaultFacetIterator(List<String> valList, int[] counts, boolean zeroBased) {
+  public DefaultFacetIterator(TermValueList valList, int[] counts, boolean zeroBased) {
     _valList = valList;
     _count = counts;
     _index = -1;
@@ -39,7 +39,7 @@ public class DefaultFacetIterator extends FacetIterator {
   /* (non-Javadoc)
    * @see java.util.Iterator#next()
    */
-  public String next() {
+  public Comparable next() {
     if((_index >= 0) && (_index >= (_count.length-1)))
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
@@ -58,13 +58,13 @@ public class DefaultFacetIterator extends FacetIterator {
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#next(int)
    */
-  public String next(int minHits)
+  public Comparable next(int minHits)
   {
     while(++_index < _count.length)
     {
       if(_count[_index] >= minHits)
       {
-    	  facet = _valList.get(_index);
+    	facet = (Comparable)_valList.getRawValue(_index);
         count = _count[_index];
         return facet;
       }

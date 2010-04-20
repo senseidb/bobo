@@ -19,7 +19,7 @@ public class CombinedFacetIterator extends FacetIterator {
   private class IteratorNode
   {
     public FacetIterator _iterator;
-    public String _curFacet;
+    public Comparable _curFacet;
     public int _curFacetCount;
 
     public IteratorNode(FacetIterator iterator)
@@ -43,7 +43,7 @@ public class CombinedFacetIterator extends FacetIterator {
       return false;
     }
 
-    public String peek()
+    public Comparable peek()
     {
       if(_iterator.hasNext()) 
       {
@@ -64,8 +64,8 @@ public class CombinedFacetIterator extends FacetIterator {
       }
       @Override
       protected boolean lessThan(Object o1, Object o2) {
-    	String v1 = ((IteratorNode)o1)._curFacet;
-    	String v2 = ((IteratorNode)o2)._curFacet;
+    	Comparable v1 = ((IteratorNode)o1)._curFacet;
+    	Comparable v2 = ((IteratorNode)o2)._curFacet;
 
         return v1.compareTo(v2) < 0;
       }
@@ -97,16 +97,9 @@ public class CombinedFacetIterator extends FacetIterator {
   }
 
   /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-   */
-  public int getFacetCount() {
-    return count;
-  }
-
-  /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#next()
    */
-  public String next() {
+  public Comparable next() {
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
@@ -135,7 +128,7 @@ public class CombinedFacetIterator extends FacetIterator {
    * @param minHits the minHits from the facet spec for CombinedFacetAccessible
    * @return        The next facet that obeys the minHits 
    */
-  public String next(int minHits) {
+  public Comparable next(int minHits) {
     int qsize = _queue.size();
     if(qsize == 0)
     {
@@ -171,7 +164,7 @@ public class CombinedFacetIterator extends FacetIterator {
           break;
         }
       }
-      String next = node._curFacet;
+      Comparable next = node._curFacet;
       if(!next.equals(facet))
       {
         // check if this facet obeys the minHits
