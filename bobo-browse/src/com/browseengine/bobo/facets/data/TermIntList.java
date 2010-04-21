@@ -17,7 +17,6 @@ public class TermIntList extends TermNumberList {
   private BoboSimpleDecimalFormat _simpleFormatter;
   private ArrayList<String> _innerTermList = new ArrayList<String>();
   private String zero = "0".intern();
-  private IntArrayList _innerValList;
 	private static int parse(String s)
 	{
 		if (s==null || s.length() == 0)
@@ -60,11 +59,6 @@ public class TermIntList extends TermNumberList {
 	}
 	
 	@Override
-	public Object getRawValue(int index){
-		return _innerValList.get(index);
-	}
-
-	@Override
   public Iterator<String> iterator() {
     final Iterator<String> iter=_innerTermList.iterator();
     
@@ -86,8 +80,7 @@ public class TermIntList extends TermNumberList {
 
   @Override
 	protected List<?> buildPrimitiveList(int capacity) {
-	  _innerValList =  capacity>0 ? new IntArrayList(capacity) : new IntArrayList();
-	  return _innerValList;
+	  return capacity>0 ? new IntArrayList(capacity) : new IntArrayList();
 	}
 	
 	@Override

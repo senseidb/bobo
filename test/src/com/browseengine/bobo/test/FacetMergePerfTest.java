@@ -27,14 +27,24 @@ public class FacetMergePerfTest {
 	static int numDocsPerSeg = numDocs/numSegs;
 	static Random rand = new Random();
 	
+	static int percent_zero=80;
 	static FacetDataCache makeFacetDataCache(){
 		FacetDataCache cache = new FacetDataCache();
 		cache.freqs = new int[numVals];
-		/*for (int i=0;i<cache.freqs.length;++i){
-			int v = Math.abs(rand.nextInt(numDocs-1))+1;
+		Random r = new Random();
+		for (int i=0;i<cache.freqs.length;++i){
+			int p = r.nextInt(100);
+			int v;
+			if (p%100<percent_zero){
+				v = 0;
+			}
+			else{
+				v = Math.abs(rand.nextInt(numDocs-1))+1;
+			}
+			
 			cache.freqs[i]=v;
-		}*/
-		Arrays.fill(cache.freqs,1);
+		}
+		//Arrays.fill(cache.freqs,1);
 		cache.maxIDs = new int[numVals];
 		cache.minIDs = new int[numVals];
 		cache.valArray = new TermIntList(numVals,"0000000000");
@@ -60,6 +70,7 @@ public class FacetMergePerfTest {
 	public static void main(String[] args) throws Exception{
 		int nThreads = 10;
 		final int numIters = 20;
+
 		int numSegs = 20;
 		
 		String fname1 = "facet1";

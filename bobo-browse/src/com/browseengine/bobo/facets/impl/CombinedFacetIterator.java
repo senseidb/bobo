@@ -6,8 +6,6 @@ package com.browseengine.bobo.facets.impl;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.apache.lucene.util.PriorityQueue;
-
 import com.browseengine.bobo.api.FacetIterator;
 
 /**
@@ -15,70 +13,20 @@ import com.browseengine.bobo.api.FacetIterator;
  *
  */
 public class CombinedFacetIterator extends FacetIterator {
-	
-  private class IteratorNode
-  {
-    public FacetIterator _iterator;
-    public Comparable _curFacet;
-    public int _curFacetCount;
-
-    public IteratorNode(FacetIterator iterator)
-    {
-      _iterator = iterator;
-      _curFacet = null;
-      _curFacetCount = 0;
-    }
-
-    public boolean fetch(int minHits)
-    {
-      if(minHits > 0)
-        minHits = 1;
-      if( (_curFacet = _iterator.next(minHits)) != null)
-      {
-        _curFacetCount = _iterator.count;
-        return true;
-      }
-      _curFacet = null;
-      _curFacetCount = 0;
-      return false;
-    }
-
-    public Comparable peek()
-    {
-      if(_iterator.hasNext()) 
-      {
-        return _iterator.facet;
-      }
-      return null;
-    }
-  }
-
-  private final PriorityQueue _queue;
-
-  //private List<FacetIterator> _iterators;
-
+  
+  private FacetIterator[] heap;
+  private int size;
+  
   private CombinedFacetIterator(final int length) {
-    _queue = new PriorityQueue() {
-      {
-        this.initialize(length);
-      }
-      @Override
-      protected boolean lessThan(Object o1, Object o2) {
-    	Comparable v1 = ((IteratorNode)o1)._curFacet;
-    	Comparable v2 = ((IteratorNode)o2)._curFacet;
-
-        return v1.compareTo(v2) < 0;
-      }
-    };		
+    heap = new FacetIterator[length + 1];
+    size = 0;
   }
-
+  
   public CombinedFacetIterator(final List<FacetIterator> iterators) {
     this(iterators.size());
-  //  _iterators = iterators;
     for(FacetIterator iterator : iterators) {
-      IteratorNode node = new IteratorNode(iterator);
-      if(node.fetch(1))
-        _queue.add(node);
+      if(iterator.next(1) != null)
+        add(iterator);
     }
     facet = null;
     count = 0;
@@ -86,14 +34,61 @@ public class CombinedFacetIterator extends FacetIterator {
 
   public CombinedFacetIterator(final List<FacetIterator> iterators, int minHits) {
     this(iterators.size());
- //   _iterators = iterators;
+    int min = (minHits > 0 ? 1 : 0);
     for(FacetIterator iterator : iterators) {
-      IteratorNode node = new IteratorNode(iterator);
-      if(node.fetch(minHits))
-        _queue.add(node);
+      if(iterator.next(1) != null)
+        add(iterator);
     }
     facet = null;
     count = 0;
+  }
+  
+  private final void add(FacetIterator element) {
+    size++;
+    heap[size] = element;
+    upHeap();
+  }
+
+  private final void upHeap() {
+    int i = size;
+    FacetIterator node = heap[i];            // save bottom node
+    Comparable val = node.facet;
+    int j = i >>> 1;
+    while (j > 0 && val.compareTo(heap[j].facet) < 0) {
+      heap[i] = heap[j];              // shift parents down
+      i = j;
+      j = j >>> 1;
+    }
+    heap[i] = node;               // install saved node
+  }
+
+  private final void downHeap() {
+    int i = 1;
+    FacetIterator node = heap[i];            // save top node
+    Comparable val = node.facet;
+    int j = i << 1;               // find smaller child
+    int k = j + 1;
+    if (k <= size && heap[k].facet.compareTo(heap[j].facet) < 0) {
+      j = k;
+    }
+    while (j <= size && heap[j].facet.compareTo(val) < 0) {
+      heap[i] = heap[j];              // shift up child
+      i = j;
+      j = i << 1;
+      k = j + 1;
+      if (k <= size && heap[k].facet.compareTo(heap[j].facet) < 0) {
+        j = k;
+      }
+    }
+    heap[i] = node;               // install saved node
+  }
+  
+  private final void pop() {
+    if (size > 0) {
+      heap[1] = heap[size];           // move last to first
+      heap[size] = null;              // permit GC of objects
+      if(--size > 0) downHeap();                 // adjust heap
+    }
   }
 
   /* (non-Javadoc)
@@ -103,24 +98,7 @@ public class CombinedFacetIterator extends FacetIterator {
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    IteratorNode node = (IteratorNode) _queue.top();
-
-    facet = node._curFacet;
-    Comparable next = null;
-    count = 0;
-    while(hasNext())
-    {
-      node = (IteratorNode) _queue.top();
-      next = node._curFacet;
-      if( (next != null) && (!next.equals(facet)) )
-        break;
-      count += node._curFacetCount;
-      if(node.fetch(1))
-        _queue.updateTop();
-      else
-        _queue.pop();
-    }
-    return facet;
+    return next(1);
   }
 
   /**
@@ -129,29 +107,30 @@ public class CombinedFacetIterator extends FacetIterator {
    * @return        The next facet that obeys the minHits 
    */
   public Comparable next(int minHits) {
-    int qsize = _queue.size();
-    if(qsize == 0)
+    if(size == 0)
     {
       facet = null;
       count = 0;
       return null;
     }
 
-    IteratorNode node = (IteratorNode) _queue.top();    
-    facet = node._curFacet;
-    count = node._curFacetCount;
+    FacetIterator node = heap[1];    
+    facet = node.facet;
+    count = node.count;
+    int min = (minHits > 0 ? 1 : 0);
     while(true)
     {
-      if(node.fetch(minHits))
+      if(node.next(min) != null)
       {
-        node = (IteratorNode)_queue.updateTop();
+        downHeap();
+        node = heap[1];
       }
       else
       {
-        _queue.pop();
-        if(--qsize > 0)
+        pop();
+        if(size > 0)
         {
-          node = (IteratorNode)_queue.top();
+          node = heap[1];
         }
         else
         {
@@ -164,7 +143,7 @@ public class CombinedFacetIterator extends FacetIterator {
           break;
         }
       }
-      Comparable next = node._curFacet;
+      Comparable next = node.facet;
       if(!next.equals(facet))
       {
         // check if this facet obeys the minHits
@@ -172,11 +151,11 @@ public class CombinedFacetIterator extends FacetIterator {
           break;
         // else, continue iterating to the next facet
         facet = next;
-        count = node._curFacetCount;
+        count = node.count;
       }
       else
       {
-        count += node._curFacetCount;
+        count += node.count;
       }
     }
     return facet;
@@ -186,7 +165,7 @@ public class CombinedFacetIterator extends FacetIterator {
    * @see java.util.Iterator#hasNext()
    */
   public boolean hasNext() {
-    return (_queue.size() > 0);
+    return (size > 0);
   }
 
   /* (non-Javadoc)
@@ -195,5 +174,4 @@ public class CombinedFacetIterator extends FacetIterator {
   public void remove() {
     throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
   }
-
 }
