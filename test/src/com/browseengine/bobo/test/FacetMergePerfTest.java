@@ -15,6 +15,7 @@ import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermIntList;
+import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler.SimpleFacetCountCollector;
 import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
@@ -58,7 +59,7 @@ public class FacetMergePerfTest {
 	 */
 	public static void main(String[] args) throws Exception{
 		int nThreads = 10;
-		final int numIters = 5;
+		final int numIters = 20;
 		int numSegs = 20;
 		
 		String fname1 = "facet1";
@@ -74,11 +75,11 @@ public class FacetMergePerfTest {
 			list1.add(buildSubAccessible(fname1, i, fspec));
 		}
 		
-		final List<FacetAccessible> list2 = new ArrayList<FacetAccessible>(numSegs);
+		/*final List<FacetAccessible> list2 = new ArrayList<FacetAccessible>(numSegs);
 		for (int i=0;i<numSegs;++i){
 			list2.add(buildSubAccessible(fname2, i, fspec));
 		}		
-		
+		*/
 		final AtomicLong timeCounter = new AtomicLong();
 		Thread[] threads = new Thread[nThreads];
 		for (int i =0;i<threads.length;++i){
@@ -119,19 +120,29 @@ public class FacetMergePerfTest {
 		
 	}
 	
-	public static void main2(String[] args) {
+	public static void main1(String[] args) {
 		//Comparable c = "00000000001";
 		//Comparable c2 ="00000000002";
 	//	Comparable c = Integer.valueOf(1);
 	//	Comparable c2 = Integer.valueOf(2);
+
+		BoboSimpleDecimalFormat formatter = BoboSimpleDecimalFormat.getInstance(10);
 		
+		int count = 500000;
+		TermValueList list = new TermIntList(count,"0000000000");
+		for (int i=0;i<count;++i){
+			list.add(formatter.format(i));
+		}
+		/*IntList list = new IntArrayList(count);
+		for (int i=0;i<count;++i){
+			list.add(i);
+		}*/
 		int v1 =1;
 		int v2=2;
+		System.out.println("start");
 		long s=System.currentTimeMillis();
-		for (int i =0;i<1000000;++i){
-			//c.compareTo(c2);
-			//c.equals(c2);
-			boolean b = v1==v2;
+		for (int i =0;i<count;++i){
+			list.getRawValue(i);
 		}
 		long e=System.currentTimeMillis();
 		
