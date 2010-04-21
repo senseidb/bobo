@@ -57,7 +57,7 @@ public class FacetMergePerfTest {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception{
-		int nThreads = 10;
+		int nThreads = 1;//0;
 		final int numIters = 5;
 		int numSegs = 20;
 		
