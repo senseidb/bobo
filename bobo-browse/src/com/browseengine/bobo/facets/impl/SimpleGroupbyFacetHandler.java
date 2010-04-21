@@ -374,31 +374,23 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
     public class GroupByFacetIterator extends FacetIterator {
 
       private int _index;
-      private String _facet;
       
       public GroupByFacetIterator() {
         _index = 0;
-        _facet = null;
+        facet = null;
         count = 0;
-      }
-
-      /* (non-Javadoc)
-       * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-       */
-      public String getFacet() {
-        return _facet;
       }
 
       /* (non-Javadoc)
        * @see com.browseengine.bobo.api.FacetIterator#next()
        */
-      public String next() {
+      public Comparable next() {
         if((_index >= 0) && !hasNext())
           throw new NoSuchElementException("No more facets in this iteration");
         _index++;
-        _facet = getFacetString(_index);
+        facet = getFacetString(_index);
         count = _count[_index];
-        return _facet;
+        return facet;
       }
 
       /* (non-Javadoc)
@@ -418,12 +410,12 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       /* (non-Javadoc)
        * @see com.browseengine.bobo.api.FacetIterator#next(int)
        */
-      public String next(int minHits)
+      public Comparable next(int minHits)
       {
         if((_index >= 0) && !hasNext())
-        {
-        	count = 0;
-          _facet = null;
+        {   
+          count = 0;
+          facet = null;
           return null;
         }
         do
@@ -432,15 +424,15 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         }while( (_index < (_count.length-1)) && (_count[_index] < minHits) );
         if(_count[_index] >= minHits)
         {
-          _facet = getFacetString(_index);
+          facet = getFacetString(_index);
           count = _count[_index];
         }
         else
         {
-        	count = 0;
-          _facet = null;
+          count = 0;
+          facet = null;
         }
-        return _facet;    
+        return facet;    
       }
     }
 

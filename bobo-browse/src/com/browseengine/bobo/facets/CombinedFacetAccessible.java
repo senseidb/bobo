@@ -69,15 +69,13 @@ public class CombinedFacetAccessible implements FacetAccessible
     int cnt = 0;
     Comparable facet = null;
     CombinedFacetIterator iter = (CombinedFacetIterator)this.iterator();
-    int count = 0;
     Comparator<BrowseFacet> comparator;
     if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
     {
       while((facet = iter.next(minHits)) != null) 
       {
         // find the next facet whose combined hit count obeys minHits
-        count = iter.count;
-        list.add(new BrowseFacet(String.valueOf(facet), count));
+        list.add(new BrowseFacet(String.valueOf(facet), iter.count));
         if(++cnt >= maxCnt) break;                  
       }
     }
@@ -103,25 +101,20 @@ public class CombinedFacetAccessible implements FacetAccessible
         int qsize = 0;
         while( (qsize < maxCnt) && ((facet = iter.next(minHits)) != null) )
         {
-          count = iter.count;
-          queue.add(new BrowseFacet(String.valueOf(facet), count));
+          queue.add(new BrowseFacet(String.valueOf(facet), iter.count));
           qsize++;
         }
         if(facet != null)
         {
           BrowseFacet rootFacet = (BrowseFacet)queue.top();
+          minHits = rootFacet.getHitCount() + 1;
+          // facet count less than top of min heap, it will never be added 
           while(((facet = iter.next(minHits)) != null))
           {
-            // check with the top of min heap
-            count = iter.count;
-            // if facet count less than top of min heap, it should never be added 
-            if(count > rootFacet.getHitCount())
-            {
-              rootFacet.setValue(String.valueOf(facet));
-              rootFacet.setHitCount(count);
-              rootFacet = (BrowseFacet) queue.updateTop();
-              minHits = rootFacet.getHitCount() + 1;
-            }
+            rootFacet.setValue(String.valueOf(facet));
+            rootFacet.setHitCount(iter.count);
+            rootFacet = (BrowseFacet) queue.updateTop();
+            minHits = rootFacet.getHitCount() + 1;
           }
         }
         // at this point, queue contains top maxCnt facets that have hitcount >= minHits
@@ -149,8 +142,7 @@ public class CombinedFacetAccessible implements FacetAccessible
         int qsize = 0;
         while( (qsize < maxCnt) && ((facet = iter.next(minHits)) != null) )
         {
-          count = iter.count;
-          queue.add(new BrowseFacet(String.valueOf(facet), count));
+          queue.add(new BrowseFacet(String.valueOf(facet), iter.count));
           qsize++;
         }
         if(facet != null)
@@ -158,12 +150,9 @@ public class CombinedFacetAccessible implements FacetAccessible
           while((facet = iter.next(minHits)) != null)
           {
             // check with the top of min heap
-            // if facet count less than top of min heap, it should never be added 
-            browseFacet.setHitCount(count);
+            browseFacet.setHitCount(iter.count);
             browseFacet.setValue(String.valueOf(facet));
-            BrowseFacet ejectedFacet = (BrowseFacet)queue.insertWithOverflow(browseFacet);
-            if(ejectedFacet != browseFacet)
-              browseFacet = ejectedFacet;
+            browseFacet = (BrowseFacet)queue.insertWithOverflow(browseFacet);
           }
         }
         // remove from queue and add to the list
@@ -220,6 +209,6 @@ public class CombinedFacetAccessible implements FacetAccessible
       if(iter != null)
         iterList.add(iter);
     }
-    return new CombinedFacetIterator(iterList, _fspec.getMinHitCount());
+    return new CombinedFacetIterator(iterList);
   }
 }

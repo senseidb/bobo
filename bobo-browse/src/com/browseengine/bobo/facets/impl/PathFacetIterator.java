@@ -17,32 +17,24 @@ public class PathFacetIterator extends FacetIterator {
 
 	private BrowseFacet[] _facets;
 	private int _index;
-	private String _facet;
 	
 	public PathFacetIterator(List<BrowseFacet> facets) {
 		_facets = facets.toArray(new BrowseFacet[facets.size()]);
 		_index = -1;
-		_facet = null;
+		facet = null;
 		count = 0;
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-	 */
-	public String getFacet() {
-      return _facet;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetIterator#next()
 	 */
-	public String next() {
+	public Comparable next() {
 		if((_index >= 0) && !hasNext())
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
-		_facet = _facets[_index].getValue();
+		facet = _facets[_index].getValue();
 		count = _facets[_index].getHitCount();
-		return _facet;
+		return facet;
 	}
 
 	/* (non-Javadoc)
@@ -62,19 +54,19 @@ public class PathFacetIterator extends FacetIterator {
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#next(int)
    */
-  public String next(int minHits)
+  public Comparable next(int minHits)
   {
     while(++_index < _facets.length)
     {
       if(_facets[_index].getHitCount() >= minHits)
       {
-        _facet = _facets[_index].getValue();
+        facet = _facets[_index].getValue();
         count = _facets[_index].getHitCount();
-        return _facet;
+        return facet;
       }
     }
-    _facet = null;
+    facet = null;
     count = 0;
-    return _facet;  
+    return facet;  
   }
 }

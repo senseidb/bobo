@@ -17,26 +17,11 @@ public class CombinedFacetIterator extends FacetIterator {
   private FacetIterator[] heap;
   private int size;
   
-  private CombinedFacetIterator(final int length) {
-    heap = new FacetIterator[length + 1];
-    size = 0;
-  }
-  
   public CombinedFacetIterator(final List<FacetIterator> iterators) {
-    this(iterators.size());
+    heap = new FacetIterator[iterators.size() + 1];
+    size = 0;
     for(FacetIterator iterator : iterators) {
-      if(iterator.next(1) != null)
-        add(iterator);
-    }
-    facet = null;
-    count = 0;
-  }
-
-  public CombinedFacetIterator(final List<FacetIterator> iterators, int minHits) {
-    this(iterators.size());
-    int min = (minHits > 0 ? 1 : 0);
-    for(FacetIterator iterator : iterators) {
-      if(iterator.next(1) != null)
+      if(iterator.next(0) != null)
         add(iterator);
     }
     facet = null;
