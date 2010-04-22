@@ -23,7 +23,7 @@ import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
 public class FacetMergePerfTest {
 	static int numVals = 100000;
 	static int numDocs = 5000000;
-	static int numSegs =20;
+	static int numSegs =10;
 	static int numDocsPerSeg = numDocs/numSegs;
 	static Random rand = new Random();
 	
@@ -69,9 +69,7 @@ public class FacetMergePerfTest {
 	 */
 	public static void main(String[] args) throws Exception{
 		int nThreads = 10;
-		final int numIters = 20;
-
-		int numSegs = 20;
+		final int numIters = 200;
 		
 		String fname1 = "facet1";
 		String fname2 = "facet2";

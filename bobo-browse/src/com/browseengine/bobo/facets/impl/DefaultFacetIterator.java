@@ -3,8 +3,6 @@
  */
 package com.browseengine.bobo.facets.impl;
 
-import java.util.NoSuchElementException;
-
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.facets.data.TermValueList;
 
@@ -17,11 +15,13 @@ public class DefaultFacetIterator extends FacetIterator {
   private TermValueList _valList;
   private int[] _count;
   private int _index;
+  private int _lastIndex;
 
   public DefaultFacetIterator(TermValueList valList, int[] counts, boolean zeroBased) {
     _valList = valList;
     _count = counts;
     _index = -1;
+    _lastIndex = _count.length - 1;
     if(!zeroBased)
       _index++;
     facet = null;
@@ -33,15 +33,13 @@ public class DefaultFacetIterator extends FacetIterator {
    * @see java.util.Iterator#hasNext()
    */
   public boolean hasNext() {
-    return (_index < (_count.length-1));
+    return (_index < _lastIndex);
   }
 
   /* (non-Javadoc)
    * @see java.util.Iterator#next()
    */
   public Comparable next() {
-    if((_index >= 0) && (_index >= (_count.length-1)))
-      throw new NoSuchElementException("No more facets in this iteration");
     _index++;
     facet = _valList.get(_index);
     count = _count[_index];
