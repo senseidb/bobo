@@ -41,7 +41,7 @@ public class DefaultFacetIterator extends FacetIterator {
    */
   public Comparable next() {
     _index++;
-    facet = _valList.get(_index);
+    facet = (Comparable)_valList.getRawValue(_index);
     count = _count[_index];
     return facet;
   }
