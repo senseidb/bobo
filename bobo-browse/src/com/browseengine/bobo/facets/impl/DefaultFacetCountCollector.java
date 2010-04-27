@@ -17,6 +17,7 @@ import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.MemoryManager;
@@ -187,6 +188,12 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
    * @return	The Iterator to iterate over the facets in value order
    */
   public FacetIterator iterator() {
+    if (_dataCache.valArray.getType().equals(Integer.class))
+    {
+      log.info(_name + " " + _count.length + " DefaultInt");
+      return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, false);
+    }
+    log.info(_name + " " + _count.length + " Default");
     return new DefaultFacetIterator(_dataCache.valArray, _count, false);
   }
 }

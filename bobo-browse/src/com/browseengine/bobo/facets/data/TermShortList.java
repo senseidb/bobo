@@ -80,7 +80,9 @@ public class TermShortList extends TermNumberList<Short> {
   }
 
   @Override
-	protected List<?> buildPrimitiveList(int capacity) {
+	protected List<?> buildPrimitiveList(int capacity)
+	{
+    _type = Short.class;
 		return  capacity>0 ? new ShortArrayList(capacity) : new ShortArrayList();
 	}
 

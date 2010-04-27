@@ -15,6 +15,8 @@ import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.impl.CombinedFacetIterator;
+import com.browseengine.bobo.facets.impl.CombinedIntFacetIterator;
+import com.browseengine.bobo.facets.impl.DefaultIntFacetIterator;
 
 /**
  * @author nnarkhed
@@ -68,7 +70,7 @@ public class CombinedFacetAccessible implements FacetAccessible
 
     int cnt = 0;
     String facet = null;
-    CombinedFacetIterator iter = (CombinedFacetIterator)this.iterator();
+    FacetIterator iter = (FacetIterator)this.iterator();
     int count = 0;
     Comparator<BrowseFacet> comparator;
     if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy()))
@@ -219,6 +221,17 @@ public class CombinedFacetAccessible implements FacetAccessible
       iter = (FacetIterator) facetAccessor.iterator();
       if(iter != null)
         iterList.add(iter);
+    }
+    if (iterList.get(0) instanceof DefaultIntFacetIterator)
+    {
+      ArrayList<DefaultIntFacetIterator> il = new ArrayList<DefaultIntFacetIterator>();
+      for (FacetAccessible facetAccessor : _list)
+      {
+        iter = (FacetIterator) facetAccessor.iterator();
+        if(iter != null)
+          il.add((DefaultIntFacetIterator) iter);
+      }
+      return new CombinedIntFacetIterator(il, _fspec.getMinHitCount());
     }
     return new CombinedFacetIterator(iterList, _fspec.getMinHitCount());
   }

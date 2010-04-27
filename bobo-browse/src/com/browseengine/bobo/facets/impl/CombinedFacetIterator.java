@@ -19,7 +19,7 @@ public class CombinedFacetIterator implements FacetIterator {
   private String _facet;
   private int _count;
 
-  private class IteratorNode
+  private static final class IteratorNode
   {
     public FacetIterator _iterator;
     public String _curFacet;

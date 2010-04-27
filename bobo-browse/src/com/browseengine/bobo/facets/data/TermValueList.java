@@ -19,6 +19,7 @@ import java.util.ListIterator;
 public abstract class TermValueList<T> implements List<String>{
 	
 	protected abstract List<?> buildPrimitiveList(int capacity);
+	protected Class<T> _type;
 	public abstract String format(Object o);
 	public abstract void seal();
 	
@@ -77,6 +78,10 @@ public abstract class TermValueList<T> implements List<String>{
 		throw new IllegalStateException("not supported");
 	}
 
+	public Class<T> getType()
+	{
+	  return _type;
+	}
 	public String get(int index) {
 		return format(_innerList.get(index));
 	}

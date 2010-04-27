@@ -80,7 +80,9 @@ public class TermLongList extends TermNumberList<Long> {
   }
 
 	@Override
-	protected List<?> buildPrimitiveList(int capacity) {
+	protected List<?> buildPrimitiveList(int capacity)
+	{
+	  _type = Long.class;
 		return  capacity>0 ? new LongArrayList(capacity) : new LongArrayList();
 	}
 

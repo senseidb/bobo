@@ -28,6 +28,7 @@ public class TermCharList extends TermValueList<Character> {
 
 	@Override
 	protected List<?> buildPrimitiveList(int capacity) {
+	  _type = Character.class;
 		return  capacity>0 ? new CharArrayList(capacity) : new CharArrayList();
 	}
 
