@@ -4,20 +4,20 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.FacetIterator;
+import com.browseengine.bobo.api.IntFacetIterator;
 
-public class CombinedIntFacetIterator implements FacetIterator
+public class CombinedIntFacetIterator extends IntFacetIterator
 {
 
-  public int _facet;
-  public int _count;
+  public int facet;
 
   private static class IntIteratorNode
   {
-    public DefaultIntFacetIterator _iterator;
+    public IntFacetIterator _iterator;
     public int _curFacet;
     public int _curFacetCount;
 
-    public IntIteratorNode(DefaultIntFacetIterator iterator)
+    public IntIteratorNode(IntFacetIterator iterator)
     {
       _iterator = iterator;
       _curFacet = -1;
@@ -30,7 +30,7 @@ public class CombinedIntFacetIterator implements FacetIterator
         minHits = 1;
       if( (_curFacet = _iterator.nextInt(minHits)) != -1)
       {
-        _curFacetCount = _iterator._cnt;
+        _curFacetCount = _iterator.count;
         return true;
       }
       _curFacet = -1;
@@ -51,49 +51,56 @@ public class CombinedIntFacetIterator implements FacetIterator
 
   private final IntFacetPriorityQueue _queue;
 
-  private List<DefaultIntFacetIterator> _iterators;
+  private List<IntFacetIterator> _iterators;
 
   private CombinedIntFacetIterator(final int length) {
     _queue = new IntFacetPriorityQueue();
     _queue.initialize(length);   
   }
 
-  public CombinedIntFacetIterator(final List<DefaultIntFacetIterator> iterators) {
+  public CombinedIntFacetIterator(final List<IntFacetIterator> iterators) {
     this(iterators.size());
     _iterators = iterators;
-    for(DefaultIntFacetIterator iterator : iterators) {
+    for(IntFacetIterator iterator : iterators) {
       IntIteratorNode node = new IntIteratorNode(iterator);
       if(node.fetch(1))
         _queue.add(node);
     }
-    _facet = -1;
-    _count = 0;
+    facet = -1;
+    count = 0;
   }
 
-  public CombinedIntFacetIterator(final List<DefaultIntFacetIterator> iterators, int minHits) {
+  public CombinedIntFacetIterator(final List<IntFacetIterator> iterators, int minHits) {
     this(iterators.size());
     _iterators = iterators;
-    for(DefaultIntFacetIterator iterator : iterators) {
+    for(IntFacetIterator iterator : iterators) {
       IntIteratorNode node = new IntIteratorNode(iterator);
       if(node.fetch(minHits))
         _queue.add(node);
     }
-    _facet = -1;
-    _count = 0;
+    facet = -1;
+    count = 0;
   }
 
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
   public String getFacet() {
-    return _iterators.get(0)._valList.format(_facet);
+    return format(facet);
   }
-
+  public String format(int val)
+  {
+    return _iterators.get(0).format(val);
+  }
+  public String format(Object val)
+  {
+    return _iterators.get(0).format(val);
+  }
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
    */
   public int getFacetCount() {
-    return _count;
+    return count;
   }
 
   /* (non-Javadoc)
@@ -105,22 +112,22 @@ public class CombinedIntFacetIterator implements FacetIterator
 
     IntIteratorNode node = (IntIteratorNode) _queue.top();
 
-    _facet = node._curFacet;
+    facet = node._curFacet;
     int next = -1;
-    _count = 0;
+    count = 0;
     while(hasNext())
     {
       node = (IntIteratorNode) _queue.top();
       next = node._curFacet;
-      if( (next != -1) && (next!=_facet) )
+      if( (next != -1) && (next!=facet) )
         break;
-      _count += node._curFacetCount;
+      count += node._curFacetCount;
       if(node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
     }
-    return _iterators.get(0)._valList.format(_facet);
+    return format(facet);
   }
 
   /**
@@ -132,14 +139,14 @@ public class CombinedIntFacetIterator implements FacetIterator
     int qsize = _queue.size();
     if(qsize == 0)
     {
-      _facet = -1;
-      _count = 0;
+      facet = -1;
+      count = 0;
       return null;
     }
 
     IntIteratorNode node = (IntIteratorNode) _queue.top();    
-    _facet = node._curFacet;
-    _count = node._curFacetCount;
+    facet = node._curFacet;
+    count = node._curFacetCount;
     while(true)
     {
       if(node.fetch(minHits))
@@ -156,30 +163,30 @@ public class CombinedIntFacetIterator implements FacetIterator
         else
         {
           // we reached the end. check if this facet obeys the minHits
-          if(_count < minHits)
+          if(count < minHits)
           {
-            _facet = -1;
-            _count = 0;
+            facet = -1;
+            count = 0;
           }
           break;
         }
       }
       int next = node._curFacet;
-      if(next!=_facet)
+      if(next!=facet)
       {
         // check if this facet obeys the minHits
-        if(_count >= minHits)
+        if(count >= minHits)
           break;
         // else, continue iterating to the next facet
-        _facet = next;
-        _count = node._curFacetCount;
+        facet = next;
+        count = node._curFacetCount;
       }
       else
       {
-        _count += node._curFacetCount;
+        count += node._curFacetCount;
       }
     }
-    return _iterators.get(0)._valList.format(_facet);
+    return format(facet);
   }
 
   /* (non-Javadoc)
@@ -349,5 +356,87 @@ public class CombinedIntFacetIterator implements FacetIterator
       }
       heap[i] = node; // install saved node
     }
+  }
+
+  @Override
+  public int nextInt()
+  {
+    if(!hasNext())
+      throw new NoSuchElementException("No more facets in this iteration");
+
+    IntIteratorNode node = (IntIteratorNode) _queue.top();
+
+    facet = node._curFacet;
+    int next = -1;
+    count = 0;
+    while(hasNext())
+    {
+      node = (IntIteratorNode) _queue.top();
+      next = node._curFacet;
+      if( (next != -1) && (next!=facet) )
+        break;
+      count += node._curFacetCount;
+      if(node.fetch(1))
+        _queue.updateTop();
+      else
+        _queue.pop();
+    }
+    return facet;
+  }
+
+  @Override
+  public int nextInt(int minHits)
+  {
+    int qsize = _queue.size();
+    if(qsize == 0)
+    {
+      facet = -1;
+      count = 0;
+      return -1;
+    }
+
+    IntIteratorNode node = (IntIteratorNode) _queue.top();    
+    facet = node._curFacet;
+    count = node._curFacetCount;
+    while(true)
+    {
+      if(node.fetch(minHits))
+      {
+        node = (IntIteratorNode)_queue.updateTop();
+      }
+      else
+      {
+        _queue.pop();
+        if(--qsize > 0)
+        {
+          node = (IntIteratorNode)_queue.top();
+        }
+        else
+        {
+          // we reached the end. check if this facet obeys the minHits
+          if(count < minHits)
+          {
+            facet = -1;
+            count = 0;
+          }
+          break;
+        }
+      }
+      int next = node._curFacet;
+      if(next!=facet)
+      {
+        // check if this facet obeys the minHits
+        if(count >= minHits)
+          break;
+        // else, continue iterating to the next facet
+        facet = next;
+        count = node._curFacetCount;
+      }
+      else
+      {
+        count += node._curFacetCount;
+      }
+    }
+    return facet;
   }
 }

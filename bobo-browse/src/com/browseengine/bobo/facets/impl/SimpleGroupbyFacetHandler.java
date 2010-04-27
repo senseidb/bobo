@@ -371,42 +371,26 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       return new GroupByFacetIterator();
     }
 
-    public class GroupByFacetIterator implements FacetIterator {
+    public class GroupByFacetIterator extends FacetIterator {
 
       private int _index;
-      private String _facet;
-      private int _cnt;
       
       public GroupByFacetIterator() {
         _index = 0;
-        _facet = null;
-        _cnt = 0;
-      }
-
-      /* (non-Javadoc)
-       * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-       */
-      public String getFacet() {
-        return _facet;
-      }
-
-      /* (non-Javadoc)
-       * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-       */
-      public int getFacetCount() {
-        return _cnt;
+        facet = null;
+        count = 0;
       }
 
       /* (non-Javadoc)
        * @see com.browseengine.bobo.api.FacetIterator#next()
        */
-      public String next() {
+      public Comparable next() {
         if((_index >= 0) && !hasNext())
           throw new NoSuchElementException("No more facets in this iteration");
         _index++;
-        _facet = getFacetString(_index);
-        _cnt = _count[_index];
-        return _facet;
+        facet = getFacetString(_index);
+        count = _count[_index];
+        return facet;
       }
 
       /* (non-Javadoc)
@@ -426,12 +410,12 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       /* (non-Javadoc)
        * @see com.browseengine.bobo.api.FacetIterator#next(int)
        */
-      public String next(int minHits)
+      public Comparable next(int minHits)
       {
         if((_index >= 0) && !hasNext())
-        {
-          _cnt = 0;
-          _facet = null;
+        {   
+          count = 0;
+          facet = null;
           return null;
         }
         do
@@ -440,15 +424,25 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         }while( (_index < (_count.length-1)) && (_count[_index] < minHits) );
         if(_count[_index] >= minHits)
         {
-          _facet = getFacetString(_index);
-          _cnt = _count[_index];
+          facet = getFacetString(_index);
+          count = _count[_index];
         }
         else
         {
-          _cnt = 0;
-          _facet = null;
+          count = 0;
+          facet = null;
         }
-        return _facet;    
+        return facet;    
+      }
+
+      /**
+       * The string from here should be already formatted. No need to reformat.
+       * @see com.browseengine.bobo.api.FacetIterator#format(java.lang.Object)
+       */
+      @Override
+      public String format(Object val)
+      {
+        return (String) val;
       }
     }
 

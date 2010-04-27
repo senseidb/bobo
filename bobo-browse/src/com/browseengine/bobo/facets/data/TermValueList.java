@@ -54,7 +54,12 @@ public abstract class TermValueList<T> implements List<String>{
 
 	public boolean addAll(Collection<? extends String> c)
 	{
-		throw new IllegalStateException("not supported");
+	  boolean ret = true;
+	  for(String s: c)
+	  {
+	    ret &= add(s);
+	  }
+	  return ret;
 	}
 
 	public boolean addAll(int index, Collection<? extends String> c)

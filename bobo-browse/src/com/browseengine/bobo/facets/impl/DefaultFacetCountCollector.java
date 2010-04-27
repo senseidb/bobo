@@ -190,10 +190,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   public FacetIterator iterator() {
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
-      log.info(_name + " " + _count.length + " DefaultInt");
       return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, false);
     }
-    log.info(_name + " " + _count.length + " Default");
     return new DefaultFacetIterator(_dataCache.valArray, _count, false);
   }
 }

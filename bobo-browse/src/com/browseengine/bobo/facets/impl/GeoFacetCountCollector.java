@@ -11,6 +11,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
+import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.filter.GeoFacetFilter;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler.GeoFacetData;
 import com.browseengine.bobo.util.BigFloatArray;
@@ -26,7 +27,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	private final FacetSpec _spec;
 	private int[] _count;
 	private GeoFacetData _dataCache;
-	private final List<String> _predefinedRanges;
+	private final TermStringList _predefinedRanges;
 	private int _docBase;
 	private GeoRange[] _ranges;
 	private BigFloatArray _xvals;
@@ -85,8 +86,9 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		_yvals = dataCache.get_yValArray();
 		_zvals = dataCache.get_zValArray();
 		_spec = fspec;
-		_predefinedRanges = new ArrayList<String>(predefinedRanges);
-		Collections.sort(_predefinedRanges);
+		_predefinedRanges = new TermStringList();
+    Collections.sort(predefinedRanges);
+		_predefinedRanges.addAll(predefinedRanges);
 		_docBase = docBase;
 		_count = new int[predefinedRanges.size()];
 		_ranges = new GeoRange[predefinedRanges.size()];

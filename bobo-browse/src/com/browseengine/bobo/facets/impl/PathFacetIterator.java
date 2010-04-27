@@ -13,44 +13,28 @@ import com.browseengine.bobo.api.FacetIterator;
  * @author nnarkhed
  *
  */
-public class PathFacetIterator implements FacetIterator {
+public class PathFacetIterator extends FacetIterator {
 
 	private BrowseFacet[] _facets;
 	private int _index;
-	private String _facet;
-	private int _count;
 	
 	public PathFacetIterator(List<BrowseFacet> facets) {
 		_facets = facets.toArray(new BrowseFacet[facets.size()]);
 		_index = -1;
-		_facet = null;
-		_count = 0;
+		facet = null;
+		count = 0;
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-	 */
-	public String getFacet() {
-      return _facet;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-	 */
-	public int getFacetCount() {
-      return _count;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetIterator#next()
 	 */
-	public String next() {
+	public Comparable next() {
 		if((_index >= 0) && !hasNext())
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
-		_facet = _facets[_index].getValue();
-		_count = _facets[_index].getHitCount();
-		return _facet;
+		facet = _facets[_index].getValue();
+		count = _facets[_index].getHitCount();
+		return facet;
 	}
 
 	/* (non-Javadoc)
@@ -70,19 +54,29 @@ public class PathFacetIterator implements FacetIterator {
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#next(int)
    */
-  public String next(int minHits)
+  public Comparable next(int minHits)
   {
     while(++_index < _facets.length)
     {
       if(_facets[_index].getHitCount() >= minHits)
       {
-        _facet = _facets[_index].getValue();
-        _count = _facets[_index].getHitCount();
-        return _facet;
+        facet = _facets[_index].getValue();
+        count = _facets[_index].getHitCount();
+        return facet;
       }
     }
-    _facet = null;
-    _count = 0;
-    return _facet;  
+    facet = null;
+    count = 0;
+    return facet;  
+  }
+
+  /**
+   * The string from here should be already formatted. No need to reformat.
+   * @see com.browseengine.bobo.api.FacetIterator#format(java.lang.Object)
+   */
+  @Override
+  public String format(Object val)
+  {
+    return (String)val;
   }
 }

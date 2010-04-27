@@ -88,8 +88,8 @@ public class TermIntList extends TermNumberList<Integer> {
 
   @Override
 	protected List<?> buildPrimitiveList(int capacity) {
-    _type = Integer.class;
-		return  capacity>0 ? new IntArrayList(capacity) : new IntArrayList();
+          _type = Integer.class;
+         return capacity>0 ? new IntArrayList(capacity) : new IntArrayList();
 	}
 	
 	@Override
@@ -163,6 +163,10 @@ public class TermIntList extends TermNumberList<Integer> {
   }
 
   public String format(final Integer o) {
+    return _simpleFormatter.get().format(o);
+  }
+
+  public String format(final int o) {
     return _simpleFormatter.get().format(o);
   }
 
