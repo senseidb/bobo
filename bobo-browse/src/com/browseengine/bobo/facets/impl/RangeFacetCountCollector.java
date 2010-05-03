@@ -9,6 +9,7 @@ import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.util.BigSegmentedArray;
 
@@ -19,7 +20,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
   private final BigSegmentedArray _array;
   private FacetDataCache _dataCache;
   private final String _name;
-  private final List<String> _predefinedRanges;
+  private final TermStringList _predefinedRanges;
   private int[][] _predefinedRangeIndexes;
   private int _docBase;
   
@@ -32,8 +33,9 @@ public class RangeFacetCountCollector implements FacetCountCollector
       _docBase = docBase;
       _ospec=ospec;
       if(predefinedRanges != null) {
-    	  _predefinedRanges = new ArrayList<String>(predefinedRanges);
-    	  Collections.sort(_predefinedRanges);
+    	  _predefinedRanges = new TermStringList();
+        Collections.sort(predefinedRanges);
+    	  _predefinedRanges.addAll(predefinedRanges);
       }else {
     	  _predefinedRanges = null;
       }

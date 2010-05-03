@@ -3,64 +3,47 @@
  */
 package com.browseengine.bobo.facets.impl;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-
 import com.browseengine.bobo.api.FacetIterator;
+import com.browseengine.bobo.facets.data.TermValueList;
 
 /**
  * @author nnarkhed
  *
  */
-public class DefaultFacetIterator implements FacetIterator {
+public class DefaultFacetIterator extends FacetIterator {
 
-  private List<String> _valList;
+  private TermValueList _valList;
   private int[] _count;
   private int _index;
-  private String _facet;
-  private int _cnt;
+  private int _lastIndex;
 
-  public DefaultFacetIterator(List<String> valList, int[] count, boolean zeroBased) {
+  public DefaultFacetIterator(TermValueList valList, int[] counts, boolean zeroBased) {
     _valList = valList;
-    _count = count;
+    _count = counts;
     _index = -1;
+    _lastIndex = _count.length - 1;
     if(!zeroBased)
       _index++;
-    _facet = null;
-    _cnt = 0;
+    facet = null;
+    count = 0;
  }
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetIterator#getFacet()
-   */
-  public String getFacet() {
-    return _facet;
-  }
-
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
-   */
-  public int getFacetCount() {
-    return _cnt;
-  }
 
   /* (non-Javadoc)
    * @see java.util.Iterator#hasNext()
    */
   public boolean hasNext() {
-    return (_index < (_count.length-1));
+    return (_index < _lastIndex);
   }
 
   /* (non-Javadoc)
    * @see java.util.Iterator#next()
    */
-  public String next() {
-    if((_index >= 0) && (_index >= (_count.length-1)))
-      throw new NoSuchElementException("No more facets in this iteration");
+  public Comparable next() {
     _index++;
-    _facet = _valList.get(_index);
-    _cnt = _count[_index];
-    return _valList.get(_index);
+    facet = (Comparable)_valList.getRawValue(_index);
+    count = _count[_index];
+    return format(facet);
   }
 
   /* (non-Javadoc)
@@ -73,19 +56,27 @@ public class DefaultFacetIterator implements FacetIterator {
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#next(int)
    */
-  public String next(int minHits)
+  public Comparable next(int minHits)
   {
     while(++_index < _count.length)
     {
       if(_count[_index] >= minHits)
       {
-        _facet = _valList.get(_index);
-        _cnt = _count[_index];
-        return _facet;
+    	facet = (Comparable)_valList.getRawValue(_index);
+        count = _count[_index];
+        return format(facet);
       }
     }
-    _facet = null;
-    _cnt = 0;
-    return _facet;    
+    facet = null;
+    count = 0;
+    return format(facet);    
   }
+
+
+  @Override
+  public String format(Object val)
+  {
+    return _valList.format(val);
+  }
+  
 }

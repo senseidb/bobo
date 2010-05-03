@@ -38,7 +38,9 @@ public class TermDoubleList extends TermNumberList<Double> {
 	}
 
 	@Override
-	protected List<?> buildPrimitiveList(int capacity) {
+	protected List<?> buildPrimitiveList(int capacity)
+	{
+	  _type = Double.class;
 		return  capacity>0 ? new DoubleArrayList(capacity) : new DoubleArrayList();
 	}
 

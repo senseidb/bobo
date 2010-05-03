@@ -54,6 +54,7 @@ public class MemoryManager<T>
           buf = null;
         }
       }});
+    _cleanThread.setDaemon(true);
     _cleanThread.start();
   }
 

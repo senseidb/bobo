@@ -2,6 +2,7 @@ package com.browseengine.bobo.facets.data;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -14,7 +15,7 @@ import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
 public class TermIntList extends TermNumberList<Integer> {
   private static Logger                   log = Logger.getLogger(TermIntList.class);
   private boolean simpleFormat;
-  private BoboSimpleDecimalFormat _simpleFormatter;
+  private ThreadLocal<BoboSimpleDecimalFormat> _simpleFormatter;
   private ArrayList<String> _innerTermList = new ArrayList<String>();
   private String zero = "0".intern();
   private int[] _elements = null;
@@ -58,30 +59,37 @@ public class TermIntList extends TermNumberList<Integer> {
 	public String get(int index) {
 	  return _innerTermList.get(index);
 	}
-
+	public int getPrimitiveValue(int index)
+	{
+	  if (index<_elements.length)
+	    return _elements[index];
+	  else return -1;
+	}
 	@Override
-  public Iterator<String> iterator() {
-    final Iterator<String> iter=_innerTermList.iterator();
-    
-    return new Iterator<String>()
-    {
-      public final boolean hasNext() {
-        return iter.hasNext();
-      }
+	public Iterator<String> iterator()
+	{
+	  final Iterator<String> iter=_innerTermList.iterator();
 
-      public final String next() {
-        return iter.next();
-      }
+	  return new Iterator<String>()
+	  {
+	    public final boolean hasNext() {
+	      return iter.hasNext();
+	    }
 
-      public final void remove() {
-        throw new UnsupportedOperationException();
-      }
-    };
-  }
+	    public final String next() {
+	      return iter.next();
+	    }
+
+	    public final void remove() {
+	      throw new UnsupportedOperationException();
+	    }
+	  };
+	}
 
   @Override
 	protected List<?> buildPrimitiveList(int capacity) {
-		return  capacity>0 ? new IntArrayList(capacity) : new IntArrayList();
+          _type = Integer.class;
+         return capacity>0 ? new IntArrayList(capacity) : new IntArrayList();
 	}
 	
 	@Override
@@ -122,7 +130,18 @@ public class TermIntList extends TermNumberList<Integer> {
     if (formatString!=null && formatString.matches("0*"))
     {
       simpleFormat = true;
-      _simpleFormatter = BoboSimpleDecimalFormat.getInstance(formatString.length());
+      _formatString = formatString;
+      _simpleFormatter = new ThreadLocal<BoboSimpleDecimalFormat>(){
+        protected BoboSimpleDecimalFormat initialValue() {
+          if (_formatString!=null){
+            return BoboSimpleDecimalFormat.getInstance(_formatString.length());
+          }
+          else{
+            return null;
+          }
+          
+        }
+      };
     } else
     {
       simpleFormat = false;
@@ -140,11 +159,15 @@ public class TermIntList extends TermNumberList<Integer> {
     if (o instanceof String){
       number = parse((String)o);
     }
-    return _simpleFormatter.format(number);
+    return _simpleFormatter.get().format(number);
   }
 
   public String format(final Integer o) {
-    return _simpleFormatter.format(o);
+    return _simpleFormatter.get().format(o);
+  }
+
+  public String format(final int o) {
+    return _simpleFormatter.get().format(o);
   }
 
   @Override

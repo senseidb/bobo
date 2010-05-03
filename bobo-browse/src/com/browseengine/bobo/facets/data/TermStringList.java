@@ -13,6 +13,7 @@ public class TermStringList extends TermValueList<String> {
 
 	@Override
 	protected List<?> buildPrimitiveList(int capacity) {
+	  _type = String.class;
 		if (capacity<0)
 		{
 			return new ArrayList<String>();	

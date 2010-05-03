@@ -38,7 +38,9 @@ public class TermFloatList extends TermNumberList<Float> {
 	}
 
 	@Override
-	protected List<?> buildPrimitiveList(int capacity) {
+	protected List<?> buildPrimitiveList(int capacity)
+	{
+	  _type = Float.class;
 		return  capacity>0 ? new FloatArrayList(capacity) : new FloatArrayList();
 	}
 

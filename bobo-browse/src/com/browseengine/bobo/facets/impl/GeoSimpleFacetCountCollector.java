@@ -12,6 +12,7 @@ import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.GeoSimpleFacetFilter;
 import com.browseengine.bobo.util.BigSegmentedArray;
@@ -28,7 +29,7 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 	private int[] _longCount;
 	private final BigSegmentedArray _latOrderArray;
 	private FacetDataCache _latDataCache;
-	private final List<String> _predefinedRanges;
+	private final TermStringList _predefinedRanges;
 	private int[][] _latPredefinedRangeIndexes;
 	private final BigSegmentedArray _longOrderArray;
 	private FacetDataCache _longDataCache;
@@ -45,8 +46,9 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		_longOrderArray = _longDataCache.orderArray;
 		_docBase = docBase;
 		_spec = spec;
-		_predefinedRanges = new ArrayList<String>(predefinedRanges);
-		Collections.sort(_predefinedRanges);
+		_predefinedRanges = new TermStringList();
+		Collections.sort(predefinedRanges);
+		_predefinedRanges.addAll(predefinedRanges);
 		
 		if(predefinedRanges != null) {
 			_latPredefinedRangeIndexes = new int[_predefinedRanges.size()][2];

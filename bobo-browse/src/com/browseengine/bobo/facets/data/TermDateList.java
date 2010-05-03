@@ -78,6 +78,7 @@ public class TermDateList extends TermValueList<java.util.Date> {
 
 	@Override
 	protected List<?> buildPrimitiveList(int capacity) {
+	  _type = Date.class;
 		return capacity>0 ? new LongArrayList(capacity) : new LongArrayList();
 	}
 
