@@ -34,6 +34,8 @@ public interface Browsable extends Searchable
 
 	FacetHandler<?> getFacetHandler(String name);
 	
+	Map<String,FacetHandler<?>> getFacetHandlerMap();
+
 	Similarity getSimilarity();
 	
 	void setSimilarity(Similarity similarity);

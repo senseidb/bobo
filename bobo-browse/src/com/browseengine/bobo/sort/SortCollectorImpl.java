@@ -16,7 +16,7 @@ import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BoboSubBrowser;
+import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.util.ListMerger;
@@ -88,7 +88,7 @@ public class SortCollectorImpl extends SortCollector {
     }
   }
 
-  public SortCollectorImpl(DocComparatorSource compSource,SortField[] sortFields,BoboSubBrowser boboBrowser,int offset,int count,boolean doScoring,boolean fetchStoredFields) {
+  public SortCollectorImpl(DocComparatorSource compSource,SortField[] sortFields, Browsable boboBrowser,int offset,int count,boolean doScoring,boolean fetchStoredFields) {
     super(sortFields,fetchStoredFields);
     assert (offset>=0 && count>0);
     _facetHandlerMap = boboBrowser.getFacetHandlerMap();
