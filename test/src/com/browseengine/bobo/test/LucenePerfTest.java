@@ -192,6 +192,7 @@ long initvalue = DefaultFacetCountCollector.al.get();
       hitscount += bres.getNumHits();
       long t2 = System.currentTimeMillis();
       tt+= (t2 - t0);
+      browser.close();
 //      System.out.println(t2 - t0 -(tf1-tf0)+"\tsearch time\t");
     }
     System.out.println("hits count: " + hitscount);
