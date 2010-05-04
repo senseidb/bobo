@@ -67,6 +67,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
    */
   public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory, WorkArea workArea) throws IOException
   {
+    long t0 = System.currentTimeMillis();
     int maxdoc = reader.maxDoc();
     BufferedLoader loader = getBufferedLoader(maxdoc, workArea);
 
@@ -170,6 +171,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
+    logger.info("loaded " + fieldName + " of type " + listFactory.getType() + " from " + reader +" in " + (System.currentTimeMillis()-t0) + " ms");
   }
 
   /**

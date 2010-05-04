@@ -1,7 +1,11 @@
 package com.browseengine.bobo.test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
@@ -16,6 +20,7 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.SimpleFSDirectory;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -28,6 +33,7 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
+import com.browseengine.bobo.facets.impl.DefaultFacetCountCollector;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 
@@ -41,6 +47,7 @@ public class LucenePerfTest
   public static final ArrayList<String> wordlist = new ArrayList<String>();
   static final Random rand = new Random(987129);
 
+  public static int inNumItr = 10;
   /**
    * @param args
    * @throws IOException
@@ -52,17 +59,18 @@ public class LucenePerfTest
   {
     System.out.println(LucenePackage.get());
     File file = new File("/Users/xgu/lucene29test/caches/people-search-index");
-//    FSDirectory directory = new SimpleFSDirectory(file);
-    FSDirectory directory = FSDirectory.getDirectory(file);
+    FSDirectory directory = new SimpleFSDirectory(file);
+//    FSDirectory directory = FSDirectory.getDirectory(file);
     System.out.println(directory.getClass().getName());
     IndexReader reader = IndexReader.open(directory, true);
-    TermEnum termEnum = reader.terms(new Term("b", ""));
-    while(termEnum.next())
-    {
-      Term t = termEnum.term();
-      wordlist.add(t.text());
-    }
-    words = wordlist.toArray(new String[1]);
+    loadFile();
+//    TermEnum termEnum = reader.terms(new Term("b", ""));
+//    while(termEnum.next())
+//    {
+//      Term t = termEnum.term();
+//      wordlist.add(t.text());
+//    }
+//    words = wordlist.toArray(new String[1]);
     System.out.println("load the words " + words.length);
 
     final Collection<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
@@ -70,25 +78,26 @@ public class LucenePerfTest
     facetHandlers.add(new SimpleFacetHandler("industry", new PredefinedTermListFactory<Integer>(Integer.class,"0000000000")));
     facetHandlers.add(new MultiValueFacetHandler("education_id", new PredefinedTermListFactory<Integer>(Integer.class,"0000000000")));
     final BoboIndexReader boboReader = BoboIndexReader.getInstance(reader, facetHandlers , null);
-
-    for(int x=0; x<5; x++)
+//warming
+    for(int x=0; x<30; x++)
     {
       doSearch(5, boboReader, facetHandlers);
     }
-
+long initvalue = DefaultFacetCountCollector.al.get();
     long start = System.currentTimeMillis();
-    int numThread = 12;
+    int numThread = 1;
     System.out.println(numThread+" threads");
-    int numItr = 30;
+    int numItr = 200;
     long ttime = 0;
     for(int x=0; x<numItr; x++)
     {
       long time = doSearch(numThread, boboReader, facetHandlers);
       ttime += time;
     }
-    System.out.println("total time: " + (System.currentTimeMillis() - start));
-    System.out.println("number of iterations: "+ numItr + "\t\tnumThread: "+ numThread);
-    System.out.println("average time: " + (ttime/numItr));
+    System.out.println("\n\nallocation: "+ (DefaultFacetCountCollector.al.get() -initvalue)/1000000);
+    System.out.println("total time: " + ttime);
+    System.out.println("number of iterations: "+ numItr + "\t\tnumThread: "+ numThread + "\t\tinner itr: " +inNumItr);
+    System.out.println("average time: " + (ttime/numItr/numThread/inNumItr));
     System.out.println(LucenePackage.get());
   }
   private static long doSearch(int numThread,final BoboIndexReader boboReader, final Collection<FacetHandler<?>> facetHandlers) throws IOException,
@@ -126,7 +135,7 @@ public class LucenePerfTest
       threads[x].join();
       sum+= times[x];
     }
-    return sum/numThread;
+    return sum;
   }
 /*
  * [00000001371(3156), 00000001025(2951), 00000001035(2688), 00000001009(2429), 00000157234(2318), 00000001028(1871),
@@ -144,17 +153,14 @@ public class LucenePerfTest
       Collection<FacetHandler<?>> facetHandlers) throws IOException,
       BrowseException
   {
-    int numItr = 15;
     long tt = 0;
     long hitscount = 0;
-    for(int x=0; x< numItr; x++)
+    for(int x=0; x< inNumItr; x++)
     {
       long t0 = System.currentTimeMillis();
       BoboBrowser browser = new BoboBrowser(boboReader);
       BrowseRequest req = new BrowseRequest();
-      SortField[] sorts= new SortField[1];
-      sorts[0] = new SortField("fn", SortField.STRING);
-      req.setSort(sorts);
+      req.setCount(50);
       FacetSpec spec = new FacetSpec();
       spec.setMaxCount(50);
       spec.setOrderBy(FacetSortSpec.OrderHitsDesc);
@@ -164,10 +170,10 @@ public class LucenePerfTest
       req.setQuery(new TermQuery(new Term("b",words[rand.nextInt(words.length)])));
       BrowseSelection sel = new BrowseSelection("ccid");
       sel.addValue("0000001384");
-      req.addSelection(sel );
+//      req.addSelection(sel );
       BrowseSelection seli = new BrowseSelection("industry");
-//      seli.addValue("0000000052");
-      req.addSelection(seli );
+      seli.addValue("0000000052");
+//      req.addSelection(seli );
       long tf0=0;
       long tf1=0;
       BrowseResult bres = browser.browse(req);
@@ -180,14 +186,45 @@ public class LucenePerfTest
         tf1=System.currentTimeMillis();
 //        System.out.println(tf1 - tf0 + "\tfacet get time\tsize: " + facets.size());
 //        System.out.println(Arrays.toString(facets.toArray()));
+        fa.close();
       }
-      long t2 = System.currentTimeMillis();
 //      System.out.println(t2 - t0 +"\ttotal time\t\t\t hits: "+ bres.getNumHits());
       hitscount += bres.getNumHits();
+      long t2 = System.currentTimeMillis();
       tt+= (t2 - t0);
 //      System.out.println(t2 - t0 -(tf1-tf0)+"\tsearch time\t");
     }
     System.out.println("hits count: " + hitscount);
-    return tt/numItr;
+    try
+    {
+      Thread.sleep(50);
+    } catch (InterruptedException e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    return tt;
+  }
+  
+  public static void loadFile()
+  {
+    File file = new File("/Users/xgu/lucene29test/keywords");
+    try
+    {
+      FileInputStream fis = new FileInputStream("/Users/xgu/lucene29test/keywords");
+      InputStreamReader isr = new InputStreamReader(fis);
+      LineNumberReader reader = new LineNumberReader(isr);
+      String line;
+      while( (line=reader.readLine())!=null)
+      {
+        wordlist.add(line.split(" ")[0]);
+      }
+      words = wordlist.toArray(new String[1]);
+    } catch (Exception e)
+    {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
   }
 }
