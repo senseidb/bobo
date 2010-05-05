@@ -73,6 +73,8 @@ public class SortCollectorImpl extends SortCollector {
 
     DocIDPriorityQueue queue;
     BoboIndexReader reader;
+    Comparable sortValue;
+    
     public MyScoreDoc(){
       this(0,0.0f,null,null);
     }
@@ -81,10 +83,13 @@ public class SortCollectorImpl extends SortCollector {
       super(docid, score);
       this.queue = queue;
       this.reader = reader;
+      this.sortValue = null;
     }
 
     Comparable getValue(){
-      return queue.sortValue(this);
+      if(sortValue == null)
+        sortValue = queue.sortValue(this);
+      return sortValue;
     }
   }
 
@@ -140,6 +145,7 @@ public class SortCollectorImpl extends SortCollector {
     MyScoreDoc myScoreDoc = (MyScoreDoc)_tmpScoreDoc;
     myScoreDoc.queue = _currentQueue;
     myScoreDoc.reader = _currentReader;
+    myScoreDoc.sortValue = null;
     _pqList.add(_currentQueue);
     _queueFull = false;
   }
