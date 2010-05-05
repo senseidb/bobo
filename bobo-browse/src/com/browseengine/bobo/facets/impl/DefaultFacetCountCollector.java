@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
@@ -35,6 +36,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   private int _docBase;
   protected LinkedList<int[]> intarraylist = new LinkedList<int[]>();
   private Iterator _iterator;
+  public static final AtomicLong al = new AtomicLong();
 
   protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
       {
@@ -64,8 +66,17 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     _ospec = ospec;
     _name = name;
     _dataCache=dataCache;
-    _count = intarraymgr.get(_dataCache.freqs.length);//new int[_dataCache.freqs.length];
-    intarraylist.add(_count);
+    long t0 = System.nanoTime();
+    if (_dataCache.freqs.length < 512)
+    {
+      _count = new int[_dataCache.freqs.length];
+    } else
+    {
+      _count = intarraymgr.get(_dataCache.freqs.length);//new int[_dataCache.freqs.length];
+      intarraylist.add(_count);
+    }
+    long t1 = System.nanoTime();
+    al.addAndGet(t1-t0);
     _array = _dataCache.orderArray;
     _docBase = docBase;
   }

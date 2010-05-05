@@ -19,7 +19,8 @@ public class MemoryManager<T>
   private static final Logger log = Logger.getLogger(MemoryManager.class.getName());
 
   private final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>> _sizeMap = new ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>>();
-  private final ConcurrentLinkedQueue<T> _releaseQueue = new ConcurrentLinkedQueue<T>();
+  private volatile ConcurrentLinkedQueue<T> _releaseQueue = new ConcurrentLinkedQueue<T>();
+  private volatile ConcurrentLinkedQueue<T> _releaseQueueb = new ConcurrentLinkedQueue<T>();
   private final AtomicInteger _releaseQueueSize = new AtomicInteger(0);
   private final Initializer<T> _initializer;
   private final Thread _cleanThread;
@@ -37,19 +38,22 @@ public class MemoryManager<T>
           {
             try
             {
-              MemoryManager.this.wait(200);
+              MemoryManager.this.wait(10);
             } catch (InterruptedException e)
             {
               log.error(e);
             }
           }
-          while((buf = _releaseQueue.poll()) != null)
+          ConcurrentLinkedQueue<T> t = _releaseQueue;
+          _releaseQueue = _releaseQueueb;
+          _releaseQueueb =t;
+          while((buf = _releaseQueueb.poll()) != null)
           {
             ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(_initializer.size(buf));
             // buf is wrapped in WeakReference. this allows GC to reclaim the buffer memory
             _initializer.init(buf);// pre-initializing the buffer in parallel so we save time when it is requested later.
             queue.offer(new WeakReference<T>(buf));
-            _releaseQueueSize.decrementAndGet();
+            int x =_releaseQueueSize.decrementAndGet();
           }
           buf = null;
         }
@@ -94,9 +98,13 @@ public class MemoryManager<T>
    */
   public void release(T buf)
   {
-    if (_releaseQueueSize.get()>1000)
+    if (_releaseQueueSize.get()>8000)
     {
       log.info("release queue full");
+      synchronized(MemoryManager.this)
+      {
+        MemoryManager.this.notifyAll();
+      }
       return;
     }
     if(buf != null)

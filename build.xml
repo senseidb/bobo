@@ -294,4 +294,25 @@
 		  <report todir="${test.html.dir}" format="frames" />
 		</junitreport>
 	</target>
+	<target name="lucene-test" description="Lucene-test" depends="test-build">
+		<echo>=== Running Lucene 2.9 Perf ===</echo>
+		<java fork="true" classname="com.browseengine.bobo.test.LucenePerfTest">
+                        <jvmarg value="-d64" />
+                        <jvmarg value="-server" />
+                        <jvmarg value="-Xms8g" />
+                        <jvmarg value="-Xmx10g" />
+<jvmarg value="-XX:+UseConcMarkSweepGC"/>
+<jvmarg value="-XX:+UseParNewGC"/>                      
+<jvmarg value="-XX:CMSMarkStackSize=32m"/>
+<jvmarg value="-XX:MaxTenuringThreshold=2"/>
+<jvmarg value="-XX:CMSInitiatingOccupancyFraction=70"/>
+<jvmarg value="-XX:+PrintTenuringDistribution"/>
+<jvmarg value="-XX:+PrintGCDetails"/>
+<jvmarg value="-XX:+PrintGCTimeStamps"/>
+<jvmarg value="-Xloggc:gc.log"/>
+<jvmarg value="-XX:NewSize=1536m"/>
+<jvmarg value="-XX:MaxNewSize=1536m"/>
+<classpath refid="test.compile.class.path"/>
+		</java>
+	</target>
 </project>
