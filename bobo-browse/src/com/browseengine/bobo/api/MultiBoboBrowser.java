@@ -11,16 +11,13 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.MultiSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.sort.MultiSortCollector;
 import com.browseengine.bobo.sort.SortCollector;
 
 
@@ -260,7 +257,17 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
     }
     return null;
   }
-	
+
+  public Map<String,FacetHandler<?>> getFacetHandlerMap()
+  {
+    HashMap<String,FacetHandler<?>> map = new HashMap<String,FacetHandler<?>>();
+    Browsable[] subBrowsers = getSubBrowsers();
+    for (Browsable subBrowser : subBrowsers)
+    {
+      map.putAll(subBrowser.getFacetHandlerMap());
+    }
+    return map;
+  }
   
   public void setFacetHandler(FacetHandler<?> facetHandler) throws IOException
   {
@@ -276,7 +283,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	if (_subBrowsers.length==1){
 		return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchStoredFields, forceScoring);
 	}
-	return new MultiSortCollector(this, q, sort, offset, count, forceScoring,fetchStoredFields);
+    return SortCollector.buildSortCollector(this, q, sort, offset, count, forceScoring, fetchStoredFields);
   }
   
   public void close() throws IOException

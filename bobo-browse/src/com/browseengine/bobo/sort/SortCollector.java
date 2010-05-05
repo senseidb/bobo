@@ -108,7 +108,7 @@ public abstract class SortCollector extends Collector {
 		return compSource;
 	}
 	
-	private static SortField convert(BoboSubBrowser browser,SortField sort){
+	private static SortField convert(Browsable browser,SortField sort){
 		String field =sort.getField();
 		FacetHandler<?> facetHandler = browser.getFacetHandler(field);
 		if (facetHandler!=null){
@@ -120,7 +120,7 @@ public abstract class SortCollector extends Collector {
 			return sort;
 		}
 	}
-	public static SortCollector buildSortCollector(BoboSubBrowser browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
+	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
 		boolean doScoring=forceScoring;
 		if (sort == null || sort.length==0){	
 			if (q!=null && !(q instanceof MatchAllDocsQuery)){
