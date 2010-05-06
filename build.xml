@@ -176,7 +176,7 @@
 		</antcall>
 	</target>
 	
-	<target name="make-car-war" unless="${car.war.exists}">
+	<target name="make-car-war" description="==> make-car-war" unless="${car.war.exists}">
 		<mkdir dir="cardemo/cars" />
 		<antcall target="create-ui">
 			<param name="ui.name" value="cars"/>
@@ -186,7 +186,7 @@
 		<delete dir="cardemo/cars" />
 	</target>
 	
-	<target name="bobo-demo" depends="jars">
+	<target name="bobo-demo" description="==> bobo-demo" depends="jars">
 		<ant antfile="build.xml"
 					 dir="${bobo-demo}" target="dist"/>
 	</target>
@@ -196,7 +196,7 @@
 							 dir="${bobo-demo}" target="hosted"/>
 	</target>
 	
-	<target name="run-cardemo"  depends="dist,make-car-war" > 
+	<target name="run-cardemo" description="==> run car demo" depends="dist,make-car-war" > 
 		<mkdir dir="${logs}" />
 		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="1000m">
 								<sysproperty key="log.home" value="${logs}" />
