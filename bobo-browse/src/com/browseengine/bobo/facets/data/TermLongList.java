@@ -2,6 +2,7 @@ package com.browseengine.bobo.facets.data;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -9,92 +10,100 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
-
-public class TermLongList extends TermNumberList<Long> {
-  private static Logger                   log = Logger.getLogger(TermLongList.class);
-  private boolean simpleFormat;
-  private BoboSimpleDecimalFormat _simpleFormatter;
-  private ArrayList<String> _innerTermList = new ArrayList<String>();
-  private String zero = "0".intern();
+public class TermLongList extends TermNumberList<Long>
+{
+  private static Logger log = Logger.getLogger(TermLongList.class);
   private long[] _elements = null;
-	private static long parse(String s)
-	{
-		if (s==null || s.length() == 0)
-		{
-			return 0L;
-		}
-		else
-		{
-			return Long.parseLong(s);
-		}
-	}
-	
-	public TermLongList() {
-		super();
-	}
 
-	public TermLongList(int capacity, String formatString) {
-		super(capacity, formatString);
-	}
-
-	public TermLongList(String formatString) {
-		super(formatString);
-	}
-	
-	@Override
-	public boolean add(String o) {
-    _innerTermList.add(o==null||o.length()==0?zero:o.intern());
-		return ((LongArrayList)_innerList).add(parse(o));
-	}
-
-  @Override
-	public void clear() {
-    super.clear();
-    _innerTermList.clear();
-  }
-
-  @Override
-  public String get(int index) {
-    return _innerTermList.get(index);
-  }
-
-  @Override
-  public Iterator<String> iterator() {
-    final Iterator<String> iter=_innerTermList.iterator();
-    
-    return new Iterator<String>()
+  private static long parse(String s)
+  {
+    if (s == null || s.length() == 0)
     {
-      public final boolean hasNext() {
-        return iter.hasNext();
-      }
-
-      public final String next() {
-        return iter.next();
-      }
-
-      public final void remove() {
-        throw new UnsupportedOperationException();
-      }
-    };
+      return 0L;
+    } else
+    {
+      return Long.parseLong(s);
+    }
   }
 
-	@Override
-	protected List<?> buildPrimitiveList(int capacity)
-	{
-	  _type = Long.class;
-		return  capacity>0 ? new LongArrayList(capacity) : new LongArrayList();
-	}
+  public TermLongList()
+  {
+    super();
+  }
 
-	@Override
-	public int indexOf(Object o) {
-		long val=parse((String)o);
-		long[] elements=((LongArrayList)_innerList).elements();
-		return Arrays.binarySearch(elements, val);
-	}
+  public TermLongList(int capacity, String formatString)
+  {
+    super(capacity, formatString);
+  }
 
-  /* (non-Javadoc)
-   * @see com.browseengine.bobo.facets.data.TermValueList#indexOfWithType(java.lang.Object)
+  public TermLongList(String formatString)
+  {
+    super(formatString);
+  }
+
+  @Override
+  public boolean add(String o)
+  {
+    return ((LongArrayList) _innerList).add(parse(o));
+  }
+
+  @Override
+  protected List<?> buildPrimitiveList(int capacity)
+  {
+    _type = Long.class;
+    return capacity > 0 ? new LongArrayList(capacity) : new LongArrayList();
+  }
+
+  @Override
+  public void clear()
+  {
+    super.clear();
+  }
+
+  @Override
+  public String get(int index)
+  {
+    DecimalFormat formatter = _formatter.get();
+    if (formatter == null)
+      return String.valueOf(_elements[index]);
+    return formatter.format(_elements[index]);
+  }
+
+  public long getPrimitiveValue(int index)
+  {
+    if (index < _elements.length)
+      return _elements[index];
+    else
+      return -1;
+  }
+
+  @Override
+  public int indexOf(Object o)
+  {
+    long val = parse((String) o);
+    long[] elements = ((LongArrayList) _innerList).elements();
+    return Arrays.binarySearch(elements, val);
+  }
+
+  public int indexOf(Long val)
+  {
+    if (val != null)
+      return Arrays.binarySearch(_elements, val);
+    else
+      return Arrays.binarySearch(_elements, 0); // turning null to 0 in parse
+  }
+
+  public int indexOf(long val)
+  {
+    return Arrays.binarySearch(_elements, val);
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * com.browseengine.bobo.facets.data.TermValueList#indexOfWithType(java.lang
+   * .Object)
    */
   @Override
   public int indexOfWithType(Long val)
@@ -107,57 +116,32 @@ public class TermLongList extends TermNumberList<Long> {
     return Arrays.binarySearch(_elements, val);
   }
 
-	@Override
-	public void seal() {
-		((LongArrayList)_innerList).trim();
-    _innerTermList.trimToSize();
-    _elements = ((LongArrayList)_innerList).elements();
-	}
-	
-	@Override
-	protected Object parseString(String o) {
-		return parse(o);
-	}
-
   @Override
-  protected void setFormatString(String formatString)
+  public void seal()
   {
-    if (formatString!=null && formatString.matches("0*"))
-    {
-      simpleFormat = true;
-      _simpleFormatter = BoboSimpleDecimalFormat.getInstance(formatString.length());
-    } else
-    {
-      simpleFormat = false;
-      super.setFormatString(formatString);
-    }
-    zero = format(0).intern();
+    ((LongArrayList) _innerList).trim();
+    _elements = ((LongArrayList) _innerList).elements();
   }
 
   @Override
-  public String format(final Object o) {
-    if (!simpleFormat) return super.format(o);
-    if (o instanceof Long) return format((Long) o); 
-    if (o == null) return null;
-    long number = 0;
-    if (o instanceof String){
-      number = parse((String)o);
-    }
-    return _simpleFormatter.format(number);
+  protected Object parseString(String o)
+  {
+    return parse(o);
   }
 
-  public String format(final Long o) {
-    return _simpleFormatter.format(o);
+  public boolean contains(long val)
+  {
+    return Arrays.binarySearch(_elements, val) >= 0;
   }
-
+  
   @Override
   public boolean containsWithType(Long val)
   {
-    return Arrays.binarySearch(_elements, val)>=0;
+    return Arrays.binarySearch(_elements, val) >= 0;
   }
 
   public boolean containsWithType(long val)
   {
-    return Arrays.binarySearch(_elements, val)>=0;
+    return Arrays.binarySearch(_elements, val) >= 0;
   }
 }

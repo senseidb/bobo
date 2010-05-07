@@ -332,12 +332,19 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
           if (resultcollector!=null){
         	FacetSpec fspec = req.getFacetSpec(name);
         	assert fspec != null;
-        	ArrayList<FacetAccessible> finalList = new ArrayList<FacetAccessible>(resultcollector.size());
-        	for (FacetCountCollector fc : resultcollector){
-        		finalList.add((FacetAccessible)fc);
+            if(resultcollector.size() == 1)
+            {
+              facetMap.put(name, resultcollector.get(0));             
+            }
+            else
+            {
+              ArrayList<FacetAccessible> finalList = new ArrayList<FacetAccessible>(resultcollector.size());
+              for (FacetCountCollector fc : resultcollector){
+                finalList.add((FacetAccessible)fc);
+              }
+        	  CombinedFacetAccessible combinedCollector = new CombinedFacetAccessible(fspec, finalList);
+              facetMap.put(name, combinedCollector);
         	}
-        	CombinedFacetAccessible combinedCollector = new CombinedFacetAccessible(fspec, finalList);
-            facetMap.put(name, combinedCollector);
           }
         }
       }
