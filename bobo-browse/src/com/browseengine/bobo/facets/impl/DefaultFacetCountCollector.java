@@ -18,7 +18,11 @@ import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.TermDoubleList;
+import com.browseengine.bobo.facets.data.TermFloatList;
 import com.browseengine.bobo.facets.data.TermIntList;
+import com.browseengine.bobo.facets.data.TermLongList;
+import com.browseengine.bobo.facets.data.TermShortList;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.MemoryManager;
@@ -202,7 +206,19 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
       return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, false);
-    }
+    } else if (_dataCache.valArray.getType().equals(Long.class))
+    {
+      return new DefaultLongFacetIterator((TermLongList) _dataCache.valArray, _count, false);
+    } else if (_dataCache.valArray.getType().equals(Short.class))
+    {
+      return new DefaultShortFacetIterator((TermShortList) _dataCache.valArray, _count, false);
+    } else if (_dataCache.valArray.getType().equals(Float.class))
+    {
+      return new DefaultFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, false);
+    } else if (_dataCache.valArray.getType().equals(Double.class))
+    {
+      return new DefaultDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, false);
+    } else
     return new DefaultFacetIterator(_dataCache.valArray, _count, false);
   }
 }

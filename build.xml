@@ -54,7 +54,8 @@
 	<target name="clean">
 		<delete dir="${tools-build}" />
 		<delete dir="${build.test}"/>
-       <delete dir="${dist}"/>
+		<delete dir="${dist}"/>
+		<delete dir="${logs}"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="clean"/>
 		<ant antfile="build.xml"
