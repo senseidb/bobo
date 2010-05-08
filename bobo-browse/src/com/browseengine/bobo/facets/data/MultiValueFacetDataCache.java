@@ -171,7 +171,6 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
-    logger.info("loaded " + fieldName + " of type " + list.getType() + " from " + reader +" in " + (System.currentTimeMillis()-t0) + " ms");
   }
 
   /**
