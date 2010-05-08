@@ -286,7 +286,7 @@ public abstract class DocComparatorSource {
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
 					final float v1 = doc1.score;
-					final double v2 = doc2.score;
+					final float v2 = doc2.score;
 					// cannot return v1-v2 because it could overflow
 					if (v1 < v2) {
 						return -1;

@@ -1,5 +1,6 @@
 package com.browseengine.bobo.test;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -15,7 +16,6 @@ import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler.SimpleFacetCountCollector;
 import com.browseengine.bobo.util.BigIntArray;
-import com.browseengine.bobo.util.BoboSimpleDecimalFormat;
 
 public class FacetMergePerfTest {
 	static int numVals = 100000;
@@ -45,7 +45,7 @@ public class FacetMergePerfTest {
 		cache.maxIDs = new int[numVals];
 		cache.minIDs = new int[numVals];
 		cache.valArray = new TermIntList(numVals,"0000000000");
-		BoboSimpleDecimalFormat formatter = BoboSimpleDecimalFormat.getInstance(10);
+		DecimalFormat formatter = new DecimalFormat("0000000000");
 		
 		for (int i=0;i<numVals;++i){
 			cache.valArray.add(formatter.format(i+1));
@@ -133,7 +133,7 @@ public class FacetMergePerfTest {
 	//	Comparable c = Integer.valueOf(1);
 	//	Comparable c2 = Integer.valueOf(2);
 
-		BoboSimpleDecimalFormat formatter = BoboSimpleDecimalFormat.getInstance(10);
+		DecimalFormat formatter = new DecimalFormat("0000000000");
 		
 		int count = 500000;
 		TermValueList list = new TermIntList(count,"0000000000");

@@ -10,13 +10,21 @@ import java.util.List;
 import org.apache.lucene.util.PriorityQueue;
 
 import com.browseengine.bobo.api.BrowseFacet;
+import com.browseengine.bobo.api.DoubleFacetIterator;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FloatFacetIterator;
 import com.browseengine.bobo.api.IntFacetIterator;
+import com.browseengine.bobo.api.LongFacetIterator;
+import com.browseengine.bobo.api.ShortFacetIterator;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.facets.impl.CombinedDoubleFacetIterator;
 import com.browseengine.bobo.facets.impl.CombinedFacetIterator;
+import com.browseengine.bobo.facets.impl.CombinedFloatFacetIterator;
 import com.browseengine.bobo.facets.impl.CombinedIntFacetIterator;
+import com.browseengine.bobo.facets.impl.CombinedLongFacetIterator;
+import com.browseengine.bobo.facets.impl.CombinedShortFacetIterator;
 import com.browseengine.bobo.facets.impl.DefaultIntFacetIterator;
 
 /**
@@ -222,6 +230,50 @@ public class CombinedFacetAccessible implements FacetAccessible
           il.add((IntFacetIterator) iter);
       }
       return new CombinedIntFacetIterator(il, _fspec.getMinHitCount());
+    }
+    if (iterList.get(0) instanceof LongFacetIterator)
+    {
+      ArrayList<LongFacetIterator> il = new ArrayList<LongFacetIterator>();
+      for (FacetAccessible facetAccessor : _list)
+      {
+        iter = (FacetIterator) facetAccessor.iterator();
+        if(iter != null)
+          il.add((LongFacetIterator) iter);
+      }
+      return new CombinedLongFacetIterator(il, _fspec.getMinHitCount());
+    }
+    if (iterList.get(0) instanceof ShortFacetIterator)
+    {
+      ArrayList<ShortFacetIterator> il = new ArrayList<ShortFacetIterator>();
+      for (FacetAccessible facetAccessor : _list)
+      {
+        iter = (FacetIterator) facetAccessor.iterator();
+        if(iter != null)
+          il.add((ShortFacetIterator) iter);
+      }
+      return new CombinedShortFacetIterator(il, _fspec.getMinHitCount());
+    }
+    if (iterList.get(0) instanceof FloatFacetIterator)
+    {
+      ArrayList<FloatFacetIterator> il = new ArrayList<FloatFacetIterator>();
+      for (FacetAccessible facetAccessor : _list)
+      {
+        iter = (FacetIterator) facetAccessor.iterator();
+        if(iter != null)
+          il.add((FloatFacetIterator) iter);
+      }
+      return new CombinedFloatFacetIterator(il, _fspec.getMinHitCount());
+    }
+    if (iterList.get(0) instanceof DoubleFacetIterator)
+    {
+      ArrayList<DoubleFacetIterator> il = new ArrayList<DoubleFacetIterator>();
+      for (FacetAccessible facetAccessor : _list)
+      {
+        iter = (FacetIterator) facetAccessor.iterator();
+        if(iter != null)
+          il.add((DoubleFacetIterator) iter);
+      }
+      return new CombinedDoubleFacetIterator(il, _fspec.getMinHitCount());
     }
     return new CombinedFacetIterator(iterList);
   }
