@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -314,10 +315,19 @@ public class BoboIndexReader extends FilterIndexReader
   
   private static Collection<FacetHandler<?>> loadFromIndex(File file) throws IOException
   {
-    File springFile = new File(file, SPRING_CONFIG);
-    FileSystemXmlApplicationContext appCtx =
-        new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
-    return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
+   // File springFile = new File(file, SPRING_CONFIG);
+   // FileSystemXmlApplicationContext appCtx =
+     //   new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
+    //return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
+    
+      String absolutePath = file.getAbsolutePath();
+      String partOne = absolutePath.substring(0, absolutePath.lastIndexOf("/"));
+      String partTwo = URLEncoder.encode(absolutePath.substring(absolutePath.lastIndexOf("/") + 1), "UTF-8");
+      absolutePath = partOne + "/" + partTwo;
+      File springFile = new File(new File(absolutePath), SPRING_CONFIG);
+      FileSystemXmlApplicationContext appCtx = new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
+      return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
+
   }
   
   protected void initialize(Collection<FacetHandler<?>> facetHandlers) throws IOException
