@@ -27,7 +27,7 @@ import com.browseengine.bobo.server.protocol.BoboQueryBuilder;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
-import com.browseengine.bobo.util.XStreamDispenser;
+import com.browseengine.bobo.service.util.XStreamDispenser;
 import com.thoughtworks.xstream.XStream;
 
 public class BoboAppController extends AbstractController {

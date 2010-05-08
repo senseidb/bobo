@@ -1,4 +1,4 @@
-package com.browseengine.bobo.util;
+package com.browseengine.bobo.service.util;
 
 import com.thoughtworks.xstream.core.util.FastStack;
 import com.thoughtworks.xstream.core.util.QuickWriter;

@@ -44,7 +44,7 @@ public class BrowseFacet implements Serializable {
 	/**
 	 * Gets the hit count
 	 * @return hit count
-	 * @see #setHitCount(int)
+	 * @deprecated use {@link #getFacetValueHitCount()}
 	 */
 	public int getHitCount(){
 		return _hitcount;
@@ -53,9 +53,27 @@ public class BrowseFacet implements Serializable {
 	/**
 	 * Sets the hit count
 	 * @param hitcount Hit count
-	 * @see #getHitCount()
+	 * @deprecated use {@link #setFacetValueHitCount(int)}
 	 */
 	public void setHitCount(int hitcount){
+		_hitcount=hitcount;
+	}
+	
+	/**
+	 * Gets the hit count
+	 * @return hit count
+	 * @see #setHitCount(int)
+	 */
+	public int getFacetValueHitCount(){
+		return _hitcount;
+	}
+	
+	/**
+	 * Sets the hit count
+	 * @param hitcount Hit count
+	 * @see #getHitCount()
+	 */
+	public void setFacetValueHitCount(int hitcount){
 		_hitcount=hitcount;
 	}
 	

@@ -9,7 +9,7 @@ import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrQueryResponse;
 
 import com.browseengine.bobo.api.BrowseResult;
-import com.browseengine.bobo.util.XStreamDispenser;
+import com.browseengine.bobo.service.util.XStreamDispenser;
 import com.thoughtworks.xstream.XStream;
 
 public class BoboXMLResponseWriter implements QueryResponseWriter {

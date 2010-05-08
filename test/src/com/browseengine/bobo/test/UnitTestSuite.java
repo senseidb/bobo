@@ -25,6 +25,8 @@
 
 package com.browseengine.bobo.test;
 
+import com.browseengine.bobo.test.section.TestSectionSearch;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.textui.TestRunner;
@@ -37,6 +39,7 @@ public class UnitTestSuite {
           suite.addTestSuite(BoboTestCase.class);
           suite.addTestSuite(ProtoBufConvertTest.class);
           suite.addTestSuite(FacetHandlerTest.class);
+          suite.addTestSuite(TestSectionSearch.class);
           return suite;
   }
   

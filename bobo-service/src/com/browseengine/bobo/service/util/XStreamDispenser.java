@@ -1,4 +1,4 @@
-package com.browseengine.bobo.util;
+package com.browseengine.bobo.service.util;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

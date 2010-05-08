@@ -134,7 +134,7 @@ public class BoboSearchServiceImpl implements BoboSearchService {
 		  SortField[] sorts = new SortField[size];
 		  int i=0;
 		  for (BoboSortSpec sortSpec : sortList){
-			  sorts[i++] = new SortField(sortSpec.getField(),sortSpec.isReverse());
+			  sorts[i++] = new SortField(sortSpec.getField(),SortField.CUSTOM,sortSpec.isReverse());
 		  }
 		  breq.setSort(sorts);
 		}
