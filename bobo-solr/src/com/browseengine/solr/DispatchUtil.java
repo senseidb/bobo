@@ -30,8 +30,8 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
+import com.browseengine.bobo.service.util.XStreamDispenser;
 import com.browseengine.bobo.util.ListMerger;
-import com.browseengine.bobo.util.XStreamDispenser;
 import com.browseengine.solr.BoboRequestHandler.BoboSolrParams;
 import com.thoughtworks.xstream.XStream;
 

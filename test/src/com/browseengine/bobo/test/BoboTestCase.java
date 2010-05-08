@@ -27,6 +27,7 @@ package com.browseengine.bobo.test;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -650,6 +651,51 @@ public class BoboTestCase extends TestCase {
         
 	}
 	
+	public void testRawDataRetrieval() throws Exception{
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+		br.setSort(new SortField[]{new SortField("date",SortField.CUSTOM,false)});
+		BrowseResult result = null;
+        BoboBrowser boboBrowser=null;
+        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy/MM/dd");
+	  	try {
+	  		boboBrowser=newBrowser();
+	  	  
+	        result = boboBrowser.browse(br);
+	        assertEquals(7,result.getNumHits());
+	        BrowseHit hit = result.getHits()[0];
+	        assertEquals(0,hit.getDocid());
+	        Object lowDate = hit.getRawField("date");
+	        Date date = dateFormatter.parse("2000/01/01");
+	        assertTrue(lowDate.equals(date.getTime()));
+	        
+	        hit = result.getHits()[6];
+	        assertEquals(5,hit.getDocid());
+	        Object highDate = hit.getRawField("date");
+	        date = dateFormatter.parse("2007/08/01");
+	        assertTrue(highDate.equals(date.getTime()));
+	        
+	  	} catch (BrowseException e) {
+	  		e.printStackTrace();
+	  		fail(e.getMessage());
+	  	}
+	  	catch(IOException ioe){
+	  	  fail(ioe.getMessage());
+	  	}
+	  	finally{
+	  	  if (boboBrowser!=null){
+	  	    try {
+	  	      if(result!=null) result.close();
+	  			boboBrowser.close();
+	  		} catch (IOException e) {
+	  			fail(e.getMessage());
+	  		}
+	  	  }
+	  	}
+		
+	}
+	
 	public void testExpandSelection()
 	{
 		BrowseRequest br=new BrowseRequest();
@@ -659,8 +705,7 @@ public class BoboTestCase extends TestCase {
         BrowseSelection sel=new BrowseSelection("color");
         sel.addValue("red");
         br.addSelection(sel); 
-        
-		
+
 		FacetSpec output=new FacetSpec();
 		output.setExpandSelection(true);
 		br.setFacetSpec("color", output);
