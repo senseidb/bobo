@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
@@ -17,6 +17,7 @@ import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.query.MatchAllDocIdSetIterator;
@@ -100,19 +101,74 @@ public class FacetTermQuery extends Query {
 			// TODO Auto-generated method stub
 			
 		}
+		
+		private final DocIdSetIterator buildIterator(final RandomAccessDocIdSet docset,final TermDocs td){
+			return new DocIdSetIterator(){
+				private int doc = DocIdSetIterator.NO_MORE_DOCS;
+				
+				@Override
+				public int advance(int target) throws IOException {
+					if (td.skipTo(target)){
+						doc = td.doc();
+						while(!docset.get(doc)){
+							if (td.next()){
+								doc = td.doc();
+							}
+							else{
+								doc = DocIdSetIterator.NO_MORE_DOCS;
+								break;
+							}
+						}
+						return doc;
+					}
+					else{
+						doc = DocIdSetIterator.NO_MORE_DOCS;
+						return doc;
+					}
+				}
+
+				@Override
+				public int docID() {
+					return doc;
+				}
+
+				@Override
+				public int nextDoc() throws IOException {
+					if (td.next()){
+						doc = td.doc();
+						while(!docset.get(doc)){
+							if (td.next()){
+								doc = td.doc();
+							}
+							else{
+								doc = DocIdSetIterator.NO_MORE_DOCS;
+								break;
+							}
+						}
+						return doc;
+					}
+					else{
+						doc = DocIdSetIterator.NO_MORE_DOCS;
+						return doc;
+					}
+				}
+				
+			};
+		}
 
 		@Override
 		public Scorer scorer(IndexReader reader,boolean scoreDocsInOrder,boolean topScorer) throws IOException {
 			if (reader instanceof BoboIndexReader){
 			  BoboIndexReader boboReader = (BoboIndexReader)reader;
+			  TermDocs termDocs = boboReader.termDocs(null);
 			  FacetHandler<?> fhandler = boboReader.getFacetHandler(FacetTermQuery.this._name);
 			  if (fhandler!=null){
 				 DocIdSetIterator dociter = null;
 				 RandomAccessFilter filter = fhandler.buildFilter(FacetTermQuery.this._sel);
 				 if (filter!=null){
-					 DocIdSet docset =filter.getDocIdSet(boboReader);
+					 RandomAccessDocIdSet docset =filter.getRandomAccessDocIdSet(boboReader);
 					 if (docset!=null){
-						 dociter = docset.iterator();
+						 dociter = buildIterator(docset, termDocs);
 					 }
 				 }
 				 if (dociter==null){
@@ -132,7 +188,6 @@ public class FacetTermQuery extends Query {
 		}
 
 		public float sumOfSquaredWeights() throws IOException {
-			// TODO Auto-generated method stub
 			return 0;
 		}
 		
