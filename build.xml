@@ -199,7 +199,7 @@
 	
 	<target name="run-cardemo" description="==> run car demo" depends="dist,make-car-war" > 
 		<mkdir dir="${logs}" />
-		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="1000m">
+		<java fork="true" jar="${bobo.root}/zoie-server-2.0.0-SNAPSHOT.jar" failonerror="true" maxmemory="1000m">
 								<sysproperty key="log.home" value="${logs}" />
 								<sysproperty key="conf.dir" value="${resource}" />
 								<jvmarg value="-server" />
@@ -221,7 +221,7 @@
 	
 	<target name="run-server"> <!--  depends="bobo-demo" > --> 
 		<mkdir dir="${logs}" />
-		<java fork="true" jar="${bobo.root}/zoie-server.jar" failonerror="true" maxmemory="1000m">
+		<java fork="true" jar="${bobo.root}/zoie-server-2.0.0-SNAPSHOT.jar" failonerror="true" maxmemory="1000m">
 								<sysproperty key="log.home" value="${logs}" />
 								<sysproperty key="conf.dir" value="${resource}" />
 								<jvmarg value="-server" />
