@@ -43,6 +43,7 @@ import java.util.Map.Entry;
 
 import junit.framework.TestCase;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
@@ -102,7 +103,8 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class BoboTestCase extends TestCase {
-	private Directory _indexDir;
+  static Logger log = Logger.getLogger(BoboTestCase.class);
+  private Directory _indexDir;
 	private List<FacetHandler<?>> _fconf;
 	static final private Term tagSizePayloadTerm = new Term("tagSizePayload", "size");
 	
@@ -124,6 +126,8 @@ public class BoboTestCase extends TestCase {
 	
 	public BoboTestCase(String testName){
 		super(testName);
+    String confdir = System.getProperty("conf.dir");
+    org.apache.log4j.PropertyConfigurator.configure(confdir+"/log4j.properties");
 		_fconf=buildFieldConf();
 		_indexDir=createIndex();
 	}
@@ -788,7 +792,7 @@ public class BoboTestCase extends TestCase {
 
 		BrowseSelection sel2 = new BrowseSelection("distance");
 		sel2.addValue("<60,120,1>");
-		HashMap map = new HashMap<String, Float>();
+		HashMap<String, Float> map = new HashMap<String, Float>();
 		map.put("<60,120,1>", 3.0f);
 		FacetTermQuery geoQ = new FacetTermQuery(sel2,map);
 		
@@ -806,7 +810,7 @@ public class BoboTestCase extends TestCase {
 
 		BrowseSelection sel3 = new BrowseSelection("color");
 		sel3.addValue("red");
-		HashMap map3 = new HashMap<String, Float>();
+		HashMap<String, Float> map3 = new HashMap<String, Float>();
 		map3.put("red", 3.0f);
 		FacetTermQuery colorQ = new FacetTermQuery(sel3,map3);
 
@@ -854,7 +858,7 @@ public class BoboTestCase extends TestCase {
 
 		BrowseSelection sel2 = new BrowseSelection("correctDistance");
 		sel2.addValue("60,120:1");
-		HashMap map = new HashMap<String, Float>();
+		HashMap<String, Float> map = new HashMap<String, Float>();
 		map.put("60,120:1", 3.0f);
 		FacetTermQuery geoQ = new FacetTermQuery(sel2,map);
 		
@@ -873,7 +877,7 @@ public class BoboTestCase extends TestCase {
 
 		BrowseSelection sel3 = new BrowseSelection("color");
 		sel3.addValue("red");
-		HashMap map3 = new HashMap<String, Float>();
+		HashMap<String, Float> map3 = new HashMap<String, Float>();
 		map3.put("red", 3.0f);
 		FacetTermQuery colorQ = new FacetTermQuery(sel3,map3);
 
@@ -1810,7 +1814,7 @@ public class BoboTestCase extends TestCase {
 		BrowseSelection sel = new BrowseSelection("color");
 		sel.addValue("red");
 		sel.addValue("blue");
-		HashMap map = new HashMap<String, Float>();
+		HashMap<String, Float> map = new HashMap<String, Float>();
 		map.put("red", 3.0f);
 		map.put("blue", 2.0f);
 		FacetTermQuery colorQ = new FacetTermQuery(sel,map);
@@ -1818,7 +1822,7 @@ public class BoboTestCase extends TestCase {
 		BrowseSelection sel2 = new BrowseSelection("tag");
 		sel2.addValue("rabbit");
 		sel2.addValue("dog");
-		HashMap map2 = new HashMap<String, Float>();
+		HashMap<String, Float> map2 = new HashMap<String, Float>();
 		map2.put("rabbit", 100.0f);
 		map2.put("dog", 50.0f);
 		FacetTermQuery tagQ = new FacetTermQuery(sel2,map2);
