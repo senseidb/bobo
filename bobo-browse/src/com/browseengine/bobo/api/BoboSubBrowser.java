@@ -65,11 +65,11 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     _allFacetHandlerMap = null;
   }
   
-  private static boolean isNoQueryNoFilter(BrowseRequest req)
+  private boolean isNoQueryNoFilter(BrowseRequest req)
   {
     Query q = req.getQuery();
     Filter filter = req.getFilter();
-    return ((q == null || q instanceof MatchAllDocsQuery) && filter == null); 
+    return ((q == null || q instanceof MatchAllDocsQuery) && filter == null && !_reader.hasDeletions()); 
   }
 
   public Object[] getRawFieldVal(int docid,String fieldname) throws IOException{
