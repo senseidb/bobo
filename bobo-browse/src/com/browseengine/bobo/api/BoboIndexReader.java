@@ -155,6 +155,27 @@ public class BoboIndexReader extends FilterIndexReader
     return in;
   }
   
+  @Override
+  public synchronized IndexReader reopen() throws CorruptIndexException,
+		IOException {
+	IndexReader newInner = in.reopen(true);
+	if (newInner != in){
+	  return BoboIndexReader.getInstance(newInner, _facetHandlers, _runtimeFacetHandlerFactories, _workArea);
+	}
+	else{
+	  return this;
+	}
+  }
+
+  @Override
+  public synchronized IndexReader reopen(boolean openReadOnly)
+		throws CorruptIndexException, IOException {
+	if (!openReadOnly){
+		throw new IOException("BoboIndexReader is readonly-only");
+	}
+	return reopen();
+  }
+
   public Object getFacetData(String name){
 	  return _facetDataMap.get(name);
   }
