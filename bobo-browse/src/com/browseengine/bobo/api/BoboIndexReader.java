@@ -32,6 +32,7 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -116,6 +117,12 @@ public class BoboIndexReader extends FilterIndexReader
                                             Collection<RuntimeFacetHandlerFactory<?,?>> facetHandlerFactories) throws IOException
   {
     return BoboIndexReader.getInstance(reader, facetHandlers, facetHandlerFactories, new WorkArea());
+  }
+  
+  public static BoboIndexReader getInstance(IndexReader reader,
+          Collection<FacetHandler<?>> facetHandlers) throws IOException
+  {
+    return BoboIndexReader.getInstance(reader, facetHandlers, Collections.EMPTY_LIST, new WorkArea());
   }
 
   public static BoboIndexReader getInstance(IndexReader reader,
