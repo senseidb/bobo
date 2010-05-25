@@ -6,6 +6,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.IOException;
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
@@ -23,7 +24,8 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.BigShortArray;
 
 public class FacetDataCache<T> implements Serializable {
-	/**
+  private static Logger logger = Logger.getLogger(FacetDataCache.class.getName());
+  /**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;

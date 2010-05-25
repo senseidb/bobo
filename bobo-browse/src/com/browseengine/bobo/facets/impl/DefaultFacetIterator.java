@@ -69,7 +69,7 @@ public class DefaultFacetIterator extends FacetIterator {
     }
     facet = null;
     count = 0;
-    return format(facet);    
+    return null;    
   }
 
 

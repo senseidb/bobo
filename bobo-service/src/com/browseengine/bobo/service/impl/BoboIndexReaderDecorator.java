@@ -36,6 +36,9 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
 		this(null, null);
 	}
 	
+	/* (non-Javadoc)
+	 * @see proj.zoie.api.indexing.IndexReaderDecorator#decorate(proj.zoie.api.ZoieIndexReader)
+	 */
 	public BoboIndexReader decorate(ZoieIndexReader<BoboIndexReader> zoieReader) throws IOException {
 	    if (zoieReader != null)
 	    {
@@ -55,6 +58,9 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
 	    }
 	}
 
+	/* (non-Javadoc)
+	 * @see proj.zoie.api.indexing.IndexReaderDecorator#redecorate(org.apache.lucene.index.IndexReader, proj.zoie.api.ZoieIndexReader, boolean)
+	 */
 	public BoboIndexReader redecorate(BoboIndexReader reader, ZoieIndexReader<BoboIndexReader> newReader,boolean withDeletes)
 			throws IOException {
 		reader.rewrap(newReader);
