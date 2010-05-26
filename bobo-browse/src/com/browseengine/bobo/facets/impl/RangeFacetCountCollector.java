@@ -52,12 +52,11 @@ public class RangeFacetCountCollector implements FacetCountCollector
   }
   
   /**
-   * gets distribution of the value arrays. This is only valid when predefined ranges are available.
+   * gets distribution of the value arrays. When predefined ranges are available, this returns distribution by predefined ranges.
    */
   public int[] getCountDistribution()
   {
-    
-    int[] dist = null;
+    int[] dist;
     if (_predefinedRangeIndexes!=null)
     {
       dist = new int[_predefinedRangeIndexes.length];
@@ -74,6 +73,10 @@ public class RangeFacetCountCollector implements FacetCountCollector
         }
         dist[n++]=sum;
       }
+    }
+    else
+    {
+      dist = _count;
     }
     
     return dist;
