@@ -51,6 +51,13 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   public FacetDataNone load(BoboIndexReader reader) throws IOException
   {
     _dataFacetHandler = (FacetHandler<?>)reader.getFacetHandler(_dataHandlerName);
+    if(_dataFacetHandler instanceof RangeFacetHandler)
+    {
+      if(((RangeFacetHandler)_dataFacetHandler).hasPredefinedRanges())
+      {
+        throw new UnsupportedOperationException("underlying range facet handler should not have the predefined ranges");
+      }
+    }
 	return FacetDataNone.instance;
   }	
   
@@ -75,26 +82,24 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
-    throw new UnsupportedOperationException();
+    return _dataFacetHandler.buildRandomAccessFilter(value, prop);
   }
   
   @Override
-  public RandomAccessFilter buildRandomAccessAndFilter(String[] vals,Properties prop) throws IOException
+  public RandomAccessFilter buildRandomAccessAndFilter(String[] vals, Properties prop) throws IOException
   {
-    throw new UnsupportedOperationException();
+    return _dataFacetHandler.buildRandomAccessAndFilter(vals, prop);
   }
   
   @Override
-  public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
+  public RandomAccessFilter buildRandomAccessOrFilter(String[] vals, Properties prop, boolean isNot) throws IOException
   {
-     throw new UnsupportedOperationException();
+    return _dataFacetHandler.buildRandomAccessOrFilter(vals, prop, isNot);
   }
   
   @Override
   public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel,final FacetSpec ospec)
   {
-    if(ospec.isExpandSelection()) throw new UnsupportedOperationException("expand selection is not supported");
-    
     final FacetCountCollectorSource baseCollectorSrc = _dataFacetHandler.getFacetCountCollectorSource(sel, ospec);
     
     return new FacetCountCollectorSource()

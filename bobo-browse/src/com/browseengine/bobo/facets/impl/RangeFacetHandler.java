@@ -151,6 +151,11 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache>{
 	};
     
   }
+  
+  public boolean hasPredefinedRanges()
+  {
+    return (_predefinedRanges != null);
+  }
 
 	@Override
 	public FacetDataCache load(BoboIndexReader reader) throws IOException {
