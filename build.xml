@@ -3,7 +3,7 @@
 	<property name="dist" location="${bobo.root}/dist" />
 	
 	<property name="doc" location="${bobo.root}/doc"/>
-	
+	<property name="eclipse.output" location="${bobo.root}/output"/>	
 	<property name="lib" location="lib" />
 	<property name="lib.master" location="${lib}/master" />
 	
@@ -55,6 +55,9 @@
 		<delete dir="${build.test}"/>
 		<delete dir="${dist}"/>
 		<delete dir="${logs}"/>
+		<delete dir="${doc}"/>
+		<delete dir="${eclipse.output}"/>
+		<delete file="cardemo/cars.war"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="clean"/>
 		<ant antfile="build.xml"
