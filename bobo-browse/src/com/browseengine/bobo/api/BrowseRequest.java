@@ -69,16 +69,25 @@ public class BrowseRequest implements Serializable{
     this.tid = tid;
   }
 
-  private HashMap<String,BrowseSelection> _selections;
+    private HashMap<String,BrowseSelection> _selections;
 	private ArrayList<SortField> _sortSpecs;
 	private Map<String,FacetSpec> _facetSpecMap;
 	private Map<String,FacetHandlerInitializerParam> _facetHandlerDataMap;
-  private Query _query;
+    private Query _query;
 	private int _offset;
 	private int _count;
 	private boolean _fetchStoredFields;
 	private Filter _filter;
+	private boolean _showExplanation;
 	
+	public boolean isShowExplanation() {
+		return _showExplanation;
+	}
+
+	public void setShowExplanation(boolean showExplanation) {
+		_showExplanation = showExplanation;
+	}
+
 	public Set<String> getSelectionNames(){
 		return _selections.keySet();
 	}

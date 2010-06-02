@@ -16,6 +16,7 @@ import org.apache.lucene.document.FieldSelector;
 import org.apache.lucene.document.FieldSelectorResult;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.search.Collector;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -389,6 +390,21 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
     {
       logger.error(e.getMessage(), e);
       hits = new BrowseHit[0];
+    }
+    
+    Query q = req.getQuery();
+    if (q == null){
+    	q = new MatchAllDocsQuery();
+    }
+    if (req.isShowExplanation()){
+    	for (BrowseHit hit : hits){
+    		try {
+				Explanation expl = explain(q, hit.getDocid());
+				hit.setExplanation(expl);
+			} catch (IOException e) {
+				logger.error(e.getMessage(),e);
+			}
+    	}
     }
     result.setHits(hits);
     result.setNumHits(collector.getTotalHits());

@@ -1115,12 +1115,11 @@ public class BoboTestCase extends TestCase {
 	 * @param choiceMap
 	 * @param ids
 	 */
-	private void  doTest(BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
-	  doTest((BoboBrowser)null,req,numHits,choiceMap,ids);
-	  return;
+	private BrowseResult  doTest(BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
+	  return doTest((BoboBrowser)null,req,numHits,choiceMap,ids);
     }
 	
-	private void doTest(BoboBrowser boboBrowser,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids) {
+	private BrowseResult doTest(BoboBrowser boboBrowser,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids) {
 	  	BrowseResult result = null;
 	  	try {
 	        if (boboBrowser==null) {
@@ -1128,7 +1127,7 @@ public class BoboTestCase extends TestCase {
 	  	  }
 	        result = boboBrowser.browse(req);
 	        doTest(result,req,numHits,choiceMap,ids);
-	        return;// result;
+	        return result;// result;
 	  	} catch (BrowseException e) {
 	  		e.printStackTrace();
 	  		fail(e.getMessage());
@@ -1146,7 +1145,7 @@ public class BoboTestCase extends TestCase {
 	  		}
 	  	  }
 	  	}
-	  	return;// null;
+	  	return null;// null;
 	  }
 	
 	public void testLuceneSort() throws IOException
@@ -1366,20 +1365,32 @@ public class BoboTestCase extends TestCase {
       BrowseFacet facet = facetAccessor.getFacet("5");
       
       assertEquals(facet.getValue(), "0005");
-      assertEquals(facet.getHitCount(), 1);
+      assertEquals(facet.getFacetValueHitCount(), 1);
       res.close();
 	}
 	
 	public void testQueryWithScore() throws Exception{
 		BrowseRequest br=new BrowseRequest();
+		br.setShowExplanation(false);	// default
 		  QueryParser parser=new QueryParser(Version.LUCENE_CURRENT,"color",new StandardAnalyzer(Version.LUCENE_CURRENT));
 		  br.setQuery(parser.parse("color:red OR shape:square"));
 	      br.setCount(10);
 	      br.setOffset(0);
 	      
 	      br.setSort(new SortField[]{SortField.FIELD_SCORE});
-	      doTest(br,4,null,new String[]{"1","7","2","5"});
+	      BrowseResult res = doTest(br,4,null,new String[]{"1","7","2","5"});
 	      
+	      BrowseHit[] hits = res.getHits();
+	      for (BrowseHit hit : hits){
+	    	  assertNull(hit.getExplanation());
+	      }
+	      
+	      br.setShowExplanation(true);
+	      res = doTest(br,4,null,new String[]{"1","7","2","5"});
+	      hits = res.getHits();
+	      for (BrowseHit hit : hits){
+	    	  assertNotNull(hit.getExplanation());
+	      }
 	}
 
   public void testBrowseWithQuery(){

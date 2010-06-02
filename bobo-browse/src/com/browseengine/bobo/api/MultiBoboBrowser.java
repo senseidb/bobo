@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Collector;
+import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.MultiSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Similarity;
@@ -143,6 +145,22 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
       logger.error(e.getMessage(), e);
       hits = new BrowseHit[0];
     }
+    
+    Query q = req.getQuery();
+    if (q == null){
+    	q = new MatchAllDocsQuery();
+    }
+    if (req.isShowExplanation()){
+    	for (BrowseHit hit : hits){
+    		try {
+				Explanation expl = explain(q, hit.getDocid());
+				hit.setExplanation(expl);
+			} catch (IOException e) {
+				logger.error(e.getMessage(),e);
+			}
+    	}
+    }
+    
     result.setHits(hits);
     result.setNumHits(collector.getTotalHits());
     result.setTotalDocs(numDocs());
