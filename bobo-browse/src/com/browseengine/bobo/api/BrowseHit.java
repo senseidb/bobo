@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.search.Explanation;
 
 /**
  * A hit from a browse
@@ -94,7 +95,16 @@ public class BrowseHit
 	private Map<String,Object[]> _rawFieldValues;
 	private Comparable<?> _comparable;
 	private Document _storedFields;
+	private Explanation _explanation;
 	
+	public Explanation getExplanation() {
+		return _explanation;
+	}
+
+	public void setExplanation(Explanation explanation) {
+		_explanation = explanation;
+	}
+
 	public void setComparable(Comparable<?> comparable)
 	{
 	  _comparable = comparable;
