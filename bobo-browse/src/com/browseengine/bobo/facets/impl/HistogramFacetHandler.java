@@ -216,7 +216,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
           }
         }
       }
-      if(_start instanceof Integer)
+      else if(_start instanceof Integer)
       {
         int start = _start.intValue();
         int unit = _unit.intValue();
