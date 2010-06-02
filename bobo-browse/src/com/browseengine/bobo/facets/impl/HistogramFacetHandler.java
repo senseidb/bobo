@@ -29,8 +29,6 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler<FacetDataNone>
 {
-  private static final DecimalFormat FORMATTER = new DecimalFormat("0000000000");
-  
   private final String _dataHandlerName;
   private final T _start;
   private final T _end;
@@ -116,6 +114,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
 
   public static class HistogramCollector<T extends Number> implements FacetCountCollector
   {
+    private final DecimalFormat _formatter = new DecimalFormat("0000000000");
     private final FacetSpec _ospec;
     private final T _start;
     private final T _end;
@@ -265,7 +264,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         	int hits = _count[i];
   	        if (hits >= minCount)
   	        {
-  	          BrowseFacet facet = new BrowseFacet(FORMATTER.format(i),hits);
+  	          BrowseFacet facet = new BrowseFacet(_formatter.format(i),hits);
   	          facetColl.add(facet);
   	        }
   	        if (facetColl.size() >= max) break;
@@ -285,7 +284,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     
     public FacetIterator iterator()
     {
-      return new HistogramFacetIterator(_count);
+      return new HistogramFacetIterator(_count, _formatter);
     }
     
     public String getName()
@@ -300,15 +299,17 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   
   public static class HistogramFacetIterator extends IntFacetIterator
   {
+    private final DecimalFormat _formatter;
     private final int[] _count;
     private final int _maxMinusOne;
     private int _idx;
 
-    public HistogramFacetIterator(int count[])
+    public HistogramFacetIterator(int count[], DecimalFormat formatter)
     {
       _idx = 0;
       _count = count;
       _maxMinusOne = count.length - 1;
+      _formatter = formatter;
     }
 
     public Integer next()
@@ -360,13 +361,13 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     @Override
     public String format(Object val)
     {
-      return FORMATTER.format(val);
+      return _formatter.format(val);
     }
     
     @Override
     public String format(int val)
     {
-      return FORMATTER.format(val);
+      return _formatter.format(val);
     }
   }
 }
