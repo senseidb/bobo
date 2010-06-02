@@ -29,7 +29,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler<FacetDataNone>
 {
-  private static DecimalFormat FORMATTER = new DecimalFormat("0000000000");
+  private static final DecimalFormat FORMATTER = new DecimalFormat("0000000000");
   
   private final String _dataHandlerName;
   private final T _start;
