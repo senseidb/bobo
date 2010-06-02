@@ -5,6 +5,8 @@ bobo-solr/build/
 build-test/
 dist/
 ivy/
+doc
+output
 lib/gui/
 lib/jetty/
 lib/master
