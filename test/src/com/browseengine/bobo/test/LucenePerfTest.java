@@ -20,6 +20,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -62,17 +63,10 @@ public class LucenePerfTest
    */
   public static void main(String[] args) throws CorruptIndexException,IOException, InterruptedException, BrowseException
   {
-    int[][] a = new int[9][];
-    for(int i=0; i< a.length; i++)
-    {
-      a[i] = new int[100000000];
-      System.out.println(a[i][341]);
-    }
-    
     System.out.println(LucenePackage.get());
     System.out.println(Arrays.toString(args));
     String filename = "/Users/xgu/lucene29test/caches/people-search-index";
-    if (args.length>0) filename ="/Users/xgu/lucene29test/caches1/people-search-index";
+    if (args.length>0) filename ="/Users/xgu/lucene29test/caches/people-search-index";
     System.out.println(filename);
     File file = new File(filename);
     FSDirectory directory = new SimpleFSDirectory(file);
@@ -91,17 +85,20 @@ public class LucenePerfTest
 
     final Collection<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
     facetHandlers.add(new MultiValueFacetHandler("ccid", new PredefinedTermListFactory<Integer>(Integer.class,"0000000000")));
+//    facetHandlers.add(new MultiValueFacetHandler("pcid", new PredefinedTermListFactory<Integer>(Integer.class,"0000000000")));
     facetHandlers.add(new SimpleFacetHandler("industry", new PredefinedTermListFactory<Integer>(Integer.class,"0000000000")));
+    facetHandlers.add(new SimpleFacetHandler("geo_region"));
     facetHandlers.add(new MultiValueFacetHandler("education_id", new PredefinedTermListFactory<Integer>(Integer.class,"0000000000")));
+    long tgetinstance = System.currentTimeMillis();
     final BoboIndexReader boboReader = BoboIndexReader.getInstance(reader, facetHandlers , null);
+    System.out.println("getInstanceTime: " + (System.currentTimeMillis() - tgetinstance));
 //warming
     for(int x=0; x<30; x++)
     {
       doSearch(5, boboReader, facetHandlers);
     }
-long initvalue = DefaultFacetCountCollector.al.get();
     long start = System.currentTimeMillis();
-    int numThread = 5;
+    int numThread = 2;
     System.out.println(numThread+" threads");
     int numItr = 1000;
     long ttime = 0;
@@ -115,10 +112,9 @@ long initvalue = DefaultFacetCountCollector.al.get();
         System.out.println("average time: " + ((float)ttime/(float)x/(float)numThread/(float)inNumItr));
       }
     }
-    System.out.println("\n\nallocation: "+ (DefaultFacetCountCollector.al.get() -initvalue)/1000000);
     System.out.println("total time: " + ttime);
     System.out.println("number of iterations: "+ numItr + "\t\tnumThread: "+ numThread + "\t\tinner itr: " +inNumItr);
-    System.out.println("average time: " + (ttime/numItr/numThread/inNumItr));
+    System.out.println("average time: " + ((float)ttime/(float)numItr/(float)numThread/(float)inNumItr));
     System.out.println(LucenePackage.get());
   }
   private static long doSearch(int numThread,final BoboIndexReader boboReader, final Collection<FacetHandler<?>> facetHandlers) throws IOException,
@@ -185,17 +181,21 @@ long initvalue = DefaultFacetCountCollector.al.get();
       FacetSpec spec = new FacetSpec();
       spec.setMaxCount(50);
       spec.setOrderBy(FacetSortSpec.OrderHitsDesc);
-      req.setFacetSpec("ccid", spec);
-      req.setFacetSpec("education_id", spec);
-      req.setFacetSpec("industry", spec);
+//      req.setFacetSpec("ccid", spec);
+//      req.setFacetSpec("pcid", spec);
+//      req.setFacetSpec("education_id", spec);
+      req.setFacetSpec("geo_region", spec);
+//      req.setFacetSpec("industry", spec);
       String qstr = words[nextInt()];
+//      qstr = "project manager";
       String[] terms = qstr.split(" ");
       BooleanQuery q = new BooleanQuery();
-      for(String s : terms)
-      {
-        q.add( new TermQuery(new Term("b",s)), Occur.MUST);
-      }
-      req.setQuery(q);
+    for(String s : terms)
+    {
+      q.add( new TermQuery(new Term("b",s)), Occur.MUST);
+    }
+//      q.add(new MatchAllDocsQuery(), Occur.MUST);
+      req.setQuery(q);//new TermQuery(new Term("b",qstr)));
       BrowseSelection sel = new BrowseSelection("ccid");
       sel.addValue("0000001384");
 //      req.addSelection(sel );
@@ -212,7 +212,7 @@ long initvalue = DefaultFacetCountCollector.al.get();
         tf0 = System.currentTimeMillis();
         List<BrowseFacet> facets = fa.getFacets();
         tf1=System.currentTimeMillis();
-//        System.out.println(tf1 - tf0 + "\tfacet get time\tsize: " + facets.size());
+        System.out.println(tf1 - tf0 + "\tfacet "+entry.getKey()+" get time\tsize: " + facets.size());
 //        System.out.println(Arrays.toString(facets.toArray()));
         fa.close();
       }
@@ -224,7 +224,7 @@ long initvalue = DefaultFacetCountCollector.al.get();
       browser.close();
 //      System.out.println(t2 - t0 -(tf1-tf0)+"\tsearch time\t");
     }
-    if (hitscount> 80000)System.out.println("hits count: " + hitscount);
+    if (hitscount> 80000)System.out.println("avg hits count: " + hitscount/inNumItr);
     try
     {
       Thread.sleep(50);
@@ -241,7 +241,7 @@ long initvalue = DefaultFacetCountCollector.al.get();
     File file = new File("/Users/xgu/lucene29test/keywords");
     try
     {
-      FileInputStream fis = new FileInputStream("/Users/xgu/lucene29test/keywords");
+      FileInputStream fis = new FileInputStream("/Users/xgu/lucene29test/bbb");
       InputStreamReader isr = new InputStreamReader(fis);
       LineNumberReader reader = new LineNumberReader(isr);
       String line;
