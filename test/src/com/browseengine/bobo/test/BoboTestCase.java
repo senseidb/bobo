@@ -57,6 +57,8 @@ import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
@@ -97,7 +99,10 @@ import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleGroupbyFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
+import com.browseengine.bobo.query.scoring.DefaultFacetTermScoringFunctionFactory;
+import com.browseengine.bobo.query.scoring.FacetBasedBoostingQuery;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
@@ -1853,6 +1858,38 @@ public class BoboTestCase extends TestCase {
 		doTest(br,4,null,new String[]{"7","1","3","2"});
 		expl = b.explain(tagQ, 6);
 		
+	}
+	
+	public void testFacetBoost() throws Exception{
+	  Map<String,Map<String,Float>> boostMaps = new HashMap<String,Map<String,Float>>();
+      HashMap<String,Float> map;
+
+	  map = new HashMap<String, Float>();
+	  map.put("red", 3.0f);
+	  map.put("blue", 2.0f);
+      boostMaps.put("color", map);
+	  
+	  map = new HashMap<String,Float>();
+	  map.put("rabbit", 5.0f);
+	  map.put("dog", 7.0f);
+      boostMaps.put("tag", map);
+      
+      Query q = new FacetBasedBoostingQuery(new MatchAllDocsQuery(), boostMaps);
+      
+      BrowseRequest br = new BrowseRequest();
+      br.setQuery(q);
+	  br.setOffset(0);
+	  br.setCount(10);
+      br.setSort(new SortField[]{SortField.FIELD_SCORE});
+      BoboBrowser b = newBrowser();
+
+      BrowseResult r = b.browse(br);
+      
+      doTest(r, br,7,null,new String[]{"7","2","1","3","4","5","6"});
+
+//      int firstDoc = r.getHits()[0].getDocid();
+//      Explanation expl = b.explain(q, firstDoc);
+//      System.out.println(">>> " + expl.toString());
 	}
 	
 	public void testRuntimeFilteredDateRange() throws Exception{
