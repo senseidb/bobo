@@ -1,6 +1,7 @@
 package com.browseengine.bobo.query;
 
 import java.io.IOException;
+import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Explanation;
@@ -9,7 +10,7 @@ import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.Weight;
 
-public abstract class ScoreAdjusterQuery extends Query
+public class ScoreAdjusterQuery extends Query
 {
   private static final long serialVersionUID = 1L;
  
@@ -71,7 +72,16 @@ public abstract class ScoreAdjusterQuery extends Query
     _scorerBuilder = scorerBuilder;
   }
   
+  
+  
   @Override
+  public void extractTerms(Set terms) {
+	_query.extractTerms(terms);
+  }
+
+
+
+@Override
   public Weight createWeight(Searcher searcher) throws IOException
   {
     return new ScoreAdjusterWeight(_query.createWeight(searcher));

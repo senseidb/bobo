@@ -36,10 +36,11 @@ public class UnitTestSuite {
 
 	  public static Test suite(){
           TestSuite suite=new TestSuite();
-          suite.addTestSuite(BoboTestCase.class);
+         /* suite.addTestSuite(BoboTestCase.class);
           suite.addTestSuite(ProtoBufConvertTest.class);
           suite.addTestSuite(FacetHandlerTest.class);
-          suite.addTestSuite(TestSectionSearch.class);
+          suite.addTestSuite(TestSectionSearch.class);*/
+          suite.addTest(new BoboTestCase("testQueryWithScore"));
           return suite;
   }
   

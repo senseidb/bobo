@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/JVM 1.6"/>
 	<classpathentry kind="src" path="bobo-bench/src"/>
 	<classpathentry kind="src" path="bobo-demo/src"/>
 	<classpathentry kind="src" path="bobo-gwt/src"/>
@@ -9,7 +10,6 @@
 	<classpathentry kind="src" path="bobo-browse/src"/>
 	<classpathentry kind="src" path="bobo-service/src"/>
 	<classpathentry kind="src" path="test/src"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-cli.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-collections.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-digester.jar"/>
@@ -28,7 +28,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/xstream.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/test/junit.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/protobuf-java-2.2.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar" />
+	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar" sourcepath="/Users/jwang/.m2/repository/org/apache/lucene/lucene-core/2.9.2/lucene-core-2.9.2-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-configuration.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-lang.jar"/>
