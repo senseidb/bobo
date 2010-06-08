@@ -3,9 +3,7 @@ package com.browseengine.bobo.facets.data;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -13,9 +11,9 @@ import org.apache.log4j.Logger;
 public class TermLongList extends TermNumberList<Long>
 {
   private static Logger log = Logger.getLogger(TermLongList.class);
-  private long[] _elements = null;
+  protected long[] _elements = null;
 
-  private static long parse(String s)
+  protected long parse(String s)
   {
     if (s == null || s.length() == 0)
     {
