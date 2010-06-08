@@ -30,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
@@ -100,6 +102,7 @@ import com.browseengine.bobo.facets.impl.SimpleGroupbyFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.FacetBasedBoostScorerBuilder;
+import com.browseengine.bobo.query.RecencyBoostScorerBuilder;
 import com.browseengine.bobo.query.ScoreAdjusterQuery;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
@@ -1395,6 +1398,23 @@ public class BoboTestCase extends TestCase {
 	      for (BrowseHit hit : hits){
 	    	  assertNotNull(hit.getExplanation());
 	      }
+	      
+	      Query rawQuery = br.getQuery();
+	      Calendar cal = Calendar.getInstance();
+	      cal.set(2006,5,30);
+	      long fromTime = cal.getTimeInMillis();
+	      RecencyBoostScorerBuilder recencyBuilder = new RecencyBoostScorerBuilder("date", 2.0f, TimeUnit.DAYS.convert(fromTime,TimeUnit.MILLISECONDS), 30L, TimeUnit.DAYS);
+	      ScoreAdjusterQuery sq = new ScoreAdjusterQuery(rawQuery,recencyBuilder);
+	      br.setQuery(sq);
+	      
+          res = doTest(br,4,null,new String[]{"1","7","2","5"});
+	      
+	      hits = res.getHits();
+	      for (BrowseHit hit : hits){
+	    	  assertNotNull(hit.getExplanation());
+	    	  System.out.println(hit.getExplanation());
+	      }
+	      
 	}
 
   public void testBrowseWithQuery(){

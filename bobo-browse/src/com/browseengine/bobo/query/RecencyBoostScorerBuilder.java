@@ -23,7 +23,11 @@ public class RecencyBoostScorerBuilder implements ScorerBuilder {
 	private final String _timeFacetName;
 	private final long _now;
 	
-	public RecencyBoostScorerBuilder(String timeFacetName,float maxFactor,long cutoff,TimeUnit timeunit) {
+	public RecencyBoostScorerBuilder(String timeFacetName,float maxFactor,long cutoff,TimeUnit timeunit){
+		this(timeFacetName,maxFactor,timeunit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS),cutoff,timeunit);
+	}
+	
+	public RecencyBoostScorerBuilder(String timeFacetName,float maxFactor,long from,long cutoff,TimeUnit timeunit) {
 		_timeFacetName = timeFacetName;
 		_maxFactor = maxFactor;
 		_min = 1.0f;
@@ -31,7 +35,7 @@ public class RecencyBoostScorerBuilder implements ScorerBuilder {
 		_timeunit = timeunit;
 		_cutoffInMillis = _timeunit.toMillis(cutoff);
 		_A = (_min - _max) / (((float)_cutoffInMillis)*((float)_cutoffInMillis));
-		_now = System.currentTimeMillis();
+		_now =timeunit.toMillis(from);
 	}
 	
 	public Explanation explain(IndexReader reader, int doc,
@@ -47,7 +51,7 @@ public class RecencyBoostScorerBuilder implements ScorerBuilder {
 			    Explanation finalExpl = new Explanation();
 			    finalExpl.addDetail(innerExplaination);
 			    float rawScore = innerExplaination.getValue();
-			    long timeVal = termList.getRawValue(orderArray.get(doc));
+			    long timeVal = termList.getPrimitiveValue(orderArray.get(doc));
 			    float timeScore = computeTimeFactor(timeVal);
 			    float finalScore = combineScores(timeScore,rawScore);
 			    finalExpl.setValue(finalScore);
@@ -82,6 +86,22 @@ public class RecencyBoostScorerBuilder implements ScorerBuilder {
 			    float timeScore = computeTimeFactor(timeVal);
 			    return combineScores(timeScore,rawScore);
 			  }
+
+			  @Override
+			  public int advance(int target) throws IOException {
+				return innerScorer.advance(target);
+			  }
+
+			  @Override
+			  public int docID() {
+				return innerScorer.docID();
+			  }
+
+			  @Override
+			  public int nextDoc() throws IOException {
+				return innerScorer.nextDoc();
+			  }
+			  
 			  
 		    };
 		  }
@@ -94,7 +114,7 @@ public class RecencyBoostScorerBuilder implements ScorerBuilder {
 		}
 	}
 	
-	private float computeTimeFactor(long timeVal){
+	protected float computeTimeFactor(long timeVal){
 		long xVal = _now - timeVal;
 		if (xVal > _cutoffInMillis){
 			return _min;
