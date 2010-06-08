@@ -1401,13 +1401,13 @@ public class BoboTestCase extends TestCase {
 	      
 	      Query rawQuery = br.getQuery();
 	      Calendar cal = Calendar.getInstance();
-	      cal.set(2006,5,30);
+	      cal.set(2006,6,1);
 	      long fromTime = cal.getTimeInMillis();
 	      RecencyBoostScorerBuilder recencyBuilder = new RecencyBoostScorerBuilder("date", 2.0f, TimeUnit.DAYS.convert(fromTime,TimeUnit.MILLISECONDS), 30L, TimeUnit.DAYS);
 	      ScoreAdjusterQuery sq = new ScoreAdjusterQuery(rawQuery,recencyBuilder);
 	      br.setQuery(sq);
 	      
-          res = doTest(br,4,null,new String[]{"1","7","2","5"});
+          res = doTest(br,4,null,new String[]{"7","1","2","5"});
 	      
 	      hits = res.getHits();
 	      for (BrowseHit hit : hits){
