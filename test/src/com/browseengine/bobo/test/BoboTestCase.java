@@ -99,7 +99,8 @@ import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleGroupbyFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
-import com.browseengine.bobo.query.scoring.FacetBasedBoostingQuery;
+import com.browseengine.bobo.query.FacetBasedBoostScorerBuilder;
+import com.browseengine.bobo.query.ScoreAdjusterQuery;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
@@ -1872,7 +1873,7 @@ public class BoboTestCase extends TestCase {
 	  map.put("dog", 7.0f);
       boostMaps.put("tag", map);
       
-      Query q = new FacetBasedBoostingQuery(new MatchAllDocsQuery(), boostMaps);
+      Query q = new ScoreAdjusterQuery(new MatchAllDocsQuery(), new FacetBasedBoostScorerBuilder(boostMaps));
       
       BrowseRequest br = new BrowseRequest();
       br.setQuery(q);
