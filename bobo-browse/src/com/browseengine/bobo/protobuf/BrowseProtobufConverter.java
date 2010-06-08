@@ -45,7 +45,7 @@ public class BrowseProtobufConverter {
 						BrowseFacet bfacet = new BrowseFacet();
 						String val = facet.getVal();
 						bfacet.setValue(val);
-						bfacet.setHitCount(facet.getCount());
+						bfacet.setFacetValueHitCount(facet.getCount());
 						_data.put(val,bfacet);
 					}
 				}
@@ -316,7 +316,7 @@ public class BrowseProtobufConverter {
 		facetBuilder.setName(name);
 		List<BrowseFacet> list = facetAccessible.getFacets();
 		for (BrowseFacet facet : list){
-			BrowseResultBPO.Facet f = BrowseResultBPO.Facet.newBuilder().setVal(facet.getValue()).setCount(facet.getHitCount()).build();
+			BrowseResultBPO.Facet f = BrowseResultBPO.Facet.newBuilder().setVal(facet.getValue()).setCount(facet.getFacetValueHitCount()).build();
 			facetBuilder.addFacets(f);
 		}
 		return facetBuilder.build();
