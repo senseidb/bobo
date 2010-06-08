@@ -177,15 +177,11 @@ public class FacetBasedBoostingQuery extends Query
     public float score() throws IOException
     {
       float score = _innerScorer.score();
-      float boost = 1.0f;
-      if(score > 0f)
+      for(BoboDocScorer facetScorer : _facetScorers)
       {
-        for(BoboDocScorer facetScorer : _facetScorers)
-        {
-          boost *= facetScorer.score(_docid);
-        }
+        score *= facetScorer.score(_docid);
       }
-      return score * boost;
+      return score;
     }
     
     @Override
@@ -204,6 +200,24 @@ public class FacetBasedBoostingQuery extends Query
     public int advance(int target) throws IOException
     {
       return (_docid = _innerScorer.advance(target));
+    }
+
+    @Override
+    public int doc()
+    {
+      return _docid;
+    }
+
+    @Override
+    public boolean next() throws IOException
+    {
+      return (nextDoc() != NO_MORE_DOCS);
+    }
+
+    @Override
+    public boolean skipTo(int target) throws IOException
+    {
+      return (advance(target) != NO_MORE_DOCS);
     }
   }
 }
