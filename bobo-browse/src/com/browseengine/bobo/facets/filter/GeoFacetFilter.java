@@ -178,7 +178,7 @@ public class GeoFacetFilter extends RandomAccessFilter{
 				}
 			}
 			_doc = DocIdSetIterator.NO_MORE_DOCS;
-			return DocIdSetIterator.NO_MORE_DOCS;
+			return _doc;
 		}
 		
 		@Override
@@ -214,7 +214,7 @@ public class GeoFacetFilter extends RandomAccessFilter{
 					return _doc;
 				}				
 			}
-			_doc = docid;
+			_doc = DocIdSetIterator.NO_MORE_DOCS;
 			return _doc;
 		}
 	}
