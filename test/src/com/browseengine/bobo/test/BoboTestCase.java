@@ -1400,9 +1400,11 @@ public class BoboTestCase extends TestCase {
 	      }
 	      
 	      Query rawQuery = br.getQuery();
-	      Calendar cal = Calendar.getInstance();
-	      cal.set(2006,6,1);
-	      long fromTime = cal.getTimeInMillis();
+	      
+          SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+	      Date d = format.parse("2006/06/01");
+	      long fromTime = d.getTime();
+	      
 	      RecencyBoostScorerBuilder recencyBuilder = new RecencyBoostScorerBuilder("date", 2.0f, TimeUnit.DAYS.convert(fromTime,TimeUnit.MILLISECONDS), 30L, TimeUnit.DAYS);
 	      ScoreAdjusterQuery sq = new ScoreAdjusterQuery(rawQuery,recencyBuilder);
 	      br.setQuery(sq);
