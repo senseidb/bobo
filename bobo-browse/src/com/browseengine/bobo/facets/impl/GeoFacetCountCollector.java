@@ -26,6 +26,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	private final String _name;
 	private final FacetSpec _spec;
 	private int[] _count;
+	private int _countlength;
 	private GeoFacetData _dataCache;
 	private final TermStringList _predefinedRanges;
 	private int _docBase;
@@ -90,7 +91,8 @@ public class GeoFacetCountCollector implements FacetCountCollector {
     Collections.sort(predefinedRanges);
 		_predefinedRanges.addAll(predefinedRanges);
 		_docBase = docBase;
-		_count = new int[predefinedRanges.size()];
+    _countlength = predefinedRanges.size();
+		_count = new int[_countlength];
 		_ranges = new GeoRange[predefinedRanges.size()];
 		int index = 0;
 		for(String range: predefinedRanges) {
@@ -260,6 +262,6 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	}
 	
 	public FacetIterator iterator() {
-		return new DefaultFacetIterator(_predefinedRanges, _count, true);
+		return new DefaultFacetIterator(_predefinedRanges, _count, _countlength, true);
 	}
 }

@@ -183,6 +183,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
     private final String _name;
     private final FacetSpec _fspec;
     private final int[] _count;
+    private final int _countlength;
     private final int[] _lens;
     private final int _maxdoc;
     private final String _sep;
@@ -195,17 +196,18 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       int totalLen=1;
       _lens = new int[_subcollectors.length];
       for (int i=0;i<_subcollectors.length;++i){
-        _lens[i]=_subcollectors[i]._count.length;
+        _lens[i]=_subcollectors[i]._countlength;
         totalLen*=_lens[i];
       }
-      _count = new int[totalLen];
+      _countlength = totalLen;
+      _count = new int[_countlength];
       _maxdoc = maxdoc;
     }
 
     final public void collect(int docid) {
       int idx = 0;
       int i=0;
-      int segsize=_count.length;
+      int segsize=_countlength;
       for (DefaultFacetCountCollector subcollector : _subcollectors){
         segsize = segsize / _lens[i++];
         idx+=(subcollector._dataCache.orderArray.get(docid) * segsize);
@@ -232,7 +234,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       if (vals.length == 0) return null;
       StringBuffer buf = new StringBuffer();
       int startIdx=0;
-      int segLen = _count.length;
+      int segLen = _countlength;
 
       for (int i=0;i<vals.length;++i){
         if (i>0){
@@ -242,7 +244,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         String facetName = _subcollectors[i]._dataCache.valArray.get(index);
         buf.append(facetName);
 
-        segLen /= _subcollectors[i]._count.length;
+        segLen /= _subcollectors[i]._countlength;
         startIdx += index * segLen;
       }
 
@@ -265,9 +267,9 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 
         int adjusted=idx*len;
 
-        int bucket = adjusted/_count.length;
+        int bucket = adjusted/_countlength;
         buf.append(_subcollectors[i]._dataCache.valArray.get(bucket));
-        idx=adjusted%_count.length;
+        idx=adjusted%_countlength;
         i++;
       }
       return buf.toString();
@@ -278,9 +280,9 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       int i=0;
       for (int len : _lens){
         int adjusted=idx*len;
-        int bucket = adjusted/_count.length;
+        int bucket = adjusted/_countlength;
         retVal[i++]=_subcollectors[i]._dataCache.valArray.getRawValue(bucket);
-        idx=adjusted%_count.length;
+        idx=adjusted%_countlength;
       }
       return retVal;
     }
@@ -289,13 +291,13 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       if (_fspec!=null){
         int minCount=_fspec.getMinHitCount();
         int max=_fspec.getMaxCount();
-        if (max <= 0) max=_count.length;
+        if (max <= 0) max=_countlength;
 
         FacetSortSpec sortspec = _fspec.getOrderBy();
         List<BrowseFacet> facetColl;
         if (sortspec == FacetSortSpec.OrderValueAsc){
           facetColl=new ArrayList<BrowseFacet>(max);
-          for (int i = 1; i < _count.length;++i) // exclude zero
+          for (int i = 1; i < _countlength;++i) // exclude zero
           {
             int hits=_count[i];
             if (hits>=minCount)
@@ -334,7 +336,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
           final int forbidden = -1;
           IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
 
-          for (int i=1;i<_count.length;++i) // exclude zero
+          for (int i=1;i<_countlength;++i) // exclude zero
           {
             int hits=_count[i];
             if (hits>=minCount)
@@ -397,7 +399,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
        * @see java.util.Iterator#hasNext()
        */
       public boolean hasNext() {
-        return (_index < (_count.length-1));
+        return (_index < (_countlength-1));
       }
 
       /* (non-Javadoc)
@@ -421,7 +423,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         do
         {
           _index++;
-        }while( (_index < (_count.length-1)) && (_count[_index] < minHits) );
+        }while( (_index < (_countlength-1)) && (_count[_index] < minHits) );
         if(_count[_index] >= minHits)
         {
           facet = getFacetString(_index);

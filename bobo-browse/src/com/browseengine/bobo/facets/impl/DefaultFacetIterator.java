@@ -14,19 +14,22 @@ public class DefaultFacetIterator extends FacetIterator {
 
   private TermValueList _valList;
   private int[] _count;
+  private int _countlength;
   private int _index;
   private int _lastIndex;
 
-  public DefaultFacetIterator(TermValueList valList, int[] counts, boolean zeroBased) {
+  public DefaultFacetIterator(TermValueList valList, int[] counts, int countlength, boolean zeroBased)
+  {
     _valList = valList;
     _count = counts;
+    _countlength = countlength;
     _index = -1;
-    _lastIndex = _count.length - 1;
+    _lastIndex = _countlength - 1;
     if(!zeroBased)
       _index++;
     facet = null;
     count = 0;
- }
+  }
 
 
   /* (non-Javadoc)
@@ -58,7 +61,7 @@ public class DefaultFacetIterator extends FacetIterator {
    */
   public Comparable next(int minHits)
   {
-    while(++_index < _count.length)
+    while(++_index < _countlength)
     {
       if(_count[_index] >= minHits)
       {

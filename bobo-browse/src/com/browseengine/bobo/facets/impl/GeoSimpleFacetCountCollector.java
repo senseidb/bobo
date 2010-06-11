@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
@@ -23,6 +25,7 @@ import com.browseengine.bobo.util.BigSegmentedArray;
  */
 public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 
+  private static final Logger log = Logger.getLogger(GeoSimpleFacetCountCollector.class.getName());
 	private final FacetSpec _spec;
 	private final String _name;
 	private int[] _latCount;
@@ -42,6 +45,7 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		_longDataCache = longDataCache;
 		_latCount = new int[_latDataCache.freqs.length];
 		_longCount = new int[_longDataCache.freqs.length];
+		log.info("latCount: " + _latDataCache.freqs.length + " longCount: " + _longDataCache.freqs.length);
 		_latOrderArray = _latDataCache.orderArray;
 		_longOrderArray = _longDataCache.orderArray;
 		_docBase = docBase;
@@ -207,6 +211,6 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 				}
 			}
 		}
-		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
+		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.length, true);
 	}	
 }

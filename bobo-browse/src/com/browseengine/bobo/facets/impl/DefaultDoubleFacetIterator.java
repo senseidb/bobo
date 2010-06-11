@@ -14,15 +14,17 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
 
   public TermDoubleList _valList;
   private int[] _count;
+  private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultDoubleFacetIterator(TermDoubleList valList, int[] countarray,
+  public DefaultDoubleFacetIterator(TermDoubleList valList, int[] countarray, int countlength,
       boolean zeroBased)
   {
     _valList = valList;
+    _countlength = countlength;
     _count = countarray;
-    _countLengthMinusOne = _count.length - 1;
+    _countLengthMinusOne = _countlength - 1;
     _index = -1;
     if (!zeroBased)
       _index++;
@@ -116,7 +118,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
    */
   public String next(int minHits)
   {
-    while (++_index < _count.length)
+    while (++_index < _countlength)
     {
       if (_count[_index] >= minHits)
       {
@@ -135,7 +137,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
    */
   public double nextDouble(int minHits)
   {
-    while (++_index < _count.length)
+    while (++_index < _countlength)
     {
       if (_count[_index] >= minHits)
       {

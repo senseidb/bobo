@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
+
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
@@ -22,6 +24,7 @@ import com.browseengine.bobo.util.ListMerger;
 
 public class PathFacetCountCollector implements FacetCountCollector
 {
+  private static final Logger log = Logger.getLogger(PathFacetCountCollector.class.getName());
 	private final BrowseSelection _sel;
 	private final FacetSpec _ospec;
 	protected int[] _count;
@@ -47,6 +50,7 @@ public class PathFacetCountCollector implements FacetCountCollector
         _sep = sep;
         _sepArray = sep.toCharArray();
 		_count=new int[_dataCache.freqs.length];
+		log.info(name +": " + _count.length);
 		_orderArray = _dataCache.orderArray;
 		_minHitCount = ospec.getMinHitCount();
 		_maxCount = ospec.getMaxCount();

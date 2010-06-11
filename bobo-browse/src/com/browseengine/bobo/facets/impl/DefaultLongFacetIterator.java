@@ -16,15 +16,17 @@ public class DefaultLongFacetIterator extends LongFacetIterator
 
   public TermLongList _valList;
   private int[] _count;
+  private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultLongFacetIterator(TermLongList valList, int[] countarray,
+  public DefaultLongFacetIterator(TermLongList valList, int[] countarray, int countlength,
       boolean zeroBased)
   {
     _valList = valList;
+    _countlength = countlength;
     _count = countarray;
-    _countLengthMinusOne = _count.length - 1;
+    _countLengthMinusOne = _countlength - 1;
     _index = -1;
     if (!zeroBased)
       _index++;
@@ -118,7 +120,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
    */
   public String next(int minHits)
   {
-    while (++_index < _count.length)
+    while (++_index < _countlength)
     {
       if (_count[_index] >= minHits)
       {
@@ -137,7 +139,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
    */
   public long nextLong(int minHits)
   {
-    while (++_index < _count.length)
+    while (++_index < _countlength)
     {
       if (_count[_index] >= minHits)
       {

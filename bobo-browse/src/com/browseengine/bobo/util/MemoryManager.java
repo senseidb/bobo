@@ -7,6 +7,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
@@ -17,7 +18,21 @@ import org.apache.log4j.Logger;
 public class MemoryManager<T>
 {
   private static final Logger log = Logger.getLogger(MemoryManager.class.getName());
-
+  private static final int[] sizetable;
+  private AtomicLong _hits = new AtomicLong(0);
+  private AtomicLong _miss = new AtomicLong(0);
+  static
+  {
+    int initsize = 1024;
+    double ratio = 1.3;
+    int l = (int) (Math.log(Integer.MAX_VALUE/initsize)/ Math.log(ratio)) + 1;
+    sizetable = new int[l];
+    sizetable[0] = initsize;
+    for(int i=1; i< sizetable.length; i++)
+    {
+      sizetable[i] = (int) (sizetable[i-1]*ratio);
+    }
+  }
   private final ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>> _sizeMap = new ConcurrentHashMap<Integer, ConcurrentLinkedQueue<WeakReference<T>>>();
   private volatile ConcurrentLinkedQueue<T> _releaseQueue = new ConcurrentLinkedQueue<T>();
   private volatile ConcurrentLinkedQueue<T> _releaseQueueb = new ConcurrentLinkedQueue<T>();
@@ -63,10 +78,20 @@ public class MemoryManager<T>
   }
 
   /**
-   * @return an initialized instance of type T.
+   * @return an initialized instance of type T. The size of the instance may not be the same as the requested size.
    */
-  public T get(int size)
+  public T get(int reqsize)
   {
+    long t0 = System.currentTimeMillis();
+    int size = reqsize;
+    for(int i = 0; i<sizetable.length; i++)
+    {
+      if (sizetable[i] >= reqsize)
+      {
+        size = sizetable[i];
+        break;
+      }
+    }
     ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(size);
     if (queue==null)
     {
@@ -82,12 +107,18 @@ public class MemoryManager<T>
         T buf = ref.get();
         if(buf != null)
         {
+          _hits.incrementAndGet();
           return buf;
         }
       }
       else
       {
-        return _initializer.newInstance(size);
+        T ret = _initializer.newInstance(size);
+        long miss = _miss.incrementAndGet();
+        long hit = _hits.get();
+        double hitrate = (double)hit/(double)(hit + miss);
+        log.info("Cache hit rate: "+ hitrate + " miss for size " + reqsize + " pool size " + size + " costing " + (System.currentTimeMillis() - t0) +"ms");
+        return ret;
       }
     }
   }

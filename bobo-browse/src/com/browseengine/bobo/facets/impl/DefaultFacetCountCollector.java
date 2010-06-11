@@ -33,6 +33,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
   protected final FacetSpec _ospec;
   public int[] _count;
+  public int _countlength;
   protected FacetDataCache _dataCache;
   private final String _name;
   protected final BrowseSelection _sel;
@@ -69,12 +70,14 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     _ospec = ospec;
     _name = name;
     _dataCache=dataCache;
-    if (_dataCache.freqs.length < 512)
+    if (_dataCache.freqs.length <= 3096)
     {
-      _count = new int[_dataCache.freqs.length];
+      _countlength = _dataCache.freqs.length;
+      _count = new int[_countlength];
     } else
     {
-      _count = intarraymgr.get(_dataCache.freqs.length);//new int[_dataCache.freqs.length];
+      _countlength = _dataCache.freqs.length;
+      _count = intarraymgr.get(_countlength);//new int[_dataCache.freqs.length];
       intarraylist.add(_count);
     }
     _array = _dataCache.orderArray;
@@ -113,7 +116,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     {
       int minCount=_ospec.getMinHitCount();
       int max=_ospec.getMaxCount();
-      if (max <= 0) max=_count.length;
+      if (max <= 0) max=_countlength;
 
       List<BrowseFacet> facetColl;
       List<String> valList=_dataCache.valArray;
@@ -121,7 +124,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       if (sortspec == FacetSortSpec.OrderValueAsc)
       {
         facetColl=new ArrayList<BrowseFacet>(max);
-        for (int i = 1; i < _count.length;++i) // exclude zero
+        for (int i = 1; i < _countlength;++i) // exclude zero
         {
           int hits=_count[i];
           if (hits>=minCount)
@@ -162,7 +165,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
         final int forbidden = -1;
         IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
 
-        for (int i=1;i<_count.length;++i)
+        for (int i=1;i<_countlength;++i)
         {
           int hits=_count[i];
           if (hits>=minCount)
@@ -201,20 +204,20 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   public FacetIterator iterator() {
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
-      return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, false);
+      return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Long.class))
     {
-      return new DefaultLongFacetIterator((TermLongList) _dataCache.valArray, _count, false);
+      return new DefaultLongFacetIterator((TermLongList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Short.class))
     {
-      return new DefaultShortFacetIterator((TermShortList) _dataCache.valArray, _count, false);
+      return new DefaultShortFacetIterator((TermShortList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Float.class))
     {
-      return new DefaultFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, false);
+      return new DefaultFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Double.class))
     {
-      return new DefaultDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, false);
+      return new DefaultDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, _countlength, false);
     } else
-    return new DefaultFacetIterator(_dataCache.valArray, _count, false);
+    return new DefaultFacetIterator(_dataCache.valArray, _count, _countlength, false);
   }
 }

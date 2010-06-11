@@ -17,15 +17,17 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
 
   public TermFloatList _valList;
   private int[] _count;
+  private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultFloatFacetIterator(TermFloatList valList, int[] countarray,
+  public DefaultFloatFacetIterator(TermFloatList valList, int[] countarray, int countlength,
       boolean zeroBased)
   {
     _valList = valList;
+    _countlength = countlength;
     _count = countarray;
-    _countLengthMinusOne = _count.length - 1;
+    _countLengthMinusOne = _countlength - 1;
     _index = -1;
     if (!zeroBased)
       _index++;
@@ -121,7 +123,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
    */
   public String next(int minHits)
   {
-    while (++_index < _count.length)
+    while (++_index < _countlength)
     {
       if (_count[_index] >= minHits)
       {
@@ -142,7 +144,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
    */
   public float nextFloat(int minHits)
   {
-    while (++_index < _count.length)
+    while (++_index < _countlength)
     {
       if (_count[_index] >= minHits)
       {

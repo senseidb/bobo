@@ -10,13 +10,16 @@ public class DefaultIntFacetIterator extends IntFacetIterator
 
   public TermIntList _valList;
   private int[] _count;
+  private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultIntFacetIterator(TermIntList valList, int[] countarray, boolean zeroBased) {
+  public DefaultIntFacetIterator(TermIntList valList, int[] countarray, int countlength, boolean zeroBased)
+  {
     _valList = valList;
     _count = countarray;
-    _countLengthMinusOne = _count.length-1;
+    _countlength = countlength;
+    _countLengthMinusOne = countlength-1;
     _index = -1;
     if(!zeroBased)
       _index++;
@@ -89,7 +92,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
    */
   public String next(int minHits)
   {
-    while(++_index < _count.length)
+    while(++_index < _countlength)
     {
       if(_count[_index] >= minHits)
       {
@@ -107,7 +110,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
    */
   public int nextInt(int minHits)
   {
-    while(++_index < _count.length)
+    while(++_index < _countlength)
     {
       if(_count[_index] >= minHits)
       {

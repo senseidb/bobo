@@ -17,6 +17,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 {
   private final FacetSpec _ospec;
   private int[] _count;
+  private int _countlength;
   private final BigSegmentedArray _array;
   private FacetDataCache _dataCache;
   private final String _name;
@@ -26,17 +27,18 @@ public class RangeFacetCountCollector implements FacetCountCollector
   
   protected RangeFacetCountCollector(String name,FacetDataCache dataCache,int docBase,FacetSpec ospec,List<String> predefinedRanges)
   {
-      _name = name;
-      _dataCache = dataCache;
-	  _count=new int[_dataCache.freqs.length];
-      _array = _dataCache.orderArray;
-      _docBase = docBase;
-      _ospec=ospec;
-      if(predefinedRanges != null) {
-    	  _predefinedRanges = new TermStringList();
-        Collections.sort(predefinedRanges);
-    	  _predefinedRanges.addAll(predefinedRanges);
-      }else {
+    _name = name;
+    _dataCache = dataCache;
+    _countlength = _dataCache.freqs.length;
+    _count=new int[_countlength];
+    _array = _dataCache.orderArray;
+    _docBase = docBase;
+    _ospec=ospec;
+    if(predefinedRanges != null) {
+      _predefinedRanges = new TermStringList();
+      Collections.sort(predefinedRanges);
+      _predefinedRanges.addAll(predefinedRanges);
+    }else {
     	  _predefinedRanges = null;
       }
       
@@ -110,6 +112,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
   public final void collectAll()
   {
     _count = _dataCache.freqs;
+    _countlength = _dataCache.freqs.length;
   }
   
   void convertFacets(BrowseFacet[] facets){
@@ -172,7 +175,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
           
       });
       int minCount=_ospec.getMinHitCount();
-      for (int i=0;i<_count.length;++i){
+      for (int i=0;i<_countlength;++i){
           if (_count[i] >= minCount){
               String val=_dataCache.valArray.get(i);
               facetSet.add(new BrowseFacet(val,_count[i]));
@@ -272,7 +275,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
             }
             rangeCounts[k] += count;
           }
-		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, true);
+		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.length, true);
 	  }
 	  return null;
   }  
