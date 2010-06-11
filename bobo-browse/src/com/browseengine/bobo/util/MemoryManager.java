@@ -118,6 +118,11 @@ public class MemoryManager<T>
         long hit = _hits.get();
         double hitrate = (double)hit/(double)(hit + miss);
         log.info("Cache hit rate: "+ hitrate + " miss for size " + reqsize + " pool size " + size + " costing " + (System.currentTimeMillis() - t0) +"ms");
+        if (hit > Long.MAX_VALUE/2)
+        {
+          _hits.set(0);
+          _miss.set(0);
+        }
         return ret;
       }
     }
