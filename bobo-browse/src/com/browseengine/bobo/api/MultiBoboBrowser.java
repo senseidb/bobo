@@ -18,6 +18,7 @@ import org.apache.lucene.search.MultiSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.SortCollector;
@@ -57,7 +58,29 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
     browse(req, hc, facetMap, 0);
   }
 
-  public void browse(BrowseRequest req,final Collector hc, Map<String, FacetAccessible> facetMap, int start) throws BrowseException
+  public void browse(BrowseRequest req,
+                     Collector collector,
+                     Map<String, FacetAccessible> facetMap,
+                     int start) throws BrowseException
+  {
+    Weight w = null;
+    try
+    {
+      Query q = req.getQuery();
+      if (q == null)
+      {
+        q = new MatchAllDocsQuery();
+      }
+      w = createWeight(q);
+    }
+    catch (IOException ioe)
+    {
+      throw new BrowseException(ioe.getMessage(), ioe);
+    }
+    browse(req, w, collector, facetMap, start);
+  }
+  
+  public void browse(BrowseRequest req, Weight weight, final Collector hc, Map<String, FacetAccessible> facetMap, int start) throws BrowseException
   {
     Browsable[] browsers = getSubBrowsers();
     int[] starts = getStarts();
@@ -70,7 +93,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 	    {
 	      try
 	      {
-		      browsers[i].browse(req, hc, facetColMap, (start + starts[i]));
+		      browsers[i].browse(req, weight, hc, facetColMap, (start + starts[i]));
 	      }
 	      finally
 	      {

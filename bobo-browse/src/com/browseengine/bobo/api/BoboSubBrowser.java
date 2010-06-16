@@ -21,6 +21,7 @@ import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -168,6 +169,30 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
                      Map<String, FacetAccessible> facetMap,
                      int start) throws BrowseException
   {
+    Weight w = null;
+    try
+    {
+      Query q = req.getQuery();
+      if (q == null)
+      {
+        q = new MatchAllDocsQuery();
+      }
+      w = createWeight(q);
+    }
+    catch (IOException ioe)
+    {
+      throw new BrowseException(ioe.getMessage(), ioe);
+    }
+    browse(req, w, collector, facetMap, start);
+  }
+  
+  public void browse(BrowseRequest req,
+                     Weight weight,
+                     Collector collector,
+                     Map<String, FacetAccessible> facetMap,
+                     int start) throws BrowseException
+  {
+
     if (_reader == null)
       return;
 

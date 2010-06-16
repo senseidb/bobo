@@ -10,6 +10,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Searchable;
 import org.apache.lucene.search.Similarity;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.SortCollector;
@@ -25,6 +26,13 @@ public interface Browsable extends Searchable
 	            Collector hitCollector,
 	            Map<String,FacetAccessible> facets,
 	            int start) throws BrowseException;
+
+	void browse(BrowseRequest req, 
+	            Weight weight,
+	            Collector hitCollector,
+	            Map<String,FacetAccessible> facets,
+	            int start) throws BrowseException;
+
 
 	BrowseResult browse(BrowseRequest req) throws BrowseException;
 
