@@ -1,9 +1,11 @@
 package com.browseengine.bobo.sort;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.search.ScoreDoc;
 
 public class DocIDPriorityQueue {
-  private int size;
+  private static Logger logger = Logger.getLogger(DocIDPriorityQueue.class.getName());
+  public int size;
   final protected ScoreDoc[] heap;
   public final int base;
 
@@ -41,9 +43,9 @@ public class DocIDPriorityQueue {
   }
 
   private final int compare(ScoreDoc doc1, ScoreDoc doc2) {
-    final int cmp = -comparator.compare(doc1, doc2);
+    final int cmp = comparator.compare(doc1, doc2);
     if (cmp != 0) {
-      return cmp;
+      return -cmp;
     } else {
       return doc2.doc - doc1.doc;
     }

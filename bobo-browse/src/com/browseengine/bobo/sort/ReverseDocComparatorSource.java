@@ -50,7 +50,7 @@ public class ReverseDocComparatorSource extends DocComparatorSource {
 			public int compareTo(Object o) {
 				if (o instanceof ReverseComparable){
 					Comparable inner = ((ReverseComparable)o)._inner;
-					return -1*_inner.compareTo(inner);
+					return -_inner.compareTo(inner);
 				}
 				else{
 					throw new IllegalStateException("expected instanace of "+ReverseComparable.class);

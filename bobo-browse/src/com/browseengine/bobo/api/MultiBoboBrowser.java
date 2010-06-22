@@ -76,6 +76,9 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
     catch (IOException ioe)
     {
       throw new BrowseException(ioe.getMessage(), ioe);
+    } catch(RuntimeException e)
+    {
+      w = null;
     }
     browse(req, w, collector, facetMap, start);
   }

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
@@ -22,7 +23,6 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.util.ListMerger;
 
 public class SortCollectorImpl extends SortCollector {
-
   private static final Comparator<MyScoreDoc> MERGE_COMPATATOR = new Comparator<MyScoreDoc>()
   {
     public int compare(MyScoreDoc o1, MyScoreDoc o2) {
@@ -130,7 +130,7 @@ public class SortCollectorImpl extends SortCollector {
     }
     else{ 
       _bottom = _currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
-      _queueFull = (_currentQueue.size() >= _numHits);
+      _queueFull = (_currentQueue.size >= _numHits);
     }
 
     if (_collector != null) _collector.collect(doc);
@@ -180,10 +180,11 @@ public class SortCollectorImpl extends SortCollector {
   protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields)
   throws IOException
   {
-    ArrayList<BrowseHit> hitList = new ArrayList<BrowseHit>(scoreDocs.length);
+    BrowseHit[] hits = new BrowseHit[scoreDocs.length];
     Collection<FacetHandler<?>> facetHandlers= facetHandlerMap.values();
-    for (MyScoreDoc fdoc : scoreDocs)
+    for (int i =scoreDocs.length-1; i >=0 ; i--)
     {
+      MyScoreDoc fdoc = scoreDocs[i];
       BoboIndexReader reader = fdoc.reader;
       BrowseHit hit=new BrowseHit();
       if (fetchStoredFields){
@@ -202,9 +203,8 @@ public class SortCollectorImpl extends SortCollector {
       hit.setDocid(fdoc.doc+fdoc.queue.base);
       hit.setScore(fdoc.score);
       hit.setComparable(fdoc.getValue());
-      hitList.add(hit);
+      hits[i] = hit;
     }
-    BrowseHit[] hits = hitList.toArray(new BrowseHit[hitList.size()]);
     return hits;
   }
 }

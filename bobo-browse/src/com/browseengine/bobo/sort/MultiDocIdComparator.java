@@ -12,12 +12,11 @@ public class MultiDocIdComparator extends DocComparator {
 	}
 	
 	public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-		int v=0;
 		for (int i=0;i<_comparators.length;++i){
-			v=_comparators[i].compare(doc1, doc2);
+			int v=_comparators[i].compare(doc1, doc2);
 			if (v!=0) return v;
 		}
-		return v;
+		return 0;
 	}
 
 	public void setScorer(Scorer scorer){
@@ -45,17 +44,16 @@ public class MultiDocIdComparator extends DocComparator {
 	  public int compareTo(Object o)
       {
 	    MultiDocIdComparable other = (MultiDocIdComparable)o;
-        int v=0;
         Comparable c1,c2;
         for (int i=0;i<_comparators.length;++i){
             c1 = _comparators[i].value(_doc);
             c2 = other._comparators[i].value(other._doc);
-            v = c1.compareTo(c2);
+            int v = c1.compareTo(c2);
             if (v!=0) {
-                break;
+                return v;
             }
         }
-        return v;
+        return 0;
       }
 	}
 }

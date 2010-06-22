@@ -38,12 +38,10 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final int v1 = values[doc1.doc];
-					final int v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
-					if (v1 < v2) {
+					if (values[doc1.doc] < values[doc2.doc]) {
 						return -1;
-					} else if (v1 > v2) {
+					} else if (values[doc1.doc] > values[doc2.doc]) {
 						return 1;
 					} else {
 						return 0;
@@ -73,18 +71,16 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final String val1 = values[doc1.doc];
-				    final String val2 = values[doc2.doc];
-				    if (val1 == null) {
-				      if (val2 == null) {
+				    if (values[doc1.doc] == null) {
+				      if (values[doc2.doc] == null) {
 				        return 0;
 				      }
 				      return -1;
-				    } else if (val2 == null) {
+				    } else if (values[doc2.doc] == null) {
 				      return 1;
 				    }
 
-				    return _collator.compare(val1, val2);
+				    return _collator.compare(values[doc1.doc], values[doc2.doc]);
 				}
 
 				public String value(ScoreDoc doc) {
@@ -108,18 +104,16 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final String val1 = values[doc1.doc];
-				    final String val2 = values[doc2.doc];
-				    if (val1 == null) {
-				      if (val2 == null) {
+				    if (values[doc1.doc] == null) {
+				      if (values[doc2.doc] == null) {
 				        return 0;
 				      }
 				      return -1;
-				    } else if (val2 == null) {
+				    } else if (values[doc2.doc] == null) {
 				      return 1;
 				    }
 
-				    return val1.compareTo(val2);
+				    return values[doc1.doc].compareTo(values[doc2.doc]);
 				}
 
 				public String value(ScoreDoc doc) {
@@ -191,12 +185,10 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final long v1 = values[doc1.doc];
-					final long v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
-					if (v1 < v2) {
+					if (values[doc1.doc] < values[doc2.doc]) {
 						return -1;
-					} else if (v1 > v2) {
+					} else if (values[doc1.doc] > values[doc2.doc]) {
 						return 1;
 					} else {
 						return 0;
@@ -224,12 +216,10 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final float v1 = values[doc1.doc];
-					final float v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
-					if (v1 < v2) {
+					if (values[doc1.doc] < values[doc2.doc]) {
 						return -1;
-					} else if (v1 > v2) {
+					} else if (values[doc1.doc] > values[doc2.doc]) {
 						return 1;
 					} else {
 						return 0;
@@ -257,12 +247,10 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final double v1 = values[doc1.doc];
-					final double v2 = values[doc2.doc];
 					// cannot return v1-v2 because it could overflow
-					if (v1 < v2) {
+					if (values[doc1.doc] < values[doc2.doc]) {
 						return -1;
-					} else if (v1 > v2) {
+					} else if (values[doc1.doc] > values[doc2.doc]) {
 						return 1;
 					} else {
 						return 0;
@@ -285,12 +273,10 @@ public abstract class DocComparatorSource {
 
 			return new DocComparator() {
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					final float v1 = doc1.score;
-					final float v2 = doc2.score;
 					// cannot return v1-v2 because it could overflow
-					if (v1 < v2) {
+					if (doc1.score < doc2.score) {
 						return -1;
-					} else if (v1 > v2) {
+					} else if (doc1.score > doc2.score) {
 						return 1;
 					} else {
 						return 0;
