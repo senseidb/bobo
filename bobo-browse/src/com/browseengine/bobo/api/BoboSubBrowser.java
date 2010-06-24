@@ -341,6 +341,15 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
       try
       {
+        if (weight == null)
+        {
+          Query q = req.getQuery();
+          if (q==null)
+          {
+            q = new MatchAllDocsQuery();
+          }
+          weight = createWeight(q);
+        }
         search(weight, finalFilter, collector, start);
       }
       finally
