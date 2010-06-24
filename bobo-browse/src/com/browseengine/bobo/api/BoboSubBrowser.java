@@ -339,15 +339,9 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable
 
       setFacetHitCollectorList(facetHitCollectorList);
 
-      Query q = req.getQuery();
-      if (q == null)
-      {
-        q = new MatchAllDocsQuery();
-      }
-      
       try
       {
-        search(createWeight(q), finalFilter, collector, start);
+        search(weight, finalFilter, collector, start);
       }
       finally
       {
