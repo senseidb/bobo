@@ -57,7 +57,7 @@ public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
     _rangeStringList = new ArrayList<String>(ranges.size());
     
     String prev = "000000000";
-    for(String range : ranges)
+    for(String range : sortedRanges)
     {
       String rangeString = buildRangeString(currentTime, prev, range);
       _valueToRangeStringMap.put(range, rangeString);
