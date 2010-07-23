@@ -30,7 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,8 +54,10 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -2020,6 +2021,52 @@ public class BoboTestCase extends TestCase {
 	    
 		doTest(req,7,answer,null);
 
+	}
+	
+	public void testIndexReaderReopen() throws Exception{
+		Directory idxDir = new RAMDirectory();
+		Document[] docs = buildData();
+		
+		IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_29),MaxFieldLength.UNLIMITED);
+		writer.addDocument(docs[0]);
+		writer.optimize();
+		writer.commit();
+		
+		IndexReader idxReader = IndexReader.open(idxDir,true);
+		BoboIndexReader boboReader = BoboIndexReader.getInstance(idxReader,_fconf);
+
+		
+		for (int i=1;i<docs.length;++i){
+			Document doc = docs[i];
+			int numDocs = boboReader.numDocs();
+			BoboIndexReader reader = (BoboIndexReader)boboReader.reopen(true);
+			assertSame(boboReader,reader);
+			
+			Directory tmpDir = new RAMDirectory();
+			IndexWriter subWriter = new IndexWriter(tmpDir,new StandardAnalyzer(Version.LUCENE_29),MaxFieldLength.UNLIMITED);
+			subWriter.addDocument(doc);
+			subWriter.optimize();
+			subWriter.close();
+			writer.addIndexesNoOptimize(new Directory[]{tmpDir});
+			writer.commit();
+			reader = (BoboIndexReader)boboReader.reopen();
+			assertNotSame(boboReader, reader);
+			boboReader.close();
+			assertEquals(numDocs+1,reader.numDocs());
+			boboReader = reader;
+		}
+		writer.deleteDocuments(new Term("id","1"));
+		writer.commit();
+		int numDocs = boboReader.numDocs();
+		BoboIndexReader newReader = (BoboIndexReader)boboReader.reopen();
+		assertNotSame(newReader,boboReader);
+		int numDocs2 = newReader.numDocs();
+		if (boboReader!=newReader){
+			boboReader.close();
+			boboReader = newReader;
+		}
+		assertEquals(numDocs-1,numDocs2);
+		boboReader.close();
 	}
 	
 	public static void main(String[] args)throws Exception {
