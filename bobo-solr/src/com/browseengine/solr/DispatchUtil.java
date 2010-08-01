@@ -23,6 +23,7 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 
 import com.browseengine.bobo.api.BrowseHit;
@@ -62,16 +63,16 @@ public class DispatchUtil {
 		
 		DispatchSolrParams(SolrParams params){
 			_params = params;
-			offset = params.getInt(BoboRequestBuilder.START, 0);
-			count = params.getInt(BoboRequestBuilder.COUNT, 0);
+			offset = params.getInt(CommonParams.START, 0);
+			count = params.getInt(CommonParams.ROWS, 0);
 		}
 		
 		@Override
 		public String get(String name) {
-			if (BoboRequestBuilder.START.equals(name)){
+			if (CommonParams.START.equals(name)){
 				return "0";
 			}
-			else if (BoboRequestBuilder.COUNT.equals(name)){
+			else if (CommonParams.ROWS.equals(name)){
 				return String.valueOf(offset+count);
 			}
 			else if (BoboRequestHandler.SHARD_PARAM.equals(name)){

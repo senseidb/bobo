@@ -19,13 +19,6 @@ public class BoboRequestBuilder {
 	public static final String SEL_PREFIX="bobo.sel.";
 	public static final String BOBO_PREFIX="bobo.";
 	
-	public static final String QUERY="q";
-	public static final String DEFAULT_FIELD="df";
-	
-	public static final String START="start";
-	public static final String COUNT="rows";
-	
-	public static final String SORT="sort";
 	public static final Logger logger = Logger.getLogger(BoboRequestBuilder.class);
 	
 	private static void fillBoboRequest(BrowseRequest req,BoboParams params){
@@ -142,22 +135,11 @@ public class BoboRequestBuilder {
 		}
 	}
 	
-	public static BrowseRequest buildRequest(BoboParams params,BoboQueryBuilder qb){
+	public static BrowseRequest buildRequest(BoboParams params,Query query,Sort sort){
 
-	    int offset=params.getInt(START, 0);
+	    int offset=params.getInt("start", 0);
 	  
-	    int count=params.getInt(COUNT, 10);
-	    
-	      
-		Sort sort = qb.parseSort(params.getString(SORT));
-
-	    // parse the query from the 'q' parameter (sort has been striped)
-	    Query query = null;
-	    
-	    String qString = params.get(QUERY);
-	    if (qString != null && qString.length() > 0){
-	    	query = qb.parseQuery(qString, params.getString(DEFAULT_FIELD));
-	    }
+	    int count=params.getInt("rows", 10);
 	    
 	    BrowseRequest br=new BrowseRequest();
 	    br.setOffset(offset);

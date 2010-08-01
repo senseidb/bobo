@@ -9,22 +9,22 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.request.SolrQueryResponse;
 import org.apache.solr.request.SolrRequestHandler;
+import org.apache.solr.schema.IndexSchema;
 import org.apache.solr.search.QueryParsing;
 import org.apache.solr.search.SolrIndexReader;
 import org.apache.solr.search.SolrIndexSearcher;
 
 import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.server.protocol.BoboParams;
-import com.browseengine.bobo.server.protocol.BoboQueryBuilder;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 
 public class BoboRequestHandler implements SolrRequestHandler {
@@ -66,33 +66,19 @@ public class BoboRequestHandler implements SolrRequestHandler {
         }
 	}
 	
-	public static class BoboSolrQueryBuilder extends BoboQueryBuilder{
-		SolrQueryRequest _req;
-		BoboSolrQueryBuilder(SolrQueryRequest req){
-			_req=req;
-		}
-
-		@Override
-		public Query parseQuery(String query, String defaultField) {
-			return QueryParsing.parseQuery(query, defaultField, _req.getParams(), _req.getSchema());
-		}
-
-		@Override
-		public Sort parseSort(String sortStr) {
-			Sort sort=null;
-			if( sortStr != null ) {
-		        sort = QueryParsing.parseSort(sortStr, _req.getSchema());
-		    }
-			return sort;
-		}
-	}
 	
 	public void handleRequest(SolrQueryRequest req, SolrQueryResponse rsp) {
 		
-		BoboSolrParams boboSolrParams = new BoboSolrParams(req.getParams());
+		SolrParams solrParams = req.getParams();
+		IndexSchema schema = req.getSchema();
+		BoboSolrParams boboSolrParams = new BoboSolrParams(solrParams);
 		
 		String shardsVal = boboSolrParams.getString(SHARD_PARAM, null);
-		BrowseRequest br=BoboRequestBuilder.buildRequest(boboSolrParams,new BoboSolrQueryBuilder(req));
+		String q = solrParams.get( CommonParams.Q );
+		String df = solrParams.get(CommonParams.DF);
+		Query query = QueryParsing.parseQuery(q, df, schema);
+		Sort sort = QueryParsing.parseSort(solrParams.get(CommonParams.SORT), schema);
+		BrowseRequest br=BoboRequestBuilder.buildRequest(boboSolrParams,query,sort);
 		logger.info("browse request: "+br);
 		
 		BrowseResult res = null;
