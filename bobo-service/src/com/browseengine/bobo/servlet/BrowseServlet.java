@@ -41,6 +41,7 @@ import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.solr.common.params.CommonParams;
 import org.json.JSONException;
 
 import com.browseengine.bobo.api.BrowseException;
@@ -164,9 +165,9 @@ public class BrowseServlet
 	protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 		
 		BoboParams params = new BoboHttpRequestParam(req);
-		String qstring = params.get("q");
-		String df = params.get("df");
-		String sortString = params.get("sort");
+		String qstring = params.get(CommonParams.Q);
+		String df = params.get(CommonParams.DF);
+		String sortString = params.get(CommonParams.SORT);
 		BoboDefaultQueryBuilder qbuilder = new BoboDefaultQueryBuilder();
 		Query query = qbuilder.parseQuery(qstring, df);
 		Sort sort = qbuilder.parseSort(sortString);

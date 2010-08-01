@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.solr.common.params.CommonParams;
 
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -137,9 +138,9 @@ public class BoboRequestBuilder {
 	
 	public static BrowseRequest buildRequest(BoboParams params,Query query,Sort sort){
 
-	    int offset=params.getInt("start", 0);
+	    int offset=params.getInt(CommonParams.START, 0);
 	  
-	    int count=params.getInt("rows", 10);
+	    int count=params.getInt(CommonParams.ROWS, 10);
 	    
 	    BrowseRequest br=new BrowseRequest();
 	    br.setOffset(offset);
