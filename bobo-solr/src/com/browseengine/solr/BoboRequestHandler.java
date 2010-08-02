@@ -10,6 +10,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.request.SolrQueryRequest;
@@ -33,7 +34,6 @@ public class BoboRequestHandler implements SolrRequestHandler {
 	private static final String NAME="Bobo-Browse";
 	
 	static final String BOBORESULT="boboresult";
-	public static final String SHARD_PARAM = "shards";
 	
 	private static final String THREAD_POOL_SIZE_PARAM = "thread_pool_size";
 
@@ -71,18 +71,16 @@ public class BoboRequestHandler implements SolrRequestHandler {
 		
 		SolrParams solrParams = req.getParams();
 		IndexSchema schema = req.getSchema();
-		BoboSolrParams boboSolrParams = new BoboSolrParams(solrParams);
-		
-		String shardsVal = boboSolrParams.getString(SHARD_PARAM, null);
+		String shardsVal = solrParams.get(ShardParams.SHARDS, null);
 		String q = solrParams.get( CommonParams.Q );
 		String df = solrParams.get(CommonParams.DF);
 		Query query = QueryParsing.parseQuery(q, df, schema);
 		Sort sort = QueryParsing.parseSort(solrParams.get(CommonParams.SORT), schema);
-		BrowseRequest br=BoboRequestBuilder.buildRequest(boboSolrParams,query,sort);
+		BrowseRequest br=BoboRequestBuilder.buildRequest(solrParams,query,sort);
 		logger.info("browse request: "+br);
 		
 		BrowseResult res = null;
-		if (shardsVal == null)
+		if (shardsVal == null && !solrParams.getBool(ShardParams.IS_SHARD, false))
 		{
 			SolrIndexSearcher searcher=req.getSearcher();
 			
@@ -116,7 +114,7 @@ public class BoboRequestHandler implements SolrRequestHandler {
 		else{
 			// multi sharded request
 			String[] shards = shardsVal.split(",");
-			res = DispatchUtil.broadcast(_threadPool, boboSolrParams, br, shards, 5);
+			res = DispatchUtil.broadcast(_threadPool, solrParams, br, shards, 5);
 		}
 		rsp.add(BOBORESULT, res);
 		

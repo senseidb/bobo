@@ -64,14 +64,18 @@ function OutputSpec(){
 	this.expandSelection=false;
 	
 	this.toHttpGetString=function(name){
-		var getString="";
-		getString+="&bobo.groupby."+name+".max="+this.max;
+		var getString="&facet.field="+name;
+		getString+="&f."+name+".facet.limit="+this.max;
+		getString+="&f."+name+".facet.mincount=1";
 		if (this.expandSelection){
-			getString+="&bobo.groupby."+name+".expand=true";
+			getString+="&f."+name+".bobo.expand=true";
 		}
-		if (this.order==OutputSpec_Order_Hits){
-			getString+="&bobo.groupby."+name+".orderby=hits";
+		if (this.order==OutputSpec_Order_Value){
+			getString+="&f."+name+".facet.sort=index";
 		}
+        else{
+            getString+="&f."+name+".facet.sort=count";
+        }
 		return getString;
 	}
 }
@@ -139,6 +143,7 @@ function BrowseRequest(numPerPage){
 			getString+=sel.toHttpGetString(i);
 		}
 		
+        getString+="&facet=true";
 		for (var i in this.ospecs){
 			ospec=this.ospecs[i];
 			getString+=ospec.toHttpGetString(i);

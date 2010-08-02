@@ -14,6 +14,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.SolrParams;
 import org.json.JSONException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
@@ -24,7 +25,6 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.impl.QueryProducer;
 import com.browseengine.bobo.protobuf.BrowseProtobufConverter;
 import com.browseengine.bobo.server.protocol.BoboHttpRequestParam;
-import com.browseengine.bobo.server.protocol.BoboParams;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
@@ -115,7 +115,7 @@ public class BoboAppController extends AbstractController {
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest req,
 			HttpServletResponse res) throws Exception {
-		BoboParams params = new BoboHttpRequestParam(req);
+		SolrParams params = new BoboHttpRequestParam(req);
 		String qstring = params.get(CommonParams.Q);
 		String df = params.get(CommonParams.DF);
 		String sortString = params.get(CommonParams.SORT);

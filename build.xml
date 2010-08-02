@@ -155,6 +155,9 @@
 			  <lib dir="${lib.master}" excludes="servlet-api.jar">
 			    <include name="*.jar"/>
 			  </lib>
+			  <lib dir="${lib}/solr">
+			    <include name="solr-solrj*.jar"/>
+			  </lib>
 			  <classes dir="${resource}" excludes="web.xml" />
 			  <classes dir="${spring-conf}"/>
 			  <webinf dir="dwr" />
