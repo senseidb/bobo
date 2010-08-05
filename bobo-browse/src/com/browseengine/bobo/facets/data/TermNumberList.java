@@ -5,12 +5,14 @@ import java.text.DecimalFormat;
 public abstract class TermNumberList<T extends Number> extends TermValueList<T>
 {
 
+  private static final String DEFAULT_FORMATTING_STRING = "0000000000";
   protected ThreadLocal<DecimalFormat> _formatter = null;
   protected String _formatString = null;
 
   protected TermNumberList()
   {
     super();
+    setFormatString(DEFAULT_FORMATTING_STRING);
   }
 
   protected TermNumberList(String formatString)
