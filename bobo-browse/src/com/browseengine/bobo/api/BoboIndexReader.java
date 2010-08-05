@@ -179,10 +179,11 @@ public class BoboIndexReader extends FilterIndexReader
 	  
 	if (in instanceof MultiReader){
 		// setup current reader list
-	  List<BoboIndexReader> boboReaderList = new LinkedList<BoboIndexReader>(); 
-	  ReaderUtil.gatherSubReaders(boboReaderList, in);
+	  List<IndexReader> boboReaderList = new LinkedList<IndexReader>();
+	  ReaderUtil.gatherSubReaders((List<IndexReader>)boboReaderList, in);
 	  Map<String,BoboIndexReader> readerMap = new HashMap<String,BoboIndexReader>();
-	  for (BoboIndexReader boboReader : boboReaderList){
+	  for (IndexReader reader : boboReaderList){
+		  BoboIndexReader boboReader = (BoboIndexReader)reader;
 		  SegmentReader sreader = (SegmentReader)(boboReader.in);
 		  readerMap.put(sreader.getSegmentName(),boboReader);
 	  }

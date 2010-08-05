@@ -127,23 +127,5 @@ public class FacetBasedBoostScorerBuilder implements ScorerBuilder
     {
       return (_docid = _innerScorer.advance(target));
     }
-
-    @Override
-    public int doc()
-    {
-      return _docid;
-    }
-
-    @Override
-    public boolean next() throws IOException
-    {
-      return (nextDoc() != NO_MORE_DOCS);
-    }
-
-    @Override
-    public boolean skipTo(int target) throws IOException
-    {
-      return (advance(target) != NO_MORE_DOCS);
-    }
   }
 }
