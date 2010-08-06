@@ -17,7 +17,7 @@ import com.browseengine.bobo.facets.impl.DynamicRangeFacetHandler;
 public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
 {
   private static final Logger log = Logger.getLogger(DynamicTimeRangeFacetHandler.class.getName());
-  private static final String NUMBER_FORMAT = "00000000000000000000";
+  public static final String NUMBER_FORMAT = "00000000000000000000";
 
   protected ThreadLocal<DecimalFormat> _formatter = null;
   
@@ -113,8 +113,8 @@ public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
   
   private String buildRangeString(long currentTime, String dStart, String dEnd) throws ParseException
   {
-    String end = _formatter.get().format(getTime(currentTime, dStart) - 1);
-    String start = _formatter.get().format(getTime(currentTime, dEnd));
+    String end = _formatter.get().format(getTime(currentTime, dStart));
+    String start = _formatter.get().format(getTime(currentTime, dEnd) + 1);
     StringBuilder buf = new StringBuilder();
     buf.append("[").append(start).append(" TO ").append(end).append("]");
     return buf.toString();

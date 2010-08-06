@@ -27,6 +27,7 @@ package com.browseengine.bobo.test;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -91,6 +92,7 @@ import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.DynamicTimeRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
@@ -407,7 +409,6 @@ public class BoboTestCase extends TestCase {
 		dataList.add(d7);
 		dataList.add(d7);
 		
-		
 		return dataList.toArray(new Document[dataList.size()]);
 	}
 	
@@ -473,6 +474,8 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new RangeFacetHandler("longitude", Arrays.asList(new String[]{"[* TO 30]", "[35 TO 60]", "[70 TO 120]"})));
 		facetHandlers.add(new GeoExample("distance", "latitude", "longitude"));
 		facetHandlers.add(new GeoFacetHandler("correctDistance", "latitude", "longitude"));
+		/* Underlying time facet for DynamicTimeRangeFacetHandler */
+		facetHandlers.add(new RangeFacetHandler("timeinmillis", new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT),null));
 		
 		LinkedHashSet<String> dependsNames=new LinkedHashSet<String>();
 		dependsNames.add("color");
@@ -2067,6 +2070,120 @@ public class BoboTestCase extends TestCase {
 		}
 		assertEquals(numDocs-1,numDocs2);
 		boboReader.close();
+	}
+	public void testTime() throws Exception
+	{
+    List<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
+    /* Underlying time facet for DynamicTimeRangeFacetHandler */
+    facetHandlers.add(new RangeFacetHandler("timeinmillis", new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT),null));
+    Directory idxDir = new RAMDirectory();
+    IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_29),MaxFieldLength.UNLIMITED);
+	  
+	  long now = System.currentTimeMillis();
+	  DecimalFormat df = new DecimalFormat(DynamicTimeRangeFacetHandler.NUMBER_FORMAT);
+	  for(long l=0; l<53; l++)
+	  {
+	    Document d = new Document();
+	    d.add(buildMetaField("timeinmillis", df.format(now - l*3500000)));
+	    writer.addDocument(d);
+	    writer.optimize();
+	    writer.commit();
+	  }
+    IndexReader idxReader = IndexReader.open(idxDir,true);
+    BoboIndexReader boboReader = BoboIndexReader.getInstance(idxReader,facetHandlers);
+    BoboBrowser browser = new BoboBrowser(boboReader);
+    List<String> ranges = new ArrayList<String>();
+    ranges.add("000000001");
+    ranges.add("000010000");// one hour
+    ranges.add("000020000");// two hours
+    ranges.add("000030000");
+    ranges.add("000040000");
+    ranges.add("001000000");// one day
+    ranges.add("002000000");// two days
+    ranges.add("003000000");
+    ranges.add("004000000");
+    FacetHandler<?> facetHandler = new DynamicTimeRangeFacetHandler("timerange", "timeinmillis", now, ranges );
+    browser.setFacetHandler(facetHandler );
+//  
+    BrowseRequest req = new BrowseRequest();
+    BrowseFacet facet = null;
+    FacetSpec facetSpec = new FacetSpec();
+    req.setFacetSpec("timerange", facetSpec);
+    BrowseResult result = browser.browse(req);
+    FacetAccessible facetholder = result.getFacetAccessor("timerange");
+    List<BrowseFacet> facets = facetholder.getFacets();
+    facet = facets.get(0);
+    assertEquals("order by value", "000000001", facet.getValue());
+    assertEquals("order by value", 1 , facet.getFacetValueHitCount());
+    facet = facets.get(1);
+    assertEquals("order by value", "000010000", facet.getValue());
+    assertEquals("order by value", 1 , facet.getFacetValueHitCount());
+    facet = facets.get(5);
+    assertEquals("order by value", "001000000", facet.getValue());
+    assertEquals("order by value", 20 , facet.getFacetValueHitCount());
+    facet = facets.get(7);
+    assertEquals("order by value", "003000000", facet.getValue());
+    assertEquals("order by value", 3 , facet.getFacetValueHitCount());
+//  
+    req = new BrowseRequest();
+    facetSpec = new FacetSpec();
+    facetSpec.setMinHitCount(0);
+    facetSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+    req.setFacetSpec("timerange", facetSpec);
+    result = browser.browse(req);
+    facetholder = result.getFacetAccessor("timerange");
+    facets = facetholder.getFacets();
+    facet = facets.get(0);
+    assertEquals("", "002000000", facet.getValue());
+    assertEquals("", 25 , facet.getFacetValueHitCount());
+    facet = facets.get(1);
+    assertEquals("", "001000000", facet.getValue());
+    assertEquals("", 20 , facet.getFacetValueHitCount());
+    facet = facets.get(2);
+    assertEquals("", "003000000", facet.getValue());
+    assertEquals("", 3 , facet.getFacetValueHitCount());
+    facet = facets.get(8);
+    assertEquals("minCount=0", "004000000", facet.getValue());
+    assertEquals("minCount=0", 0 , facet.getFacetValueHitCount());
+//  
+    req = new BrowseRequest();
+    facetSpec = new FacetSpec();
+    BrowseSelection sel = new BrowseSelection("timerange");
+    sel.addValue("001000000");
+    req.addSelection(sel);
+    facetSpec.setExpandSelection(true);
+    req.setFacetSpec("timerange", facetSpec);
+    result = browser.browse(req);
+    facetholder = result.getFacetAccessor("timerange");
+    facets = facetholder.getFacets();
+    facet = facets.get(0);
+    assertEquals("", "000000001", facet.getValue());
+    assertEquals("", 1 , facet.getFacetValueHitCount());
+    facet = facets.get(6);
+    assertEquals("", "002000000", facet.getValue());
+    assertEquals("", 25 , facet.getFacetValueHitCount());
+    facet = facets.get(7);
+    assertEquals("", "003000000", facet.getValue());
+    assertEquals("", 3 , facet.getFacetValueHitCount());
+//  
+    req = new BrowseRequest();
+    facetSpec = new FacetSpec();
+    sel = new BrowseSelection("timerange");
+    sel.addValue("001000000");
+    sel.addValue("003000000");
+    sel.addValue("004000000");
+    req.addSelection(sel );
+    facetSpec.setExpandSelection(false);
+    req.setFacetSpec("timerange", facetSpec);
+    result = browser.browse(req);
+    facetholder = result.getFacetAccessor("timerange");
+    facet = facetholder.getFacet("001000000");
+    assertEquals("001000000", 20, facet.getFacetValueHitCount());
+    facet = facetholder.getFacet("003000000");
+    assertEquals("003000000", 3, facet.getFacetValueHitCount());
+    facet = facetholder.getFacet("004000000");
+    assertEquals("004000000", 0, facet.getFacetValueHitCount());
+    assertEquals("",23,result.getNumHits());
 	}
 	
 	public static void main(String[] args)throws Exception {
