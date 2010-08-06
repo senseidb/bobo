@@ -4,15 +4,12 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class BoboHttpRequestParam extends BoboParams {
+import org.apache.solr.common.params.SolrParams;
+
+public class BoboHttpRequestParam extends SolrParams {
 	private HttpServletRequest _req;
 	public BoboHttpRequestParam(HttpServletRequest req) {
 		_req=req;
-	}
-
-	@Override
-	public Iterator<String> getParamNames() {
-		return _req.getParameterMap().keySet().iterator();
 	}
 
 	@Override
@@ -20,9 +17,13 @@ public class BoboHttpRequestParam extends BoboParams {
 		return _req.getParameter(name);
 	}
 
-    @Override
-    public String[] getStrings(String name)
-    {
-       return _req.getParameterValues(name);
-    }
+	@Override
+	public Iterator<String> getParameterNamesIterator() {
+		return _req.getParameterMap().keySet().iterator();
+	}
+
+	@Override
+	public String[] getParams(String param) {
+		return _req.getParameterValues(param);
+	}
 }

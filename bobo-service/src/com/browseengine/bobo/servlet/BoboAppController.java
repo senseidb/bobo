@@ -13,6 +13,8 @@ import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.SolrParams;
 import org.json.JSONException;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.AbstractController;
@@ -23,7 +25,6 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.impl.QueryProducer;
 import com.browseengine.bobo.protobuf.BrowseProtobufConverter;
 import com.browseengine.bobo.server.protocol.BoboHttpRequestParam;
-import com.browseengine.bobo.server.protocol.BoboQueryBuilder;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
@@ -38,13 +39,11 @@ public class BoboAppController extends AbstractController {
 	private static final long serialVersionUID = 1L;
 	private static Logger logger=Logger.getLogger(BoboAppController.class);
 	
-	private static class BoboDefaultQueryBuilder extends BoboQueryBuilder{
+	private static class BoboDefaultQueryBuilder{
 
 		BoboDefaultQueryBuilder(){
 			
 		}
-
-		@Override
 		public Query parseQuery(String query, String defaultField) {
 			try {
 				return QueryProducer.convert(query,defaultField);
@@ -56,8 +55,7 @@ public class BoboAppController extends AbstractController {
 		
 		 private static Pattern sortSep = Pattern.compile(",");
 
-		@Override
-		public Sort parseSort(String sortSpec) {
+		 public Sort parseSort(String sortSpec) {
 			if (sortSpec==null || sortSpec.length()==0) return null;
 
 		    String[] parts = sortSep.split(sortSpec.trim());
@@ -117,8 +115,14 @@ public class BoboAppController extends AbstractController {
 	@Override
 	protected ModelAndView handleRequestInternal(HttpServletRequest req,
 			HttpServletResponse res) throws Exception {
-		
-		BrowseRequest br=BoboRequestBuilder.buildRequest(new BoboHttpRequestParam(req),new BoboDefaultQueryBuilder());
+		SolrParams params = new BoboHttpRequestParam(req);
+		String qstring = params.get(CommonParams.Q);
+		String df = params.get(CommonParams.DF);
+		String sortString = params.get(CommonParams.SORT);
+		BoboDefaultQueryBuilder qbuilder = new BoboDefaultQueryBuilder();
+		Query query = qbuilder.parseQuery(qstring, df);
+		Sort sort = qbuilder.parseSort(sortString);
+		BrowseRequest br=BoboRequestBuilder.buildRequest(params,query,sort);
 		try {
 			logger.info("REQ: "+BrowseProtobufConverter.toProtoBufString(br));
 			BrowseResult result=_svc.browse(br);

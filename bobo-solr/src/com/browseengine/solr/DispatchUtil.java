@@ -23,13 +23,14 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.SolrParams;
 
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.service.util.XStreamDispenser;
 import com.browseengine.bobo.util.ListMerger;
 import com.browseengine.solr.BoboRequestHandler.BoboSolrParams;
@@ -62,19 +63,19 @@ public class DispatchUtil {
 		
 		DispatchSolrParams(SolrParams params){
 			_params = params;
-			offset = params.getInt(BoboRequestBuilder.START, 0);
-			count = params.getInt(BoboRequestBuilder.COUNT, 0);
+			offset = params.getInt(CommonParams.START, 0);
+			count = params.getInt(CommonParams.ROWS, 0);
 		}
 		
 		@Override
 		public String get(String name) {
-			if (BoboRequestBuilder.START.equals(name)){
+			if (CommonParams.START.equals(name)){
 				return "0";
 			}
-			else if (BoboRequestBuilder.COUNT.equals(name)){
+			else if (CommonParams.ROWS.equals(name)){
 				return String.valueOf(offset+count);
 			}
-			else if (BoboRequestHandler.SHARD_PARAM.equals(name)){
+			else if (ShardParams.SHARDS.equals(name)){
 				return null;
 			}
 			else{
@@ -89,19 +90,19 @@ public class DispatchUtil {
 
 		@Override
 		public String[] getParams(String name) {
-			if (BoboRequestHandler.SHARD_PARAM.equals(name)){
+			if (ShardParams.SHARDS.equals(name)){
 				return null;
 			}
 			return _params.getParams(name);
 		}
 	}
 	
-	public static BrowseResult broadcast(ExecutorService threadPool,BoboSolrParams boboSolrParams,BrowseRequest req,String[] baseURL,int maxRetry){
+	public static BrowseResult broadcast(ExecutorService threadPool,SolrParams boboSolrParams,BrowseRequest req,String[] baseURL,int maxRetry){
 		long start = System.currentTimeMillis();
 		Future<BrowseResult>[] futureList = (Future<BrowseResult>[]) new Future[baseURL.length];
         for (int i = 0; i < baseURL.length; i++)
 		{
-          SolrParams dispatchParams = new DispatchSolrParams(boboSolrParams._params);
+          SolrParams dispatchParams = new DispatchSolrParams(boboSolrParams);
           Callable<BrowseResult> callable = newCallable(new BoboSolrParams(dispatchParams),baseURL[i],maxRetry);
           futureList[i] = threadPool.submit(callable);
 		}
