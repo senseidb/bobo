@@ -86,6 +86,8 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
   public void browse(BrowseRequest req, Weight weight, final Collector hc, Map<String, FacetAccessible> facetMap, int start) throws BrowseException
   {
     Browsable[] browsers = getSubBrowsers();
+    // index empty
+    if (browsers==null || browsers.length ==0 ) return;
     int[] starts = getStarts();
 
     Map<String, List<FacetAccessible>> mergedMap = new HashMap<String,List<FacetAccessible>>();
@@ -152,6 +154,10 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable
 
     final BrowseResult result = new BrowseResult();
 
+ // index empty
+    if (_subBrowsers==null || _subBrowsers.length ==0 ){
+    	return result;
+    }
     long start = System.currentTimeMillis();
     int offset = req.getOffset();
     int count = req.getCount();

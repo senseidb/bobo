@@ -37,6 +37,6 @@
 	<classpathentry exported="true" kind="lib" path="lib/gui/gwt-user.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gui/gwt-visualization.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/ant.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/zoie-2.0.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/master/zoie-2.0.0.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

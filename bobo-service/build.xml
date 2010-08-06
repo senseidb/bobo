@@ -2,6 +2,7 @@
 		<property name="bobo.root" location="../"/>
 		<property name="service.src" value="src"/>
         <property name="lib.master" value="${bobo.root}/lib/master"/>
+        <property name="lib.solr" value="${bobo.root}/lib/solr"/>
         <property name="dist" value="${bobo.root}/dist"/>
         <property name="build" value="build"/>
         <property name="service.conf" value="conf"/>
@@ -14,6 +15,9 @@
         <path id="project.class.path">
             <fileset dir="${lib.master}">
                 <include name="*.jar"/>
+			</fileset>
+			<fileset dir="${lib.solr}">
+                <include name="solr-solrj*.jar"/>
 			</fileset>
 			<fileset dir="${dist}">
                 <include name="*.jar"/>
@@ -45,6 +49,9 @@
         		<classes dir="${service.settings}"/>
 				<webinf dir="${service.web}" />
 	            <lib dir="${lib.master}"/>
+	            <lib dir="${lib.solr}">
+	              <include name="solr-solrj*.jar"/>
+	            </lib>
 				<lib dir="${dist}">
 	            	<include name="bobo-browse*.jar"/>
 	            	<include name="bobo-zoie*.jar"/>

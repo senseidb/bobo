@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,8 +46,12 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.FilterIndexReader;
+import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
+import org.apache.lucene.index.SegmentInfo;
+import org.apache.lucene.index.SegmentInfos;
+import org.apache.lucene.index.SegmentReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -79,6 +84,7 @@ public class BoboIndexReader extends FilterIndexReader
   protected IndexReader _srcReader;
   protected BoboIndexReader[] _subReaders = null;
   protected int[] _starts = null;
+  private Directory _dir = null;
   
   private final Map<String,Object> _facetDataMap = new HashMap<String,Object>();
   private final ThreadLocal<Map<String,Object>> _runtimeFacetDataMap = new ThreadLocal<Map<String,Object>>()
@@ -165,21 +171,107 @@ public class BoboIndexReader extends FilterIndexReader
   @Override
   public synchronized IndexReader reopen() throws CorruptIndexException,
 		IOException {
-	IndexReader newInner = in.reopen(true);
-	if (newInner != in){
-	  return BoboIndexReader.getInstance(newInner, _facetHandlers, _runtimeFacetHandlerFactories, _workArea);
+	IndexReader newInner = null;
+
+	SegmentInfos sinfos = new SegmentInfos();
+	sinfos.read(_dir);
+	int size = sinfos.size();
+	  
+	if (in instanceof MultiReader){
+		// setup current reader list
+	  List<IndexReader> boboReaderList = new LinkedList<IndexReader>();
+	  ReaderUtil.gatherSubReaders((List<IndexReader>)boboReaderList, in);
+	  Map<String,BoboIndexReader> readerMap = new HashMap<String,BoboIndexReader>();
+	  for (IndexReader reader : boboReaderList){
+		  BoboIndexReader boboReader = (BoboIndexReader)reader;
+		  SegmentReader sreader = (SegmentReader)(boboReader.in);
+		  readerMap.put(sreader.getSegmentName(),boboReader);
+	  }
+	  
+	  ArrayList<BoboIndexReader> currentReaders = new ArrayList<BoboIndexReader>(size);
+	  boolean isNewReader = false;
+	  for (int i=0;i<size;++i){
+		  SegmentInfo sinfo = (SegmentInfo)sinfos.get(i);
+		  BoboIndexReader breader = readerMap.remove(sinfo.name);
+		  if (breader!=null){
+			  // should use SegmentReader.reopen
+			  // TODO: see LUCENE-2559
+			  BoboIndexReader newReader = (BoboIndexReader)breader.reopen(true);
+			  if (newReader!=breader){
+				  isNewReader = true;
+			  }
+			  if (newReader!=null){
+			    currentReaders.add(newReader);
+			  }
+		  }
+		  else{
+			  isNewReader = true;
+			  SegmentReader newSreader = SegmentReader.get(true, sinfo, 1);
+			  breader = BoboIndexReader.getInstanceAsSubReader(newSreader,this._facetHandlers,this._runtimeFacetHandlerFactories);
+			  breader._dir = _dir;
+			  currentReaders.add(breader);
+		  }
+	  }
+	  isNewReader = isNewReader || (readerMap.size() != 0);
+	  if (!isNewReader){
+		  return this;
+	  }
+	  else{
+		  MultiReader newMreader = new MultiReader(currentReaders.toArray(new BoboIndexReader[currentReaders.size()]),false);
+		  BoboIndexReader newReader = BoboIndexReader.getInstanceAsSubReader(newMreader,this._facetHandlers,this._runtimeFacetHandlerFactories);
+		  newReader._dir = _dir;
+		  return newReader;
+	  }
+	}
+	else if (in instanceof SegmentReader){
+	   // should use SegmentReader.reopen
+		// TODO: see LUCENE-2559
+		
+	  SegmentReader sreader = (SegmentReader)in;
+	  int numDels = sreader.numDeletedDocs();
+	  
+	  SegmentInfo sinfo = null;
+	  boolean sameSeg = false;
+	  //get SegmentInfo instance
+	  for (int i=0;i<size;++i){
+		SegmentInfo sinfoTmp = (SegmentInfo)sinfos.get(i);
+		if (sinfoTmp.name.equals(sreader.getSegmentName())){
+		  int numDels2 = sinfoTmp.getDelCount();
+		  sameSeg = numDels==numDels2;
+		  sinfo = sinfoTmp;
+		  break;
+		}
+	  }
+	 
+	  if (sinfo == null){
+		  // segment no longer exists
+		  return null;
+	  }
+	  if (sameSeg){
+	    return this;	
+	  }
+	  else{
+		SegmentReader newSreader = SegmentReader.get(true, sinfo, 1);
+		return BoboIndexReader.getInstanceAsSubReader(newSreader,this._facetHandlers,this._runtimeFacetHandlerFactories);
+	  }
 	}
 	else{
-	  return this;
+	  // should not reach here, a catch-all default case
+	  IndexReader reader = in.reopen(true);
+	  if (in!=reader){
+	    return BoboIndexReader.getInstance(newInner, _facetHandlers, _runtimeFacetHandlerFactories, _workArea);
+	  }
+	  else{
+		return this;
+	  }
 	}
   }
 
   @Override
   public synchronized IndexReader reopen(boolean openReadOnly)
 		throws CorruptIndexException, IOException {
-	if (!openReadOnly){
-		throw new IOException("BoboIndexReader is readonly-only");
-	}
+
+	// bobo readers are always readonly 
 	return reopen();
   }
 
@@ -424,9 +516,9 @@ public class BoboIndexReader extends FilterIndexReader
                             boolean useSubReaders) throws IOException
   {
     super(useSubReaders ? new MultiReader(createSubReaders(reader, workArea), false) : reader);
-    
     if(useSubReaders)
     {
+      _dir = reader.directory();
       BoboIndexReader[] subReaders = (BoboIndexReader[])in.getSequentialSubReaders();
       if(subReaders != null && subReaders.length > 0)
       {
@@ -436,6 +528,7 @@ public class BoboIndexReader extends FilterIndexReader
         _starts = new int[_subReaders.length + 1];
         for (int i = 0; i < _subReaders.length; i++)
         {
+          _subReaders[i]._dir = _dir;
           if(facetHandlers != null) _subReaders[i].setFacetHandlers(facetHandlers);
           _starts[i] = maxDoc;
           maxDoc += _subReaders[i].maxDoc();
@@ -455,7 +548,7 @@ public class BoboIndexReader extends FilterIndexReader
     _facetHandlers = facetHandlers;
     _workArea = workArea;
   }
-  
+
   protected void facetInit() throws IOException
   {
     facetInit(new HashSet<String>());
