@@ -98,6 +98,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
    */
   public String getFacet()
   {
+    if (facet == -1) return null;
     return format(facet);
   }
 
@@ -141,14 +142,16 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
       node = (DoubleIteratorNode) _queue.top();
       next = node._curFacet;
       if ((next != -1) && (next != facet))
-        break;
+      {
+        return format(facet);
+      }
       count += node._curFacetCount;
       if (node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
     }
-    return format(facet);
+    return null;
   }
 
   /**
@@ -190,6 +193,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
           {
             facet = -1;
             count = 0;
+            return null;
           }
           break;
         }
@@ -403,14 +407,16 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
       node = (DoubleIteratorNode) _queue.top();
       next = node._curFacet;
       if ((next != -1) && (next != facet))
-        break;
+      {
+        return facet;
+      }
       count += node._curFacetCount;
       if (node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
     }
-    return facet;
+    return -1;
   }
 
   @Override

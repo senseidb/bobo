@@ -42,6 +42,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
    */
   public String getFacet()
   {
+    if (facet == -1) return null;
     return _valList.format(facet);
   }
 
@@ -134,7 +135,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
     }
     facet = -1;
     count = 0;
-    return format(facet);
+    return null;
   }
 
   /*

@@ -39,6 +39,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
    */
   public String getFacet()
   {
+    if (facet == -1) return null;
     return _valList.format(facet);
   }
 
@@ -129,7 +130,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
     }
     facet = -1;
     count = 0;
-    return format(facet);
+    return null;
   }
 
   /* (non-Javadoc)

@@ -31,6 +31,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
   public String getFacet() {
+    if (facet == -1) return null;
     return _valList.format(facet);
   }
   public String format(int val)
@@ -103,7 +104,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
     }
     facet = -1;
     count = 0;
-    return format(facet);    
+    return null;    
   }
   /* (non-Javadoc)
    * @see com.browseengine.bobo.api.IntFacetIterator#nextInt(int)

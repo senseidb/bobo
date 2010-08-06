@@ -42,6 +42,7 @@ public class DefaultShortFacetIterator extends ShortFacetIterator
    */
   public String getFacet()
   {
+    if (facet == -1) return null;
     return _valList.format(facet);
   }
 
@@ -132,7 +133,7 @@ public class DefaultShortFacetIterator extends ShortFacetIterator
     }
     facet = -1;
     count = 0;
-    return format(facet);
+    return null;
   }
 
   /* (non-Javadoc)

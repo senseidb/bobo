@@ -92,6 +92,7 @@ public class CombinedLongFacetIterator extends LongFacetIterator
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
   public String getFacet() {
+    if (facet == -1) return null;
     return format(facet);
   }
   public String format(long val)
@@ -126,14 +127,16 @@ public class CombinedLongFacetIterator extends LongFacetIterator
       node = (LongIteratorNode) _queue.top();
       next = node._curFacet;
       if( (next != -1) && (next!=facet) )
-        break;
+      {
+        return format(facet);
+      }
       count += node._curFacetCount;
       if(node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
     }
-    return format(facet);
+    return null;
   }
 
   /**
@@ -173,6 +176,7 @@ public class CombinedLongFacetIterator extends LongFacetIterator
           {
             facet = -1;
             count = 0;
+            return null;
           }
           break;
         }
@@ -380,14 +384,16 @@ public class CombinedLongFacetIterator extends LongFacetIterator
       node = (LongIteratorNode) _queue.top();
       next = node._curFacet;
       if( (next != -1) && (next!=facet) )
-        break;
+      {
+        return facet;
+      }
       count += node._curFacetCount;
       if(node.fetch(1))
         _queue.updateTop();
       else
         _queue.pop();
     }
-    return facet;
+    return -1;
   }
 
   @Override
