@@ -108,7 +108,8 @@ public class BoboRequestHandler implements SolrRequestHandler {
 						        rsp.add("highlighting", sumData);
 					}
 					*/
-					
+
+					fillResponse(br,res,rsp);
 				} catch (Exception e) {
 					logger.error(e.getMessage(),e);
 					throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,e.getMessage(),e);
@@ -124,11 +125,10 @@ public class BoboRequestHandler implements SolrRequestHandler {
 			String[] shards = shardsVal.split(",");
 			res = DispatchUtil.broadcast(_threadPool, solrParams, br, shards, 5);
 		}
-		rsp.add(BOBORESULT, res);
 		
 	}
 	
-	private void fillResponse(BrowseRequest req,BrowseResult res,SolrQueryResponse solrRsp){
+	public static void fillResponse(BrowseRequest req,BrowseResult res,SolrQueryResponse solrRsp){
 		
 		NamedList facetFieldList = new SimpleOrderedMap();
 		Map<String,FacetAccessible> facetMap = res.getFacetMap();
