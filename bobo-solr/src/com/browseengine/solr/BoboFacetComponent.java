@@ -203,10 +203,6 @@ public class BoboFacetComponent extends SearchComponent {
 	    docList.setNumFound(res.getNumHits());
 	    docList.setStart(br.getOffset());
 	    
-		if (rb.doFacets) {
-		  fillResponse(br,res,rb.rsp);
-	    }
-
 	    rb.stage = ResponseBuilder.STAGE_GET_FIELDS;
 	    boolean returnScores = (rb.getFieldFlags() & SolrIndexSearcher.GET_SCORES) != 0;
 	    
@@ -224,6 +220,11 @@ public class BoboFacetComponent extends SearchComponent {
 	    }
 	    
 	    rb.rsp.add("response", docList);
+	    
+	    if (rb.doFacets) {
+		  fillResponse(br,res,rb.rsp);
+		}
+	    
 	    rb.stage = ResponseBuilder.STAGE_DONE;
 	}
 	
@@ -259,8 +260,14 @@ public class BoboFacetComponent extends SearchComponent {
 		}
 		
 		NamedList facetResList = new SimpleOrderedMap();
+		
 		facetResList.add("facet_fields", facetFieldList);
+		
+		NamedList facetQueryList = new SimpleOrderedMap();
+		
+		facetResList.add("facet_queries", facetQueryList);
 		solrRsp.add( "facet_counts", facetResList );
+		
 	}
 	
 }

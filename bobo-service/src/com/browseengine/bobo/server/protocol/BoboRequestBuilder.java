@@ -200,7 +200,7 @@ public class BoboRequestBuilder {
 
     	fillBoboSelections(br, params);
     	
-	    if (params.getBool(FacetParams.FACET, false)){
+	    if (params.getBool(FacetParams.FACET, false) && fields!=null){
 	    	// filling facets
 	    	for (String facetField : fields){
 	    		FacetSpec fspec = new FacetSpec();
