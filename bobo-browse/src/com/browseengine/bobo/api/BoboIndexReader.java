@@ -40,13 +40,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.FilterIndexReader;
-import org.apache.lucene.index.IndexCommit;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.index.SegmentInfo;
@@ -60,6 +60,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.ReaderUtil;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
@@ -161,6 +162,19 @@ public class BoboIndexReader extends FilterIndexReader
     BoboIndexReader boboReader = new BoboIndexReader(reader, facetHandlers, facetHandlerFactories, workArea, false);
     boboReader.facetInit();
     return boboReader;
+  }
+  
+  
+
+  @Override
+  public long getVersion() {
+	try {
+		SegmentInfos sinfos = new SegmentInfos();
+		sinfos.read(_dir);
+		return sinfos.getVersion();
+	} catch (Exception e) {
+		return 0L;
+	} 
   }
 
   public IndexReader getInnerReader()
@@ -432,19 +446,32 @@ public class BoboIndexReader extends FilterIndexReader
     return (_subReaders != null ? _subReaders[0].directory() : super.directory());
   }
   
-  private static Collection<FacetHandler<?>> loadFromIndex(File file) throws IOException
+  private static Collection<FacetHandler<?>> loadFromIndex(File file,WorkArea workArea) throws IOException
   {
    // File springFile = new File(file, SPRING_CONFIG);
    // FileSystemXmlApplicationContext appCtx =
      //   new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
     //return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
-    
+	  
+	  Set<Entry<Class<?>,Object>> entries = workArea.map.entrySet();
+      FileSystemXmlApplicationContext appCtx = new FileSystemXmlApplicationContext();
+      for (Entry<Class<?>,Object> entry : entries){
+		  Object obj = entry.getValue();
+		  if (obj instanceof ClassLoader){
+			  appCtx.setClassLoader((ClassLoader)obj);
+	    	  break;
+		  }
+	  }
+	  
       String absolutePath = file.getAbsolutePath();
       String partOne = absolutePath.substring(0, absolutePath.lastIndexOf("/"));
       String partTwo = URLEncoder.encode(absolutePath.substring(absolutePath.lastIndexOf("/") + 1), "UTF-8");
       absolutePath = partOne + "/" + partTwo;
+      
       File springFile = new File(new File(absolutePath), SPRING_CONFIG);
-      FileSystemXmlApplicationContext appCtx = new FileSystemXmlApplicationContext("file:" + springFile.getAbsolutePath());
+      appCtx.setConfigLocation("file:" + springFile.getAbsolutePath());
+      appCtx.refresh();
+      
       return (Collection<FacetHandler<?>>) appCtx.getBean("handlers");
 
   }
@@ -461,7 +488,7 @@ public class BoboIndexReader extends FilterIndexReader
 
         if (new File(file, SPRING_CONFIG).exists())
         {
-          facetHandlers = loadFromIndex(file);
+          facetHandlers = loadFromIndex(file,_workArea);
         }
         else
         {
@@ -744,7 +771,7 @@ public class BoboIndexReader extends FilterIndexReader
    */
   public static class WorkArea
   {
-    private HashMap<Class<?>, Object> map = new HashMap<Class<?>, Object>();
+    HashMap<Class<?>, Object> map = new HashMap<Class<?>, Object>();
 
     @SuppressWarnings("unchecked")
     public <T> T get(Class<T> cls)
@@ -757,10 +784,16 @@ public class BoboIndexReader extends FilterIndexReader
     {
       map.put(obj.getClass(), obj);
     }
+    
 
     public void clear()
     {
       map.clear();
+    }
+    
+    @Override
+    public String toString(){
+    	return map.toString();
     }
   }
 }

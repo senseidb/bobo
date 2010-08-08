@@ -39,6 +39,7 @@
 	<property name="carindex" value="${cardata}/cartag"/>
 	
 	<property file="${bobo.root}/version.properties" />
+	<property file="${bobo.root}/${bobo-solr}/solr.properties" />
 	
 	 <property name="ivy.install.version" value="2.0.0-beta1"/>
 	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
@@ -108,8 +109,25 @@
 			 dir="${bobo-service}" target="dist"/>
 		<ant antfile="build.xml"
 		     dir="${bobo-solr}" target="dist" />
+		     <!--
 		<ant antfile="build.xml"
 				     dir="${bobo-gwt}" target="dist" />
+				     -->
+	</target>
+	
+	<target name="deploy-solr" depends="jars">
+	    <echo message="deploying to ${solr.home} ... "/>
+	    <mkdir dir="${solr.home}/solr/lib" />
+	    <copy todir="${solr.home}/solr/lib">
+	      <fileset dir="${dist}">
+	        <include name="*.jar" />
+	      </fileset>
+	      <fileset dir="${lib.master}">
+	        <include name="log4j.jar" />
+	        <include name="fastutil.jar" />
+	        <include name="spring.jar" />
+	      </fileset>
+	    </copy>
 	</target>
 	
 	<target name="javadoc">
