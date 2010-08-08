@@ -1,6 +1,7 @@
 package com.browseengine.solr;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,9 +10,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
+import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.Weight;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
@@ -40,6 +47,7 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
+import com.kamikaze.docidset.impl.AndDocIdSet;
 
 public class BoboFacetComponent extends SearchComponent {
 
@@ -135,7 +143,7 @@ public class BoboFacetComponent extends SearchComponent {
 	      rb.setSortSpec( parser.getSort(true) );
 	      rb.setQparser(parser);
 
-	      /*
+	      
 	      String[] fqs = params.getParams(CommonParams.FQ);
 	      if (fqs!=null && fqs.length!=0) {
 	        List<Query> filters = rb.getFilters();
@@ -145,12 +153,11 @@ public class BoboFacetComponent extends SearchComponent {
 	        }
 	        for (String fq : fqs) {
 	          if (fq != null && fq.trim().length()!=0) {
-	            QParser fqp = QParser.getParser(fq, null, req);
+	            QParser fqp = QParser.getParser(fq, null, rb.req);
 	            filters.add(fqp.getQuery());
 	          }
 	        }
-	      }*/
-	      
+	      }  
 	    } catch (ParseException e) {
 	      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, e);
 	    }
@@ -170,6 +177,7 @@ public class BoboFacetComponent extends SearchComponent {
 	    BrowseResult res = null;
 	    if (shardsVal == null && !solrParams.getBool(ShardParams.IS_SHARD, false))
 		{
+
 			SolrIndexSearcher searcher=rb.req.getSearcher();
 			
 			SolrIndexReader solrReader = searcher.getReader();
@@ -177,6 +185,33 @@ public class BoboFacetComponent extends SearchComponent {
 			
 			if (reader instanceof BoboIndexReader){
 			    try {
+				    List<Query> filters = rb.getFilters();
+				    if (filters!=null){
+				    	final ArrayList<DocIdSet> docsets = new ArrayList<DocIdSet>(filters.size());
+				        for (Query filter : filters){
+				        	Weight weight = filter.createWeight(rb.req.getSearcher());
+				        	final Scorer scorer = weight.scorer(reader, false, true);
+				        	docsets.add(new DocIdSet(){
+								@Override
+								public DocIdSetIterator iterator() throws IOException {
+									return scorer;
+								}
+				        		
+				        	});
+				        }
+				        
+				        if (docsets.size()>0){
+				        	br.setFilter(
+				        		new Filter(){
+								@Override
+								public DocIdSet getDocIdSet(IndexReader reader)
+										throws IOException {
+									return new AndDocIdSet(docsets);
+								}
+				        	});
+				        }
+				    }
+			        
 	                BoboBrowser browser = new BoboBrowser(reader);
 	                
 					res=browser.browse(br);

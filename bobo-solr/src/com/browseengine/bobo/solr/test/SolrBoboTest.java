@@ -28,6 +28,7 @@ public class SolrBoboTest {
 		query.setFields("color,score");
 		query.setStart(0);
 		query.setRows(10);
+		//query.setFilterQueries("contents:cool");
 		
 		QueryResponse res = solrSvr.query(query);
 		

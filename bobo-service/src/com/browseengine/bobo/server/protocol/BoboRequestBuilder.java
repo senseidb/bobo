@@ -1,5 +1,6 @@
 package com.browseengine.bobo.server.protocol;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public class BoboRequestBuilder {
 	public static final Logger logger = Logger.getLogger(BoboRequestBuilder.class);
 	
 	private static void fillBoboSelections(BrowseRequest req,SolrParams params){
-		Iterator<String> names=params.getParameterNamesIterator();
+		/*Iterator<String> names=params.getParameterNamesIterator();
 		HashMap<String,BrowseSelection> selMap=new HashMap<String,BrowseSelection>();
 		
 		while(names.hasNext()){
@@ -102,7 +103,34 @@ public class BoboRequestBuilder {
 		Iterator<BrowseSelection> iter=selMap.values().iterator();
 		while(iter.hasNext()){
 			req.addSelection(iter.next());
-		}
+		}*/
+		
+		String[] facetQueries = params.getParams(FacetParams.FACET_QUERY);
+	    if (facetQueries!=null && facetQueries.length!=0) {
+		    HashMap<String,BrowseSelection> selMap = new HashMap<String,BrowseSelection>();
+	    	for (String facetQuery : facetQueries){
+	    		String[] parts = facetQuery.split(":");
+	    		String name = parts[0];
+	    		String valval = parts[1];
+	    		String[] vals = valval.split(",");
+	    		if (vals.length>0){
+	    			BrowseSelection sel = selMap.get(name);
+	    			if (sel==null){
+	    				sel = new BrowseSelection(name);
+	    				selMap.put(name, sel);
+	    			}
+	    			for (String val : vals){
+	    			  sel.addValue(val);
+	    			}
+	    		}
+	    	}
+	    	if (selMap.size()>0){
+	    		Collection<BrowseSelection> sels = selMap.values();
+	    		for (BrowseSelection sel : sels){
+	    		  req.addSelection(sel);
+	    		}
+	    	}
+	    }
 	}
 	
 	private static HashSet<String> UnsupportedSolrFacetParams = new HashSet<String>();
