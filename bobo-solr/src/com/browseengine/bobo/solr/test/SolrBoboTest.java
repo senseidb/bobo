@@ -26,7 +26,7 @@ public class SolrBoboTest {
 		query.setFacet(true);
 		query.addFacetField("color","category");
 		query.setFacetMinCount(1);
-		query.setFields("color,score");
+		query.setFields("color,score,category");
 		query.setStart(0);
 		query.setRows(10);
 		query.setFilterQueries("cool");

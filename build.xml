@@ -106,9 +106,9 @@
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="dist"/>
 		<ant antfile="build.xml"
-			 dir="${bobo-service}" target="dist"/>
-		<ant antfile="build.xml"
 		     dir="${bobo-solr}" target="dist" />
+		<ant antfile="build.xml"
+			 dir="${bobo-service}" target="dist"/>
 		     <!--
 		<ant antfile="build.xml"
 				     dir="${bobo-gwt}" target="dist" />
@@ -120,7 +120,8 @@
 	    <mkdir dir="${solr.home}/solr/lib" />
 	    <copy todir="${solr.home}/solr/lib">
 	      <fileset dir="${dist}">
-	        <include name="*.jar" />
+	        <include name="bobo-browse*.jar" />
+	        <include name="bobo-solr*.jar" />
 	      </fileset>
 	      <fileset dir="${lib.master}">
 	        <include name="log4j.jar" />
@@ -168,8 +169,7 @@
 		<war destfile="${ui.out}/${ui.name}.war" webxml="${resource}/web.xml">
 			  <fileset dir="${ui.out}/${ui.name}/"/>
 			  <lib dir="${dist}">
-			    <include name="bobo-browse-${version}.jar"/>
-			  	<include name="bobo-zoie-${version}.jar"/>
+			    <include name="bobo-*.jar"/>
 			  </lib>
 			  <lib dir="${lib.master}" excludes="servlet-api.jar">
 			    <include name="*.jar"/>

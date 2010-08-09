@@ -1,13 +1,12 @@
 package com.browseengine.solr;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -17,24 +16,28 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.FacetField.Count;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrException;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ShardParams;
 import org.apache.solr.common.params.SolrParams;
 
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.service.util.XStreamDispenser;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.util.ListMerger;
-import com.browseengine.solr.BoboRequestHandler.BoboSolrParams;
-import com.thoughtworks.xstream.XStream;
 
 public class DispatchUtil {
 
@@ -103,7 +106,7 @@ public class DispatchUtil {
         for (int i = 0; i < baseURL.length; i++)
 		{
           SolrParams dispatchParams = new DispatchSolrParams(boboSolrParams);
-          Callable<BrowseResult> callable = newCallable(new BoboSolrParams(dispatchParams),baseURL[i],maxRetry);
+          Callable<BrowseResult> callable = newCallable(dispatchParams,baseURL[i],maxRetry);
           futureList[i] = threadPool.submit(callable);
 		}
         
@@ -162,61 +165,59 @@ public class DispatchUtil {
         return merged;
 	}
 	
-	private static BrowseResult parseResponse(InputStream input, String charset) throws UnsupportedEncodingException{
-		XStream parser = XStreamDispenser.getXMLXStream();
-		Reader r = new InputStreamReader(input,charset);
-		return (BrowseResult)(parser.fromXML(r));
+	private static BrowseResult parseResponse(QueryResponse res) throws UnsupportedEncodingException{
+		BrowseResult result = new BrowseResult();
+		
+		result.setTime(res.getElapsedTime());
+		List<FacetField> facetFields = res.getFacetFields();
+		if (facetFields!=null){
+		  Map<String,FacetAccessible> facetMap = new HashMap<String,FacetAccessible>();
+		  for (FacetField ff : facetFields){
+			  String fieldName = ff.getName();
+			  List<Count> countList = ff.getValues();
+			  if (countList!=null){
+			    BrowseFacet[] facets = new BrowseFacet[countList.size()];
+			    int i=0;
+			    for (Count count : countList){
+			    	facets[i++]=new BrowseFacet(count.getName(),(int)count.getCount());
+			    }
+			    facetMap.put(fieldName, new MappedFacetAccessible(facets));
+			  }
+		  }
+		  result.addAll(facetMap);
+		}
+		
+		SolrDocumentList solrDocs = res.getResults();
+		if (solrDocs!=null){
+			result.setNumHits((int)solrDocs.getNumFound());
+			ArrayList<BrowseHit> hits = new ArrayList<BrowseHit>(solrDocs.size());
+			for (SolrDocument doc : solrDocs){
+				BrowseHit hit = new BrowseHit();
+				Map<String,String[]> fieldMap = new HashMap<String,String[]>();
+				Collection<String> fieldNames = doc.getFieldNames();
+				for (String fn : fieldNames){
+					Collection<String> fvals = doc.getFieldNames();
+					fieldMap.put(fn, fvals.toArray(new String[fvals.size()]));
+				}
+				hit.setFieldValues(fieldMap);
+				hits.add(hit);
+			}
+			result.setHits(hits.toArray(new BrowseHit[hits.size()]));
+		}
+		
+		return result;
 	}
 	
-	private static BrowseResult doShardCall(BoboSolrParams boboSolrParams,String baseURL,int maxRetry) throws HttpException, IOException{
-		String path = "/select";
-		GetMethod method = null;
-		try{
-			method = new GetMethod("http://"+baseURL + path + ClientUtils.toQueryString( boboSolrParams._params, false ) );
-			String charset = method.getResponseCharSet();
-			InputStream responseStream = null;
-			while(maxRetry-- > 0){
-				try
-				{
-				  int status = client.executeMethod(method);
-				  if (HttpStatus.SC_OK != status){
-					  logger.error("status: "+status+", retry #: "+maxRetry);
-					  continue;
-				  }
-				  responseStream = method.getResponseBodyAsStream();
-				  break;
-				}
-				catch(Exception e){
-				  logger.error(e.getMessage()+" retry #: "+maxRetry,e);
-				}
-			}
-			
-			if (responseStream == null){
-				throw new IOException("unable to perform remote request, all retries have been exhausted");
-			}
-			// Read the contents
-		    return parseResponse(responseStream, charset);
-		}
-		catch(IOException ioe ){
-			ioe.printStackTrace();
-			throw ioe;
-		}
-		catch(RuntimeException e){
-			e.printStackTrace();
-			throw e;
-		}
-		finally{
-			if (method!=null){
-				method.releaseConnection();
-			}
-		}
+	private static BrowseResult doShardCall(SolrServer solrSvr,SolrParams params,String baseURL,int maxRetry) throws SolrException, SolrServerException, IOException{
+		return parseResponse(solrSvr.query(params));
 	}
 	
-	private static Callable<BrowseResult> newCallable(final BoboSolrParams boboSolrParams,final String baseURL,final int maxRetry){
+	private static Callable<BrowseResult> newCallable(final SolrParams req,final String baseURL,final int maxRetry){
 		return new Callable<BrowseResult>(){
 
 			public BrowseResult call() throws Exception {
-				return doShardCall(boboSolrParams, baseURL, maxRetry);
+				CommonsHttpSolrServer solrSvr = new CommonsHttpSolrServer(baseURL,client);
+				return doShardCall(solrSvr,req, baseURL, maxRetry);
 			}
 			
 		};

@@ -51,11 +51,11 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.impl.QueryProducer;
 import com.browseengine.bobo.protobuf.BrowseProtobufConverter;
 import com.browseengine.bobo.server.protocol.BoboHttpRequestParam;
-import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
 import com.browseengine.bobo.service.BrowseServiceFactory;
 import com.browseengine.bobo.service.util.XStreamDispenser;
+import com.browseengine.solr.BoboRequestBuilder;
 import com.thoughtworks.xstream.XStream;
 
 public class BrowseServlet

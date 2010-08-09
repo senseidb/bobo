@@ -1,9 +1,8 @@
-package com.browseengine.bobo.server.protocol;
+package com.browseengine.solr;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -19,7 +18,6 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.facets.impl.PathFacetHandler;
 
 public class BoboRequestBuilder {
 	
@@ -186,12 +184,6 @@ public class BoboRequestBuilder {
 	public static BrowseRequest buildRequest(SolrParams params,Query query,Sort sort){
 	    int offset=params.getInt(CommonParams.START, 0);
 	    int count=params.getInt(CommonParams.ROWS, 10);
-	    
-	    String fl = params.get(CommonParams.FL);
-	    HashSet<String> fieldsToFetch = new HashSet<String>();
-	    
-	    // TODO: we need to support this, doing this for completeness for now
-	    boolean fetchScore = parseReturnedFields(fl, fieldsToFetch);
 	    
 	    int defaultMinCount = params.getInt(FacetParams.FACET_MINCOUNT, 0);
 	    

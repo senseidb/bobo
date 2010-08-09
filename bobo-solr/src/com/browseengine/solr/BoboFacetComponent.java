@@ -2,6 +2,7 @@ package com.browseengine.solr;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.DocIdSet;
@@ -46,7 +48,6 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.FacetAccessible;
-import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 
 public class BoboFacetComponent extends SearchComponent {
@@ -212,6 +213,19 @@ public class BoboFacetComponent extends SearchComponent {
 				        }
 				    }
 			        
+				    Set<String> facetNames = reader.getFacetNames();
+				    Set<String> returnFields = rb.rsp.getReturnFields();
+				    Set<String> storedFields = new HashSet<String>();
+				    if (returnFields!=null){
+				      for (String fld : returnFields){
+				    	if (!facetNames.contains(fld)){
+				    		storedFields.add(fld);
+				    	}
+				      }
+				      br.setFetchStoredFields(!storedFields.isEmpty());
+				    }
+				    
+				    
 	                BoboBrowser browser = new BoboBrowser(reader);
 	                
 					res=browser.browse(br);
@@ -244,7 +258,7 @@ public class BoboFacetComponent extends SearchComponent {
 	    BrowseHit[] hits = res.getHits();
 	    if (hits!=null){
 	      for (BrowseHit hit : hits){
-	    	SolrDocument doc = convert(hit);
+	    	SolrDocument doc = convert(hit,rb.rsp.getReturnFields());
 	    	if (doc!=null){
 	    		if (returnScores){
 	    			doc.addField("score", hit.getScore());
@@ -263,12 +277,21 @@ public class BoboFacetComponent extends SearchComponent {
 	    rb.stage = ResponseBuilder.STAGE_DONE;
 	}
 	
-	private static SolrDocument convert(BrowseHit hit){
+	private static SolrDocument convert(BrowseHit hit,Set<String> returnFields){
 		SolrDocument doc = new SolrDocument();
-		Map<String,String[]> fieldVals = hit.getFieldValues();
-		Set<Entry<String,String[]>> entries = fieldVals.entrySet();
-		for (Entry<String,String[]> entry: entries){
-		  doc.addField(entry.getKey(), entry.getValue());
+		if (returnFields!=null){
+		  for (String fld : returnFields){
+			String[] fv = hit.getFields(fld);
+			if (fv==null){
+			  Document storedFields = hit.getStoredFields();
+			  if (storedFields!=null){
+				  fv = storedFields.getValues(fld);
+			  }
+			}
+			if (fv!=null){
+				doc.addField(fld, fv);
+			}
+		  }
 		}
 		return doc;
 	}
