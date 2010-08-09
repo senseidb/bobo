@@ -126,6 +126,7 @@
 	        <include name="log4j.jar" />
 	        <include name="fastutil.jar" />
 	        <include name="spring.jar" />
+	        <include name="kamikaze*.jar" />
 	      </fileset>
 	    </copy>
 	</target>

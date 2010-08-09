@@ -10,6 +10,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.params.FacetParams;
 
 public class SolrBoboTest {
 
@@ -21,14 +22,15 @@ public class SolrBoboTest {
 		SolrServer solrSvr = new CommonsHttpSolrServer(url);
 		SolrQuery query = new SolrQuery();
 		
-		query.setQuery("red");
+		query.setQuery("van");
 		query.setFacet(true);
 		query.addFacetField("color","category");
 		query.setFacetMinCount(1);
 		query.setFields("color,score");
 		query.setStart(0);
 		query.setRows(10);
-		//query.setFilterQueries("contents:cool");
+		query.setFilterQueries("cool");
+		query.set(FacetParams.FACET_QUERY, "color:red");
 		
 		QueryResponse res = solrSvr.query(query);
 		
@@ -43,8 +45,10 @@ public class SolrBoboTest {
 		for (FacetField ff : facetFieldList){
 			System.out.println(ff.getName()+":");
 			List<Count> vals = ff.getValues();
-			for (Count val : vals){
+			if (vals!=null){
+			  for (Count val : vals){
 				System.out.println(val.getName()+"("+val.getCount()+")");
+			  }
 			}
 		}
 	}

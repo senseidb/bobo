@@ -184,13 +184,6 @@ public class BoboRequestBuilder {
 	}
 	
 	public static BrowseRequest buildRequest(SolrParams params,Query query,Sort sort){
-
-		for (String unsupportedParams : UnsupportedSolrFacetParams){
-			if (params.get(unsupportedParams)!=null){
-				throw new UnsupportedOperationException("Bobo does not support: "+UnsupportedSolrFacetParams);
-			}
-		}
-		
 	    int offset=params.getInt(CommonParams.START, 0);
 	    int count=params.getInt(CommonParams.ROWS, 10);
 	    
