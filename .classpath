@@ -31,8 +31,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-configuration.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-lang.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/solr/solr-core.jar" />
-	<classpathentry exported="true" kind="lib" path="lib/solr/solr-solrj.jar" />
+	<classpathentry exported="true" kind="lib" path="lib/solr/solr-core.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/solr/solr-solrj.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gui/gwt-user.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/gui/gwt-visualization.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/ant.jar"/>

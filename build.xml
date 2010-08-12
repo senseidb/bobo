@@ -6,6 +6,7 @@
 	<property name="eclipse.output" location="${bobo.root}/output"/>	
 	<property name="lib" location="lib" />
 	<property name="lib.master" location="${lib}/master" />
+	<property name="lib.solr" location="${lib}/solr" />
 	
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
@@ -268,6 +269,9 @@
 	
 	<path id="test.compile.class.path">
 			<fileset dir="${lib.master}">
+				<include name="*.jar" />
+			</fileset>
+		    <fileset dir="${lib.solr}">
 				<include name="*.jar" />
 			</fileset>
 			<fileset dir="${lib.test}">
