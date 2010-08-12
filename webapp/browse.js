@@ -40,16 +40,16 @@ function Selection(type){
 	
 	this.toHttpGetString=function(name){
 		var getString="";
-		getString+="&bobo.sel."+name+".depth="+this.depth;
+		getString+="&f.bobo."+name+".selection.prop=depth:"+this.depth;
 		if (this.strict){
-			getString+="&bobo.sel."+name+".strict=true";
+			getString+="&f.bobo."+name+".selection.prop=strict:true";
 		}
 		if (this.operation==Value_Operation_AND){
-			getString+="&bobo.sel."+name+".operation=and";
+			getString+="&f.bobo."+name+".selection.op=and";
 		}
 		for (var i=0;i<this.values.length;i++){
 			val=this.values[i];
-			getString+="&bobo.sel."+name+".val="+val;
+			getString+="&facet.query="+name+":"+val;
 		}
 		return getString;
 	}
@@ -68,7 +68,7 @@ function OutputSpec(){
 		getString+="&f."+name+".facet.limit="+this.max;
 		getString+="&f."+name+".facet.mincount=1";
 		if (this.expandSelection){
-			getString+="&f."+name+".bobo.expand=true";
+			getString+="&f.bobo."+name+".facet.expand=true";
 		}
 		if (this.order==OutputSpec_Order_Value){
 			getString+="&f."+name+".facet.sort=index";
@@ -135,6 +135,7 @@ function BrowseRequest(numPerPage){
 	this.toHttpGetString=function(){
 		var getString="";
 		getString+="q="+this.queryString;
+		getString+="&df=contents";				// default contents field
 		getString+="&start="+this.offset;
 		getString+="&rows="+this.numPerPage;
 		

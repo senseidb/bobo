@@ -122,8 +122,9 @@ public class BoboAppController extends AbstractController {
 		BoboDefaultQueryBuilder qbuilder = new BoboDefaultQueryBuilder();
 		Query query = qbuilder.parseQuery(qstring, df);
 		Sort sort = qbuilder.parseSort(sortString);
-		BrowseRequest br=BoboRequestBuilder.buildRequest(params,query,sort);
+		BrowseRequest br = null;
 		try {
+			br=BoboRequestBuilder.buildRequest(params,query,sort);
 			logger.info("REQ: "+BrowseProtobufConverter.toProtoBufString(br));
 			BrowseResult result=_svc.browse(br);
 			res.setCharacterEncoding("UTF-8");

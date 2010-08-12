@@ -174,7 +174,13 @@ public class BoboFacetComponent extends SearchComponent {
 
 		String shardsVal = solrParams.get(ShardParams.SHARDS, null);
 		
-	    BrowseRequest br=BoboRequestBuilder.buildRequest(solrParams,query,sort);
+	    BrowseRequest br = null;
+	    try{
+	    	br=BoboRequestBuilder.buildRequest(solrParams,query,sort);
+	    }
+	    catch(Exception e){
+	    	throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, e);
+	    }
 	    BrowseResult res = null;
 	    if (shardsVal == null && !solrParams.getBool(ShardParams.IS_SHARD, false))
 		{
