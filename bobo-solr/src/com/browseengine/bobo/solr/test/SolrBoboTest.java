@@ -12,6 +12,9 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.FacetParams;
 
+import com.browseengine.solr.BoboRequestBuilder;
+
+
 public class SolrBoboTest {
 
 	/**
@@ -31,6 +34,7 @@ public class SolrBoboTest {
 		query.setRows(10);
 		query.setFilterQueries("cool");
 		query.set(FacetParams.FACET_QUERY, "color:red");
+		BoboRequestBuilder.applyFacetExpand(query, "color", true);
 		
 		QueryResponse res = solrSvr.query(query);
 		
