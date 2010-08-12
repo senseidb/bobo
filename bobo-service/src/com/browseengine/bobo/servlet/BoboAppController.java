@@ -25,10 +25,10 @@ import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.impl.QueryProducer;
 import com.browseengine.bobo.protobuf.BrowseProtobufConverter;
 import com.browseengine.bobo.server.protocol.BoboHttpRequestParam;
-import com.browseengine.bobo.server.protocol.BoboRequestBuilder;
 import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
 import com.browseengine.bobo.service.util.XStreamDispenser;
+import com.browseengine.solr.BoboRequestBuilder;
 import com.thoughtworks.xstream.XStream;
 
 public class BoboAppController extends AbstractController {
@@ -122,8 +122,9 @@ public class BoboAppController extends AbstractController {
 		BoboDefaultQueryBuilder qbuilder = new BoboDefaultQueryBuilder();
 		Query query = qbuilder.parseQuery(qstring, df);
 		Sort sort = qbuilder.parseSort(sortString);
-		BrowseRequest br=BoboRequestBuilder.buildRequest(params,query,sort);
+		BrowseRequest br = null;
 		try {
+			br=BoboRequestBuilder.buildRequest(params,query,sort);
 			logger.info("REQ: "+BrowseProtobufConverter.toProtoBufString(br));
 			BrowseResult result=_svc.browse(br);
 			res.setCharacterEncoding("UTF-8");

@@ -6,6 +6,7 @@
 	<property name="eclipse.output" location="${bobo.root}/output"/>	
 	<property name="lib" location="lib" />
 	<property name="lib.master" location="${lib}/master" />
+	<property name="lib.solr" location="${lib}/solr" />
 	
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
@@ -39,6 +40,7 @@
 	<property name="carindex" value="${cardata}/cartag"/>
 	
 	<property file="${bobo.root}/version.properties" />
+	<property file="${bobo.root}/${bobo-solr}/solr.properties" />
 	
 	 <property name="ivy.install.version" value="2.0.0-beta1"/>
 	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
@@ -105,11 +107,30 @@
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="dist"/>
 		<ant antfile="build.xml"
-			 dir="${bobo-service}" target="dist"/>
-		<ant antfile="build.xml"
 		     dir="${bobo-solr}" target="dist" />
 		<ant antfile="build.xml"
+			 dir="${bobo-service}" target="dist"/>
+		     <!--
+		<ant antfile="build.xml"
 				     dir="${bobo-gwt}" target="dist" />
+				     -->
+	</target>
+	
+	<target name="deploy-solr" depends="jars">
+	    <echo message="deploying to ${solr.home} ... "/>
+	    <mkdir dir="${solr.home}/solr/lib" />
+	    <copy todir="${solr.home}/solr/lib">
+	      <fileset dir="${dist}">
+	        <include name="bobo-browse*.jar" />
+	        <include name="bobo-solr*.jar" />
+	      </fileset>
+	      <fileset dir="${lib.master}">
+	        <include name="log4j.jar" />
+	        <include name="fastutil.jar" />
+	        <include name="spring.jar" />
+	        <include name="kamikaze*.jar" />
+	      </fileset>
+	    </copy>
 	</target>
 	
 	<target name="javadoc">
@@ -149,8 +170,7 @@
 		<war destfile="${ui.out}/${ui.name}.war" webxml="${resource}/web.xml">
 			  <fileset dir="${ui.out}/${ui.name}/"/>
 			  <lib dir="${dist}">
-			    <include name="bobo-browse-${version}.jar"/>
-			  	<include name="bobo-zoie-${version}.jar"/>
+			    <include name="bobo-*.jar"/>
 			  </lib>
 			  <lib dir="${lib.master}" excludes="servlet-api.jar">
 			    <include name="*.jar"/>
@@ -249,6 +269,9 @@
 	
 	<path id="test.compile.class.path">
 			<fileset dir="${lib.master}">
+				<include name="*.jar" />
+			</fileset>
+		    <fileset dir="${lib.solr}">
 				<include name="*.jar" />
 			</fileset>
 			<fileset dir="${lib.test}">

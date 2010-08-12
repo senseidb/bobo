@@ -8,6 +8,7 @@ import org.apache.solr.common.util.NamedList;
 import org.apache.solr.core.IndexReaderFactory;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 
 public class BoboIndexReaderFactory extends IndexReaderFactory {
 	public void init(NamedList conf) {
@@ -16,10 +17,12 @@ public class BoboIndexReaderFactory extends IndexReaderFactory {
 	@Override
 	public IndexReader newReader(Directory indexDir, boolean readOnly)
 			throws IOException {
-		IndexReader reader=IndexReader.open(indexDir,readOnly);
+		IndexReader reader=IndexReader.open(indexDir,null,readOnly,termInfosIndexDivisor);
 		BoboIndexReader boboReader=null;
 		try{
-			boboReader=BoboIndexReader.getInstance(reader);
+			WorkArea workArea = new WorkArea();
+			workArea.put(getClass().getClassLoader());
+			boboReader=BoboIndexReader.getInstance(reader,workArea);
 			return boboReader;
 		}
 		catch(IOException e){

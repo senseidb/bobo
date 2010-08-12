@@ -1,36 +1,132 @@
-package com.browseengine.bobo.server.protocol;
+package com.browseengine.solr;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.SolrParams;
 
+import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
-import com.browseengine.bobo.facets.impl.PathFacetHandler;
 
 public class BoboRequestBuilder {
 	
-	public static final String SEL_PREFIX="bobo.sel.";
 	public static final String BOBO_PREFIX="bobo";
-	
-	public static final String FACET_EXPAND = BOBO_PREFIX + ".expand";
+	public static final String BOBO_FIELD_SEL_PREFIX="selection";
+	public static final String BOBO_FIELD_SEL_OP=BOBO_FIELD_SEL_PREFIX+".op";
+	public static final String BOBO_FIELD_SEL_NOT=BOBO_FIELD_SEL_PREFIX+".not";
+	public static final String BOBO_FACET_EXPAND="facet.expand"; 
 	
 	public static final Logger logger = Logger.getLogger(BoboRequestBuilder.class);
 	
-	private static void fillBoboSelections(BrowseRequest req,SolrParams params){
-		Iterator<String> names=params.getParameterNamesIterator();
+	public static void applyFacetExpand(SolrQuery params,String name,boolean expand){
+		params.add("f."+BOBO_PREFIX+"."+name+"."+BOBO_FACET_EXPAND, String.valueOf(expand));
+	}
+	
+	public static void applySelectionOperation(SolrQuery params,String name,ValueOperation op){
+		String val;
+		if (ValueOperation.ValueOperationAnd.equals(op)){
+			val="and";
+		}
+		else{
+			val = "or";
+		}
+		params.add("f."+BOBO_PREFIX+"."+name+"."+BOBO_FIELD_SEL_OP, val);
+	}
+	
+	public static ValueOperation getSelectionOperation(SolrParams params,String name) throws BrowseException{
+		String selop = getBoboParam(params,name,BOBO_FIELD_SEL_OP);
+		if (selop!=null){
+			if ("and".equals(selop)){
+				return ValueOperation.ValueOperationAnd;
+			}
+			else if ("or".equals(selop)){
+				return ValueOperation.ValueOperationOr;
+			}
+			else{
+				throw new BrowseException(name+": selection operation: "+selop+" not supported");
+			}
+		}
+		else{
+			return ValueOperation.ValueOperationOr;
+		}
+	}
+	
+	public static boolean isFacetExpand(SolrParams params,String facetField){
+		return getBoboParamBool(params,facetField,BOBO_FACET_EXPAND,false);
+	}
+	
+	public static void applySelectionNotValues(SolrQuery params,String name,String... notvalues){
+		params.add("f."+BOBO_PREFIX+"."+name+"."+BOBO_FIELD_SEL_NOT, notvalues);
+	}
+	
+	public static String[] getSelectionNotValues(SolrParams params,String name){
+		return getBoboParams(params,name,BOBO_FIELD_SEL_NOT);
+	}
+	
+	public static void applySelectionProperties(SolrQuery params,String name,Map<String,String> props){
+		if (props!=null && props.size()>0){
+			Set<Entry<String,String>> entries = props.entrySet();
+			String[] propvals = new String[entries.size()];
+			int i = 0;
+			for (Entry<String,String> entry : entries){
+				String val = entry.getKey()+":"+entry.getValue();
+				propvals[i++]=val;
+			}
+			params.add("f."+BOBO_PREFIX+"."+name+"."+BOBO_FIELD_SEL_PREFIX+".prop", propvals);
+		}
+	}
+	
+	public static Map<String,String> getSelectionProperties(SolrParams params,String name){
+		return getBoboParamProps(params,name,BOBO_FIELD_SEL_PREFIX);
+	}
+	
+	
+	
+	private static String[] getBoboParams(SolrParams solrParams,String field,String param){
+		return solrParams.getFieldParams(BOBO_PREFIX+"."+field, param);
+	}
+	
+	private static String getBoboParam(SolrParams solrParams,String field,String param){
+		return solrParams.getFieldParam(BOBO_PREFIX+"."+field, param);
+	}
+	
+	private static boolean getBoboParamBool(SolrParams solrParams,String field,String param,boolean defaultBool){
+		return solrParams.getFieldBool(BOBO_PREFIX+"."+field, param,defaultBool);
+	}
+	
+	private static Map<String,String> getBoboParamProps(SolrParams solrParams,String field,String name){
+		HashMap<String,String> propMap = new HashMap<String,String>();
+		String[] props = getBoboParams(solrParams,field,name+".prop");
+		if (props!=null && props.length>0){
+			for (String prop : props){
+				String[] parts = prop.split(":");
+				if (parts.length==2){
+					propMap.put(parts[0], parts[1]);
+				}
+			}
+		}
+		return propMap;
+	}
+	
+	
+	private static void fillBoboSelections(BrowseRequest req,SolrParams params) throws BrowseException{
+		/*Iterator<String> names=params.getParameterNamesIterator();
 		HashMap<String,BrowseSelection> selMap=new HashMap<String,BrowseSelection>();
 		
 		while(names.hasNext()){
@@ -102,7 +198,47 @@ public class BoboRequestBuilder {
 		Iterator<BrowseSelection> iter=selMap.values().iterator();
 		while(iter.hasNext()){
 			req.addSelection(iter.next());
-		}
+		}*/
+		
+		
+		String[] facetQueries = params.getParams(FacetParams.FACET_QUERY);
+	    if (facetQueries!=null && facetQueries.length!=0) {
+		    HashMap<String,BrowseSelection> selMap = new HashMap<String,BrowseSelection>();
+	    	for (String facetQuery : facetQueries){
+	    		String[] parts = facetQuery.split(":");
+	    		String name = parts[0];
+	    		String valval = parts[1];
+	    		String[] vals = valval.split(",");
+	    		if (vals.length>0){
+	    			BrowseSelection sel = selMap.get(name);
+	    			if (sel==null){
+	    				sel = new BrowseSelection(name);
+	    				selMap.put(name, sel);
+	    			}
+	    			for (String val : vals){
+	    			  sel.addValue(val);
+	    			}
+	    			
+	    			sel.setSelectionOperation(getSelectionOperation(params,name));
+	    			
+	    			String[] selNot = getSelectionNotValues(params,name);
+	    			if (selNot!=null && selNot.length>0){
+	    				sel.setNotValues(selNot);
+	    			}
+	    			
+	    			Map<String,String> propMaps = getSelectionProperties(params,name);
+	    			if (propMaps!=null && propMaps.size()>0){
+	    				sel.setSelectionProperties(propMaps);
+	    			}
+	    		}
+	    	}
+	    	if (selMap.size()>0){
+	    		Collection<BrowseSelection> sels = selMap.values();
+	    		for (BrowseSelection sel : sels){
+	    		  req.addSelection(sel);
+	    		}
+	    	}
+	    }
 	}
 	
 	private static HashSet<String> UnsupportedSolrFacetParams = new HashSet<String>();
@@ -155,22 +291,9 @@ public class BoboRequestBuilder {
 		return defaultFacetSortSpec;
 	}
 	
-	public static BrowseRequest buildRequest(SolrParams params,Query query,Sort sort){
-
-		for (String unsupportedParams : UnsupportedSolrFacetParams){
-			if (params.get(unsupportedParams)!=null){
-				throw new UnsupportedOperationException("Bobo does not support: "+UnsupportedSolrFacetParams);
-			}
-		}
-		
+	public static BrowseRequest buildRequest(SolrParams params,Query query,Sort sort) throws BrowseException{
 	    int offset=params.getInt(CommonParams.START, 0);
 	    int count=params.getInt(CommonParams.ROWS, 10);
-	    
-	    String fl = params.get(CommonParams.FL);
-	    HashSet<String> fieldsToFetch = new HashSet<String>();
-	    
-	    // TODO: we need to support this, doing this for completeness for now
-	    boolean fetchScore = parseReturnedFields(fl, fieldsToFetch);
 	    
 	    int defaultMinCount = params.getInt(FacetParams.FACET_MINCOUNT, 0);
 	    
@@ -180,8 +303,6 @@ public class BoboRequestBuilder {
 	    String[] fields = params.getParams(FacetParams.FACET_FIELD);
 	    
 	    String facetSortString = params.get(FacetParams.FACET_SORT);
-	    
-	    boolean defaultExpand = params.getBool(FACET_EXPAND, false);
 	    
 	    FacetSpec.FacetSortSpec defaultFacetSortSpec = parseFacetSort(facetSortString,FacetSpec.FacetSortSpec.OrderHitsDesc);
 	    
@@ -200,7 +321,7 @@ public class BoboRequestBuilder {
 
     	fillBoboSelections(br, params);
     	
-	    if (params.getBool(FacetParams.FACET, false)){
+	    if (params.getBool(FacetParams.FACET, false) && fields!=null){
 	    	// filling facets
 	    	for (String facetField : fields){
 	    		FacetSpec fspec = new FacetSpec();
@@ -208,7 +329,7 @@ public class BoboRequestBuilder {
 	    		
 	    		fspec.setMinHitCount(params.getFieldInt(facetField, FacetParams.FACET_MINCOUNT,defaultMinCount));
 	    		fspec.setMaxCount(params.getFieldInt(facetField, FacetParams.FACET_LIMIT,defaultLimit));
-	    		fspec.setExpandSelection(params.getFieldBool(facetField, FACET_EXPAND, defaultExpand));
+	    		fspec.setExpandSelection(isFacetExpand(params,facetField));
 	    		FacetSpec.FacetSortSpec sortSpec = parseFacetSort(params.getFieldParam(facetField, FacetParams.FACET_SORT,null),defaultFacetSortSpec);
 	    		fspec.setOrderBy(sortSpec);
 	    	}	
