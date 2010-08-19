@@ -68,7 +68,6 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
 		return reader;
 	}
 
-	@Override
 	public void setDeleteSet(BoboIndexReader arg0, DocIdSet arg1) {
 		// TODO Auto-generated method stub
 		
