@@ -12,8 +12,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.browseengine.bobo.facets.impl.DynamicRangeFacetHandler;
-
 public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
 {
   private static final Logger log = Logger.getLogger(DynamicTimeRangeFacetHandler.class.getName());
@@ -79,8 +77,6 @@ public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
                                  ArrayList<String> rangeStringList)
   {
     super(name, dataFacetName);
-    log.info(dataFacetName);
-    
     _valueToRangeStringMap = valueToRangeStringMap;
     _rangeStringToValueMap = rangeStringToValueMap;
     _rangeStringList = rangeStringList;
@@ -128,21 +124,18 @@ public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
   @Override
   protected String buildRangeString(String val)
   {
-    log.info("buildRangeString:" + val +" " + _valueToRangeStringMap.get(val));
     return _valueToRangeStringMap.get(val);
   }
 
   @Override
   protected List<String> buildAllRangeStrings()
   {
-    log.info("buildAllRangeStrings:");
     return _rangeStringList;
   }
 
   @Override
   protected String getValueFromRangeString(String val)
   {
-  	log.info("getValueFromRangeString:" + val +" " + _rangeStringToValueMap.get(val));
     return _rangeStringToValueMap.get(val);
   }
   
