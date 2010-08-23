@@ -48,7 +48,9 @@ public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
       }
     };
     
-    log.info(name +" " + dataFacetName + " " + currentTime);
+    if (log.isDebugEnabled()){
+      log.debug(name +" " + dataFacetName + " " + currentTime);
+    }
     ArrayList<String> sortedRanges = new ArrayList<String>(ranges);
     Collections.sort(sortedRanges);
     
@@ -64,7 +66,10 @@ public class DynamicTimeRangeFacetHandler extends DynamicRangeFacetHandler
       _rangeStringToValueMap.put(rangeString, range);
       _rangeStringList.add(rangeString);
       prev = range;
-      log.info(range + "\t " + rangeString);
+      
+      if (log.isDebugEnabled()){
+        log.debug(range + "\t " + rangeString);
+      }
     }
   }
   
