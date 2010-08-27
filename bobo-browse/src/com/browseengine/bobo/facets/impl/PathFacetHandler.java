@@ -3,17 +3,11 @@ package com.browseengine.bobo.facets.impl;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.lucene.index.IndexReader;
-
-import com.browseengine.bobo.api.BoboBrowser;
 import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BrowseRequest;
-import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -24,14 +18,11 @@ import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.FacetOrFilter;
-
-import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
 import com.browseengine.bobo.facets.filter.FacetValueConverter;
+import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.sort.DocComparatorSource;
-import com.browseengine.bobo.util.BigIntArray;
-import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class PathFacetHandler extends FacetHandler<FacetDataCache> 
 {
@@ -44,14 +35,20 @@ public class PathFacetHandler extends FacetHandler<FacetDataCache>
 	
 	private final TermListFactory _termListFactory;
 	private String _separator;
+	private final String _indexedName;
 	
 	public PathFacetHandler(String name){
 		this(name,false);
 	}
 	
-	public PathFacetHandler(String name,boolean multiValue)
+	public PathFacetHandler(String name,boolean multiValue){
+		this(name,name,multiValue);
+	}
+	
+	public PathFacetHandler(String name,String indexedName,boolean multiValue)
 	{
 		super(name);
+		_indexedName = indexedName;
 		_multiValue = multiValue;
 		_termListFactory=TermListFactory.StringListFactory;
 		_separator=DEFAULT_SEP;
@@ -304,12 +301,12 @@ public class PathFacetHandler extends FacetHandler<FacetDataCache>
 	public FacetDataCache load(BoboIndexReader reader) throws IOException {
        if (!_multiValue){
 	      FacetDataCache dataCache = new FacetDataCache();
-	      dataCache.load(_name, reader, _termListFactory);
+	      dataCache.load(_indexedName, reader, _termListFactory);
 	      return dataCache;
        }
        else{
     	   MultiValueFacetDataCache dataCache = new MultiValueFacetDataCache();
-    	   dataCache.load(_name, reader, _termListFactory);
+    	   dataCache.load(_indexedName, reader, _termListFactory);
  	      return dataCache;
        }
 	}
