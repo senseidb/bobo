@@ -116,21 +116,23 @@ public class SortCollectorImpl extends SortCollector {
   @Override
   public void collect(int doc) throws IOException {
     _totalHits++;
-    final float score = (_doScoring ? _scorer.score() : 0.0f);
-
-    if (_queueFull){
-      _tmpScoreDoc.doc = doc;
-      _tmpScoreDoc.score = score;
-
-      if (_currentComparator.compare(_bottom,_tmpScoreDoc) > 0){
-        ScoreDoc tmp = _bottom;
-        _bottom = _currentQueue.replace(_tmpScoreDoc);
-        _tmpScoreDoc = tmp;
-      }
-    }
-    else{ 
-      _bottom = _currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
-      _queueFull = (_currentQueue.size >= _numHits);
+    if (_count > 0){
+	    final float score = (_doScoring ? _scorer.score() : 0.0f);
+	
+	    if (_queueFull){
+	      _tmpScoreDoc.doc = doc;
+	      _tmpScoreDoc.score = score;
+	
+	      if (_currentComparator.compare(_bottom,_tmpScoreDoc) > 0){
+	        ScoreDoc tmp = _bottom;
+	        _bottom = _currentQueue.replace(_tmpScoreDoc);
+	        _tmpScoreDoc = tmp;
+	      }
+	    }
+	    else{ 
+	      _bottom = _currentQueue.add(new MyScoreDoc(doc,score,_currentQueue,_currentReader));
+	      _queueFull = (_currentQueue.size >= _numHits);
+	    }
     }
 
     if (_collector != null) _collector.collect(doc);

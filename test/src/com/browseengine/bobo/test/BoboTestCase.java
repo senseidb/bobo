@@ -1237,6 +1237,26 @@ public class BoboTestCase extends TestCase {
 
       doTest(br,5,null,new String[]{"1","3","5","2","4"});
 	}
+	
+	public void testNoCount(){
+		BrowseRequest br=new BrowseRequest();
+	    br.setCount(0);
+	    br.setOffset(0);
+	      
+	    BrowseSelection sel=new BrowseSelection("color");
+	    sel.addValue("red");
+	    br.addSelection(sel);
+	      
+	    FacetSpec ospec=new FacetSpec();
+	    ospec.setExpandSelection(false);
+	    br.setFacetSpec("color", ospec);
+	     
+
+	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+	    answer.put("color", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red",3)}));
+	     
+	    doTest(br,3,null,new String[0]);
+	}
 
     public void testDate4(){
       BrowseRequest br=new BrowseRequest();
