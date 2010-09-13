@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
@@ -66,8 +65,7 @@ public class SortCollectorImpl extends SortCollector {
   private final int _offset;
   private final int _count;
 
-  private final Map<String,FacetHandler<?>> _facetHandlerMap;
-
+  private final Browsable _boboBrowser;
   static class MyScoreDoc extends ScoreDoc {
     private static final long serialVersionUID = 1L;
 
@@ -96,7 +94,7 @@ public class SortCollectorImpl extends SortCollector {
   public SortCollectorImpl(DocComparatorSource compSource,SortField[] sortFields, Browsable boboBrowser,int offset,int count,boolean doScoring,boolean fetchStoredFields) {
     super(sortFields,fetchStoredFields);
     assert (offset>=0 && count>=0);
-    _facetHandlerMap = boboBrowser.getFacetHandlerMap();
+    _boboBrowser = boboBrowser;
     _compSource = compSource;
     _pqList = new LinkedList<DocIDPriorityQueue>();
     _numHits = offset + count;
@@ -176,7 +174,8 @@ public class SortCollectorImpl extends SortCollector {
     }
 
     ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
-    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, _facetHandlerMap, _fetchStoredFields);
+    Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
+    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields);
   }
 
   protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields)
