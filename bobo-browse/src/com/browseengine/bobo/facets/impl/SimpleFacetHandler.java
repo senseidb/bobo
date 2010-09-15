@@ -3,6 +3,7 @@ package com.browseengine.bobo.facets.impl;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.search.Explanation;
@@ -32,11 +33,21 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 	private final TermListFactory _termListFactory;
 	private final String _indexFieldName;
 	
+	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,Set<String> dependsOn)
+	{
+	   super(name,dependsOn);
+	   _indexFieldName=indexFieldName;
+	   _termListFactory=termListFactory;
+	}
+	
+	public SimpleFacetHandler(String name,TermListFactory termListFactory,Set<String> dependsOn)
+	{
+	   this(name,name,termListFactory,dependsOn);
+	}
+	
 	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory)
 	{
-		super(name);
-		_indexFieldName=indexFieldName;
-		_termListFactory=termListFactory;
+	   this(name,name,termListFactory,null);
 	}
 	
 	public SimpleFacetHandler(String name,TermListFactory termListFactory)
