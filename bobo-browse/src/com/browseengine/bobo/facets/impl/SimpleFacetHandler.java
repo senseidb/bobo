@@ -16,11 +16,13 @@ import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.FacetFilter;
 import com.browseengine.bobo.facets.filter.FacetOrFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
 import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
@@ -85,7 +87,21 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
-    return new FacetFilter(this, value);
+    FacetFilter f = new FacetFilter(this, value);
+    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
+
+		@Override
+		public FacetDataCache build(BoboIndexReader reader) {
+			return  getFacetData(reader);
+		}
+
+		@Override
+		public String getName() {
+			return _name;
+		}
+    	
+    }, f, new String[]{value});
+    return af;
   }
 
   @Override
@@ -108,11 +124,25 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
     
     if(vals.length > 1)
     {
-      return new FacetOrFilter(this,vals,isNot);
+      FacetOrFilter f = new FacetOrFilter(this,vals,isNot);
+      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
+
+  		@Override
+  		public FacetDataCache build(BoboIndexReader reader) {
+  			return  getFacetData(reader);
+  		}
+
+  		@Override
+  		public String getName() {
+  			return _name;
+  		}
+      	
+      }, f, vals);
+      return af;
     }
     else if(vals.length == 1)
     {
-      filter = new FacetFilter(this, vals[0]);
+      filter = buildRandomAccessFilter(vals[0], prop);
     }
     else
     {

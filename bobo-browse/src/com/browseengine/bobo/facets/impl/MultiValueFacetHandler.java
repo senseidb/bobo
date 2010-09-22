@@ -20,14 +20,17 @@ import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.MultiValueFacetFilter;
 import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
 import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
@@ -160,7 +163,21 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
-    return new MultiValueFacetFilter(this, value);
+	MultiValueFacetFilter f= new MultiValueFacetFilter(this, value);
+    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
+
+		@Override
+		public FacetDataCache build(BoboIndexReader reader) {
+			return  getFacetData(reader);
+		}
+
+		@Override
+		public String getName() {
+			return _name;
+		}
+    	
+    }, f, new String[]{value});
+    return af;
   }
 
   @Override
@@ -191,11 +208,30 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     RandomAccessFilter filter = null;
     if (vals.length > 1)
     {
-      filter = new MultiValueORFacetFilter(this,vals,false);			// catch the "not" case later
+      MultiValueORFacetFilter f = new MultiValueORFacetFilter(this,vals,false);			// catch the "not" case later
+      if (!isNot) {
+	      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
+	
+	  		@Override
+	  		public FacetDataCache build(BoboIndexReader reader) {
+	  			return  getFacetData(reader);
+	  		}
+	
+	  		@Override
+	  		public String getName() {
+	  			return _name;
+	  		}
+	      	
+	      }, f, vals);
+	      return af;
+      }
+      else{
+    	  filter = f;
+      }
     }
     else if(vals.length == 1)
     {
-      filter = new MultiValueFacetFilter(this,vals[0]);
+      filter = buildRandomAccessFilter(vals[0],prop);
     }
     else
     {
