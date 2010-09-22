@@ -47,7 +47,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 	
 	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory)
 	{
-	   this(name,name,termListFactory,null);
+	   this(name,indexFieldName,termListFactory,null);
 	}
 	
 	public SimpleFacetHandler(String name,TermListFactory termListFactory)
