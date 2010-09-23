@@ -105,31 +105,34 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 				}
 				return new DocIdSetIterator(){
 
+					private int _doc = -1;
 					@Override
 					public int advance(int target) throws IOException {
 						if (td.skipTo(target)){
-							return td.doc();
+							_doc = td.doc();
 						}
 						else{
 							td.close();
-							return DocIdSetIterator.NO_MORE_DOCS;
+							_doc= DocIdSetIterator.NO_MORE_DOCS;
 						}
+						return _doc;
 					}
 
 					@Override
 					public int docID() {
-						return td.doc();
+						return _doc;
 					}
 
 					@Override
 					public int nextDoc() throws IOException {
 						if (td.next()){
-							return td.doc();
+							_doc = td.doc();
 						}
 						else{
 							td.close();
-							return DocIdSetIterator.NO_MORE_DOCS;
+							_doc = DocIdSetIterator.NO_MORE_DOCS;
 						}
+						return _doc;
 					}
 					
 				};
