@@ -25,4 +25,6 @@ public abstract class RandomAccessFilter extends Filter
   }
   
   public abstract RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException;
+  public double getFacetSelectivity(BoboIndexReader reader) { return 0.50; }
+  
 }

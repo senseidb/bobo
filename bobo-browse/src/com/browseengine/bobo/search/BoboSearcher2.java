@@ -2,6 +2,9 @@ package com.browseengine.bobo.search;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +19,7 @@ import org.apache.lucene.search.Weight;
 import org.apache.lucene.util.ReaderUtil;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
@@ -49,17 +53,36 @@ public class BoboSearcher2 extends IndexSearcher{
   abstract static class FacetValidator
   {
     protected final FacetHitCollector[] _collectors;
-    protected final FacetCountCollectorSource[] _countCollectorSources;
     protected final int _numPostFilters;
     protected FacetCountCollector[] _countCollectors;
     public int _nextTarget;
 
-    public FacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectorSources,int numPostFilters) throws IOException
+    private void sortPostCollectors(final BoboIndexReader reader)
+    {
+      Comparator<FacetHitCollector> comparator = new Comparator<FacetHitCollector>(){
+        public int compare(FacetHitCollector fhc1, FacetHitCollector fhc2)
+        {
+          double selectivity1 = fhc1._filter.getFacetSelectivity(reader);
+          double selectivity2 = fhc2._filter.getFacetSelectivity(reader);
+          if (selectivity1 < selectivity2) 
+          {
+            return -1;
+          }
+          else if (selectivity1 > selectivity2) 
+          {
+            return 1;
+          }
+          return 0;
+        }
+      };       
+      
+      Arrays.sort(_collectors, 0, _numPostFilters, comparator);
+    }
+    public FacetValidator(FacetHitCollector[] collectors,int numPostFilters) throws IOException
     {
       _collectors = collectors;
-      _countCollectorSources = countCollectorSources;
       _numPostFilters = numPostFilters;
-      _countCollectors = new FacetCountCollector[_countCollectorSources.length];
+      _countCollectors = new FacetCountCollector[collectors.length];
     }
     /**
      * This method validates the doc against any multi-select enabled fields.
@@ -71,6 +94,7 @@ public class BoboSearcher2 extends IndexSearcher{
 
     public void setNextReader(BoboIndexReader reader,int docBase) throws IOException{
       ArrayList<FacetCountCollector> collectorList = new ArrayList<FacetCountCollector>();
+      sortPostCollectors(reader);
       for (int i=0;i<_collectors.length;++i){
         _collectors[i].setNextReader(reader, docBase);
         FacetCountCollector collector = _collectors[i]._currentPointers.facetCountCollector;
@@ -83,11 +107,11 @@ public class BoboSearcher2 extends IndexSearcher{
     }
 
   }
-
+  
   private final static class DefaultFacetValidator extends FacetValidator{
 
-    public DefaultFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors,int numPostFilters) throws IOException{
-      super(collectors,countCollectors,numPostFilters);
+    public DefaultFacetValidator(FacetHitCollector[] collectors,int numPostFilters) throws IOException{
+      super(collectors,numPostFilters);
     }
     /**
      * This method validates the doc against any multi-select enabled fields.
@@ -150,8 +174,8 @@ public class BoboSearcher2 extends IndexSearcher{
 
   private final static class OnePostFilterFacetValidator extends FacetValidator{
     private FacetHitCollector _firsttime;
-    OnePostFilterFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors) throws IOException{
-      super(collectors,countCollectors,1);
+    OnePostFilterFacetValidator(FacetHitCollector[] collectors) throws IOException{
+      super(collectors,1);
       _firsttime = _collectors[0];
     }
 
@@ -183,9 +207,10 @@ public class BoboSearcher2 extends IndexSearcher{
     }
   }
 
+
   private final static class NoNeedFacetValidator extends FacetValidator{
-    NoNeedFacetValidator(FacetHitCollector[] collectors,FacetCountCollectorSource[] countCollectors) throws IOException{
-      super(collectors,countCollectors,0);
+    NoNeedFacetValidator(FacetHitCollector[] collectors) throws IOException{
+      super(collectors,0);
     }
 
     @Override
@@ -198,6 +223,7 @@ public class BoboSearcher2 extends IndexSearcher{
 
   }
 
+  
   protected FacetValidator createFacetValidator() throws IOException
   {
 
@@ -225,13 +251,13 @@ public class BoboSearcher2 extends IndexSearcher{
     numPostFilters = i;
 
     if(numPostFilters == 0){
-      return new NoNeedFacetValidator(collectors,countCollectors);
+      return new NoNeedFacetValidator(collectors);
     }
     else if (numPostFilters==1){
-      return new OnePostFilterFacetValidator(collectors,countCollectors);  
+      return new OnePostFilterFacetValidator(collectors);  
     }
     else{
-      return new DefaultFacetValidator(collectors,countCollectors,numPostFilters);
+      return new DefaultFacetValidator(collectors,numPostFilters);
     }
   }
 
@@ -252,6 +278,8 @@ public class BoboSearcher2 extends IndexSearcher{
         int docStart = start + _docStarts[i];
       collector.setNextReader(_subReaders[i], docStart);
       validator.setNextReader(_subReaders[i], docStart);
+    
+      
       Scorer scorer = weight.scorer(_subReaders[i], true, true);
       if (scorer != null) {
         collector.setScorer(scorer);

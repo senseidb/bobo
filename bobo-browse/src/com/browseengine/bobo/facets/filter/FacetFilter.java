@@ -21,7 +21,7 @@ public class FacetFilter extends RandomAccessFilter
 	private static final long serialVersionUID = 1L;
 	
 
-    private final FacetHandler<FacetDataCache> _facetHandler;
+  private final FacetHandler<FacetDataCache> _facetHandler;
 	protected final String _value;
 	
 	public FacetFilter(FacetHandler<FacetDataCache> facetHandler,String value)
@@ -30,6 +30,17 @@ public class FacetFilter extends RandomAccessFilter
 		_value=value;
 	}
 	
+  public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = 0;
+    FacetDataCache dataCache = _facetHandler.getFacetData(reader);
+    int idx = dataCache.valArray.indexOf(_value);
+    int freq =dataCache.freqs[idx];
+    int total = reader.maxDoc();
+    selectivity = (double)freq/(double)total;
+    return selectivity;
+  }
+  
 	public static class FacetDocIdSetIterator extends DocIdSetIterator
 	{
 		protected int _doc;
