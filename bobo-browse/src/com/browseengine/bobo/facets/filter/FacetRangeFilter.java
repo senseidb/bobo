@@ -26,7 +26,29 @@ public final class FacetRangeFilter extends RandomAccessFilter
 		_facetHandler = facetHandler;
 		_rangeString = rangeString;
 	}
-	
+	 
+  public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = 0;
+    FacetDataCache dataCache = _facetHandler.getFacetData(reader);
+    int[] range = parse(dataCache,_rangeString);
+    if (range != null) 
+    {
+      int accumFreq=0;
+      for(int idx=range[0]; idx<=range[1]; ++idx)
+      {
+        accumFreq +=dataCache.freqs[idx];
+      }
+      int total = reader.maxDoc();
+      selectivity = (double)accumFreq/(double)total;
+    }
+    if(selectivity > 0.999)
+    {
+      selectivity = 1.0;
+    }
+    return selectivity;
+  }
+  
 	private final static class FacetRangeDocIdSetIterator extends DocIdSetIterator
 	{
 		private int _doc = -1;

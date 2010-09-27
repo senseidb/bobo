@@ -9,6 +9,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 
 public class RandomAccessOrFilter extends RandomAccessFilter
@@ -26,6 +27,21 @@ public class RandomAccessOrFilter extends RandomAccessFilter
       e.printStackTrace();
     }
     _filters = filters;
+  }
+  
+  public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = 0;
+    for(RandomAccessFilter filter : _filters)
+    {
+      selectivity += filter.getFacetSelectivity(reader);
+    }
+    
+    if(selectivity > 0.999)
+    {
+      selectivity = 1.0;
+    }
+    return selectivity;
   }
   
   @Override

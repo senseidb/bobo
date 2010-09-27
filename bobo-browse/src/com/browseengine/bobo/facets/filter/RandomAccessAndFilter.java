@@ -22,6 +22,24 @@ public class RandomAccessAndFilter extends RandomAccessFilter
     _filters = filters;
   }
   
+  public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = Double.MAX_VALUE;
+    for(RandomAccessFilter filter : _filters)
+    {
+      double curSelectivity = filter.getFacetSelectivity(reader);
+      if(selectivity > curSelectivity)
+      {
+        selectivity = curSelectivity;
+      }
+    }
+    if(selectivity > 0.999)
+    {
+      selectivity = 1.0;
+    }
+    return selectivity;
+  }
+  
   @Override
   public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException
   {

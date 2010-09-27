@@ -17,6 +17,10 @@ public class EmptyFilter extends RandomAccessFilter
 		
 	}
 
+	 public double getFacetSelectivity(BoboIndexReader reader)
+	  {
+	   return 0.0;
+	  }
 	@Override
 	public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException 
 	{

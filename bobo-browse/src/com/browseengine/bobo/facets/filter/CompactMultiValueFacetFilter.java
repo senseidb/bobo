@@ -9,6 +9,7 @@ import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class CompactMultiValueFacetFilter extends RandomAccessFilter {
@@ -30,6 +31,26 @@ public class CompactMultiValueFacetFilter extends RandomAccessFilter {
 		_facetHandler = facetHandler;
 		_vals = vals;
 	}
+	
+	public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = 0;
+    FacetDataCache dataCache = _facetHandler.getFacetData(reader);
+    int[] idxes = FacetDataCache.convert(dataCache,_vals);
+    
+    int accumFreq=0;
+    for(int idx : idxes)
+    {
+      accumFreq +=dataCache.freqs[idx];
+    }
+    int total = reader.maxDoc();
+    selectivity = (double)accumFreq/(double)total;
+    if(selectivity > 0.999) 
+    {
+      selectivity = 1.0;
+    }
+    return selectivity;
+  }
 	
 	private final static class CompactMultiValueFacetDocIdSetIterator extends DocIdSetIterator
 	{

@@ -7,6 +7,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetFilter.FacetDocIdSetIterator;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
@@ -24,6 +25,18 @@ public class MultiValueFacetFilter extends RandomAccessFilter
         _facetHandler = facetHandler;
         _val = val;
     }
+    
+    public double getFacetSelectivity(BoboIndexReader reader)
+    {
+      double selectivity = 0;
+      FacetDataCache dataCache = _facetHandler.getFacetData(reader);
+      int idx = dataCache.valArray.indexOf(_val);
+      int freq =dataCache.freqs[idx];
+      int total = reader.maxDoc();
+      selectivity = (double)freq/(double)total;
+      return selectivity;
+    }
+    
     
     private final static class MultiValueFacetDocIdSetIterator extends FacetDocIdSetIterator
     {

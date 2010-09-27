@@ -20,6 +20,13 @@ public class RandomAccessNotFilter extends RandomAccessFilter
     _innerFilter = innerFilter;
   }
   
+  public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = _innerFilter.getFacetSelectivity(reader);
+    selectivity = selectivity > 0.999 ? 0.0 : (1-selectivity); 
+    return selectivity;
+  }
+  
   @Override
   public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException
   {

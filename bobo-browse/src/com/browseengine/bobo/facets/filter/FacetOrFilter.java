@@ -42,6 +42,25 @@ public class FacetOrFilter extends RandomAccessFilter
     _valueConverter = valueConverter;
   }
   
+  public double getFacetSelectivity(BoboIndexReader reader)
+  {
+    double selectivity = 0;
+    FacetDataCache dataCache = _facetHandler.getFacetData(reader);
+    int accumFreq=0;
+    for(String value : _vals)
+    {
+      int idx = dataCache.valArray.indexOf(value);
+      accumFreq +=dataCache.freqs[idx];
+    }
+    int total = reader.maxDoc();
+    selectivity = (double)accumFreq/(double)total;
+    if(selectivity > 0.999)
+    {
+      selectivity = 1.0;
+    }
+    return selectivity;
+  }
+  
   @Override
   public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException
   {

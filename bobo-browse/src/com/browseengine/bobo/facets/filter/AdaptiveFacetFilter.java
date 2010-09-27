@@ -45,6 +45,11 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	  _valSet = new HashSet<String>(Arrays.asList(val));
 	}
 	
+	 public double getFacetSelectivity(BoboIndexReader reader)
+	 {
+	   return _facetFilter.getFacetSelectivity(reader);
+	 }
+	
 	@Override
 	public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader)
 			throws IOException {
