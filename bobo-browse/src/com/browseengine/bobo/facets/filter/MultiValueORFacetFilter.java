@@ -41,7 +41,10 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
     double selectivity = 0;
     MultiValueFacetDataCache dataCache = (MultiValueFacetDataCache)_facetHandler.getFacetData(reader);
     int[] idxes = _valueConverter.convert(dataCache, _vals);
-    
+    if(idxes == null)
+    {
+      return 0.0;
+    }
     int accumFreq=0;
     for(int idx : idxes)
     {

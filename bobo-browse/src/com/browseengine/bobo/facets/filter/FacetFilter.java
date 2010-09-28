@@ -35,6 +35,10 @@ public class FacetFilter extends RandomAccessFilter
     double selectivity = 0;
     FacetDataCache dataCache = _facetHandler.getFacetData(reader);
     int idx = dataCache.valArray.indexOf(_value);
+    if(idx<0)
+    {
+      return 0.0;
+    }
     int freq =dataCache.freqs[idx];
     int total = reader.maxDoc();
     selectivity = (double)freq/(double)total;

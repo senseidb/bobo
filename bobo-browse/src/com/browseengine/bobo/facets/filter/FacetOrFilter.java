@@ -50,6 +50,10 @@ public class FacetOrFilter extends RandomAccessFilter
     for(String value : _vals)
     {
       int idx = dataCache.valArray.indexOf(value);
+      if(idx < 0)
+      {
+        continue;
+      }
       accumFreq +=dataCache.freqs[idx];
     }
     int total = reader.maxDoc();

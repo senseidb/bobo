@@ -29,8 +29,12 @@ public class MultiValueFacetFilter extends RandomAccessFilter
     public double getFacetSelectivity(BoboIndexReader reader)
     {
       double selectivity = 0;
-      FacetDataCache dataCache = _facetHandler.getFacetData(reader);
+      MultiValueFacetDataCache dataCache = _facetHandler.getFacetData(reader);
       int idx = dataCache.valArray.indexOf(_val);
+      if(idx<0)
+      {
+        return 0.0;
+      }
       int freq =dataCache.freqs[idx];
       int total = reader.maxDoc();
       selectivity = (double)freq/(double)total;
