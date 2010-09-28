@@ -63,7 +63,6 @@ public class BoboIndexReaderDecorator implements IndexReaderDecorator<BoboIndexR
 	 */
 	public BoboIndexReader redecorate(BoboIndexReader reader, ZoieIndexReader<BoboIndexReader> newReader,boolean withDeletes)
 			throws IOException {
-		reader.rewrap(newReader);
-		return reader;
+		return reader.copy(newReader);
 	}
 }

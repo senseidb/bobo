@@ -671,4 +671,26 @@ public class BoboIndexReader extends FilterIndexReader
       map.clear();
     }
   }
+
+  private BoboIndexReader(IndexReader in)
+  {
+    super(in);
+  }
+  public BoboIndexReader copy(IndexReader in)
+  {
+    if(_subReaders != null)
+    {
+      throw new UnsupportedOperationException("this BoboIndexReader has subreaders");
+    }
+    BoboIndexReader copy = new BoboIndexReader(in);
+    copy._facetHandlerMap = this._facetHandlerMap;
+    copy._facetHandlers = this._facetHandlers;
+    copy._runtimeFacetHandlerFactories = this._runtimeFacetHandlerFactories;
+    copy._runtimeFacetHandlerFactoryMap = this._runtimeFacetHandlerFactoryMap;
+    copy._workArea = this._workArea;
+    copy._facetDataMap.putAll(this._facetDataMap);
+    copy._srcReader = in;
+    copy._starts = this._starts;
+    return copy;
+  }
 }
