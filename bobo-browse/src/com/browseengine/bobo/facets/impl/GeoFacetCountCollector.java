@@ -262,6 +262,6 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	}
 	
 	public FacetIterator iterator() {
-		return new DefaultFacetIterator(_predefinedRanges, _count, _countlength, true);
+		return new DefaultFacetIterator(_predefinedRanges, _count, _count,_countlength, true);
 	}
 }

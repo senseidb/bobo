@@ -176,7 +176,9 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
 			public FacetCountCollector getFacetCountCollector(BoboIndexReader reader,
 					int docBase) {
 				final FacetDataCache dataCache = CompactMultiValueFacetHandler.this.getFacetData(reader);
-				return new CompactMultiValueFacetCountCollector(_name,sel,dataCache,docBase,ospec);
+				CompactMultiValueFacetCountCollector collector = new CompactMultiValueFacetCountCollector(_name,sel,dataCache,docBase, ospec);
+				collector.setFacetScoringParams(CompactMultiValueFacetHandler.this.getFacetScoringParamMap());
+				return collector;
 			}
 		};
 	}

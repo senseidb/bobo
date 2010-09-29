@@ -14,22 +14,25 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
 
   public TermDoubleList _valList;
   private int[] _count;
+  private int[] _scores;
   private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultDoubleFacetIterator(TermDoubleList valList, int[] countarray, int countlength,
+  public DefaultDoubleFacetIterator(TermDoubleList valList, int[] countarray, int[] scores, int countlength,
       boolean zeroBased)
   {
     _valList = valList;
     _countlength = countlength;
     _count = countarray;
+    _scores = scores;
     _countLengthMinusOne = _countlength - 1;
     _index = -1;
     if (!zeroBased)
       _index++;
     facet = -1;
     count = 0;
+    score = 0;
   }
 
   /*
@@ -85,6 +88,8 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count[_index];
+    score = _scores[_index];
+    
     return _valList.get(_index);
   }
 
@@ -98,6 +103,8 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count[_index];
+    score = _scores[_index];
+    
     return facet;
   }
 
@@ -125,11 +132,14 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
       {
         facet = _valList.getPrimitiveValue(_index);
         count = _count[_index];
+        score = _scores[_index];
+        
         return _valList.format(facet);
       }
     }
     facet = -1;
     count = 0;
+    score =0;
     return null;
   }
 
@@ -144,11 +154,14 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
       {
         facet = _valList.getPrimitiveValue(_index);
         count = _count[_index];
+        score = _scores[_index];
+        
         return facet;
       }
     }
     facet = -1;
     count = 0;
+    score = 0;
     return facet;
   }
 }

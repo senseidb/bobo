@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -41,6 +41,10 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   private int _docBase;
   protected LinkedList<int[]> intarraylist = new LinkedList<int[]>();
   private Iterator _iterator;
+  private int[] _scores = null;
+  private boolean _normalizeFreq;
+  
+  public static final String FACET_SCORE_NORMALIZE_MAP = "facetScoreNormalize";
 
   protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
       {
@@ -82,6 +86,20 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     }
     _array = _dataCache.orderArray;
     _docBase = docBase;
+    
+  }
+  
+  public void setFacetScoringParams(Map<String,String> facetScoringParams){
+	try{
+    	_normalizeFreq = Boolean.parseBoolean(facetScoringParams.get(FACET_SCORE_NORMALIZE_MAP));
+    }
+    catch(Exception e){
+    	_normalizeFreq = false;
+    }
+  }
+  
+  public void setNormalizeFreq(boolean normalizeFreq){
+	  _normalizeFreq = normalizeFreq;
   }
 
   public String getName()
@@ -92,17 +110,51 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   abstract public void collect(int docid);
 
   abstract public void collectAll();
+  
+  public int[] buildScore(){
+	  if (!_normalizeFreq){
+	    return _count;
+	  }
+	  else{
+		int[] scores = new int[_count.length];
+		int[] freqs = _dataCache.freqs;
+		for (int i=0;i<_count.length;++i){
+		  int score = 0;
+		  if (_count[i]>0){
+		    double freq = freqs[i];
+		    if (freq>0.0){
+		      double cnt = _count[i];
+			  score = (int)(cnt/freq*100.0);  	
+		    } 
+		  }
+		  scores[i] = score;
+		}
+		return scores;
+	  }
+  }
+  
+  public final int[] getScores(){
+	  if (_scores==null){
+		  _scores = buildScore();
+	  }
+	  return _scores;
+  }
 
   public BrowseFacet getFacet(String value)
   {
     BrowseFacet facet = null;
     int index=_dataCache.valArray.indexOf(value);
+    
+    int score = 0;
     if (index >=0 ){
       facet = new BrowseFacet(_dataCache.valArray.get(index),_count[index]);
+      int[] scores = getScores();
+      score = scores[index];
     }
     else{
       facet = new BrowseFacet(_dataCache.valArray.format(value),0);  
     }
+    facet.setFacetValueScore(score);
     return facet; 
   }
 
@@ -117,6 +169,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       int minCount=_ospec.getMinHitCount();
       int max=_ospec.getMaxCount();
       if (max <= 0) max=_countlength;
+      
+      int[] scores = getScores();
 
       List<BrowseFacet> facetColl;
       List<String> valList=_dataCache.valArray;
@@ -130,6 +184,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
           if (hits>=minCount)
           {
             BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
+            facet.setFacetValueScore(scores[i]);
             System.out.println("DefaultFacetCountCollector: Value --> " + valList.get(i));
             facetColl.add(facet);
           }
@@ -141,6 +196,9 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
         ComparatorFactory comparatorFactory;
         if (sortspec == FacetSortSpec.OrderHitsDesc){
           comparatorFactory = new FacetHitcountComparatorFactory();
+        }
+        else if (sortspec == FacetSortSpec.OrderScoreDesc){
+          comparatorFactory = new FacetScoreComparatorFactory();
         }
         else{
           comparatorFactory = _ospec.getCustomComparatorFactory();
@@ -160,7 +218,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
             return _dataCache.valArray.getRawValue(index);
           }
 
-        }, _count);
+        }, _count,scores);
         facetColl=new LinkedList<BrowseFacet>();
         final int forbidden = -1;
         IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
@@ -178,6 +236,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
         while((val = pq.pollInt()) != forbidden)
         {
           BrowseFacet facet=new BrowseFacet(valList.get(val),_count[val]);
+          facet.setFacetValueScore(scores[val]);
           ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
         }
       }
@@ -202,22 +261,23 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
    * @return	The Iterator to iterate over the facets in value order
    */
   public FacetIterator iterator() {
+	int[] scores = getScores();
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
-      return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, _countlength, false);
+      return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, scores,_countlength, false);
     } else if (_dataCache.valArray.getType().equals(Long.class))
     {
-      return new DefaultLongFacetIterator((TermLongList) _dataCache.valArray, _count, _countlength, false);
+      return new DefaultLongFacetIterator((TermLongList) _dataCache.valArray, _count, scores,_countlength, false);
     } else if (_dataCache.valArray.getType().equals(Short.class))
     {
-      return new DefaultShortFacetIterator((TermShortList) _dataCache.valArray, _count, _countlength, false);
+      return new DefaultShortFacetIterator((TermShortList) _dataCache.valArray, _count,scores, _countlength, false);
     } else if (_dataCache.valArray.getType().equals(Float.class))
     {
-      return new DefaultFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, _countlength, false);
+      return new DefaultFloatFacetIterator((TermFloatList) _dataCache.valArray, _count, scores,_countlength, false);
     } else if (_dataCache.valArray.getType().equals(Double.class))
     {
-      return new DefaultDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, _countlength, false);
+      return new DefaultDoubleFacetIterator((TermDoubleList) _dataCache.valArray, _count, scores,_countlength, false);
     } else
-    return new DefaultFacetIterator(_dataCache.valArray, _count, _countlength, false);
+    return new DefaultFacetIterator(_dataCache.valArray, _count, scores,_countlength, false);
   }
 }

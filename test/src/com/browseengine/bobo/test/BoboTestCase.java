@@ -93,8 +93,10 @@ import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.BucketFacetHandler;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.DefaultFacetCountCollector;
 import com.browseengine.bobo.facets.impl.DynamicTimeRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
+import com.browseengine.bobo.facets.impl.FacetScoreComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler;
@@ -118,6 +120,8 @@ public class BoboTestCase extends TestCase {
   private Directory _indexDir;
 	private List<FacetHandler<?>> _fconf;
 	static final private Term tagSizePayloadTerm = new Term("tagSizePayload", "size");
+	
+
 	
 	private static class TestDataDigester extends DataDigester {
 		private List<FacetHandler<?>> _fconf;
@@ -474,7 +478,11 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new SimpleFacetHandler("number", numTermFactory));
 		facetHandlers.add(new RangeFacetHandler("date", new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"), Arrays.asList(new String[]{"[2000/01/01 TO 2003/05/05]", "[2003/05/06 TO 2005/04/04]"})));
 		facetHandlers.add(new SimpleFacetHandler("char", (TermListFactory)null));
-		facetHandlers.add(new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm));
+		
+		MultiValueFacetHandler tagHandler = new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm);
+		
+		tagHandler.setFacetScoringParam(DefaultFacetCountCollector.FACET_SCORE_NORMALIZE_MAP, String.valueOf(true));
+		facetHandlers.add(tagHandler);
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new SimpleFacetHandler("storenum", new PredefinedTermListFactory(Long.class, null)));
@@ -1038,7 +1046,7 @@ public class BoboTestCase extends TestCase {
 		pathSpec.setCustomComparatorFactory(new ComparatorFactory(){
 
 			public IntComparator newComparator(
-					FieldValueAccessor fieldValueAccessor, final int[] counts) {
+					FieldValueAccessor fieldValueAccessor, final int[] counts, final int[] score) {
 				return new IntComparator(){
 
 					public int compare(Integer f1, Integer f2) {
@@ -1268,6 +1276,37 @@ public class BoboTestCase extends TestCase {
         }
         throw ioe;
       }
+	}
+	
+	public void testScoreSort(){
+		BrowseRequest br=new BrowseRequest();
+	    br.setCount(10);
+	    br.setOffset(0);
+	    
+	    BrowseSelection sel = new BrowseSelection("color");
+	    sel.addValue("red");
+	    
+	    br.addSelection(sel);
+	    br.setFetchStoredFields(false);
+	      
+	    FacetSpec tagSpec = new FacetSpec();
+	    tagSpec.setMaxCount(3);
+	    tagSpec.setOrderBy(FacetSortSpec.OrderScoreDesc);
+	    br.setFacetSpec("tag", tagSpec);
+	    	      
+	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+	    answer.put("tag", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red",3),new BrowseFacet("blue",2),new BrowseFacet("green",2)}));
+	      
+	    doTest(br,3,answer,null);
+	      
+	    Comparator<BrowseFacet> valComp = new FacetScoreComparatorFactory().newComparator();
+	    BrowseFacet f1 = new BrowseFacet("red",3);
+	    f1.setFacetValueScore(2);
+	    BrowseFacet f2 = new BrowseFacet("red",2);
+	    f2.setFacetValueScore(5);
+	    
+	    int v = valComp.compare(f1,f2);
+	    assertTrue(v<0);
 	}
 	
 	public void testFacetSort()
@@ -2040,7 +2079,7 @@ public class BoboTestCase extends TestCase {
 		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
 			
 			public IntComparator newComparator(final FieldValueAccessor fieldValueAccessor,
-					final int[] counts) {
+					final int[] counts, final int[] score) {
 				
 				return new IntComparator(){
 

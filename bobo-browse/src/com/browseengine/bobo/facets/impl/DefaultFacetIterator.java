@@ -14,11 +14,12 @@ public class DefaultFacetIterator extends FacetIterator {
 
   private TermValueList _valList;
   private int[] _count;
+  private int[] _scores;
   private int _countlength;
   private int _index;
   private int _lastIndex;
 
-  public DefaultFacetIterator(TermValueList valList, int[] counts, int countlength, boolean zeroBased)
+  public DefaultFacetIterator(TermValueList valList, int[] counts,int[] scores, int countlength, boolean zeroBased)
   {
     _valList = valList;
     _count = counts;
@@ -29,6 +30,8 @@ public class DefaultFacetIterator extends FacetIterator {
       _index++;
     facet = null;
     count = 0;
+    score = 0;
+    _scores = scores;
   }
 
 
@@ -46,6 +49,7 @@ public class DefaultFacetIterator extends FacetIterator {
     _index++;
     facet = (Comparable)_valList.getRawValue(_index);
     count = _count[_index];
+    score = _scores[_index];
     return format(facet);
   }
 
@@ -67,11 +71,13 @@ public class DefaultFacetIterator extends FacetIterator {
       {
     	facet = (Comparable)_valList.getRawValue(_index);
         count = _count[_index];
+        score = _scores[_index];
         return format(facet);
       }
     }
     facet = null;
     count = 0;
+    score = 0;
     return null;    
   }
 

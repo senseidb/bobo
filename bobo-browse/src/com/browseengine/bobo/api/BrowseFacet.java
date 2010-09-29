@@ -12,15 +12,24 @@ public class BrowseFacet implements Serializable {
 	
 	private String _value;
 	private int _hitcount;
+	private int _score;
 	
-	public BrowseFacet()
-	{
+	public BrowseFacet(){
 	}
 	
 	public BrowseFacet(String value,int hitcount)
 	{
 		_value=value;
 		_hitcount=hitcount;
+		_score = hitcount;
+	}
+	
+	public void setFacetValueScore(int score){
+		_score = score;
+	}
+	
+	public int getFacetValueScore(){
+		return _score;
 	}
 	
 	/**
@@ -92,7 +101,9 @@ public class BrowseFacet implements Serializable {
 		if (obj instanceof BrowseFacet){
 			BrowseFacet c2=(BrowseFacet)obj;
 			if (_hitcount==c2._hitcount && _value.equals(c2._value)){
-				equals=true;
+				if (_score==c2._score){
+				  equals=true;
+				}
 			}
 		}
 		return equals;
@@ -106,6 +117,9 @@ public class BrowseFacet implements Serializable {
 			if (val == 0)
 			{
 				facet._hitcount +=this._hitcount;
+				
+				// TODO: need to do better
+				facet._score += facet._score;
 				return v;
 			}
 			if (val>0)

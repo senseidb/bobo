@@ -331,7 +331,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
               return getRawFaceValue(index);
             }
 
-          }, _count);
+          }, _count,_count);
           facetColl=new LinkedList<BrowseFacet>();
           final int forbidden = -1;
           IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);

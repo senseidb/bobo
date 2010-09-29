@@ -9,7 +9,7 @@ import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class FacetHitcountComparatorFactory implements ComparatorFactory {
   public IntComparator newComparator(FieldValueAccessor valueList,
-      final int[] counts) {
+      final int[] counts,final int[] scores) {
     return new IntComparator(){
 
       public int compare(Integer f1, Integer f2) {
@@ -38,7 +38,7 @@ public class FacetHitcountComparatorFactory implements ComparatorFactory {
   public static final Comparator<BrowseFacet> FACET_HITS_COMPARATOR = new Comparator<BrowseFacet>()
   {
     public int compare(BrowseFacet f1, BrowseFacet f2) {
-      int val = f2.getHitCount() - f1.getHitCount();
+      int val = f2.getFacetValueHitCount() - f1.getFacetValueHitCount();
       if (val==0)
       {
         val=f1.getValue().compareTo(f2.getValue());

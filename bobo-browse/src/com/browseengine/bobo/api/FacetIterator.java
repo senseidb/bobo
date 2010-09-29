@@ -12,6 +12,7 @@ import java.util.Iterator;
 public abstract class FacetIterator implements Iterator<Comparable>{
 
 	public int count;
+	public int score;
 	public Comparable facet;
 	
 	/**

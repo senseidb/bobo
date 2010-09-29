@@ -211,6 +211,6 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 				}
 			}
 		}
-		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.length, true);
+		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts,rangeCounts.length, true);
 	}	
 }
