@@ -91,6 +91,7 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
+import com.browseengine.bobo.facets.impl.BucketFacetHandler;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.DynamicTimeRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
@@ -235,6 +236,7 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("custom","000003"));
 		d1.add(buildMetaField("latitude", "60"));
 		d1.add(buildMetaField("longitude", "120"));
+		d1.add(buildMetaField("salary", "04500"));
 		
 		Field sf = new Field("testStored","stored",Store.YES,Index.NO);
 		d1.add(sf);
@@ -264,6 +266,7 @@ public class BoboTestCase extends TestCase {
 		d2.add(buildMetaField("custom","000010"));
 		d2.add(buildMetaField("latitude", "50"));
 		d2.add(buildMetaField("longitude", "110"));
+		d2.add(buildMetaField("salary", "08500"));
 		
 		Document d3=new Document();
 		d3.add(buildMetaField("id","3"));
@@ -290,6 +293,7 @@ public class BoboTestCase extends TestCase {
 		d3.add(buildMetaField("custom","000015"));
 		d3.add(buildMetaField("latitude", "35"));
 		d3.add(buildMetaField("longitude", "70"));
+		d3.add(buildMetaField("salary", "06500"));
 		
 		Document d4=new Document();
 		d4.add(buildMetaField("id","4"));
@@ -315,6 +319,7 @@ public class BoboTestCase extends TestCase {
 		d4.add(buildMetaField("custom","000019"));
 		d4.add(buildMetaField("latitude", "30"));
 		d4.add(buildMetaField("longitude", "75"));
+		d4.add(buildMetaField("salary", "11200"));
 		
 		Document d5=new Document();
 		d5.add(buildMetaField("id","5"));
@@ -341,6 +346,7 @@ public class BoboTestCase extends TestCase {
 		d5.add(buildMetaField("custom","000002"));
 		d5.add(buildMetaField("latitude", "60"));
 		d5.add(buildMetaField("longitude", "120"));
+		d5.add(buildMetaField("salary", "10500"));
 		
 		Document d6=new Document();
 		d6.add(buildMetaField("id","6"));
@@ -369,6 +375,7 @@ public class BoboTestCase extends TestCase {
 		d6.add(buildMetaField("custom","000009"));
 		d6.add(buildMetaField("latitude", "80"));
 		d6.add(buildMetaField("longitude", "-90"));
+		d6.add(buildMetaField("salary", "08900"));
 		
 		Document d7=new Document();
 		d7.add(buildMetaField("id","7"));
@@ -395,10 +402,12 @@ public class BoboTestCase extends TestCase {
 		d7.add(buildMetaField("custom","000013"));
 		d7.add(buildMetaField("latitude", "70"));
 		d7.add(buildMetaField("longitude", "-60"));
+		d7.add(buildMetaField("salary", "28500"));
 		
 		Document d8 = new Document();
 		d8.add(buildMetaField("latitude", "35"));
 		d8.add(buildMetaField("longitude", "120"));
+		d8.add(buildMetaField("salary", "00120"));
 		
 		dataList.add(d1);
 		dataList.add(d2);
@@ -407,7 +416,7 @@ public class BoboTestCase extends TestCase {
 		dataList.add(d5);
 		dataList.add(d6);
 		dataList.add(d7);
-		dataList.add(d7);
+		dataList.add(d8);
 		
 		return dataList.toArray(new Document[dataList.size()]);
 	}
@@ -477,6 +486,22 @@ public class BoboTestCase extends TestCase {
 		/* Underlying time facet for DynamicTimeRangeFacetHandler */
 		facetHandlers.add(new RangeFacetHandler("timeinmillis", new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT),null));
 		
+		String[] predefinedSalaryRanges = new String[4];
+		predefinedSalaryRanges[0] = new String("[04000 TO 05999]");
+		predefinedSalaryRanges[1] = new String("[06000 TO 07999]");
+		predefinedSalaryRanges[2] = new String("[08000 TO 09999]");
+		predefinedSalaryRanges[3] = new String("[10000 TO *]");
+		RangeFacetHandler dependedRangeFacet = new RangeFacetHandler("salary", Arrays.asList(predefinedSalaryRanges));
+    facetHandlers.add(dependedRangeFacet);
+    
+		String[] predefinedBuckets = new String[4];
+    predefinedBuckets[0] =  new String("[04000 TO 05999],[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
+    predefinedBuckets[1] =  new String("[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
+    predefinedBuckets[2] =  new String("[08000 TO 09999],[10000 TO *]");
+    predefinedBuckets[3] =  new String("[10000 TO *]");
+		facetHandlers.add(new BucketFacetHandler("salaryBucket", Arrays.asList(predefinedBuckets), "salary"));
+		
+		
 		LinkedHashSet<String> dependsNames=new LinkedHashSet<String>();
 		dependsNames.add("color");
 		dependsNames.add("shape");
@@ -491,7 +516,6 @@ public class BoboTestCase extends TestCase {
 		if (numHits==res.getNumHits()){
 		    if (choiceMap!=null){
     			Set<Entry<String,FacetAccessible>> entries=res.getFacetMap().entrySet();
-    			
     			if (entries.size() == choiceMap.size()){
     				for (Entry<String,FacetAccessible> entry : entries){
     					String name = entry.getKey();
@@ -505,7 +529,10 @@ public class BoboTestCase extends TestCase {
     						Iterator<BrowseFacet> iter2 = l2.iterator();
     						while(iter1.hasNext())
     						{
-    							if (!iter1.next().equals(iter2.next()))
+    						  BrowseFacet bf1 = iter1.next();
+    						  BrowseFacet bf2 = iter2.next();
+    							//if (!iter1.next().equals(iter2.next()))
+    						  if(!bf1.equals(bf2))
     							{
     								return false;
     							}
@@ -544,7 +571,61 @@ public class BoboTestCase extends TestCase {
 		return match;
 	}
 	
-	
+	private static boolean checkFacet(BrowseResult res,int numHits, String facetName, HashMap<String,List<BrowseFacet>> choiceMap, String[] ids){
+    boolean match=false;
+    if (numHits==res.getNumHits()){
+        if (choiceMap!=null){
+          Set<Entry<String,FacetAccessible>> entries=res.getFacetMap().entrySet();
+          
+          if (res.getFacetMap().containsKey(facetName))
+          {
+            FacetAccessible c1 = res.getFacetMap().get(facetName);
+            List<BrowseFacet> l1 = c1.getFacets();
+            List<BrowseFacet> l2 =choiceMap.get(facetName);
+
+            if (l1.size() == l2.size())
+            {
+              Iterator<BrowseFacet> iter1 = l1.iterator();
+              Iterator<BrowseFacet> iter2 = l2.iterator();
+              while(iter1.hasNext())
+              {
+                if (!iter1.next().equals(iter2.next()))
+                {
+                  return false;
+                }
+              }
+              match = true;
+            }
+            else
+            {
+              return false;
+            }
+          }
+          else
+          {
+            return false;
+          }
+        }
+      if (ids!=null)
+      {
+        BrowseHit[] hits=res.getHits();
+        try{
+            if (hits.length!=ids.length) return false;
+            for (int i=0;i<hits.length;++i)
+            {
+              String id=hits[i].getField("id");
+              if (!ids[i].equals(id)) return false;
+            }
+        }
+        catch(Exception e)
+        {
+          return false;
+        }
+      }
+      match=true; 
+    }
+    return match;
+  }
 	
 	
 	/**
@@ -556,41 +637,43 @@ public class BoboTestCase extends TestCase {
 	 * @param ids
 	 */
 	private void doTest(BrowseResult result,BrowseRequest req,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
-			if (!check(result,numHits,choiceMap,ids)){
-				StringBuilder buffer=new StringBuilder();
-				buffer.append("Test: ").append(getName()).append("\n");
-				buffer.append("Result check failed: \n");
-				buffer.append("expected: \n");
-				buffer.append(numHits).append(" hits\n");
-				buffer.append(choiceMap).append('\n');
-				buffer.append(Arrays.toString(ids)).append('\n');
-				buffer.append("gotten: \n");
-				buffer.append(result.getNumHits()).append(" hits\n");
-				
+			if (!check(result,numHits,choiceMap,ids))
+	    //  if (!checkBucket(result,numHits,"salaryBucket", choiceMap,ids))
+	      {
+	        StringBuilder buffer=new StringBuilder();
+	        buffer.append("Test: ").append(getName()).append("\n");
+	        buffer.append("Result check failed: \n");
+	        buffer.append("expected: \n");
+	        buffer.append(numHits).append(" hits\n");
+	        buffer.append(choiceMap).append('\n');
+	        buffer.append(Arrays.toString(ids)).append('\n');
+	        buffer.append("gotten: \n");
+	        buffer.append(result.getNumHits()).append(" hits\n");
 
-				Map<String,FacetAccessible> map=result.getFacetMap();
-				
-				Set<Entry<String,FacetAccessible>> entries = map.entrySet();
-				
-				buffer.append("{");
-				for (Entry<String,FacetAccessible> entry : entries)
-				{
-					String name = entry.getKey();
-					FacetAccessible facetAccessor = entry.getValue();
-					buffer.append("name=").append(name).append(",");
-					buffer.append("facets=").append(facetAccessor.getFacets()).append(";");
-				}
-				buffer.append("}").append('\n');
-				
-				BrowseHit[] hits=result.getHits();
-				for (int i=0;i<hits.length;++i){
-					if (i!=0){
-						buffer.append('\n');
-					}
-					buffer.append(hits[i]);
-				}
-				fail(buffer.toString());
-			}
+
+	        Map<String,FacetAccessible> map=result.getFacetMap();
+
+	        Set<Entry<String,FacetAccessible>> entries = map.entrySet();
+
+	        buffer.append("{");
+	        for (Entry<String,FacetAccessible> entry : entries)
+	        {
+	          String name = entry.getKey();
+	          FacetAccessible facetAccessor = entry.getValue();
+	          buffer.append("name=").append(name).append(",");
+	          buffer.append("facets=").append(facetAccessor.getFacets()).append(";");
+	        }
+	        buffer.append("}").append('\n');
+
+	        BrowseHit[] hits=result.getHits();
+	        for (int i=0;i<hits.length;++i){
+	          if (i!=0){
+	            buffer.append('\n');
+	          }
+	          buffer.append(hits[i]);
+	        }
+	        fail(buffer.toString());
+	      }
 	}
 	
 	public static String toString(Map<String,FacetAccessible> map) {
@@ -2206,10 +2289,45 @@ public class BoboTestCase extends TestCase {
     assertEquals("",23,result.getNumHits());
 	}
 	
+	 public void testBucketFacetHandlerDependingOnRangeHandler() throws Exception{
+	    BrowseRequest br=new BrowseRequest();
+	    br.setCount(10);
+	    br.setOffset(0);
+	    
+	    BrowseSelection sel=new BrowseSelection("salaryBucket");
+      sel.addValue("[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
+      br.addSelection(sel);
+    
+	    FacetSpec output=new FacetSpec();
+	    output.setExpandSelection(true);
+	    br.setFacetSpec("salaryBucket", output);
+	    
+      br.setFacetSpec("salary", output);
+      
+	    BrowseFacet[] answerRangeFacets = new BrowseFacet[3];     
+	    answerRangeFacets[0] =  new BrowseFacet("[06000 TO 07999]", 1);
+	    answerRangeFacets[1] =  new BrowseFacet("[08000 TO 09999]", 2);
+	    answerRangeFacets[2] =  new BrowseFacet("[10000 TO *]",3);
+      
+	    BrowseFacet[] answerBucketFacets = new BrowseFacet[4];     
+	    answerBucketFacets[0] =  new BrowseFacet("[04000 TO 05999],[06000 TO 07999],[08000 TO 09999],[10000 TO *]", 7);
+	    answerBucketFacets[1] =  new BrowseFacet("[06000 TO 07999],[08000 TO 09999],[10000 TO *]", 6);
+	    answerBucketFacets[2] =  new BrowseFacet("[08000 TO 09999],[10000 TO *]", 5);
+	    answerBucketFacets[3] =  new BrowseFacet("[10000 TO *]",3);
+      
+      HashMap<String,List<BrowseFacet>> answer = new HashMap<String,List<BrowseFacet>>();
+      answer.put("salaryBucket", Arrays.asList(answerBucketFacets)); 
+      answer.put("salary", Arrays.asList(answerRangeFacets));
+	    doTest(br,6,answer,null);
+    
+	  }
+	 
 	public static void main(String[] args)throws Exception {
-		BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
+		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
+	  BoboTestCase test=new BoboTestCase("testBucketFacetHandlerDependingOnRangeHandler");
 		test.setUp();
-		test.testSimpleGroupbyFacetHandler();
+		test.testBucketFacetHandlerDependingOnRangeHandler();
+		//test.testSimpleGroupbyFacetHandler();
 		test.tearDown();
 	}
 }

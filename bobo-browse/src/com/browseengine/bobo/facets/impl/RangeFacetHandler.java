@@ -18,6 +18,7 @@ import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.FacetOrFilter;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
+import com.browseengine.bobo.facets.filter.FacetRangeOrFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
@@ -124,7 +125,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache>{
   {
     if (vals.length > 1)
     {
-      return new FacetOrFilter(this,vals,isNot,FacetRangeValueConverter.instance);
+      return new FacetRangeOrFilter(this,vals,isNot,FacetRangeValueConverter.instance);
     }
     else
     {

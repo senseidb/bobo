@@ -21,6 +21,7 @@ public class EmptyFilter extends RandomAccessFilter
 	  {
 	   return 0.0;
 	  }
+	 
 	@Override
 	public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException 
 	{
