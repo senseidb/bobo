@@ -29,7 +29,7 @@ public class BigShortArray extends BigSegmentedArray {
 	  @Override
 	  public final void add(int docId, int val)
 	  {
-	    _array[docId >> SHIFT_SIZE][docId & MASK] = (byte)val;
+	    _array[docId >> SHIFT_SIZE][docId & MASK] = (short)val;
 	  }
 
 	  @Override
