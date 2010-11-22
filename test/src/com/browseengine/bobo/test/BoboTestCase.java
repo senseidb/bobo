@@ -537,10 +537,9 @@ public class BoboTestCase extends TestCase {
     						Iterator<BrowseFacet> iter2 = l2.iterator();
     						while(iter1.hasNext())
     						{
-    						  BrowseFacet bf1 = iter1.next();
-    						  BrowseFacet bf2 = iter2.next();
-    							//if (!iter1.next().equals(iter2.next()))
-    						  if(!bf1.equals(bf2))
+    							BrowseFacet f1 = iter1.next();
+    							BrowseFacet f2 = iter2.next();
+    							if (!f1.equals(f2))
     							{
     								return false;
     							}
