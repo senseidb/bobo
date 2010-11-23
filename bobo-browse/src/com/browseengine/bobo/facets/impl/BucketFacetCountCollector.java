@@ -160,7 +160,7 @@ public class BucketFacetCountCollector implements FacetCountCollector
               public Object getRawValue(int index) {
                 return _predefinedBuckets.getRawValue(index);
               }
-            }, bucketCount);
+            }, bucketCount,bucketCount);
           
           final int forbidden = -1;
           // pq's size is  maxCount
@@ -209,7 +209,7 @@ public class BucketFacetCountCollector implements FacetCountCollector
         bucketCounts[i] = facet.getFacetValueHitCount();
       }
       
-      return new DefaultFacetIterator(_predefinedBuckets, bucketCounts, bucketCounts.length, true);
+      return new DefaultFacetIterator(_predefinedBuckets, bucketCounts, bucketCounts,bucketCounts.length, true);
     }
     return null;
   }  

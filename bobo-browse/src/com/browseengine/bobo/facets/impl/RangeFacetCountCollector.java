@@ -314,7 +314,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 	            public Object getRawValue(int index) {
 	              return _predefinedRanges.getRawValue(index);
 	            }
-  	        }, rangeCount);
+  	        }, rangeCount,rangeCount);
 	        
 	        final int forbidden = -1;
 	        IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator, maxNumOfFacets, forbidden);
