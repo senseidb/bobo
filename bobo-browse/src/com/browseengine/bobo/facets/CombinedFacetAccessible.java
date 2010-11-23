@@ -51,6 +51,7 @@ public class CombinedFacetAccessible implements FacetAccessible
   public BrowseFacet getFacet(String value) 
   {
     int sum=-1;
+    int scoresum = -1;
     String foundValue=null;
     if (_list!=null)
     {
@@ -60,13 +61,21 @@ public class CombinedFacetAccessible implements FacetAccessible
         if (facet!=null)
         {
           foundValue = facet.getValue();
-          if (sum==-1) sum=facet.getHitCount();
-          else sum+=facet.getHitCount();
+          if (sum==-1) {
+        	  sum=facet.getFacetValueHitCount();
+        	  scoresum = facet.getFacetValueScore();
+          }
+          else {
+        	  sum+=facet.getFacetValueHitCount();
+        	  scoresum += facet.getFacetValueScore();
+          }
         }
       }
     }
     if (sum==-1) return null;
-    return new BrowseFacet(foundValue,sum);
+    BrowseFacet f = new BrowseFacet(foundValue,sum);
+    f.setFacetValueScore(scoresum);
+    return f;
   }
 
   public List<BrowseFacet> getFacets() 

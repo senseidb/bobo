@@ -185,7 +185,6 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
           {
             BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
             facet.setFacetValueScore(scores[i]);
-            System.out.println("DefaultFacetCountCollector: Value --> " + valList.get(i));
             facetColl.add(facet);
           }
           if (facetColl.size()>=max) break;

@@ -481,8 +481,14 @@ public class BoboTestCase extends TestCase {
 		
 		MultiValueFacetHandler tagHandler = new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm);
 		
-		tagHandler.setFacetScoringParam(DefaultFacetCountCollector.FACET_SCORE_NORMALIZE_MAP, String.valueOf(true));
+		//tagHandler.setFacetScoringParam(DefaultFacetCountCollector.FACET_SCORE_NORMALIZE_MAP, String.valueOf(true));
 		facetHandlers.add(tagHandler);
+		
+        MultiValueFacetHandler tagHandler2 = new MultiValueFacetHandler("tag2", "tag", (TermListFactory)null, tagSizePayloadTerm);
+		
+		tagHandler2.setFacetScoringParam(DefaultFacetCountCollector.FACET_SCORE_NORMALIZE_MAP, String.valueOf(true));
+		facetHandlers.add(tagHandler2);
+		
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new SimpleFacetHandler("storenum", new PredefinedTermListFactory(Long.class, null)));
@@ -519,6 +525,23 @@ public class BoboTestCase extends TestCase {
 		return facetHandlers;
 	}
 	
+	static boolean COMPARE_WITH_SCORE = true;
+	
+	private static boolean compareFacet(BrowseFacet f1,BrowseFacet f2){
+		if (!COMPARE_WITH_SCORE){
+			return f1.equals(f2);
+		}
+		else{
+			String v1 = f1.getValue();
+			String v2 = f2.getValue();
+			
+			int c1 = f1.getFacetValueHitCount();
+			int c2 = f2.getFacetValueHitCount();
+			
+			return v1.equals(v2) && c1 == c2;
+		}
+	}
+	
 	private static boolean check(BrowseResult res,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
 		boolean match=false;
 		if (numHits==res.getNumHits()){
@@ -539,7 +562,7 @@ public class BoboTestCase extends TestCase {
     						{
     							BrowseFacet f1 = iter1.next();
     							BrowseFacet f2 = iter2.next();
-    							if (!f1.equals(f2))
+    							if (!compareFacet(f1,f2))
     							{
     								return false;
     							}
@@ -1289,23 +1312,18 @@ public class BoboTestCase extends TestCase {
 	    br.setFetchStoredFields(false);
 	      
 	    FacetSpec tagSpec = new FacetSpec();
-	    tagSpec.setMaxCount(3);
+	    tagSpec.setMaxCount(10);
 	    tagSpec.setOrderBy(FacetSortSpec.OrderScoreDesc);
-	    br.setFacetSpec("tag", tagSpec);
+	    br.setFacetSpec("tag2", tagSpec);
 	    	      
 	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
-	    answer.put("tag", Arrays.asList(new BrowseFacet[]{new BrowseFacet("red",3),new BrowseFacet("blue",2),new BrowseFacet("green",2)}));
-	      
-	    doTest(br,3,answer,null);
-	      
-	    Comparator<BrowseFacet> valComp = new FacetScoreComparatorFactory().newComparator();
-	    BrowseFacet f1 = new BrowseFacet("red",3);
-	    f1.setFacetValueScore(2);
-	    BrowseFacet f2 = new BrowseFacet("red",2);
-	    f2.setFacetValueScore(5);
 	    
-	    int v = valComp.compare(f1,f2);
-	    assertTrue(v<0);
+	   
+	    answer.put("tag2", Arrays.asList(new BrowseFacet[]{new BrowseFacet("dog",2),new BrowseFacet("humane",1),new BrowseFacet("poodle",1),new BrowseFacet("pet",2),new BrowseFacet("rabbit",2),new BrowseFacet("animal",1)}));
+	      
+	    COMPARE_WITH_SCORE = true;
+	    doTest(br,3,answer,null);
+	    COMPARE_WITH_SCORE = false;
 	}
 	
 	public void testFacetSort()
