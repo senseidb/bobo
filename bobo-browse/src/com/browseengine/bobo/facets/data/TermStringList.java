@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class TermStringList extends TermValueList<String> {
+  private String sanity = null;
 	@Override
 	public boolean add(String o) {
 		if (o==null) o="";
+		if (sanity!=null && sanity.compareTo(o)>=0) throw new RuntimeException("Values need to be added in ascending order. Previous value: " + sanity + " adding value: " + o);
+		sanity = o;
 		return ((List<String>)_innerList).add(o);
 	}
 
