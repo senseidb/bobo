@@ -70,6 +70,13 @@
         <attribute name="Git-Version" value="${gitversion}"/>
         <attribute name="Built-Date" value="${TODAY}"/>
       </manifest>
-                <jar destfile="${dist}/bobo-browse-${version}.jar" manifest="MANIFEST.MF" basedir="${build}" />
+		<jar destfile="${dist}/bobo-browse-${version}.jar" basedir="${build}">
+			<fileset dir="src"/>
+		      <manifest>
+		        <attribute name="Built-By" value="${user.name}"/>
+		        <attribute name="Git-Version" value="${gitversion}"/>
+		        <attribute name="Built-Date" value="${TODAY}"/>
+		      </manifest>
+		</jar>
         </target>
 </project>
