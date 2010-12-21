@@ -44,7 +44,7 @@ public class TermIntList extends TermNumberList<Integer>
   public boolean add(String o)
   {
     int item = parse(o);
-    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order. Previous value: " + sanity + " adding value: " + item);
+    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
     sanity = item;
     return ((IntArrayList) _innerList).add(item);
   }
