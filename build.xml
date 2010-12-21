@@ -102,12 +102,16 @@
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="javadoc" />
 	</target>
+
+        <target name="bobo-browse-jar" depends="init" description="--> build bobo-browse.jar">
+                <ant antfile="build.xml"
+                         dir="${bobo-browse}" target="dist"/>
+        </target>
+        <target name="bobo-solr-jar" depends="init">
+                <ant antfile="build.xml" dir="${bobo-solr}" target="dist" />
+        </target>
 	
-	<target name="jars" depends="init">
-		<ant antfile="build.xml"
-			 dir="${bobo-browse}" target="dist"/>
-		<ant antfile="build.xml"
-		     dir="${bobo-solr}" target="dist" />
+	<target name="jars" depends="init,bobo-browse-jar,bobo-solr-jar">
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="dist"/>
 		     <!--
@@ -291,7 +295,7 @@
 		</java>
 	</target>
 				
-	<target name="test-build" depends="jars">
+	<target name="test-build" depends="bobo-browse-jar,bobo-solr-jar">
 		<javac destdir="${build.test}">
             <src path="${test}"/>
             <classpath refid="test.compile.class.path"/>
