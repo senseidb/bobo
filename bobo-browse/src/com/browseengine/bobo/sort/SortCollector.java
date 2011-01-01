@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -18,6 +19,8 @@ import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
 import com.browseengine.bobo.sort.DocComparatorSource.RelevanceDocComparatorSource;
 
 public abstract class SortCollector extends Collector {
+	private static final Logger logger = Logger.getLogger(SortCollector.class);
+	
 	protected Collector _collector = null;
 	protected final SortField[] _sortFields;
 	protected final boolean _fetchStoredFields;
@@ -60,7 +63,7 @@ public abstract class SortCollector extends Collector {
 	      return new DocComparatorSource.ShortDocComparatorSource(fieldname);
 	
 	    case SortField.CUSTOM:
-		  throw new IllegalArgumentException("lucene custom sort no longer supported"); 
+		  throw new IllegalArgumentException("lucene custom sort no longer supported: "+fieldname); 
 	
 	    case SortField.STRING:
 	      return new DocComparatorSource.StringOrdComparatorSource(fieldname);
@@ -69,7 +72,7 @@ public abstract class SortCollector extends Collector {
 	      return new DocComparatorSource.StringValComparatorSource(fieldname);
 	        
 	    default:
-	      throw new IllegalStateException("Illegal sort type: " + type);
+	      throw new IllegalStateException("Illegal sort type: " + type+", for field: "+fieldname);
 	    }
 	}
 	
@@ -97,6 +100,7 @@ public abstract class SortCollector extends Collector {
 				compSource = handler.getDocComparatorSource();
 			}
 			else{		// default lucene field
+				logger.info("doing default lucene sort for: "+sf);
 				compSource = getNonFacetComparatorSource(sf);
 			}
 		}
