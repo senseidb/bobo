@@ -12,6 +12,7 @@ public class TermShortList extends TermNumberList<Short>
 {
   private static Logger log = Logger.getLogger(TermShortList.class);
   private short[] _elements = null;
+  private short sanity = -1;
 
   private static short parse(String s)
   {
@@ -42,7 +43,10 @@ public class TermShortList extends TermNumberList<Short>
   @Override
   public boolean add(String o)
   {
-    return ((ShortArrayList) _innerList).add(parse(o));
+    short item = parse(o);
+    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
+    sanity = item;
+    return ((ShortArrayList) _innerList).add(item);
   }
 
   @Override

@@ -45,6 +45,10 @@ public abstract class TermValueList<T> implements List<String>{
 		return _innerList;
 	}
 	
+	/**
+	 * Add a new value to the list. <b>It is important to add the values in sorted (ASC) order.</b>
+	 * Our algorithm uses binary searches and priority queues, both of which fails when the ordering is wrong.
+	 */
 	abstract public boolean add(String o);
 
 	public void add(int index, String element)

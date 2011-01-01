@@ -12,6 +12,7 @@ public class TermLongList extends TermNumberList<Long>
 {
   private static Logger log = Logger.getLogger(TermLongList.class);
   protected long[] _elements = null;
+  private long sanity = -1;
 
   protected long parse(String s)
   {
@@ -42,7 +43,10 @@ public class TermLongList extends TermNumberList<Long>
   @Override
   public boolean add(String o)
   {
-    return ((LongArrayList) _innerList).add(parse(o));
+    long item = parse(o);
+    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
+    sanity = item;
+    return ((LongArrayList) _innerList).add(item);
   }
 
   @Override
