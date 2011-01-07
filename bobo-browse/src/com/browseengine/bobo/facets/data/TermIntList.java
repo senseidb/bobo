@@ -12,6 +12,7 @@ public class TermIntList extends TermNumberList<Integer>
 {
   private static Logger log = Logger.getLogger(TermIntList.class);
   private int[] _elements = null;
+  private int sanity = -1;
 
   private static int parse(String s)
   {
@@ -42,7 +43,10 @@ public class TermIntList extends TermNumberList<Integer>
   @Override
   public boolean add(String o)
   {
-    return ((IntArrayList) _innerList).add(parse(o));
+    int item = parse(o);
+    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
+    sanity = item;
+    return ((IntArrayList) _innerList).add(item);
   }
 
   @Override

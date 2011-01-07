@@ -42,6 +42,7 @@ public class UnitTestSuite {
           suite.addTestSuite(FacetHandlerTest.class);
           suite.addTestSuite(TestSectionSearch.class);
           suite.addTestSuite(BoboSolrTestCase.class);
+          suite.addTestSuite(BoboFacetIteratorTest.class);
           return suite;
   }
   

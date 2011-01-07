@@ -40,6 +40,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/solr/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/solr/slf4j-api.jar"/>
-	<classpathentry kind="lib" path="/peanut/nus-search/lib/master/bobo-browse-2.5.0.jar" sourcepath="/Users/hyan/workspace/bobo"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

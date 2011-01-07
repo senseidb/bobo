@@ -139,6 +139,7 @@ public class BoboTestCase extends TestCase {
 	public BoboTestCase(String testName){
 		super(testName);
     String confdir = System.getProperty("conf.dir");
+    if (confdir == null) confdir ="./resource";
     org.apache.log4j.PropertyConfigurator.configure(confdir+"/log4j.properties");
 		_fconf=buildFieldConf();
 		_indexDir=createIndex();
