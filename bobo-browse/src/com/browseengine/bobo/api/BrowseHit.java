@@ -195,7 +195,8 @@ public class BrowseHit
 	      Map.Entry<String, String[]> e = iterator.next();
 	      buffer.append(e.getKey());
 	      buffer.append(":");
-	      buffer.append(Arrays.asList(e.getValue()));
+	      String[] vals = e.getValue();
+	      buffer.append(vals == null ? null: vals);
 	      if (iterator.hasNext()) buffer.append(", ");
 	    }
 	    return buffer.toString();

@@ -505,11 +505,8 @@ public class BoboTestCase extends TestCase {
 		
 		// histogram
 		
-		SimpleFacetHandler dateNumHandler = new SimpleFacetHandler("datenum","date",  new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"));
+		HistogramFacetHandler<Integer> histoHandler = new HistogramFacetHandler<Integer>("numberhisto", "number", new Integer(0), new Integer(1000), new Integer(100));
 		
-		HistogramFacetHandler<Long> histoHandler = new HistogramFacetHandler<Long>("datehisto", "datenum", new Long(0), new Long(100), new Long(10));
-		
-		facetHandlers.add(dateNumHandler);
 		facetHandlers.add(histoHandler);
 		
 		LinkedHashSet<String> dependsNames=new LinkedHashSet<String>();
@@ -2301,12 +2298,13 @@ public class BoboTestCase extends TestCase {
 	
 	public void testHistogramFacetHandler() throws Exception{
 		BrowseRequest br=new BrowseRequest();
-	    br.setCount(0);
+	    br.setCount(10);
 	    br.setOffset(0);
 	    
 	    FacetSpec output=new FacetSpec();
 	    output.setMaxCount(100);
-	    br.setFacetSpec("datehisto", output);
+	    output.setMinHitCount(1);
+	    br.setFacetSpec("numberhisto", output);
 	    
 	    BrowseResult result = null;
 	    Browsable boboBrowser = null;

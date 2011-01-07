@@ -82,7 +82,7 @@ public class TermIntList extends TermNumberList<Integer>
   @Override
   public int indexOf(Object o)
   {
-    int val = parse((String) o);
+    int val = parse(String.valueOf(o));
     int[] elements = ((IntArrayList) _innerList).elements();
     return Arrays.binarySearch(elements, val);
   }
