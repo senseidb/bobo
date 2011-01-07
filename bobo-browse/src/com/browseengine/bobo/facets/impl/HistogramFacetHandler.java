@@ -107,7 +107,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       {
         FacetDataCache<?> dataCache = (FacetDataCache<?>)reader.getFacetData(_dataHandlerName);
         FacetCountCollector baseCollector = baseCollectorSrc.getFacetCountCollector(reader, docBase);
-        return new HistogramCollector<T>(baseCollector, dataCache, ospec, _start, _end, _unit);
+        return new HistogramCollector<T>(getName(),baseCollector, dataCache, ospec, _start, _end, _unit);
       }
 	};
   }
@@ -122,11 +122,13 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     private final int[] _count;
     private final TermValueList<?> _valArray;
     private final FacetCountCollector _baseCollector;
+    private final String _facetName;
     
     private boolean _isAggregated;
     
-    protected HistogramCollector(FacetCountCollector baseCollector, FacetDataCache<?> dataCache, FacetSpec ospec, T start, T end, T unit)
+    protected HistogramCollector(String facetName,FacetCountCollector baseCollector, FacetDataCache<?> dataCache, FacetSpec ospec, T start, T end, T unit)
     {
+      _facetName = facetName;
       _baseCollector = baseCollector;
   	  _valArray = dataCache.valArray;
       _ospec = ospec;
@@ -284,15 +286,16 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     
     public FacetIterator iterator()
     {
+      if(!_isAggregated) aggregate();
       return new HistogramFacetIterator(_count, _formatter);
     }
     
     public String getName()
     {
-      return null;
+      return _facetName;
 	}
     
-	public void close()
+    public void close()
     {
     }
   }

@@ -98,6 +98,7 @@ import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler;
+import com.browseengine.bobo.facets.impl.HistogramFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
@@ -501,6 +502,14 @@ public class BoboTestCase extends TestCase {
     predefinedBuckets[3] =  new String("[10000 TO *]");
 		facetHandlers.add(new BucketFacetHandler("salaryBucket", Arrays.asList(predefinedBuckets), "salary"));
 		
+		// histogram
+		
+		SimpleFacetHandler dateNumHandler = new SimpleFacetHandler("datenum","date",  new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"));
+		
+		HistogramFacetHandler<Long> histoHandler = new HistogramFacetHandler<Long>("datehisto", "datenum", new Long(0), new Long(100), new Long(10));
+		
+		facetHandlers.add(dateNumHandler);
+		facetHandlers.add(histoHandler);
 		
 		LinkedHashSet<String> dependsNames=new LinkedHashSet<String>();
 		dependsNames.add("color");
@@ -2289,6 +2298,40 @@ public class BoboTestCase extends TestCase {
     assertEquals("",23,result.getNumHits());
 	}
 	
+	public void testHistogramFacetHandler() throws Exception{
+		BrowseRequest br=new BrowseRequest();
+	    br.setCount(0);
+	    br.setOffset(0);
+	    
+	    FacetSpec output=new FacetSpec();
+	    output.setMaxCount(100);
+	    br.setFacetSpec("datehisto", output);
+	    
+	    BrowseResult result = null;
+	    Browsable boboBrowser = null;
+	  	try {
+	  		boboBrowser=newBrowser();
+	        result = boboBrowser.browse(br);
+	        System.out.println(result);
+	  	} catch (BrowseException e) {
+	  		e.printStackTrace();
+	  		fail(e.getMessage());
+	  	}
+	  	catch(IOException ioe){
+	  	  fail(ioe.getMessage());
+	  	}
+	  	finally{
+	  	  if (boboBrowser!=null){
+	  	    try {
+	  	      if (result!=null)result.close();
+	  			boboBrowser.close();
+	  		} catch (IOException e) {
+	  			fail(e.getMessage());
+	  		}
+	  	  }
+	  	}
+	}
+	
 	 public void testBucketFacetHandlerDependingOnRangeHandler() throws Exception{
 	    BrowseRequest br=new BrowseRequest();
 	    br.setCount(10);
@@ -2324,10 +2367,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testBucketFacetHandlerDependingOnRangeHandler");
+	  BoboTestCase test=new BoboTestCase("testHistogramFacetHandler");
 		test.setUp();
-		test.testBucketFacetHandlerDependingOnRangeHandler();
-		//test.testSimpleGroupbyFacetHandler();
+		test.testHistogramFacetHandler();
 		test.tearDown();
 	}
 }
