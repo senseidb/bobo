@@ -317,7 +317,11 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
 
     public Integer next()
     {
-      if(hasNext()) return ++_idx;
+      if(hasNext())
+      {
+        count = _count[++_idx];
+        return (facet = _idx);
+      }
       return null;
     }
     
@@ -327,7 +331,8 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       {
         if(_count[++_idx] >= minHits)
         {
-          return _idx;
+          count = _count[_idx];          
+          return (facet = _idx);
         }
       }
       return null;    
@@ -335,7 +340,11 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     
     public int nextInt()
     {
-      if(hasNext()) return ++_idx;
+      if(hasNext())
+      {
+        count = _count[++_idx];
+        return (facet = _idx);
+      }
       return -1;
     }
     
@@ -345,7 +354,8 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       {
         if(_count[++_idx] >= minHits)
         {
-          return _idx;
+          count = _count[_idx];
+          return (facet = _idx);
         }
       }
       return -1;    
