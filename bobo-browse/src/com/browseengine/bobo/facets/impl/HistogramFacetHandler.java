@@ -309,7 +309,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
 
     public HistogramFacetIterator(int count[], DecimalFormat formatter)
     {
-      _idx = 0;
+      _idx = -1;
       _count = count;
       _maxMinusOne = count.length - 1;
       _formatter = formatter;

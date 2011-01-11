@@ -505,7 +505,7 @@ public class BoboTestCase extends TestCase {
 		
 		// histogram
 		
-		HistogramFacetHandler<Integer> histoHandler = new HistogramFacetHandler<Integer>("numberhisto", "number", new Integer(0), new Integer(1000), new Integer(100));
+		HistogramFacetHandler<Integer> histoHandler = new HistogramFacetHandler<Integer>("numberhisto", "number", new Integer(0), new Integer(5000), new Integer(100));
 		
 		facetHandlers.add(histoHandler);
 		
@@ -2298,7 +2298,7 @@ public class BoboTestCase extends TestCase {
 	
 	public void testHistogramFacetHandler() throws Exception{
 		BrowseRequest br=new BrowseRequest();
-	    br.setCount(10);
+	    br.setCount(0);
 	    br.setOffset(0);
 	    
 	    FacetSpec output=new FacetSpec();
@@ -2306,29 +2306,36 @@ public class BoboTestCase extends TestCase {
 	    output.setMinHitCount(1);
 	    br.setFacetSpec("numberhisto", output);
 	    
-	    BrowseResult result = null;
-	    Browsable boboBrowser = null;
-	  	try {
-	  		boboBrowser=newBrowser();
-	        result = boboBrowser.browse(br);
-	        System.out.println(result);
-	  	} catch (BrowseException e) {
-	  		e.printStackTrace();
-	  		fail(e.getMessage());
-	  	}
-	  	catch(IOException ioe){
-	  	  fail(ioe.getMessage());
-	  	}
-	  	finally{
-	  	  if (boboBrowser!=null){
-	  	    try {
-	  	      if (result!=null)result.close();
-	  			boboBrowser.close();
-	  		} catch (IOException e) {
-	  			fail(e.getMessage());
-	  		}
-	  	  }
-	  	}
+	    
+	    BrowseFacet[] answerBucketFacets = new BrowseFacet[5];     
+	    answerBucketFacets[0] =  new BrowseFacet("0000000000", 3);
+	    answerBucketFacets[1] =  new BrowseFacet("0000000002", 1);
+	    answerBucketFacets[2] =  new BrowseFacet("0000000009", 1);
+	    answerBucketFacets[3] =  new BrowseFacet("0000000010",1);
+	    answerBucketFacets[4] =  new BrowseFacet("0000000021",1);
+      
+        HashMap<String,List<BrowseFacet>> answer = new HashMap<String,List<BrowseFacet>>();
+        answer.put("numberhisto", Arrays.asList(answerBucketFacets)); 
+      
+	    
+        doTest(br,7,answer,null);
+        
+        
+        // now with selection
+        
+        BrowseSelection sel = new BrowseSelection("color");
+        sel.addValue("green");
+        br.addSelection(sel);
+        
+        answerBucketFacets = new BrowseFacet[2]; 
+        answerBucketFacets[0] =  new BrowseFacet("0000000002",1);
+        answerBucketFacets[1] =  new BrowseFacet("0000000021",1);
+        
+        answer = new HashMap<String,List<BrowseFacet>>();
+        answer.put("numberhisto", Arrays.asList(answerBucketFacets)); 
+      
+	    
+        doTest(br,2,answer,null);
 	}
 	
 	 public void testBucketFacetHandlerDependingOnRangeHandler() throws Exception{
