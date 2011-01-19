@@ -28,6 +28,7 @@ public class CombinedFacetIterator extends FacetIterator {
     }
     facet = null;
     count = 0;
+    score = 0;
   }
   
   private final void add(FacetIterator element) {
@@ -98,12 +99,14 @@ public class CombinedFacetIterator extends FacetIterator {
     {
       facet = null;
       count = 0;
+      score = 0;
       return null;
     }
 
     FacetIterator node = heap[1];    
     facet = node.facet;
     count = node.count;
+    score = node.score;
     int min = (minHits > 0 ? 1 : 0);
     while(true)
     {
@@ -126,6 +129,7 @@ public class CombinedFacetIterator extends FacetIterator {
           {
             facet = null;
             count = 0;
+            score = 0;
           }
           break;
         }
@@ -140,10 +144,12 @@ public class CombinedFacetIterator extends FacetIterator {
         // else, continue iterating to the next facet
         facet = next;
         count = node.count;
+        score = node.score;
       }
       else
       {
         count += node.count;
+        score += node.score;
       }
     }
     return format(facet);

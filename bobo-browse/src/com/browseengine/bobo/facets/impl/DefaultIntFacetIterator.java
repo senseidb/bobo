@@ -10,14 +10,20 @@ public class DefaultIntFacetIterator extends IntFacetIterator
 
   public TermIntList _valList;
   private int[] _count;
+  private int[] _scores;
   private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultIntFacetIterator(TermIntList valList, int[] countarray, int countlength, boolean zeroBased)
+  public DefaultIntFacetIterator(TermIntList valList, int[] countarray,int countlength, boolean zeroBased){
+	this(valList,countarray,countarray,countlength,zeroBased);  
+  }
+  
+  public DefaultIntFacetIterator(TermIntList valList, int[] countarray, int[] scores,int countlength, boolean zeroBased)
   {
     _valList = valList;
     _count = countarray;
+    _scores = scores;
     _countlength = countlength;
     _countLengthMinusOne = countlength-1;
     _index = -1;
@@ -25,6 +31,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
       _index++;
     facet = -1;
     count = 0;
+    score=0;
   }
 
   /* (non-Javadoc)
@@ -65,6 +72,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count[_index];
+    score = _scores[_index];
     return _valList.get(_index);
   }
 
@@ -78,6 +86,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count[_index];
+    score = _scores[_index];
     return facet;
   }
 
@@ -99,6 +108,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
       {
         facet = _valList.getPrimitiveValue(_index);
         count = _count[_index];
+        score = _scores[_index];
         return _valList.format(facet);
       }
     }
@@ -117,6 +127,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
       {
         facet = _valList.getPrimitiveValue(_index);
         count = _count[_index];
+        score = _scores[_index];
         return facet;
       }
     }

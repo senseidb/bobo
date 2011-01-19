@@ -23,6 +23,7 @@ public class PathFacetIterator extends FacetIterator {
 		_index = -1;
 		facet = null;
 		count = 0;
+		score = 0;
 	}
 	
 	/* (non-Javadoc)
@@ -33,7 +34,8 @@ public class PathFacetIterator extends FacetIterator {
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
 		facet = _facets[_index].getValue();
-		count = _facets[_index].getHitCount();
+		count = _facets[_index].getFacetValueHitCount();
+		score = _facets[_index].getFacetValueScore();
 		return facet;
 	}
 
@@ -58,15 +60,17 @@ public class PathFacetIterator extends FacetIterator {
   {
     while(++_index < _facets.length)
     {
-      if(_facets[_index].getHitCount() >= minHits)
+      if(_facets[_index].getFacetValueHitCount() >= minHits)
       {
         facet = _facets[_index].getValue();
-        count = _facets[_index].getHitCount();
+        count = _facets[_index].getFacetValueHitCount();
+        score = _facets[_index].getFacetValueScore();
         return facet;
       }
     }
     facet = null;
     count = 0;
+    score = 0;
     return facet;  
   }
 

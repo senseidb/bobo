@@ -163,7 +163,9 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		public FacetCountCollector getFacetCountCollector(
 				BoboIndexReader reader, int docBase) {
 			FacetDataCache dataCache = SimpleFacetHandler.this.getFacetData(reader);
-			return new SimpleFacetCountCollector(_name,dataCache,docBase,sel,ospec);
+			SimpleFacetCountCollector collector = new SimpleFacetCountCollector(_name,dataCache,docBase,sel,ospec);
+			collector.setFacetScoringParams(SimpleFacetHandler.this.getFacetScoringParamMap());
+			return collector;
 		}  
 	  };
 	}

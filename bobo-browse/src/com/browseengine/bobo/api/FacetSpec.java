@@ -30,6 +30,11 @@ public class FacetSpec implements Serializable {
 		OrderHitsDesc,
 		
 		/**
+		 * Order by facet score
+		 */
+		OrderScoreDesc,
+		
+		/**
 		 * custom order, must have a comparator
 		 */
 		OrderByCustom

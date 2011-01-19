@@ -314,7 +314,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
 	            public Object getRawValue(int index) {
 	              return _predefinedRanges.getRawValue(index);
 	            }
-  	        }, rangeCount);
+  	        }, rangeCount,rangeCount);
 	        
 	        final int forbidden = -1;
 	        IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator, maxNumOfFacets, forbidden);
@@ -382,7 +382,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
             }
             rangeCounts[k] += count;
           }
-		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.length, true);
+		  return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts,rangeCounts.length, true);
 	  }
 	  return null;
   }  

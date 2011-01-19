@@ -22,12 +22,14 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     public ShortFacetIterator _iterator;
     public short _curFacet;
     public int _curFacetCount;
+    public int _curFacetScore;
 
     public ShortIteratorNode(ShortFacetIterator iterator)
     {
       _iterator = iterator;
       _curFacet = -1;
       _curFacetCount = 0;
+      _curFacetScore = 0;
     }
 
     public boolean fetch(int minHits)
@@ -37,10 +39,12 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
       if( (_curFacet = _iterator.nextShort(minHits)) != -1)
       {
         _curFacetCount = _iterator.count;
+        _curFacetScore = _iterator.score;
         return true;
       }
       _curFacet = -1;
       _curFacetCount = 0;
+      _curFacetScore = 0;
       return false;
     }
 
@@ -74,6 +78,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     }
     facet = -1;
     count = 0;
+    score = 0;
   }
 
   public CombinedShortFacetIterator(final List<ShortFacetIterator> iterators, int minHits) {
@@ -86,6 +91,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     }
     facet = -1;
     count = 0;
+    score = 0;
   }
 
   /* (non-Javadoc)
@@ -122,6 +128,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     facet = node._curFacet;
     int next = -1;
     count = 0;
+    score = 0;
     while(hasNext())
     {
       node = (ShortIteratorNode) _queue.top();
@@ -131,6 +138,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
         return format(facet);
       }
       count += node._curFacetCount;
+      score += node._curFacetScore;
       if(node.fetch(1))
         _queue.updateTop();
       else
@@ -150,12 +158,14 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     {
       facet = -1;
       count = 0;
+      score = 0;
       return null;
     }
 
     ShortIteratorNode node = (ShortIteratorNode) _queue.top();    
     facet = node._curFacet;
     count = node._curFacetCount;
+    score = node._curFacetScore;
     while(true)
     {
       if(node.fetch(minHits))
@@ -176,6 +186,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
           {
             facet = -1;
             count = 0;
+            score = 0;
             return null;
           }
           break;
@@ -190,10 +201,12 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
         // else, continue iterating to the next facet
         facet = next;
         count = node._curFacetCount;
+        score = node._curFacetScore;
       }
       else
       {
         count += node._curFacetCount;
+        score += node._curFacetScore;
       }
     }
     return format(facet);
@@ -382,6 +395,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     facet = node._curFacet;
     int next = -1;
     count = 0;
+    score = 0;
     while(hasNext())
     {
       node = (ShortIteratorNode) _queue.top();
@@ -391,6 +405,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
         return facet;
       }
       count += node._curFacetCount;
+      score += node._curFacetScore;
       if(node.fetch(1))
         _queue.updateTop();
       else
@@ -410,12 +425,14 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     {
       facet = -1;
       count = 0;
+      score = 0;
       return -1;
     }
 
     ShortIteratorNode node = (ShortIteratorNode) _queue.top();    
     facet = node._curFacet;
     count = node._curFacetCount;
+    score = node._curFacetScore;
     while(true)
     {
       if(node.fetch(minHits))
@@ -436,6 +453,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
           {
             facet = -1;
             count = 0;
+            score = 0;
           }
           break;
         }
@@ -449,10 +467,12 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
         // else, continue iterating to the next facet
         facet = next;
         count = node._curFacetCount;
+        score = node._curFacetScore;
       }
       else
       {
         count += node._curFacetCount;
+        score += node._curFacetScore;
       }
     }
     return facet;

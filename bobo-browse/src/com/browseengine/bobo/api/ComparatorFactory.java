@@ -15,7 +15,7 @@ public interface ComparatorFactory{
 	 * @param counts hit counts
 	 * @return Comparator instance
 	 */
-  IntComparator newComparator(FieldValueAccessor fieldValueAccessor,int[] counts);
+  IntComparator newComparator(FieldValueAccessor fieldValueAccessor,int[] counts,int[] scores);
 	
 	/**
 	 * Providers a Comparator. This is called when doing a merge across browses.

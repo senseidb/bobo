@@ -331,7 +331,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
               return getRawFaceValue(index);
             }
 
-          }, _count);
+          }, _count,_count);
           facetColl=new LinkedList<BrowseFacet>();
           final int forbidden = -1;
           IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
@@ -381,6 +381,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         _index = 0;
         facet = null;
         count = 0;
+        score = 0;
       }
 
       /* (non-Javadoc)
@@ -392,6 +393,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         _index++;
         facet = getFacetString(_index);
         count = _count[_index];
+        score = count;
         return facet;
       }
 
@@ -417,6 +419,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         if((_index >= 0) && !hasNext())
         {   
           count = 0;
+          score = 0;
           facet = null;
           return null;
         }
@@ -428,10 +431,12 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         {
           facet = getFacetString(_index);
           count = _count[_index];
+          score = _count[_index];
         }
         else
         {
           count = 0;
+          score = 0;
           facet = null;
         }
         return facet;    

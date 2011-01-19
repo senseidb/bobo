@@ -93,8 +93,10 @@ import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.BucketFacetHandler;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.DefaultFacetCountCollector;
 import com.browseengine.bobo.facets.impl.DynamicTimeRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
+import com.browseengine.bobo.facets.impl.FacetScoreComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler;
@@ -119,6 +121,8 @@ public class BoboTestCase extends TestCase {
   private Directory _indexDir;
 	private List<FacetHandler<?>> _fconf;
 	static final private Term tagSizePayloadTerm = new Term("tagSizePayload", "size");
+	
+
 	
 	private static class TestDataDigester extends DataDigester {
 		private List<FacetHandler<?>> _fconf;
@@ -476,7 +480,17 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new SimpleFacetHandler("number", numTermFactory));
 		facetHandlers.add(new RangeFacetHandler("date", new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"), Arrays.asList(new String[]{"[2000/01/01 TO 2003/05/05]", "[2003/05/06 TO 2005/04/04]"})));
 		facetHandlers.add(new SimpleFacetHandler("char", (TermListFactory)null));
-		facetHandlers.add(new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm));
+		
+		MultiValueFacetHandler tagHandler = new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm);
+		
+		//tagHandler.setFacetScoringParam(DefaultFacetCountCollector.FACET_SCORE_NORMALIZE_MAP, String.valueOf(true));
+		facetHandlers.add(tagHandler);
+		
+        MultiValueFacetHandler tagHandler2 = new MultiValueFacetHandler("tag2", "tag", (TermListFactory)null, tagSizePayloadTerm);
+		
+		tagHandler2.setFacetScoringParam(DefaultFacetCountCollector.FACET_SCORE_NORMALIZE_MAP, String.valueOf(true));
+		facetHandlers.add(tagHandler2);
+		
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new SimpleFacetHandler("storenum", new PredefinedTermListFactory(Long.class, null)));
@@ -518,6 +532,23 @@ public class BoboTestCase extends TestCase {
 		return facetHandlers;
 	}
 	
+	static boolean COMPARE_WITH_SCORE = true;
+	
+	private static boolean compareFacet(BrowseFacet f1,BrowseFacet f2){
+		if (!COMPARE_WITH_SCORE){
+			return f1.equals(f2);
+		}
+		else{
+			String v1 = f1.getValue();
+			String v2 = f2.getValue();
+			
+			int c1 = f1.getFacetValueHitCount();
+			int c2 = f2.getFacetValueHitCount();
+			
+			return v1.equals(v2) && c1 == c2;
+		}
+	}
+	
 	private static boolean check(BrowseResult res,int numHits,HashMap<String,List<BrowseFacet>> choiceMap,String[] ids){
 		boolean match=false;
 		if (numHits==res.getNumHits()){
@@ -536,10 +567,9 @@ public class BoboTestCase extends TestCase {
     						Iterator<BrowseFacet> iter2 = l2.iterator();
     						while(iter1.hasNext())
     						{
-    						  BrowseFacet bf1 = iter1.next();
-    						  BrowseFacet bf2 = iter2.next();
-    							//if (!iter1.next().equals(iter2.next()))
-    						  if(!bf1.equals(bf2))
+    							BrowseFacet f1 = iter1.next();
+    							BrowseFacet f2 = iter2.next();
+    							if (!compareFacet(f1,f2))
     							{
     								return false;
     							}
@@ -1045,7 +1075,7 @@ public class BoboTestCase extends TestCase {
 		pathSpec.setCustomComparatorFactory(new ComparatorFactory(){
 
 			public IntComparator newComparator(
-					FieldValueAccessor fieldValueAccessor, final int[] counts) {
+					FieldValueAccessor fieldValueAccessor, final int[] counts, final int[] score) {
 				return new IntComparator(){
 
 					public int compare(Integer f1, Integer f2) {
@@ -1275,6 +1305,32 @@ public class BoboTestCase extends TestCase {
         }
         throw ioe;
       }
+	}
+	
+	public void testScoreSort(){
+		BrowseRequest br=new BrowseRequest();
+	    br.setCount(10);
+	    br.setOffset(0);
+	    
+	    BrowseSelection sel = new BrowseSelection("color");
+	    sel.addValue("red");
+	    
+	    br.addSelection(sel);
+	    br.setFetchStoredFields(false);
+	      
+	    FacetSpec tagSpec = new FacetSpec();
+	    tagSpec.setMaxCount(10);
+	    tagSpec.setOrderBy(FacetSortSpec.OrderScoreDesc);
+	    br.setFacetSpec("tag2", tagSpec);
+	    	      
+	    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+	    
+	   
+	    answer.put("tag2", Arrays.asList(new BrowseFacet[]{new BrowseFacet("dog",2),new BrowseFacet("humane",1),new BrowseFacet("poodle",1),new BrowseFacet("pet",2),new BrowseFacet("rabbit",2),new BrowseFacet("animal",1)}));
+	      
+	    COMPARE_WITH_SCORE = true;
+	    doTest(br,3,answer,null);
+	    COMPARE_WITH_SCORE = false;
 	}
 	
 	public void testFacetSort()
@@ -2047,7 +2103,7 @@ public class BoboTestCase extends TestCase {
 		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
 			
 			public IntComparator newComparator(final FieldValueAccessor fieldValueAccessor,
-					final int[] counts) {
+					final int[] counts, final int[] score) {
 				
 				return new IntComparator(){
 

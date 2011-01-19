@@ -10,7 +10,7 @@ import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 public class FacetValueComparatorFactory implements ComparatorFactory {
 
   public IntComparator newComparator(
-      FieldValueAccessor fieldValueAccessor, int[] counts) {
+      FieldValueAccessor fieldValueAccessor, int[] counts,int[] scores) {
     return new IntComparator(){
       public int compare(Integer o1, Integer o2) {
         return o2-o1;

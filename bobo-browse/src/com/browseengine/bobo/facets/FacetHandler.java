@@ -39,6 +39,7 @@ public abstract class FacetHandler<D>
 	private final Set<String> _dependsOn;
 	private final Map<String,FacetHandler<?>> _dependedFacetHandlers;
 	private TermCountSize _termCountSize;
+	private HashMap<String,String> _facetScoringParamMap;
 	
 	public static enum TermCountSize{
 		small,
@@ -61,6 +62,19 @@ public abstract class FacetHandler<D>
 		}
 		_dependedFacetHandlers = new HashMap<String,FacetHandler<?>>();
 		_termCountSize = TermCountSize.large;
+		_facetScoringParamMap = new HashMap<String,String>();
+	}
+	
+	public void setFacetScoringParam(String name,String value){
+		_facetScoringParamMap.put(name, value);
+	}
+	
+	public String getFacetScoringParam(String name){
+		return _facetScoringParamMap.get(name);
+	}
+	
+	public Map<String,String> getFacetScoringParamMap(){
+		return _facetScoringParamMap;
 	}
 	
 	public void setTermCountSize(String termCountSize){

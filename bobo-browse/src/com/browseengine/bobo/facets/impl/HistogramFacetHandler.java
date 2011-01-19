@@ -120,6 +120,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     private final T _end;
     private final T _unit;
     private final int[] _count;
+    private final int[] _scores;
     private final TermValueList<?> _valArray;
     private final FacetCountCollector _baseCollector;
     private final String _facetName;
@@ -137,6 +138,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       _end = end;
       _unit = unit;
       _count = new int[countArraySize()];
+      _scores = _count;
     }
     
     private int countArraySize()
@@ -174,7 +176,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       int idx = Integer.parseInt(value);
       if(idx >= 0 && idx < _count.length)
       {
-        return new BrowseFacet(value, _count[idx]);
+        BrowseFacet facet =  new BrowseFacet(value, _count[idx]);
+        facet.setFacetValueScore(_scores[idx]);
+        return facet;
       }
       return null; 
     }
@@ -267,6 +271,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   	        if (hits >= minCount)
   	        {
   	          BrowseFacet facet = new BrowseFacet(_formatter.format(i),hits);
+  	          facet.setFacetValueScore(hits);
   	          facetColl.add(facet);
   	        }
   	        if (facetColl.size() >= max) break;
@@ -320,6 +325,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       if(hasNext())
       {
         count = _count[++_idx];
+        score = count;
         return (facet = _idx);
       }
       return null;
@@ -331,7 +337,8 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       {
         if(_count[++_idx] >= minHits)
         {
-          count = _count[_idx];          
+          count = _count[_idx];       
+          score = count;
           return (facet = _idx);
         }
       }
@@ -343,6 +350,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       if(hasNext())
       {
         count = _count[++_idx];
+        score = count;
         return (facet = _idx);
       }
       return -1;
@@ -355,6 +363,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         if(_count[++_idx] >= minHits)
         {
           count = _count[_idx];
+          score = count;
           return (facet = _idx);
         }
       }

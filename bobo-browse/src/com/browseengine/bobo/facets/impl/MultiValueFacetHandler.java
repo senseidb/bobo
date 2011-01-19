@@ -130,7 +130,9 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 		public FacetCountCollector getFacetCountCollector(
 				BoboIndexReader reader, int docBase) {
 			MultiValueFacetDataCache dataCache = MultiValueFacetHandler.this.getFacetData(reader);
-			return new MultiValueFacetCountCollector(_name,dataCache,docBase,sel, ospec);
+			MultiValueFacetCountCollector collector = new MultiValueFacetCountCollector(_name,dataCache,docBase,sel, ospec);
+			collector.setFacetScoringParams(MultiValueFacetHandler.this.getFacetScoringParamMap());
+			return collector;
 		}
 	};
     
