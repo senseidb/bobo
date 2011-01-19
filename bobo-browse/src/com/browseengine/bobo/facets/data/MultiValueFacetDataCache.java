@@ -100,9 +100,10 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
 
           String val = term.text();
 
-          // if (val!=null && val.length()>0){
-          if (val != null)
+          if (val!=null && val.length()>0)
           {
+//          if (val != null)
+//          {
             list.add(val);
 
             tdoc.seek(tenum);
