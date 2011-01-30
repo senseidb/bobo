@@ -119,6 +119,18 @@
 				     dir="${bobo-gwt}" target="dist" />
 				     -->
 	</target>
+
+	<target name="deploy-bobo-browse" depends="init,bobo-browse-jar" description="--> deploy .jar to oss repo">
+		<exec executable="mvn">
+			<arg line="deploy:deploy-file -Durl=https://oss.sonatype.org/content/repositories/snapshots -DrepositoryId=sonatype-nexus-snapshots -Dfile=${dist}/bobo-browse-${version}.jar -DpomFile=bobo-browse-pom.xml"/>
+		</exec>
+	</target>
+
+	<target name="deploy-bobo-solr" depends="init,bobo-browse-jar,bobo-solr-jar" description="--> deploy .jar to oss repo">
+		<exec executable="mvn">
+			<arg line="deploy:deploy-file -Durl=https://oss.sonatype.org/content/repositories/snapshots -DrepositoryId=sonatype-nexus-snapshots -Dfile=${dist}/bobo-solr-${version}.jar -DpomFile=bobo-solr-pom.xml"/>
+		</exec>
+	</target>
 	
 	<target name="deploy-solr" depends="jars">
 	    <echo message="deploying to ${solr.home} ... "/>
