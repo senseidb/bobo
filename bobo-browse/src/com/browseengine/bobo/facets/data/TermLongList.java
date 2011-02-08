@@ -13,6 +13,7 @@ public class TermLongList extends TermNumberList<Long>
   private static Logger log = Logger.getLogger(TermLongList.class);
   protected long[] _elements = null;
   private long sanity = -1;
+  private boolean withDummy = true;
 
   protected long parse(String s)
   {
@@ -43,9 +44,10 @@ public class TermLongList extends TermNumberList<Long>
   @Override
   public boolean add(String o)
   {
+    if (_innerList.size() == 0 && o!=null) withDummy = false; // the first value added is not null
     long item = parse(o);
     if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
-    sanity = item;
+    if (_innerList.size() > 0 || !withDummy) sanity = item;
     return ((LongArrayList) _innerList).add(item);
   }
 
@@ -82,40 +84,60 @@ public class TermLongList extends TermNumberList<Long>
   @Override
   public int indexOf(Object o)
   {
-    long val = parse(String.valueOf(o));
-    long[] elements = ((LongArrayList) _innerList).elements();
-    return Arrays.binarySearch(elements, val);
+    if (withDummy)
+    {
+      if (o==null) return -1;
+      long val = parse(String.valueOf(o));
+      return Arrays.binarySearch(_elements, 1, _elements.length, val);
+    } else
+    {
+      long val = parse(String.valueOf(o));
+      return Arrays.binarySearch(_elements, val);
+    }
   }
 
-  public int indexOf(Long val)
+  public int indexOf(Long value)
   {
-    if (val != null)
-      return Arrays.binarySearch(_elements, val);
-    else
-      return Arrays.binarySearch(_elements, 0); // turning null to 0 in parse
+    if (withDummy)
+    {
+      if (value==null) return -1;
+      return Arrays.binarySearch(_elements, 1, _elements.length, value.longValue());
+    } else
+    {
+      return Arrays.binarySearch(_elements, value.longValue());
+    }
   }
 
   public int indexOf(long val)
   {
-    return Arrays.binarySearch(_elements, val);
+    if (withDummy)
+      return Arrays.binarySearch(_elements, 1, _elements.length, val);
+    else
+      return Arrays.binarySearch(_elements, val);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * com.browseengine.bobo.facets.data.TermValueList#indexOfWithType(java.lang
-   * .Object)
-   */
   @Override
   public int indexOfWithType(Long val)
   {
-    return Arrays.binarySearch(_elements, val);
+    if (withDummy)
+    {
+      if (val == null) return -1;
+      return Arrays.binarySearch(_elements, 1, _elements.length, val.longValue());
+    } else
+    {
+      return Arrays.binarySearch(_elements, val.longValue());
+    }
   }
 
   public int indexOfWithType(long val)
   {
-    return Arrays.binarySearch(_elements, val);
+    if (withDummy)
+    {
+      return Arrays.binarySearch(_elements, 1, _elements.length, val);
+    } else
+    {
+      return Arrays.binarySearch(_elements, val);
+    }
   }
 
   @Override
@@ -133,17 +155,30 @@ public class TermLongList extends TermNumberList<Long>
 
   public boolean contains(long val)
   {
-    return Arrays.binarySearch(_elements, val) >= 0;
+    if (withDummy)
+      return Arrays.binarySearch(_elements,1, _elements.length, val) >= 0;
+    else
+      return Arrays.binarySearch(_elements, val) >= 0;
   }
   
   @Override
   public boolean containsWithType(Long val)
   {
-    return Arrays.binarySearch(_elements, val) >= 0;
+    if (withDummy)
+    {
+      if (val == null) return false;
+      return Arrays.binarySearch(_elements,1, _elements.length, val.longValue()) >= 0;
+    } else
+    {
+      return Arrays.binarySearch(_elements, val.longValue()) >= 0;
+    }
   }
 
   public boolean containsWithType(long val)
   {
-    return Arrays.binarySearch(_elements, val) >= 0;
+    if (withDummy)
+      return Arrays.binarySearch(_elements,1, _elements.length, val) >= 0;
+    else
+      return Arrays.binarySearch(_elements, val) >= 0;
   }
 }
