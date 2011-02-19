@@ -30,6 +30,7 @@ public class BoboFacetIteratorTest extends TestCase
   public void testTermStringListAddWrongOrder()
   {
     TermStringList tsl1 = new TermStringList();
+    tsl1.add(null);
     tsl1.add("m");
     try
     {
@@ -45,17 +46,56 @@ public class BoboFacetIteratorTest extends TestCase
   public void testTermStringListAddCorrectOrder()
   {
     TermStringList tsl1 = new TermStringList();
-    tsl1.add("a");
+    tsl1.add(null);
+    tsl1.add("");
     try
     {
       tsl1.add("m");
+      tsl1.add("s");
+      tsl1.add("t");
     } catch(Exception e)
     {
       fail("There should NOT be an exception and the message contains ascending order");
       return;
     }
+    tsl1.seal();
+    assertEquals("Should skip index 0 which is used for dummy null", 1, tsl1.indexOf(""));
   }
 
+  public void testTermIntListAddWrongOrder()
+  {
+    TermIntList tsl1 = new TermIntList("000");
+    tsl1.add(null);
+    tsl1.add("1");
+    try
+    {
+      tsl1.add("0");
+    } catch(Exception e)
+    {
+      assertTrue("There should be an exception and the message contains ascending order", e.getMessage().contains("ascending order"));
+      return;
+    }
+    fail("There should be an exception and the message contains ascending order");
+  }
+  
+  public void testTermIntListAddCorrectOrder()
+  {
+    TermIntList tsl1 = new TermIntList("000");
+    tsl1.add(null);
+    tsl1.add("0");
+    try
+    {
+      tsl1.add("1");
+      tsl1.add("2");
+      tsl1.add("3");
+    } catch(Exception e)
+    {
+      fail("There should NOT be an exception and the message contains ascending order");
+      return;
+    }
+    tsl1.seal();
+    assertEquals("Should skip index 0 which is used for dummy null", 1, tsl1.indexOf(0));
+  }
   
   public void testDefaultFaccetIterator()
   {
