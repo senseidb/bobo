@@ -176,7 +176,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 			return _name;
 		}
     	
-    }, f, new String[]{value});
+    }, f, new String[]{value}, false);
     return af;
   }
 
@@ -222,7 +222,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 	  			return _name;
 	  		}
 	      	
-	      }, f, vals);
+	      }, f, vals, false);
 	      return af;
       }
       else{

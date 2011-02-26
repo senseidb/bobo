@@ -62,6 +62,10 @@ public class FacetOrFilter extends RandomAccessFilter
     {
       selectivity = 1.0;
     }
+    if(_takeCompliment)
+    {
+      selectivity = 1.0 - selectivity;
+    }
     return selectivity;
   }
   

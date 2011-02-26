@@ -1,6 +1,8 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -22,6 +24,7 @@ import com.browseengine.bobo.facets.filter.FacetFilter;
 import com.browseengine.bobo.facets.filter.FacetOrFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
+import com.browseengine.bobo.facets.filter.RandomAccessOrFilter;
 import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
 import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
@@ -100,7 +103,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 			return _name;
 		}
     	
-    }, f, new String[]{value});
+    }, f, new String[]{value}, false);
     return af;
   }
 
@@ -124,8 +127,8 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
     
     if(vals.length > 1)
     {
-      FacetOrFilter f = new FacetOrFilter(this,vals,isNot);
-      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
+      RandomAccessFilter f = new FacetOrFilter(this,vals,false);
+      filter = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
 
   		@Override
   		public FacetDataCache build(BoboIndexReader reader) {
@@ -137,8 +140,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
   			return _name;
   		}
       	
-      }, f, vals);
-      return af;
+      }, f, vals, isNot);
     }
     else if(vals.length == 1)
     {
@@ -148,10 +150,12 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
     {
       filter = EmptyFilter.getInstance();
     }
+    
     if (isNot)
     {
       filter = new RandomAccessNotFilter(filter);
     }
+    
     return filter;
   }
 
