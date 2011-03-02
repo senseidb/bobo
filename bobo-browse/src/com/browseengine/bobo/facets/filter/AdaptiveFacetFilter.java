@@ -33,21 +33,28 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	private final RandomAccessFilter _facetFilter;
 	private final FacetDataCacheBuilder _facetDataCacheBuilder;
 	private final Set<String> _valSet;
+	private boolean  _takeComplement = false;
 	
 	public interface FacetDataCacheBuilder{
 		FacetDataCache build(BoboIndexReader reader);
 		String getName();
 	}
 	
-	public AdaptiveFacetFilter(FacetDataCacheBuilder facetDataCacheBuilder,RandomAccessFilter facetFilter,String[] val){
+	// If takeComplement is true, we still return the filter for NotValues . Therefore, the calling function of this class needs to apply NotFilter on top
+	// of this filter if takeComplement is true.
+	public AdaptiveFacetFilter(FacetDataCacheBuilder facetDataCacheBuilder,RandomAccessFilter facetFilter,String[] val, boolean takeComplement){
 	  _facetFilter = facetFilter;
 	  _facetDataCacheBuilder = facetDataCacheBuilder;
 	  _valSet = new HashSet<String>(Arrays.asList(val));
+	  _takeComplement = takeComplement;
 	}
 	
 	 public double getFacetSelectivity(BoboIndexReader reader)
 	 {
-	   return _facetFilter.getFacetSelectivity(reader);
+	   double selectivity = _facetFilter.getFacetSelectivity(reader);
+	   if(_takeComplement)
+	     return 1.0 - selectivity;
+	   return selectivity;
 	 }
 	
 	@Override
@@ -73,8 +80,11 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 		  return EmptyDocIdSet.getInstance();
 	  }
 	  
-	  if (freqCount<<1 < totalCount){
-		  return new TermListRandomAccessDocIdSet(_facetDataCacheBuilder.getName(), innerDocSet, validVals, reader);
+	  // takeComplement is only used to choose between TermListRandomAccessDocIdSet and innerDocSet
+	  int validFreqCount = _takeComplement ? (totalCount - freqCount) : freqCount;
+	  
+	  if ((validFreqCount<<1) < totalCount){
+	    return new TermListRandomAccessDocIdSet(_facetDataCacheBuilder.getName(), innerDocSet, validVals, reader);
 	  }
 	  else{
 		  return innerDocSet;
@@ -88,7 +98,6 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 		private final IndexReader _reader;
 		private final String _name;
 		private final static int OR_THRESHOLD = 5;
-		
 		TermListRandomAccessDocIdSet(String name,RandomAccessDocIdSet innerSet,ArrayList<String> vals,IndexReader reader){
 			_name = name;
 			_innerSet = innerSet;
