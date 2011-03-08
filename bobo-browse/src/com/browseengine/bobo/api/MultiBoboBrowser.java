@@ -1,5 +1,6 @@
 package com.browseengine.bobo.api;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,7 +28,7 @@ import com.browseengine.bobo.sort.SortCollector;
 /**
  * Provides implementation of Browser for multiple Browser instances
  */
-public class MultiBoboBrowser extends MultiSearcher implements Browsable
+public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeable
 {
   private static Logger logger = Logger.getLogger(MultiBoboBrowser.class);
   

@@ -37,8 +37,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/gui/gwt-visualization.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/ant.jar"/>
 	<classpathentry kind="lib" path="lib/master/zoie-2.0.0.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/solr/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/solr/slf4j-api.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

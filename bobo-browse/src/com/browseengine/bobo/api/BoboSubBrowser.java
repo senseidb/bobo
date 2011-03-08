@@ -1,5 +1,6 @@
 package com.browseengine.bobo.api;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +39,7 @@ import com.browseengine.bobo.sort.SortCollector;
 /**
  * This class implements the browsing functionality.
  */
-public class BoboSubBrowser extends BoboSearcher2 implements Browsable
+public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
 {
   private static Logger                   logger = Logger.getLogger(BoboSubBrowser.class);
   
