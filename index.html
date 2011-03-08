@@ -3,25 +3,25 @@
 <head>
   <meta charset='utf-8'>
 
-  <title>javasoze/bobo @ GitHub</title>
+  <title>Bobo</title>
 
   <style type="text/css">
     body {
       margin-top: 1.0em;
-      background-color: #338014;
+      background-color: #efefef;
       font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #ffffff;
+      color: black;
     }
     #container {
       margin: 0 auto;
       width: 700px;
     }
-    h1 { font-size: 3.8em; color: #cc7feb; margin-bottom: 3px; }
+    h1 { font-size: 3.8em; color: black; margin-bottom: 3px; }
     h1 .small { font-size: 0.4em; }
     h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #cc7feb; }
-    h3 { text-align: center; color: #cc7feb; }
-    a { color: #cc7feb; }
+    h2 { font-size: 1.5em; color: black; }
+    h3 { text-align: center; color: black; }
+    a { }
     .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
     pre { background: #000; color: #fff; padding: 15px;}
@@ -33,7 +33,39 @@
 <body>
   <a href="http://github.com/javasoze/bobo"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
-  <div id="container">
+<h2>Bobo</h2>
+<p>
+Bobo is a Faceted Search implementation written purely in Java, an extension to <a href="http://lucene.apache.org">Apache Lucene</a>.
+</p>
+<p>
+While Lucene is good with unstructured data, Bobo fills in the missing piece to handle semi-structured and structured data.
+</p>
+<p>
+Bobo Browse is an information retrieval technology that provides navigational browsing into a semi-structured dataset. Beyond the result set from queries and selections, Bobo Browse also provides the facets from this point of browsing.
+</p>
+
+<h2>Logical Architecture</h2>
+<img src="images/bobo-arch.png">
+<h2>Features</h2>
+<ul>
+	<li> No need for cache warm-up for the system to perform.
+    <li> multi value sort - sort documents on fields that have multiple values per doc, .e.g tokenized fields
+    <li> fast field value retrieval - over 30x faster than IndexReader.document(int docid)
+    <li> facet count distribution analysis
+    <li> stable and small memory footprint
+    <li> support for runtime faceting
+    <li> result merge library for distributed facet search
+</ul>
+<h2>News</h2>
+<p>
+Release: - Bobo Browse 2.5.0 is released (<a href="http://github.com/javasoze/bobo/downloads">here</a>)
+</p>
+<p>
+News: - Bobo is powering the new <a href="http://www.linkedin.com">LinkedIn Faceted People Search</a>
+</p>
+<p>
+See <a href="http://www.techcrunch.com/2009/07/15/linkedin-drills-down-into-people-search-with-new-beta">Techcrunch article</a> covering our search improvements.
+
 
     <div class="download">
       <a href="http://github.com/javasoze/bobo/zipball/master">
@@ -42,15 +74,8 @@
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
     </div>
 
-    <h1><a href="http://github.com/javasoze/bobo">bobo</a>
-      <span class="small">by <a href="http://github.com/javasoze">javasoze</a></span></h1>
-
-    <div class="description">
-      faceted search engine
-    </div>
-
     <h2>Contact</h2>
-<p>John Wang (john.wang@gmail.com)<br/>      </p>
+    <p>John Wang (john.wang@gmail.com)<br/></p>
 
 
     <h2>Download</h2>
@@ -68,7 +93,6 @@
       get the source code on GitHub : <a href="http://github.com/javasoze/bobo">javasoze/bobo</a>
     </div>
 
-  </div>
 
   
 </body>
