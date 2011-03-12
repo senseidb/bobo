@@ -3,6 +3,8 @@
  */
 package com.browseengine.bobo.facets;
 
+import javax.management.DynamicMBean;
+
 /**
  * This interface is intended for using with RuntimeFacetHandler, which typically
  * have local data that make them not only NOT thread safe but also dependent on
@@ -23,4 +25,11 @@ public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerPar
    * @return a new instance of 
    */
   F get(P params);
+  
+	
+  /**
+   * Gets the JMX Mbean that manages this facet handler. 
+   * @return null if this mbean is not managed
+   */
+  DynamicMBean getMBean();
 }

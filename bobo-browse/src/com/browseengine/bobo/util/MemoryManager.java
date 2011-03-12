@@ -76,6 +76,28 @@ public class MemoryManager<T>
     _cleanThread.setDaemon(true);
     _cleanThread.start();
   }
+  
+  public MemoryManagerAdminMBean getAdminMBean(){
+      return new MemoryManagerAdminMBean() {
+		
+		@Override
+		public long getNumCacheMisses() {
+			return _miss.incrementAndGet();
+		}
+		
+		@Override
+		public long getNumCacheHits() {
+			return _hits.get();
+		}
+		
+		@Override
+		public double getHitRate() {
+			long miss = _miss.incrementAndGet();
+		    long hit = _hits.get();
+		    return (double)hit/(double)(hit + miss);
+		}
+	};
+  }
 
   /**
    * @return an initialized instance of type T. The size of the instance may not be the same as the requested size.
@@ -114,10 +136,7 @@ public class MemoryManager<T>
       else
       {
         T ret = _initializer.newInstance(size);
-        long miss = _miss.incrementAndGet();
         long hit = _hits.get();
-        double hitrate = (double)hit/(double)(hit + miss);
-        log.info("Cache hit rate: "+ hitrate + " miss for size " + reqsize + " pool size " + size + " costing " + (System.currentTimeMillis() - t0) +"ms");
         if (hit > Long.MAX_VALUE/2)
         {
           _hits.set(0);

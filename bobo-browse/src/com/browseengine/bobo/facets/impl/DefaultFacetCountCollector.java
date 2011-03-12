@@ -6,6 +6,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -13,8 +16,8 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermDoubleList;
@@ -22,10 +25,12 @@ import com.browseengine.bobo.facets.data.TermFloatList;
 import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.facets.data.TermShortList;
+import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
-import com.browseengine.bobo.util.MemoryManager;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
+import com.browseengine.bobo.util.MemoryManager;
+import com.browseengine.bobo.util.MemoryManagerAdminMBean;
 
 public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
@@ -42,8 +47,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   private Iterator _iterator;
 
   protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
-      {
-
+  {
     public void init(int[] buf)
     {
       Arrays.fill(buf, 0);
@@ -60,7 +64,20 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       return buf.length;
     }
 
-      });
+  });
+  
+  static{
+	  try{
+		// register memory manager mbean
+		MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
+		MemoryManagerAdminMBean mbean = intarraymgr.getAdminMBean();
+	    ObjectName mbeanName = new ObjectName(JMXUtil.JMX_DOMAIN,"name","DefaultFacetCountCollector-MemoryManager");
+	    mbeanServer.registerMBean(mbean, mbeanName);
+	  }
+	  catch(Exception e){
+	    log.error(e.getMessage(),e);
+	  }
+  }
 
   public DefaultFacetCountCollector(String name,FacetDataCache dataCache,int docBase,
       BrowseSelection sel,FacetSpec ospec)

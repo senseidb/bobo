@@ -11,17 +11,23 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.management.DynamicMBean;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessOrFilter;
+import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.MemoryManagerAdminMBean;
 
 /**
  * FacetHandler definition
@@ -119,6 +125,14 @@ public abstract class FacetHandler<D>
 	public final FacetHandler<?> getDependedFacetHandler(String name)
 	{
 		return _dependedFacetHandlers.get(name);
+	}
+	
+	/**
+	 * Gets the JMX Mbean that manages this facet handler. 
+	 * @return null if this mbean is not managed
+	 */
+	public DynamicMBean getMBean(){
+		return null;
 	}
 	
 	/**
