@@ -82,7 +82,7 @@ public class MemoryManager<T>
 		
 		@Override
 		public long getNumCacheMisses() {
-			return _miss.incrementAndGet();
+			return _miss.get();
 		}
 		
 		@Override
@@ -92,7 +92,7 @@ public class MemoryManager<T>
 		
 		@Override
 		public double getHitRate() {
-			long miss = _miss.incrementAndGet();
+			long miss = _miss.get();
 		    long hit = _hits.get();
 		    return (double)hit/(double)(hit + miss);
 		}
@@ -136,6 +136,7 @@ public class MemoryManager<T>
       else
       {
         T ret = _initializer.newInstance(size);
+        _miss.incrementAndGet();
         long hit = _hits.get();
         if (hit > Long.MAX_VALUE/2)
         {
