@@ -130,7 +130,6 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
           if (hits>=minCount)
           {
             BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
-            System.out.println("DefaultFacetCountCollector: Value --> " + valList.get(i));
             facetColl.add(facet);
           }
           if (facetColl.size()>=max) break;
