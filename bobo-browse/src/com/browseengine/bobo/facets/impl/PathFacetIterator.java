@@ -18,6 +18,9 @@ public class PathFacetIterator extends FacetIterator {
 	private BrowseFacet[] _facets;
 	private int _index;
 	
+	/**
+	 * @param facets a value ascending sorted list of BrowseFacets
+	 */
 	public PathFacetIterator(List<BrowseFacet> facets) {
 		_facets = facets.toArray(new BrowseFacet[facets.size()]);
 		_index = -1;
@@ -33,7 +36,7 @@ public class PathFacetIterator extends FacetIterator {
 			throw new NoSuchElementException("No more facets in this iteration");
 		_index++;
 		facet = _facets[_index].getValue();
-		count = _facets[_index].getHitCount();
+		count = _facets[_index].getFacetValueHitCount();
 		return facet;
 	}
 
@@ -58,10 +61,10 @@ public class PathFacetIterator extends FacetIterator {
   {
     while(++_index < _facets.length)
     {
-      if(_facets[_index].getHitCount() >= minHits)
+      if(_facets[_index].getFacetValueHitCount() >= minHits)
       {
         facet = _facets[_index].getValue();
-        count = _facets[_index].getHitCount();
+        count = _facets[_index].getFacetValueHitCount();
         return facet;
       }
     }
