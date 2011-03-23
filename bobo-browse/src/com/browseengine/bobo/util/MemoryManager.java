@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
  *
  */
-public class MemoryManager<T>
+public class MemoryManager<T> implements MemoryManagerAdminMBean
 {
   private static final Logger log = Logger.getLogger(MemoryManager.class.getName());
   private static final int[] sizetable;
@@ -78,26 +78,25 @@ public class MemoryManager<T>
   }
   
   public MemoryManagerAdminMBean getAdminMBean(){
-      return new MemoryManagerAdminMBean() {
-		
-		@Override
-		public long getNumCacheMisses() {
-			return _miss.get();
-		}
-		
-		@Override
-		public long getNumCacheHits() {
-			return _hits.get();
-		}
-		
-		@Override
-		public double getHitRate() {
-			long miss = _miss.get();
-		    long hit = _hits.get();
-		    return (double)hit/(double)(hit + miss);
-		}
-	};
+      return this;
   }
+  
+  @Override
+	public long getNumCacheMisses() {
+		return _miss.get();
+	}
+	
+	@Override
+	public long getNumCacheHits() {
+		return _hits.get();
+	}
+	
+	@Override
+	public double getHitRate() {
+		long miss = _miss.get();
+	    long hit = _hits.get();
+	    return (double)hit/(double)(hit + miss);
+	}
 
   /**
    * @return an initialized instance of type T. The size of the instance may not be the same as the requested size.

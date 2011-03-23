@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
 
@@ -70,8 +71,8 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 	  try{
 		// register memory manager mbean
 		MBeanServer mbeanServer = java.lang.management.ManagementFactory.getPlatformMBeanServer();
-		MemoryManagerAdminMBean mbean = intarraymgr.getAdminMBean();
 	    ObjectName mbeanName = new ObjectName(JMXUtil.JMX_DOMAIN,"name","DefaultFacetCountCollector-MemoryManager");
+	    StandardMBean mbean = new StandardMBean(intarraymgr.getAdminMBean(), MemoryManagerAdminMBean.class);
 	    mbeanServer.registerMBean(mbean, mbeanName);
 	  }
 	  catch(Exception e){
