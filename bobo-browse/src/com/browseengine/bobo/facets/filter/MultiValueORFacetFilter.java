@@ -62,9 +62,9 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
   private final static class MultiValueOrFacetDocIdSetIterator extends FacetOrDocIdSetIterator
   {
       private final BigNestedIntArray _nestedArray;
-      public MultiValueOrFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, int[] index,BitVector bs) 
+      public MultiValueOrFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, BitVector bs) 
       {
-        super(dataCache,index,bs);
+        super(dataCache,bs);
         _nestedArray = dataCache._nestedArray;
       }
       
@@ -138,7 +138,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
             @Override
             public DocIdSetIterator iterator() 
             {
-                return new MultiValueOrFacetDocIdSetIterator(dataCache,index,bitset);
+                return new MultiValueOrFacetDocIdSetIterator(dataCache,bitset);
             }
 
             @Override

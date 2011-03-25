@@ -135,7 +135,7 @@ public class FacetOrFilter extends RandomAccessFilter
 
 	@Override
 	public DocIdSetIterator iterator() throws IOException {
-        return new FacetOrDocIdSetIterator(_dataCache,_index,_bitset);
+        return new FacetOrDocIdSetIterator(_dataCache,_bitset);
 	}
 	  
   }
@@ -144,15 +144,13 @@ public class FacetOrFilter extends RandomAccessFilter
   {
       protected int _doc;
       protected final FacetDataCache _dataCache;
-      protected final int[] _index;
       protected int _maxID;
       protected final BitVector _bitset;
       protected final BigSegmentedArray _orderArray;
       
-      public FacetOrDocIdSetIterator(FacetDataCache dataCache,int[] index,BitVector bitset)
+      public FacetOrDocIdSetIterator(FacetDataCache dataCache,BitVector bitset)
       {
           _dataCache=dataCache;
-          _index=index;
           _orderArray = dataCache.orderArray;
           _bitset=bitset;
               

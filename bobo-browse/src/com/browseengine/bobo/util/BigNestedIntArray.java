@@ -712,6 +712,11 @@ public final class BigNestedIntArray
     return 0;
   }
   
+
+  public final void countNoReturnWithFilter(final int id, final int[] count,BitVector filter){
+	  
+  }
+  
   public final void countNoReturn(final int id, final int[] count)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];
