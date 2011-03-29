@@ -712,11 +712,6 @@ public final class BigNestedIntArray
     return 0;
   }
   
-
-  public final void countNoReturnWithFilter(final int id, final int[] count,BitVector filter){
-	  
-  }
-  
   public final void countNoReturn(final int id, final int[] count)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -746,6 +741,42 @@ public final class BigNestedIntArray
     return;
   }
   
+  public final void countNoReturnWithFilter(final int id, final int[] count, BitVector filter)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) {
+      count[0]++;
+      return;
+    }
+    
+    int val = page[id & SLOTID_MASK];
+    if(val >= 0)
+    {
+      if (filter.get(val))
+      {
+        count[val]++;
+      }
+      return;
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT); // signed shift, remember val is a negative number
+      int cnt = (val & COUNT_MASK);
+      int end = idx + cnt;
+      while(idx < end)
+      {
+        int value = page[idx++];
+        if (filter.get(value))
+        {
+          count[value]++;
+        }
+      }
+      return;
+    }
+    count[0]++;
+    return;
+  }
+
   /**
    * returns the number data items for id
    * @param id

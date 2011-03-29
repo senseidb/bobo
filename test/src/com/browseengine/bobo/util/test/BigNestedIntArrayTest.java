@@ -7,6 +7,7 @@ import com.browseengine.bobo.util.BigIntBuffer;
 import com.browseengine.bobo.util.BigNestedIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray.BufferedLoader;
 import com.browseengine.bobo.util.BigNestedIntArray.Loader;
+import org.apache.lucene.util.BitVector;
 
 import java.util.Random;
 import java.util.Arrays;
@@ -299,5 +300,51 @@ public class BigNestedIntArrayTest extends TestCase
         }
       }
     }
+  }
+
+  public void testCountNoReturnWithFilter() throws Throwable
+  {
+    int maxId = 20;
+    int numVals = 10;
+    int[] count = new int[numVals];
+    
+    BufferedLoader loader = new BufferedLoader(maxId);
+    for (int val = 0; val < numVals; val++)
+    {
+      for (int i = 0; i < maxId - val; i++)
+      {
+        loader.add(i, val);
+      }
+    }
+
+    BigNestedIntArray nestedArray = new BigNestedIntArray();
+    nestedArray.load(maxId, loader);
+
+    BitVector filter = new BitVector(numVals);
+    for (int i = 0; i < numVals; i++)
+    {
+      if (i % 2 == 0)
+      {
+        filter.set(i);
+      }
+    }
+
+    for (int i = 0; i < maxId; i++)
+    {
+      nestedArray.countNoReturnWithFilter(i, count, filter);
+    }
+
+    for (int i = 0; i < numVals; i++)
+    {
+      if (i % 2 == 0) 
+      {
+        assertTrue(count[i] == maxId - i);
+      }
+      else
+      {
+        assertTrue(count[i] == 0);
+      }
+    }
+    return;
   }
 }

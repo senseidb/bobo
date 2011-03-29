@@ -101,6 +101,11 @@ public abstract class TermValueList<T> implements List<String>{
 
 	abstract public int indexOf(Object o);
 
+  public int indexOfWithOffset(Object value, int offset)
+  {
+    throw new IllegalStateException("not supported");
+  }
+
   public abstract int indexOfWithType(T o);
 
   public boolean isEmpty() {

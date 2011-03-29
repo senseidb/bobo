@@ -117,6 +117,51 @@ public class TermIntList extends TermNumberList<Integer>
   }
 
   @Override
+  public int indexOfWithOffset(Object value, int offset)
+  {
+    if (withDummy)
+    {
+      if (value == null || offset >= _elements.length)
+        return -1;
+      int val = parse(String.valueOf(value));
+      return Arrays.binarySearch(_elements, offset, _elements.length, val);
+    }
+    else
+    {
+      int val = parse(String.valueOf(value));
+      return Arrays.binarySearch(_elements, offset, _elements.length, val);
+    }
+  }
+
+  public int indexOfWithOffset(Integer value, int offset)
+  {
+    if (withDummy)
+    {
+      if (value==null || offset >= _elements.length)
+        return -1;
+      return Arrays.binarySearch(_elements, offset, _elements.length, value.intValue());
+    }
+    else
+    {
+      return Arrays.binarySearch(_elements, offset, _elements.length, value.intValue());
+    }
+  }
+
+  public int indexOfWithOffset(int value, int offset)
+  {
+    if (withDummy)
+    {
+      if (offset >= _elements.length)
+        return -1;
+      return Arrays.binarySearch(_elements, offset, _elements.length, value);
+    }
+    else
+    {
+      return Arrays.binarySearch(_elements, offset, _elements.length, value);
+    }
+  }
+
+  @Override
   public int indexOfWithType(Integer val)
   {
     if (withDummy)
