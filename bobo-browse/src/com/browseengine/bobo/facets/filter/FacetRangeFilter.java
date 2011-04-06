@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -179,6 +180,14 @@ public final class FacetRangeFilter extends RandomAccessFilter
 
     final int[] range = parse(dataCache,_rangeString);
     if (range == null) return null;
+    
+    if (range[0]>range[1]){
+      return EmptyDocIdSet.getInstance();
+    }
+    
+    if (range[0] == range[1] && range[0]<0){
+	  return EmptyDocIdSet.getInstance();
+    }
     
     return new RandomAccessDocIdSet()
     {

@@ -74,21 +74,7 @@ public class FacetOrFilter extends RandomAccessFilter
   {
     if (_vals.length == 0)
     {
-      final DocIdSet empty = EmptyDocIdSet.getInstance();
-        return new RandomAccessDocIdSet()
-        {
-		    @Override
-		    public boolean get(int docId)
-		    {
-		      return false;
-		    }
-		
-		    @Override
-		    public DocIdSetIterator iterator() throws IOException
-		    {
-		      return empty.iterator();
-		    }         
-        };
+      return EmptyDocIdSet.getInstance();
     }
     else
     {

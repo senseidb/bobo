@@ -60,12 +60,17 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	@Override
 	public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader)
 			throws IOException {
+	
+      RandomAccessDocIdSet innerDocSet = _facetFilter.getRandomAccessDocIdSet(reader);
+      if (innerDocSet==EmptyDocIdSet.getInstance()){
+    	  return innerDocSet;
+      }
+		  
 	  FacetDataCache dataCache = _facetDataCacheBuilder.build(reader);
 	  int totalCount = reader.maxDoc();
 	  TermValueList valArray = dataCache.valArray;
 	  int freqCount = 0;
 	  
-	  RandomAccessDocIdSet innerDocSet = _facetFilter.getRandomAccessDocIdSet(reader);
 	  
 	  ArrayList<String> validVals = new ArrayList<String>(_valSet.size());
 	  for (String val : _valSet){

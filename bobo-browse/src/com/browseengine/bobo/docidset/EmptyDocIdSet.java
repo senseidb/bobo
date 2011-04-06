@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.lucene.search.DocIdSetIterator;
 
 
-public class EmptyDocIdSet extends RandomAccessDocIdSet 
+public final class EmptyDocIdSet extends RandomAccessDocIdSet 
 {
   private static EmptyDocIdSet SINGLETON=new EmptyDocIdSet();
 
