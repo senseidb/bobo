@@ -1,13 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.sna-projects</groupId>
+	<groupId>com.browseengine.bobo</groupId>
 	<artifactId>bobo-browse</artifactId>
 	<packaging>jar</packaging>
 	<name>bobo browse</name>
-	<version>2.5.0-SNAPSHOT</version>
+	<version>2.5.1-SNAPSHOT</version>
 	<description>Bobo is a Faceted Search implementation written purely in Java, an extension of Apache Lucene</description>
-	<url>http://sna-projects.com/bobo/</url>
+	<url>http://javasoze.github.com/bobo</url>
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -92,13 +92,6 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.sna-projects</groupId>
-			<artifactId>zoie-core</artifactId>
-			<version>2.5.0-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
