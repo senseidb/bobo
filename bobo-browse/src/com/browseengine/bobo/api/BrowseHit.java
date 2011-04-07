@@ -196,7 +196,7 @@ public class BrowseHit
 	      buffer.append(e.getKey());
 	      buffer.append(":");
 	      String[] vals = e.getValue();
-	      buffer.append(vals == null ? null: vals);
+	      buffer.append(vals == null ? null: Arrays.toString(vals));
 	      if (iterator.hasNext()) buffer.append(", ");
 	    }
 	    return buffer.toString();
