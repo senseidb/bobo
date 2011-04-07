@@ -126,9 +126,9 @@
 			<version>2.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sna-projects</groupId>
+			<groupId>com.sna-projects.kamikaze</groupId>
 			<artifactId>kamikaze</artifactId>
-			<version>3.0.3-SNAPSHOT</version>
+			<version>3.0.3</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
