@@ -26,9 +26,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/xmlParserAPIs.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/xstream.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/test/junit.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/protobuf-java-2.2.0.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/kamikaze-2.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar" sourcepath="/Users/jwang/.m2/repository/org/apache/lucene/lucene-core/2.9.2/lucene-core-2.9.2-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-configuration.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/solr/solr-core.jar"/>
@@ -40,5 +38,7 @@
 	<classpathentry kind="lib" path="lib/solr/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/solr/slf4j-api.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/master/kamikaze.jar"/>
+	<classpathentry kind="lib" path="lib/master/protobuf-java.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

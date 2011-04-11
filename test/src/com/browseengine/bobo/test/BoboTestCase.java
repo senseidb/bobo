@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -92,6 +93,7 @@ import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.BucketFacetHandler;
+import com.browseengine.bobo.facets.impl.ComboFacetHandler;
 import com.browseengine.bobo.facets.impl.CompactMultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.DynamicTimeRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
@@ -494,13 +496,13 @@ public class BoboTestCase extends TestCase {
 		predefinedSalaryRanges[2] = new String("[08000 TO 09999]");
 		predefinedSalaryRanges[3] = new String("[10000 TO *]");
 		RangeFacetHandler dependedRangeFacet = new RangeFacetHandler("salary", Arrays.asList(predefinedSalaryRanges));
-    facetHandlers.add(dependedRangeFacet);
+        facetHandlers.add(dependedRangeFacet);
     
 		String[] predefinedBuckets = new String[4];
-    predefinedBuckets[0] =  new String("[04000 TO 05999],[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
-    predefinedBuckets[1] =  new String("[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
-    predefinedBuckets[2] =  new String("[08000 TO 09999],[10000 TO *]");
-    predefinedBuckets[3] =  new String("[10000 TO *]");
+        predefinedBuckets[0] =  new String("[04000 TO 05999],[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
+        predefinedBuckets[1] =  new String("[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
+        predefinedBuckets[2] =  new String("[08000 TO 09999],[10000 TO *]");
+        predefinedBuckets[3] =  new String("[10000 TO *]");
 		facetHandlers.add(new BucketFacetHandler("salaryBucket", Arrays.asList(predefinedBuckets), "salary"));
 		
 		// histogram
@@ -514,6 +516,13 @@ public class BoboTestCase extends TestCase {
 		dependsNames.add("shape");
 		dependsNames.add("number");
 		facetHandlers.add(new SimpleGroupbyFacetHandler("groupby", dependsNames));
+		
+
+		ComboFacetHandler colorShape = new ComboFacetHandler("colorShape",new HashSet(Arrays.asList(new String[]{"color","shape"})));
+		ComboFacetHandler colorShapeMultinum = new ComboFacetHandler("colorShapeMultinum",new HashSet(Arrays.asList(new String[]{"color","shape","multinum"})));
+		
+		facetHandlers.add(colorShape);
+		facetHandlers.add(colorShapeMultinum);
 	    		
 		return facetHandlers;
 	}
@@ -861,6 +870,63 @@ public class BoboTestCase extends TestCase {
 		answer=new HashMap<String,List<BrowseFacet>>();
 		answer.put("path", Arrays.asList(new BrowseFacet[]{new BrowseFacet("a-c",4),new BrowseFacet("a-e",2)}));
 		doTest(br,7,answer,null);
+	}
+	
+	public void testComboFacetHandlerSelectionOnly(){
+		
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+		
+		BrowseSelection sel=new BrowseSelection("colorShape");
+		sel.addValue("color:green");
+		sel.addValue("shape:rectangle");
+		sel.addValue("shape:square");
+		sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+		br.addSelection(sel);
+		
+		doTest(br,6,null,new String[]{"1","2","3","5","6","7"});
+		
+		br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+		
+		sel=new BrowseSelection("colorShape");
+		sel.addValue("color:green");
+		sel.addValue("shape:rectangle");
+		sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
+		br.addSelection(sel);
+		
+		doTest(br,1,null,new String[]{"6"});
+		
+		br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+		
+		sel=new BrowseSelection("colorShapeMultinum");
+		sel.addValue("color:red");
+		sel.addValue("shape:square");
+		sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+		sel.addNotValue("multinum:001");
+		sel.addNotValue("multinum:003");
+		br.addSelection(sel);
+		
+		doTest(br,1,null,new String[]{"2"});
+		
+		br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+		
+		sel=new BrowseSelection("colorShapeMultinum");
+		sel.addValue("color:red");
+		sel.addValue("shape:square");
+		sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+		sel.addNotValue("multinum:003");
+		br.addSelection(sel);
+		
+		doTest(br,2,null,new String[]{"2","5"});
+		
+		
 	}
 
 	/**
@@ -2373,9 +2439,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testHistogramFacetHandler");
+	  BoboTestCase test=new BoboTestCase("testIndexReaderReopen");
 		test.setUp();
-		test.testHistogramFacetHandler();
+		test.testIndexReaderReopen();
 		test.tearDown();
 	}
 }

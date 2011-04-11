@@ -15,7 +15,7 @@
         <dependency org="com.google.gwt" name="gwt-user" rev="2.0.0" conf="gui->master"/>
         <dependency org="com.google.gwt" name="gwt-dev" rev="2.0.0" conf="gui->master"/>
         <dependency org="com.google.gwt.google-apis" name="gwt-visualization" rev="1.0.2" conf="gui->master"/>
-        <dependency org="com.google.protobuf" name="protobuf-java" rev="2.2.0" conf="gui->master"/>
+        <dependency org="com.google.protobuf" name="protobuf-java" rev="2.2.0" conf="master"/>
         <dependency org="commons-logging" name="commons-logging" rev="1.1" conf="master"/>
         <dependency org="commons-httpclient" name="commons-httpclient" rev="3.1" conf="master"/>
         <dependency org="commons-collections" name="commons-collections" rev="3.2.1" conf="master"/>
