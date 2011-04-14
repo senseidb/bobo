@@ -17,6 +17,10 @@ public interface FacetAccessible
 	 */
 	BrowseFacet getFacet(String value);
   
+	/**
+	 * Responsible for release resources used. If the implementing class does not use a lot of resources,
+	 * it does not have to do anything.
+	 */
 	public void close();
 	
 	/**

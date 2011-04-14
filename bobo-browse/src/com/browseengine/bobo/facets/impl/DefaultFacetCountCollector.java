@@ -44,8 +44,9 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
   private int _docBase;
-  protected LinkedList<int[]> intarraylist = new LinkedList<int[]>();
+  protected final LinkedList<int[]> intarraylist = new LinkedList<int[]>();
   private Iterator _iterator;
+  private boolean _closed = false;
 
   protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
   {
@@ -112,6 +113,10 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 
   public BrowseFacet getFacet(String value)
   {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
+    }
     BrowseFacet facet = null;
     int index=_dataCache.valArray.indexOf(value);
     if (index >=0 ){
@@ -129,6 +134,10 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   }
 
   public List<BrowseFacet> getFacets() {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
+    }
     if (_ospec!=null)
     {
       int minCount=_ospec.getMinHitCount();
@@ -205,11 +214,18 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     }
   }
 
+  @Override
   public void close()
   {
-    for(int[] buf: intarraylist)
+    if (_closed)
     {
-      intarraymgr.release(buf);
+      log.warn("This instance of count collector for '" + _name + "' was already closed. This operation is no-op.");
+      return;
+    }
+    _closed = true;
+    while(!intarraylist.isEmpty())
+    {
+      intarraymgr.release(intarraylist.poll());
     }
   }
 
@@ -217,7 +233,12 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
    * This function returns an Iterator to visit the facets in value order
    * @return	The Iterator to iterate over the facets in value order
    */
-  public FacetIterator iterator() {
+  public FacetIterator iterator()
+  {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector for '" + _name + "' was already closed");
+    }
     if (_dataCache.valArray.getType().equals(Integer.class))
     {
       return new DefaultIntFacetIterator((TermIntList) _dataCache.valArray, _count, _countlength, false);

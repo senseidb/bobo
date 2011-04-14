@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.util.PriorityQueue;
 
 import com.browseengine.bobo.api.BrowseFacet;
@@ -25,7 +26,6 @@ import com.browseengine.bobo.facets.impl.CombinedFloatFacetIterator;
 import com.browseengine.bobo.facets.impl.CombinedIntFacetIterator;
 import com.browseengine.bobo.facets.impl.CombinedLongFacetIterator;
 import com.browseengine.bobo.facets.impl.CombinedShortFacetIterator;
-import com.browseengine.bobo.facets.impl.DefaultIntFacetIterator;
 
 /**
  * @author nnarkhed
@@ -33,9 +33,10 @@ import com.browseengine.bobo.facets.impl.DefaultIntFacetIterator;
  */
 public class CombinedFacetAccessible implements FacetAccessible 
 {
-
+  private static final Logger log = Logger.getLogger(CombinedFacetAccessible.class);
   private final List<FacetAccessible> _list;
   private final FacetSpec _fspec;
+  private boolean _closed;
   
   public CombinedFacetAccessible(FacetSpec fspec,List<FacetAccessible> list)
   {
@@ -50,6 +51,10 @@ public class CombinedFacetAccessible implements FacetAccessible
 
   public BrowseFacet getFacet(String value) 
   {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector was already closed");
+    }
     int sum=-1;
     String foundValue=null;
     if (_list!=null)
@@ -71,6 +76,10 @@ public class CombinedFacetAccessible implements FacetAccessible
 
   public List<BrowseFacet> getFacets() 
   {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector was already closed");
+    }
     int maxCnt = _fspec.getMaxCount();
     if(maxCnt <= 0)
       maxCnt = Integer.MAX_VALUE;
@@ -201,16 +210,28 @@ public class CombinedFacetAccessible implements FacetAccessible
 
   public void close()
   {
+    if (_closed)
+    {
+      log.warn("This instance of count collector was already closed. This operation is no-op.");
+      return;
+    }
+    _closed = true;
     if (_list!=null)
     {
       for(FacetAccessible fa : _list)
       {
         fa.close();
       }
+      _list.clear();
     }
   }
 
-  public FacetIterator iterator() {
+  public FacetIterator iterator()
+  {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector was already closed");
+    }
 
     ArrayList<FacetIterator> iterList = new ArrayList<FacetIterator>(_list.size());
     FacetIterator iter;
