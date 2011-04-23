@@ -123,6 +123,20 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
     {
       @Override
       public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase){
+    	DefaultFacetCountCollector countCollector = new DefaultFacetCountCollector() {
+			
+			@Override
+			public void collectAll() {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void collect(int docid) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
         return new BucketFacetCountCollector(_name, _dependOnFacetHandler.getFacetCountCollectorSource(sel, ospec).getFacetCountCollector(reader, docBase), ospec, _predefinedBuckets);
       }
     };
