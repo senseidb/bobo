@@ -26,6 +26,7 @@ import com.browseengine.bobo.facets.data.TermFloatList;
 import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.facets.data.TermShortList;
+import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
@@ -132,86 +133,96 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
   {
     return _count;
   }
+  
+  public FacetDataCache getFacetDataCache(){
+	  return _dataCache;
+  }
+  
+  public static List<BrowseFacet> getFacets(FacetSpec ospec,int[] count,final TermValueList<?> valList){
+	  if (ospec!=null)
+	    {
+		  int countlength = count.length;
+	      int minCount=ospec.getMinHitCount();
+	      int max=ospec.getMaxCount();
+	      if (max <= 0) max=countlength;
+
+	      List<BrowseFacet> facetColl;
+	      FacetSortSpec sortspec = ospec.getOrderBy();
+	      if (sortspec == FacetSortSpec.OrderValueAsc)
+	      {
+	        facetColl=new ArrayList<BrowseFacet>(max);
+	        for (int i = 1; i < countlength;++i) // exclude zero
+	        {
+	          int hits=count[i];
+	          if (hits>=minCount)
+	          {
+	            BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
+	            facetColl.add(facet);
+	          }
+	          if (facetColl.size()>=max) break;
+	        }
+	      }
+	      else //if (sortspec == FacetSortSpec.OrderHitsDesc)
+	      {
+	        ComparatorFactory comparatorFactory;
+	        if (sortspec == FacetSortSpec.OrderHitsDesc){
+	          comparatorFactory = new FacetHitcountComparatorFactory();
+	        }
+	        else{
+	          comparatorFactory = ospec.getCustomComparatorFactory();
+	        }
+
+	        if (comparatorFactory == null){
+	          throw new IllegalArgumentException("facet comparator factory not specified");
+	        }
+
+	        final IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
+
+	          public String getFormatedValue(int index) {
+	            return valList.get(index);
+	          }
+
+	          public Object getRawValue(int index) {
+	            return valList.getRawValue(index);
+	          }
+
+	        }, count);
+	        facetColl=new LinkedList<BrowseFacet>();
+	        final int forbidden = -1;
+	        IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
+
+	        for (int i=1;i<countlength;++i)
+	        {
+	          int hits=count[i];
+	          if (hits>=minCount)
+	          {
+	            pq.offer(i);
+	          }
+	        }
+
+	        int val;
+	        while((val = pq.pollInt()) != forbidden)
+	        {
+	          BrowseFacet facet=new BrowseFacet(valList.get(val),count[val]);
+	          ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
+	        }
+	      }
+	      return facetColl;
+	    }
+	    else
+	    {
+	      return FacetCountCollector.EMPTY_FACET_LIST;
+	    }
+  }
 
   public List<BrowseFacet> getFacets() {
     if (_closed)
     {
       throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
     }
-    if (_ospec!=null)
-    {
-      int minCount=_ospec.getMinHitCount();
-      int max=_ospec.getMaxCount();
-      if (max <= 0) max=_countlength;
-
-      List<BrowseFacet> facetColl;
-      List<String> valList=_dataCache.valArray;
-      FacetSortSpec sortspec = _ospec.getOrderBy();
-      if (sortspec == FacetSortSpec.OrderValueAsc)
-      {
-        facetColl=new ArrayList<BrowseFacet>(max);
-        for (int i = 1; i < _countlength;++i) // exclude zero
-        {
-          int hits=_count[i];
-          if (hits>=minCount)
-          {
-            BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
-            facetColl.add(facet);
-          }
-          if (facetColl.size()>=max) break;
-        }
-      }
-      else //if (sortspec == FacetSortSpec.OrderHitsDesc)
-      {
-        ComparatorFactory comparatorFactory;
-        if (sortspec == FacetSortSpec.OrderHitsDesc){
-          comparatorFactory = new FacetHitcountComparatorFactory();
-        }
-        else{
-          comparatorFactory = _ospec.getCustomComparatorFactory();
-        }
-
-        if (comparatorFactory == null){
-          throw new IllegalArgumentException("facet comparator factory not specified");
-        }
-
-        final IntComparator comparator = comparatorFactory.newComparator(new FieldValueAccessor(){
-
-          public String getFormatedValue(int index) {
-            return _dataCache.valArray.get(index);
-          }
-
-          public Object getRawValue(int index) {
-            return _dataCache.valArray.getRawValue(index);
-          }
-
-        }, _count);
-        facetColl=new LinkedList<BrowseFacet>();
-        final int forbidden = -1;
-        IntBoundedPriorityQueue pq=new IntBoundedPriorityQueue(comparator,max, forbidden);
-
-        for (int i=1;i<_countlength;++i)
-        {
-          int hits=_count[i];
-          if (hits>=minCount)
-          {
-            pq.offer(i);
-          }
-        }
-
-        int val;
-        while((val = pq.pollInt()) != forbidden)
-        {
-          BrowseFacet facet=new BrowseFacet(valList.get(val),_count[val]);
-          ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
-        }
-      }
-      return facetColl;
-    }
-    else
-    {
-      return FacetCountCollector.EMPTY_FACET_LIST;
-    }
+    
+    return getFacets(_ospec,_count,_dataCache.valArray);
+    
   }
 
   @Override

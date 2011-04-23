@@ -476,6 +476,8 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(multipathHandler);
 		
 		facetHandlers.add(new SimpleFacetHandler("number", numTermFactory));
+
+		facetHandlers.add(new SimpleFacetHandler("name"));
 		facetHandlers.add(new RangeFacetHandler("date", new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"), Arrays.asList(new String[]{"[2000/01/01 TO 2003/05/05]", "[2003/05/06 TO 2005/04/04]"})));
 		facetHandlers.add(new SimpleFacetHandler("char", (TermListFactory)null));
 		facetHandlers.add(new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm));
@@ -499,18 +501,18 @@ public class BoboTestCase extends TestCase {
         facetHandlers.add(dependedRangeFacet);
     
 		String[][] predefinedBuckets = new String[4][];
-        predefinedBuckets[0] =  new String[]{"[04000 TO 05999]","[06000 TO 07999]","[08000 TO 09999]","[10000 TO *]"};
-        predefinedBuckets[1] =  new String[]{"[06000 TO 07999]","[08000 TO 09999]","[10000 TO *]"};
-        predefinedBuckets[2] =  new String[]{"[08000 TO 09999]","[10000 TO *]"};
-        predefinedBuckets[3] =  new String[]{"[10000 TO *]"};
+        predefinedBuckets[0] =  new String[]{"ken","igor","abe"};
+        predefinedBuckets[1] =  new String[]{"ken","john","mike"};
+        predefinedBuckets[2] =  new String[]{"john","cathy"};
+        predefinedBuckets[3] =  new String[]{"doug"};
         
         Map<String,String[]> predefinedSalaries = new HashMap<String,String[]>();
-        predefinedSalaries.put("sal1", predefinedBuckets[0]);
-        predefinedSalaries.put("sal2", predefinedBuckets[1]);
-        predefinedSalaries.put("sal3", predefinedBuckets[2]);
-        predefinedSalaries.put("sal4", predefinedBuckets[3]);
+        predefinedSalaries.put("g1", predefinedBuckets[0]);
+        predefinedSalaries.put("g2", predefinedBuckets[1]);
+        predefinedSalaries.put("g3", predefinedBuckets[2]);
+        predefinedSalaries.put("g4", predefinedBuckets[3]);
         
-		facetHandlers.add(new BucketFacetHandler("salaryBucket", predefinedSalaries, "salary"));
+		facetHandlers.add(new BucketFacetHandler("groups", predefinedSalaries, "name"));
 		
 		// histogram
 		
@@ -2412,43 +2414,96 @@ public class BoboTestCase extends TestCase {
 	}
 	
 	 public void testBucketFacetHandlerDependingOnRangeHandler() throws Exception{
+		 
+		 /*
+		  * 
+		String[][] predefinedBuckets = new String[4][];
+        predefinedBuckets[0] =  new String[]{"ken","igor","abe"};
+        predefinedBuckets[1] =  new String[]{"ken","john","mike"};
+        predefinedBuckets[2] =  new String[]{"john","cathy"};
+        predefinedBuckets[3] =  new String[]{"doug"};
+        
+        Map<String,String[]> predefinedSalaries = new HashMap<String,String[]>();
+        predefinedSalaries.put("g1", predefinedBuckets[0]);
+        predefinedSalaries.put("g2", predefinedBuckets[1]);
+        predefinedSalaries.put("g3", predefinedBuckets[2]);
+        predefinedSalaries.put("g4", predefinedBuckets[3]);
+        
+		facetHandlers.add(new BucketFacetHandler("groups", predefinedSalaries, "name"));
+		  */
 	    BrowseRequest br=new BrowseRequest();
 	    br.setCount(10);
 	    br.setOffset(0);
 	    
-	    BrowseSelection sel=new BrowseSelection("salaryBucket");
-      sel.addValue("[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
-      br.addSelection(sel);
+	    BrowseSelection sel=new BrowseSelection("groups");
+        sel.addValue("g2");
+        br.addSelection(sel);
     
 	    FacetSpec output=new FacetSpec();
-	    output.setExpandSelection(true);
-	    br.setFacetSpec("salaryBucket", output);
+	    output.setOrderBy(FacetSortSpec.OrderHitsDesc);
+	    br.setFacetSpec("groups", output);
+      
+	    BrowseFacet[] answerBucketFacets = new BrowseFacet[3];     
+	    answerBucketFacets[0] =  new BrowseFacet("g2", 3);
+	    answerBucketFacets[1] =  new BrowseFacet("g1", 1);
+	    answerBucketFacets[2] =  new BrowseFacet("g3", 1);
+      
+        HashMap<String,List<BrowseFacet>> answer = new HashMap<String,List<BrowseFacet>>();
+        answer.put("groups", Arrays.asList(answerBucketFacets)); 
+	    doTest(br,3,answer,null);
 	    
-      br.setFacetSpec("salary", output);
+	    br=new BrowseRequest();
+	    br.setCount(10);
+	    br.setOffset(0);
+	    
+	    sel=new BrowseSelection("groups");
+        sel.addValue("g2");
+        sel.addValue("g1");
+        sel.setSelectionOperation(ValueOperation.ValueOperationAnd);
+        br.addSelection(sel);
+    
+	    output=new FacetSpec();
+	    output.setOrderBy(FacetSortSpec.OrderHitsDesc);
+	    br.setFacetSpec("groups", output);
       
-	    BrowseFacet[] answerRangeFacets = new BrowseFacet[3];     
-	    answerRangeFacets[0] =  new BrowseFacet("[06000 TO 07999]", 1);
-	    answerRangeFacets[1] =  new BrowseFacet("[08000 TO 09999]", 2);
-	    answerRangeFacets[2] =  new BrowseFacet("[10000 TO *]",3);
+	    answerBucketFacets = new BrowseFacet[2];     
+	    answerBucketFacets[0] =  new BrowseFacet("g1", 1);
+	    answerBucketFacets[1] =  new BrowseFacet("g2", 1);
       
-	    BrowseFacet[] answerBucketFacets = new BrowseFacet[4];     
-	    answerBucketFacets[0] =  new BrowseFacet("[04000 TO 05999],[06000 TO 07999],[08000 TO 09999],[10000 TO *]", 7);
-	    answerBucketFacets[1] =  new BrowseFacet("[06000 TO 07999],[08000 TO 09999],[10000 TO *]", 6);
-	    answerBucketFacets[2] =  new BrowseFacet("[08000 TO 09999],[10000 TO *]", 5);
-	    answerBucketFacets[3] =  new BrowseFacet("[10000 TO *]",3);
+      answer = new HashMap<String,List<BrowseFacet>>();
+      answer.put("groups", Arrays.asList(answerBucketFacets)); 
+	    doTest(br,1,answer,null);
+	    
+	    br=new BrowseRequest();
+	    br.setCount(10);
+	    br.setOffset(0);
+	    
+	    sel=new BrowseSelection("groups");
+        sel.addValue("g2");
+        sel.addValue("g1");
+        sel.setSelectionOperation(ValueOperation.ValueOperationOr);
+        br.addSelection(sel);
+    
+	    output=new FacetSpec();
+	    output.setOrderBy(FacetSortSpec.OrderHitsDesc);
+	    br.setFacetSpec("groups", output);
       
-      HashMap<String,List<BrowseFacet>> answer = new HashMap<String,List<BrowseFacet>>();
-      answer.put("salaryBucket", Arrays.asList(answerBucketFacets)); 
-      answer.put("salary", Arrays.asList(answerRangeFacets));
-	    doTest(br,6,answer,null);
+	    answerBucketFacets = new BrowseFacet[3];     
+	    answerBucketFacets[0] =  new BrowseFacet("g1", 3);
+	    answerBucketFacets[1] =  new BrowseFacet("g2", 3);
+	    answerBucketFacets[2] =  new BrowseFacet("g3", 1);
+      
+      answer = new HashMap<String,List<BrowseFacet>>();
+      answer.put("groups", Arrays.asList(answerBucketFacets)); 
+	    doTest(br,5,answer,null);
     
 	  }
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testIndexReaderReopen");
+	  BoboTestCase test=new BoboTestCase("testBucketFacetHandlerDependingOnRangeHandler");
 		test.setUp();
-		test.testIndexReaderReopen();
+		test.testBucketFacetHandlerDependingOnRangeHandler();
 		test.tearDown();
 	}
 }

@@ -28,44 +28,47 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   private static Logger logger = Logger.getLogger(BucketFacetHandler.class);
   private final Map<String,String[]> _predefinedBuckets;
-  private final String _dependOnFacetName;
-  private FacetHandler<FacetDataCache<?>> _dependOnFacetHandler;
-  String _name;
+  private final String _name;
+  private final String _dependsOnFacetName;
   
   public BucketFacetHandler(String name, Map<String,String[]> predefinedBuckets, String dependsOnFacetName)
   {
     super(name, new HashSet<String>(Arrays.asList(new String[]{dependsOnFacetName})));
     _name = name;
     _predefinedBuckets = predefinedBuckets;
-    _dependOnFacetName  = dependsOnFacetName;
-    _dependOnFacetHandler = null;
+    _dependsOnFacetName = dependsOnFacetName;
   }
   
 
   
   @Override
   public DocComparatorSource getDocComparatorSource() {
-    return _dependOnFacetHandler.getDocComparatorSource();
+	FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+    return dependOnFacetHandler.getDocComparatorSource();
   }
   
   @Override
   public String[] getFieldValues(BoboIndexReader reader, int id) {
-    return _dependOnFacetHandler.getFieldValues(reader, id);
+	FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+	return dependOnFacetHandler.getFieldValues(reader, id);
   }
   
   @Override
   public Object[] getRawFieldValues(BoboIndexReader reader,int id){
-    return _dependOnFacetHandler.getRawFieldValues(reader, id);
+	FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+	return dependOnFacetHandler.getRawFieldValues(reader, id);
   }
 
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String bucketString, Properties prop) throws IOException
   {
+	  FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+		
       String[] elems = _predefinedBuckets.get(bucketString);
   
       if(elems == null || elems.length==0) return  EmptyFilter.getInstance();
-      if(elems.length == 1) return _dependOnFacetHandler.buildRandomAccessFilter(elems[0], prop);
-      return _dependOnFacetHandler.buildRandomAccessOrFilter(elems, prop, false);
+      if(elems.length == 1) return dependOnFacetHandler.buildRandomAccessFilter(elems[0], prop);
+      return dependOnFacetHandler.buildRandomAccessOrFilter(elems, prop, false);
   }
   
   
@@ -73,9 +76,11 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   public RandomAccessFilter buildRandomAccessAndFilter(String[] bucketStrings,Properties prop) throws IOException
   {
     List<RandomAccessFilter> filterList = new LinkedList<RandomAccessFilter>();
+    FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+	
     for (String bucketString : bucketStrings){
     	String[] vals = _predefinedBuckets.get(bucketString);
-    	RandomAccessFilter filter = _dependOnFacetHandler.buildRandomAccessOrFilter(vals, prop, false);
+    	RandomAccessFilter filter = dependOnFacetHandler.buildRandomAccessOrFilter(vals, prop, false);
     	if (filter==EmptyFilter.getInstance()) return EmptyFilter.getInstance();
     	filterList.add(filter);
     }
@@ -92,6 +97,8 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
 		return new RandomAccessNotFilter(excludeFilter);
 	}
 	else{
+		FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+		
 		Set<String> selections = new HashSet<String>();
 		for (String bucket : bucketStrings){
 			String[] vals = _predefinedBuckets.get(bucket);
@@ -104,10 +111,10 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
 		if (selections!=null && selections.size()>0){
 			String[] sels = selections.toArray(new String[0]);
 			if (selections.size()==1){
-			  return _dependOnFacetHandler.buildRandomAccessFilter(sels[0], prop);
+			  return dependOnFacetHandler.buildRandomAccessFilter(sels[0], prop);
 			}
 			else{
-			  return _dependOnFacetHandler.buildRandomAccessOrFilter(sels, prop, false);
+			  return dependOnFacetHandler.buildRandomAccessOrFilter(sels, prop, false);
 			}
 		}
 		else{
@@ -123,42 +130,23 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
     {
       @Override
       public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase){
-    	DefaultFacetCountCollector countCollector = new DefaultFacetCountCollector() {
-			
-			@Override
-			public void collectAll() {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void collect(int docid) {
-				// TODO Auto-generated method stub
-				
-			}
-		};
-        return new BucketFacetCountCollector(_name, _dependOnFacetHandler.getFacetCountCollectorSource(sel, ospec).getFacetCountCollector(reader, docBase), ospec, _predefinedBuckets);
+    	FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+    		
+    	FacetCountCollector defaultCollector = dependOnFacetHandler.getFacetCountCollectorSource(sel, ospec).getFacetCountCollector(reader, docBase);
+    	if (defaultCollector instanceof DefaultFacetCountCollector){
+    		return new BucketFacetCountCollector(_name, (DefaultFacetCountCollector)defaultCollector, ospec, _predefinedBuckets,reader.numDocs());
+    	}
+    	else{
+    		throw new IllegalStateException("dependent facet handler must build "+DefaultFacetCountCollector.class);
+    	}
       }
     };
 
   }
   
-  public boolean hasPredefinedBuckets()
-  {
-    return (_predefinedBuckets != null);
-  }
-  
   @Override
   public FacetDataNone load(BoboIndexReader reader) throws IOException
   {
-	try{
-      _dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)this.getDependedFacetHandler(_dependOnFacetName);
-      FacetDataCache<?> dataCache = _dependOnFacetHandler.getFacetData(reader);
-      
-	}
-	catch(Exception e){
-	  throw new IOException("unable to load dependent facet handler: "+_dependOnFacetName);
-	}
     return FacetDataNone.instance;
   } 
 }
