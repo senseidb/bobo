@@ -1,15 +1,13 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -20,7 +18,6 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
-import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
@@ -30,12 +27,12 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   private static Logger logger = Logger.getLogger(BucketFacetHandler.class);
-  private final List<String> _predefinedBuckets;
+  private final Map<String,String[]> _predefinedBuckets;
   private final String _dependOnFacetName;
   private FacetHandler<?> _dependOnFacetHandler;
   String _name;
   
-  public BucketFacetHandler(String name, List<String> predefinedBuckets, String dependsOnFacetName)
+  public BucketFacetHandler(String name, Map<String,String[]> predefinedBuckets, String dependsOnFacetName)
   {
     super(name, new HashSet<String>(Arrays.asList(new String[]{dependsOnFacetName})));
     _name = name;
@@ -44,69 +41,6 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
     _dependOnFacetHandler = null;
   }
   
-  private static String DEFAULT_SEP = ",";
-  
-
-  public static String[] convertBucketStringsToNonOverlapElementStrings(String[] bucketStrings)
-  {
-    if(bucketStrings.length == 1)
-    {
-      return bucketStrings[0].split(DEFAULT_SEP);
-    }
-    SortedSet<String> elementSet =  new TreeSet<String>();
-    for (String bucketString : bucketStrings)
-    {
-      String[] elementStrings =  bucketString.split(DEFAULT_SEP);
-      for(String elementString : elementStrings)
-      {
-        elementSet.add(elementString);
-      }  
-    }
-    
-    List<String> elemList = new ArrayList<String>(elementSet);
-    String[] elems = elemList.toArray(new String[elemList.size()]);
-    
-    return elems;
-  }
-  
-  public static String[] convertAndBucketStringsToNonOverlapElementStrings(String[] bucketStrings)
-  {
-    if(bucketStrings.length == 1)
-    {
-      return bucketStrings[0].split(DEFAULT_SEP);
-    }
-    
-    Map<String, Integer> elemCount =  new HashMap<String, Integer>();
-    for (String bucketString : bucketStrings)
-    {
-      String[] elems =  bucketString.split(DEFAULT_SEP);
-      for(String elem : elems)
-      {
-        if(elemCount.containsKey(elem))
-        {
-          elemCount.put(elem, elemCount.get(elem)+1);
-        }
-        else
-        {
-          elemCount.put(elem,1);
-        }
-      }  
-    }
-    
-    List<String> elemList = new ArrayList<String>();
-    int size = bucketStrings.length;
-    for(String elem : elemCount.keySet())
-    {
-      if(elemCount.get(elem) == size)
-      {
-        elemList.add(elem);
-      }
-    }
-   
-    String[] elems = elemList.toArray(new String[elemList.size()]);
-    
-    return elems;
-  }
 
   
   @Override
@@ -127,7 +61,7 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String bucketString, Properties prop) throws IOException
   {
-      String[] elems = convertBucketStringsToNonOverlapElementStrings(new String[]{bucketString});
+      String[] elems = _predefinedBuckets.get(bucketString);
   
       if(elems == null || elems.length==0) return  EmptyFilter.getInstance();
       if(elems.length == 1) return _dependOnFacetHandler.buildRandomAccessFilter(elems[0], prop);
@@ -138,54 +72,48 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   @Override
   public RandomAccessFilter buildRandomAccessAndFilter(String[] bucketStrings,Properties prop) throws IOException
   {
-    // The AND operation is hidden here. Convert the AND of buckets to the OR of the intersected underlying elements
-    String[] elems = convertAndBucketStringsToNonOverlapElementStrings(bucketStrings);
-    
-    if(elems == null || elems.length==0) return  EmptyFilter.getInstance();
-    if(elems.length == 1) return _dependOnFacetHandler.buildRandomAccessFilter(elems[0], prop);
-    return _dependOnFacetHandler.buildRandomAccessOrFilter(elems, prop, false);
+    List<RandomAccessFilter> filterList = new LinkedList<RandomAccessFilter>();
+    for (String bucketString : bucketStrings){
+    	String[] vals = _predefinedBuckets.get(bucketString);
+    	RandomAccessFilter filter = _dependOnFacetHandler.buildRandomAccessOrFilter(vals, prop, false);
+    	if (filter==EmptyFilter.getInstance()) return EmptyFilter.getInstance();
+    	filterList.add(filter);
+    }
+    if (filterList.size()==0) return EmptyFilter.getInstance();
+    if (filterList.size()==1) return filterList.get(0);
+    return new RandomAccessAndFilter(filterList);
   }
 
   @Override
-  public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
+  public RandomAccessFilter buildRandomAccessOrFilter(String[] bucketStrings,Properties prop,boolean isNot) throws IOException
   {
-    String[] elems = convertBucketStringsToNonOverlapElementStrings(vals);
-    
-    if (vals.length > 1 || !isNot)
-    {
-      if(elems == null || elems.length == 0) return  EmptyFilter.getInstance();
-      if(elems.length == 1) return _dependOnFacetHandler.buildRandomAccessFilter(elems[0], prop);
-      return _dependOnFacetHandler.buildRandomAccessOrFilter(elems, prop, isNot);
-    }
-    else // vals.length == 1 and isNot == true
-    {
-      ArrayList<RandomAccessFilter> filterList = new ArrayList<RandomAccessFilter>(elems.length);
-      
-      for (String elem : elems)
-      {
-        RandomAccessFilter f = _dependOnFacetHandler.buildRandomAccessFilter(elem, prop);
-        if(f != null) 
-        {
-          filterList.add(f); 
-        }
-      }
-      
-      RandomAccessFilter filter;
-      if(filterList.size() == 0)
-      {
-        filter = EmptyFilter.getInstance();
-      }
-      else if(filterList.size() == 1)
-      {
-        filter = new RandomAccessNotFilter(filterList.get(0));
-      }
-      else
-      {
-        filter =  new RandomAccessNotFilter(new RandomAccessOrFilter(filterList));
-      }
-      
-      return filter;
-    }
+	if (isNot){
+		RandomAccessFilter excludeFilter = buildRandomAccessAndFilter(bucketStrings, prop);
+		return new RandomAccessNotFilter(excludeFilter);
+	}
+	else{
+		Set<String> selections = new HashSet<String>();
+		for (String bucket : bucketStrings){
+			String[] vals = _predefinedBuckets.get(bucket);
+			if (vals!=null){
+				for (String val : vals){
+				  selections.add(val);
+				}
+			}
+		}
+		if (selections!=null && selections.size()>0){
+			String[] sels = selections.toArray(new String[0]);
+			if (selections.size()==1){
+			  return _dependOnFacetHandler.buildRandomAccessFilter(sels[0], prop);
+			}
+			else{
+			  return _dependOnFacetHandler.buildRandomAccessOrFilter(sels, prop, false);
+			}
+		}
+		else{
+			return EmptyFilter.getInstance();
+		}
+	}
   }
 
   @Override

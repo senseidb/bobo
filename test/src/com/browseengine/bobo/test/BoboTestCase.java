@@ -498,12 +498,19 @@ public class BoboTestCase extends TestCase {
 		RangeFacetHandler dependedRangeFacet = new RangeFacetHandler("salary", Arrays.asList(predefinedSalaryRanges));
         facetHandlers.add(dependedRangeFacet);
     
-		String[] predefinedBuckets = new String[4];
-        predefinedBuckets[0] =  new String("[04000 TO 05999],[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
-        predefinedBuckets[1] =  new String("[06000 TO 07999],[08000 TO 09999],[10000 TO *]");
-        predefinedBuckets[2] =  new String("[08000 TO 09999],[10000 TO *]");
-        predefinedBuckets[3] =  new String("[10000 TO *]");
-		facetHandlers.add(new BucketFacetHandler("salaryBucket", Arrays.asList(predefinedBuckets), "salary"));
+		String[][] predefinedBuckets = new String[4][];
+        predefinedBuckets[0] =  new String[]{"[04000 TO 05999]","[06000 TO 07999]","[08000 TO 09999]","[10000 TO *]"};
+        predefinedBuckets[1] =  new String[]{"[06000 TO 07999]","[08000 TO 09999]","[10000 TO *]"};
+        predefinedBuckets[2] =  new String[]{"[08000 TO 09999]","[10000 TO *]"};
+        predefinedBuckets[3] =  new String[]{"[10000 TO *]"};
+        
+        Map<String,String[]> predefinedSalaries = new HashMap<String,String[]>();
+        predefinedSalaries.put("sal1", predefinedBuckets[0]);
+        predefinedSalaries.put("sal2", predefinedBuckets[1]);
+        predefinedSalaries.put("sal3", predefinedBuckets[2]);
+        predefinedSalaries.put("sal4", predefinedBuckets[3]);
+        
+		facetHandlers.add(new BucketFacetHandler("salaryBucket", predefinedSalaries, "salary"));
 		
 		// histogram
 		
