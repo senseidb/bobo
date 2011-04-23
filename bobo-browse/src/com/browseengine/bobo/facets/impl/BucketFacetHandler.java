@@ -18,18 +18,18 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
+import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
-import com.browseengine.bobo.facets.filter.RandomAccessOrFilter;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   private static Logger logger = Logger.getLogger(BucketFacetHandler.class);
   private final Map<String,String[]> _predefinedBuckets;
   private final String _dependOnFacetName;
-  private FacetHandler<?> _dependOnFacetHandler;
+  private FacetHandler<FacetDataCache<?>> _dependOnFacetHandler;
   String _name;
   
   public BucketFacetHandler(String name, Map<String,String[]> predefinedBuckets, String dependsOnFacetName)
@@ -122,16 +122,8 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
     return new FacetCountCollectorSource() 
     {
       @Override
-      public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase)
-      {
-        FacetSpec elemSpec = new FacetSpec();
-        elemSpec.setCustomComparatorFactory(ospec.getCustomComparatorFactory());
-        elemSpec.setExpandSelection(ospec.isExpandSelection());
-        elemSpec.setOrderBy(ospec.getOrderBy());
-        elemSpec.setMaxCount(Integer.MAX_VALUE);
-        elemSpec.setMinHitCount(1);
-        
-        return new BucketFacetCountCollector(_name, _dependOnFacetHandler.getFacetCountCollectorSource(sel, elemSpec).getFacetCountCollector(reader, docBase), ospec, _predefinedBuckets);
+      public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase){
+        return new BucketFacetCountCollector(_name, _dependOnFacetHandler.getFacetCountCollectorSource(sel, ospec).getFacetCountCollector(reader, docBase), ospec, _predefinedBuckets);
       }
     };
 
@@ -145,11 +137,14 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
   @Override
   public FacetDataNone load(BoboIndexReader reader) throws IOException
   {
-    _dependOnFacetHandler = this.getDependedFacetHandler(_dependOnFacetName);
-    if (_dependOnFacetHandler==null)
-    {
-      throw new IllegalStateException("bucketFacetHandler need to be supported by other underlying facetHandlers");
-    }
+	try{
+      _dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)this.getDependedFacetHandler(_dependOnFacetName);
+      FacetDataCache<?> dataCache = _dependOnFacetHandler.getFacetData(reader);
+      
+	}
+	catch(Exception e){
+	  throw new IOException("unable to load dependent facet handler: "+_dependOnFacetName);
+	}
     return FacetDataNone.instance;
   } 
 }
