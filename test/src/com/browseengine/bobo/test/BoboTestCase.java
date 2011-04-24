@@ -506,13 +506,27 @@ public class BoboTestCase extends TestCase {
         predefinedBuckets[2] =  new String[]{"john","cathy"};
         predefinedBuckets[3] =  new String[]{"doug"};
         
-        Map<String,String[]> predefinedSalaries = new HashMap<String,String[]>();
-        predefinedSalaries.put("g1", predefinedBuckets[0]);
-        predefinedSalaries.put("g2", predefinedBuckets[1]);
-        predefinedSalaries.put("g3", predefinedBuckets[2]);
-        predefinedSalaries.put("g4", predefinedBuckets[3]);
+        Map<String,String[]> predefinedGroups = new HashMap<String,String[]>();
+        predefinedGroups.put("g1", predefinedBuckets[0]);
+        predefinedGroups.put("g2", predefinedBuckets[1]);
+        predefinedGroups.put("g3", predefinedBuckets[2]);
+        predefinedGroups.put("g4", predefinedBuckets[3]);
         
-		facetHandlers.add(new BucketFacetHandler("groups", predefinedSalaries, "name"));
+		facetHandlers.add(new BucketFacetHandler("groups", predefinedGroups, "name"));
+		
+		
+		String[][] predefinedBuckets2 = new String[3][];
+		predefinedBuckets2[0] =  new String[]{"2","3"};
+		predefinedBuckets2[1] =  new String[]{"1","4"};
+		predefinedBuckets2[2] =  new String[]{"7","8"};
+        
+        Map<String,String[]> predefinedNumberSets = new HashMap<String,String[]>();
+        predefinedNumberSets.put("s1", predefinedBuckets2[0]);
+        predefinedNumberSets.put("s2", predefinedBuckets2[1]);
+        predefinedNumberSets.put("s3", predefinedBuckets2[2]);
+        
+		facetHandlers.add(new BucketFacetHandler("sets", predefinedNumberSets, "multinum"));
+		
 		
 		// histogram
 		
@@ -2413,24 +2427,61 @@ public class BoboTestCase extends TestCase {
         doTest(br,2,answer,null);
 	}
 	
-	 public void testBucketFacetHandlerDependingOnRangeHandler() throws Exception{
-		 
+
+	 public void testBucketFacetHandlerForNumbers() throws Exception{
 		 /*
 		  * 
-		String[][] predefinedBuckets = new String[4][];
-        predefinedBuckets[0] =  new String[]{"ken","igor","abe"};
-        predefinedBuckets[1] =  new String[]{"ken","john","mike"};
-        predefinedBuckets[2] =  new String[]{"john","cathy"};
-        predefinedBuckets[3] =  new String[]{"doug"};
+		  * 
+		String[][] predefinedBuckets2 = new String[3][];
+		predefinedBuckets2[0] =  new String[]{"2","3"};
+		predefinedBuckets2[1] =  new String[]{"1","4"};
+		predefinedBuckets2[2] =  new String[]{"7","8"};
         
-        Map<String,String[]> predefinedSalaries = new HashMap<String,String[]>();
-        predefinedSalaries.put("g1", predefinedBuckets[0]);
-        predefinedSalaries.put("g2", predefinedBuckets[1]);
-        predefinedSalaries.put("g3", predefinedBuckets[2]);
-        predefinedSalaries.put("g4", predefinedBuckets[3]);
-        
-		facetHandlers.add(new BucketFacetHandler("groups", predefinedSalaries, "name"));
+        Map<String,String[]> predefinedNumberSets = new HashMap<String,String[]>();
+        predefinedNumberSets.put("s1", predefinedBuckets2[0]);
+        predefinedNumberSets.put("s2", predefinedBuckets2[1]);
+        predefinedNumberSets.put("s3", predefinedBuckets2[2]);
 		  */
+		 BrowseRequest br=new BrowseRequest();
+		    br.setCount(10);
+		    br.setOffset(0);
+		    
+		    FacetSpec output=new FacetSpec();
+		    output.setOrderBy(FacetSortSpec.OrderHitsDesc);
+		    br.setFacetSpec("sets", output);
+	      
+		    BrowseFacet[] answerBucketFacets = new BrowseFacet[3];     
+		    answerBucketFacets[0] =  new BrowseFacet("s1", 5);
+		    answerBucketFacets[1] =  new BrowseFacet("s2", 4);
+		    answerBucketFacets[2] =  new BrowseFacet("s3", 3);
+	      
+	        HashMap<String,List<BrowseFacet>> answer = new HashMap<String,List<BrowseFacet>>();
+	        answer.put("sets", Arrays.asList(answerBucketFacets)); 
+		    doTest(br,7,answer,null);
+		    
+		    br=new BrowseRequest();
+		    br.setCount(10);
+		    br.setOffset(0);
+		    
+		    BrowseSelection sel=new BrowseSelection("sets");
+	        sel.addValue("s1");
+	        br.addSelection(sel);
+		    
+		    output=new FacetSpec();
+		    output.setOrderBy(FacetSortSpec.OrderHitsDesc);
+		    br.setFacetSpec("sets", output);
+	      
+		    answerBucketFacets = new BrowseFacet[3];     
+		    answerBucketFacets[0] =  new BrowseFacet("s1", 5);
+		    answerBucketFacets[1] =  new BrowseFacet("s2", 3);
+		    answerBucketFacets[2] =  new BrowseFacet("s3", 1);
+	      
+	        answer = new HashMap<String,List<BrowseFacet>>();
+	        answer.put("sets", Arrays.asList(answerBucketFacets)); 
+		    doTest(br,4,answer,null);
+	 }
+	 
+	 public void testBucketFacetHandlerForStrings() throws Exception{
 	    BrowseRequest br=new BrowseRequest();
 	    br.setCount(10);
 	    br.setOffset(0);
@@ -2501,9 +2552,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testBucketFacetHandlerDependingOnRangeHandler");
+	  BoboTestCase test=new BoboTestCase("testBucketFacetHandlerForNumbers");
 		test.setUp();
-		test.testBucketFacetHandlerDependingOnRangeHandler();
+		test.testBucketFacetHandlerForNumbers();
 		test.tearDown();
 	}
 }
