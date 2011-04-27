@@ -39,9 +39,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
@@ -57,9 +57,9 @@ import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -81,13 +81,13 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
+import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.MultiBoboBrowser;
-import com.browseengine.bobo.api.BrowseSelection.ValueOperation;
-import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
@@ -100,6 +100,7 @@ import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
 import com.browseengine.bobo.facets.impl.FacetValueComparatorFactory;
 import com.browseengine.bobo.facets.impl.FilteredRangeFacetHandler;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler;
+import com.browseengine.bobo.facets.impl.GeoSimpleFacetHandler;
 import com.browseengine.bobo.facets.impl.HistogramFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
@@ -487,7 +488,7 @@ public class BoboTestCase extends TestCase {
 		/* New FacetHandler for geographic locations. Depends on two RangeFacetHandlers on latitude and longitude */
 		facetHandlers.add(new RangeFacetHandler("latitude", Arrays.asList(new String[]{"[* TO 30]", "[35 TO 60]", "[70 TO 120]"})));
 		facetHandlers.add(new RangeFacetHandler("longitude", Arrays.asList(new String[]{"[* TO 30]", "[35 TO 60]", "[70 TO 120]"})));
-		facetHandlers.add(new GeoExample("distance", "latitude", "longitude"));
+		facetHandlers.add(new GeoSimpleFacetHandler("distance", "latitude", "longitude"));
 		facetHandlers.add(new GeoFacetHandler("correctDistance", "latitude", "longitude"));
 		/* Underlying time facet for DynamicTimeRangeFacetHandler */
 		facetHandlers.add(new RangeFacetHandler("timeinmillis", new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT),null));
@@ -963,8 +964,8 @@ public class BoboTestCase extends TestCase {
 		br.setOffset(0);
 
         BrowseSelection sel=new BrowseSelection("distance");
-        sel.addValue("<30,70,5>");
-        sel.addValue("<60,120,1>");
+        sel.addValue("30,70:5");
+        sel.addValue("60,120:1");
         br.addSelection(sel); 
 		
 		FacetSpec geoSpec=new FacetSpec();
@@ -972,7 +973,7 @@ public class BoboTestCase extends TestCase {
 		br.setFacetSpec("distance", geoSpec);
 		
 		HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
-		answer.put("distance", Arrays.asList(new BrowseFacet[]{new BrowseFacet("<30,70,5>",2),new BrowseFacet("<60,120,1>",2)}));
+		answer.put("distance", Arrays.asList(new BrowseFacet[]{new BrowseFacet("30,70:5",2),new BrowseFacet("60,120:1",2)}));
 		doTest(br,4,answer,null);
 
 		// testing for selection of facet <60,120,1> and verifying that 2 documents match this facet.
@@ -981,9 +982,9 @@ public class BoboTestCase extends TestCase {
 		br2.setOffset(0);	
 
 		BrowseSelection sel2 = new BrowseSelection("distance");
-		sel2.addValue("<60,120,1>");
+		sel2.addValue("60,120:1");
 		HashMap<String, Float> map = new HashMap<String, Float>();
-		map.put("<60,120,1>", 3.0f);
+		map.put("0,120:1", 3.0f);
 		FacetTermQuery geoQ = new FacetTermQuery(sel2,map);
 		
 		BoboBrowser b = newBrowser();
@@ -1012,7 +1013,7 @@ public class BoboTestCase extends TestCase {
 		br3.setQuery(colorQ);             // query is color=red
 		br3.addSelection(sel);			  // count facets <30,70,5> and <60,120,1>
 		answer.clear();
-		answer.put("distance", Arrays.asList(new BrowseFacet[]{new BrowseFacet("<30,70,5>", 0), new BrowseFacet("<60,120,1>",1)}));		
+		answer.put("distance", Arrays.asList(new BrowseFacet[]{new BrowseFacet("30,70:5", 0), new BrowseFacet("60,120:1",1)}));		
 		doTest(br3, 1 , answer, null);
 
 	}
@@ -2552,9 +2553,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testBucketFacetHandlerForNumbers");
+	  BoboTestCase test=new BoboTestCase("testSimpleGeo");
 		test.setUp();
-		test.testBucketFacetHandlerForNumbers();
+		test.testSimpleGeo();
 		test.tearDown();
 	}
 }

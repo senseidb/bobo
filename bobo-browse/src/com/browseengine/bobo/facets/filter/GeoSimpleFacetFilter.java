@@ -137,12 +137,12 @@ public final class GeoSimpleFacetFilter extends RandomAccessFilter {
 	
 	public static int[] parse(FacetDataCache latDataCache, FacetDataCache longDataCache, String rangeString)
 	{
-		String[] ranges = GeoSimpleFacetHandler.getRangeStrings(rangeString);
+		GeoSimpleFacetHandler.GeoLatLonRange range = GeoSimpleFacetHandler.GeoLatLonRange.parse(rangeString);
 		// ranges[0] is latRangeStart, ranges[1] is latRangeEnd, ranges[2] is longRangeStart, ranges[3] is longRangeEnd
-	    String latLower = ranges[0];
-	    String latUpper = ranges[1];
-	    String longLower = ranges[2];
-	    String longUpper = ranges[3];
+	    String latLower = String.valueOf(range.latStart);
+	    String latUpper = String.valueOf(range.latEnd);
+	    String longLower = String.valueOf(range.lonStart);
+	    String longUpper = String.valueOf(range.lonEnd);
 	    
 	    int latStart,latEnd,longStart,longEnd;
 	    if (latLower == null)

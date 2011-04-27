@@ -6,6 +6,7 @@ package com.browseengine.bobo.facets.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -20,11 +21,12 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
+import com.browseengine.bobo.facets.impl.GeoFacetCountCollector.GeoRange;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
@@ -33,7 +35,7 @@ import com.browseengine.bobo.sort.DocComparatorSource;
  *
  */
 
-public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDataNone> {
+public class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDataNone> {
 
 	private static Logger logger = Logger.getLogger(RangeFacetHandler.class);
 	protected final String _latFacetName;
@@ -41,21 +43,56 @@ public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDat
 	protected RangeFacetHandler _latFacetHandler;
 	protected RangeFacetHandler _longFacetHandler;
 	
+	public static class GeoLatLonRange{
+		public final String latRange;
+		public final String lonRange;
+		public final float latStart;
+		public final float latEnd;
+		public final float lonStart;
+		public final float lonEnd;
+		public final float radius;
+		
+		private GeoLatLonRange(String latRange,String lonRange,float latStart,float latEnd,float lonStart,float lonEnd,float radius){
+			this.latRange = latRange;
+			this.lonRange = lonRange;
+			this.latStart = latStart;
+			this.latEnd = latEnd;
+			this.lonStart = lonStart;
+			this.lonEnd = lonEnd;
+			this.radius = radius;
+		}
+		
+		public static GeoLatLonRange parse(String val){
+			GeoRange range = GeoFacetCountCollector.parse(val);
+			float latStart = range.getLat() - range.getRad();
+			float latEnd = range.getLat() + range.getRad();
+			float lonStart = range.getLon() - range.getRad();
+			float lonEnd = range.getLon() + range.getRad();
+			
+			StringBuilder buf = new StringBuilder();
+			buf.append("[").append(String.valueOf(latStart)).append(" TO ").append(String.valueOf(latEnd)).append("]");
+			String latRange = buf.toString();
+			
+			buf = new StringBuilder();
+			buf.append("[").append(String.valueOf(lonStart)).append(" TO ").append(String.valueOf(lonEnd)).append("]");
+			String lonRange = buf.toString();
+			
+			return new GeoLatLonRange(latRange,lonRange,latStart,latEnd,lonStart,lonEnd,range.getRad());
+		}
+	}
+	
 	public GeoSimpleFacetHandler(String name, String latFacetName, String longFacetName) {
 		super(name, new HashSet<String>(Arrays.asList(new String[]{latFacetName, longFacetName})));
 		_latFacetName = latFacetName;
 		_longFacetName = longFacetName;
 	}
 
-	protected abstract String buildLatRangeString(String val);
-	protected abstract String buildLongRangeString(String val);
-	protected abstract List<String> buildAllRangeStrings(String[] values);
-	protected abstract String getValueFromRangeString(String rangeString);
-	
 	@Override
 	public RandomAccessFilter buildRandomAccessFilter(String val, Properties props) throws IOException {
-		RandomAccessFilter latFilter = _latFacetHandler.buildRandomAccessFilter(buildLatRangeString(val), props);
-		RandomAccessFilter longFilter = _longFacetHandler.buildRandomAccessFilter(buildLongRangeString(val), props);		
+		GeoLatLonRange range = GeoLatLonRange.parse(val);
+		
+		RandomAccessFilter latFilter = _latFacetHandler.buildRandomAccessFilter(range.latRange, props);
+		RandomAccessFilter longFilter = _longFacetHandler.buildRandomAccessFilter(range.lonRange, props);		
 		return new RandomAccessAndFilter(Arrays.asList(new RandomAccessFilter[]{latFilter, longFilter}));
 	}
 
@@ -64,8 +101,9 @@ public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDat
 		List<String> latValList = new ArrayList<String>(vals.length);
 		List<String> longValList = new ArrayList<String>(vals.length);
 		for(String val: vals) {
-			latValList.add(buildLatRangeString(val));
-			longValList.add(buildLongRangeString(val));
+			GeoLatLonRange range = GeoLatLonRange.parse(val);
+			latValList.add(range.latRange);
+			longValList.add(range.lonRange);
 		}
 		RandomAccessFilter latFilter = _latFacetHandler.buildRandomAccessAndFilter(latValList.toArray(new String[latValList.size()]), props);
 		RandomAccessFilter longFilter = _longFacetHandler.buildRandomAccessAndFilter(longValList.toArray(new String[longValList.size()]), props);		
@@ -77,19 +115,30 @@ public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDat
 		List<String> latValList = new ArrayList<String>(vals.length);
 		List<String> longValList = new ArrayList<String>(vals.length);
 		for(String val: vals) {
-			latValList.add(buildLatRangeString(val));
-			longValList.add(buildLongRangeString(val));
+			GeoLatLonRange range = GeoLatLonRange.parse(val);
+			latValList.add(range.latRange);
+			longValList.add(range.lonRange);
 		}
 		RandomAccessFilter latFilter = _latFacetHandler.buildRandomAccessOrFilter(latValList.toArray(new String[latValList.size()]), props, isNot);
 		RandomAccessFilter longFilter = _longFacetHandler.buildRandomAccessOrFilter(longValList.toArray(new String[longValList.size()]), props, isNot);		
 		return new RandomAccessAndFilter(Arrays.asList(new RandomAccessFilter[]{latFilter, longFilter}));
 	}
 
+	private static List<String> buildAllRangeStrings(String[] values) {
+		if(values == null)  return Collections.EMPTY_LIST;
+		List<String> ranges = new ArrayList<String>(values.length);
+		String[] range = null;
+		for(String value: values) {
+			ranges.add(value);
+		}
+		return ranges;
+	}
+	
 	@Override
 	public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel,final FacetSpec fspec) {
+
+		final List<String> list = buildAllRangeStrings(sel.getValues());
 		return new FacetCountCollectorSource() {
-			
-		    final List<String> list = buildAllRangeStrings(sel.getValues());
 		    // every string in the above list is of the form <latitude, longitude, radius>, which can be interpreted by GeoSimpleFacetCountCollector
 			@Override
 			public FacetCountCollector getFacetCountCollector(BoboIndexReader reader,
@@ -102,35 +151,6 @@ public abstract class GeoSimpleFacetHandler extends RuntimeFacetHandler<FacetDat
 		
 	}
 	
-	public static String[] getRangeStrings(String rangeString)
-	{
-		// rangeString looks like <latitude, longitude, radius>
-		int index=rangeString.indexOf('<');
-		int index2=rangeString.indexOf('>');
-
-		String range;
-		float latitude, longitude, radius;
-		try{
-			range = rangeString.substring(index+1, index2).trim();
-			String[] values = range.split(",");
-			// values[0] is latitude, values[1] is longitude, values[2] is radius
-			latitude = Float.parseFloat(values[0]);
-			longitude = Float.parseFloat(values[1]);
-			radius = Float.parseFloat(values[2]);
-			
-			float latStart = latitude - radius;
-			float latEnd = latitude + radius;
-			float longStart = longitude - radius;
-			float longEnd = longitude + radius;
-			
-			return new String[]{String.valueOf(latStart), String.valueOf(latEnd), String.valueOf(longStart), String.valueOf(longEnd)};
-		}
-		catch(RuntimeException re){
-			logger.error("problem parsing range string: "+rangeString+":"+re.getMessage(),re);
-			throw re;
-		}
-	}
-
 	@Override
 	public String[] getFieldValues(BoboIndexReader reader,int docid)
 	{
