@@ -29,6 +29,7 @@ package com.browseengine.bobo.test;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestCase;
@@ -49,14 +50,17 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
+import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
 
 public class FacetNotValuesTest extends TestCase {
-  static Logger log = Logger.getLogger(BoboTestCase.class);
+  static Logger log = Logger.getLogger(FacetNotValuesTest.class);
   private List<FacetHandler<?>> _facetHandlers;
   private int _documentSize;
+  static private String[]  _idRanges = new String[]{"[10 TO 10]"};
   
   private static class TestDataDigester extends DataDigester {
     private List<FacetHandler<?>> _facetHandlers;
@@ -79,11 +83,31 @@ public class FacetNotValuesTest extends TestCase {
     super(testName);
     _facetHandlers = createFacetHandlers();
     
-    _documentSize = 10;
+    _documentSize = 2;
     String confdir = System.getProperty("conf.dir");
     if (confdir == null) confdir ="./resource";
     org.apache.log4j.PropertyConfigurator.configure(confdir+"/log4j.properties");
   }
+  
+  public Document[] createDataTwo(){
+    ArrayList<Document> dataList=new ArrayList<Document>();
+      String color = "red";
+      String ID = Integer.toString(10);
+      Document d=new Document();
+      d.add(new Field("id",ID,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
+      d.add(new Field("color",color,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
+      dataList.add(d);
+      
+       color = "green";
+       ID = Integer.toString(11);
+       d=new Document();
+      d.add(new Field("id",ID,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
+      d.add(new Field("color",color,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
+      dataList.add(d);
+      
+    
+    return dataList.toArray(new Document[dataList.size()]);
+}
   
   public Document[] createData(){
       ArrayList<Document> dataList=new ArrayList<Document>();
@@ -96,7 +120,26 @@ public class FacetNotValuesTest extends TestCase {
         d.add(new Field("color",color,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
         dataList.add(d);
       }
+      
       return dataList.toArray(new Document[dataList.size()]);
+  }
+  
+  private Directory createIndexTwo(){
+    Directory dir = new RAMDirectory();
+    try {
+      Document[] data= createDataTwo();
+      
+      TestDataDigester testDigester=new TestDataDigester(_facetHandlers,data);
+      BoboIndexer indexer=new BoboIndexer(testDigester,dir);
+      indexer.index();
+      IndexReader r = IndexReader.open(dir,false);
+      r.close();
+    } catch (UnsupportedEncodingException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return dir;
   }
   
   
@@ -122,6 +165,9 @@ public class FacetNotValuesTest extends TestCase {
     List<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
     facetHandlers.add(new SimpleFacetHandler("id"));
     facetHandlers.add(new SimpleFacetHandler("color"));
+    FacetHandler<?> rangeFacetHandler = new RangeFacetHandler("idRange", "id", null); //, Arrays.asList(_idRanges));
+    facetHandlers.add(rangeFacetHandler);
+    
     return facetHandlers;
   }
   
@@ -143,7 +189,7 @@ public class FacetNotValuesTest extends TestCase {
     BoboBrowser boboBrowser=null;
     int expectedHitNum = (_documentSize/2) - 1;
     try {
-      Directory ramIndexDir = createIndex();
+      Directory ramIndexDir = createIndexTwo();
       IndexReader srcReader=IndexReader.open(ramIndexDir,true);
       boboBrowser = new BoboBrowser(BoboIndexReader.getInstance(srcReader,_facetHandlers, null));
       result = boboBrowser.browse(br);
@@ -183,12 +229,58 @@ public class FacetNotValuesTest extends TestCase {
     }
 
   }  
-   
-  public static void main(String[] args)throws Exception {
-    FacetNotValuesTest test=new FacetNotValuesTest("testNotValues");
-    test.setUp();
-    test.testNotValuesForSimpleFacetHandler();
-    test.tearDown();
-  }
+  
+  public void testNotValuesForRangeFacetHandler() throws Exception{
+    System.out.println("testNotValuesForRangeFacetHandler");
+    BrowseResult result = null;
+    BoboBrowser boboBrowser=null;
+    
+    try {
+      Directory ramIndexDir = createIndex();
+      IndexReader srcReader=IndexReader.open(ramIndexDir,true);
+      boboBrowser = new BoboBrowser(BoboIndexReader.getInstance(srcReader,_facetHandlers, null));
+      
+      BrowseRequest br=new BrowseRequest();
+      br.setCount(20);
+      br.setOffset(0);
+
+      if(_idRanges==null) 
+      {
+        log.error("_idRanges cannot be null in order to test NOT on RangeFacetHandler");
+      }
+      BrowseSelection idSel=new BrowseSelection("idRange");
+      int rangeIndex = 2;
+      idSel.addNotValue(_idRanges[0]);
+      int expectedHitNum = 1;
+      br.addSelection(idSel);
+
+      
+      result = boboBrowser.browse(br);
+      
+      assertEquals(expectedHitNum,result.getNumHits());
+      for(int i=0; i<result.getNumHits();i++)
+      {
+        System.out.println(result.getHits()[i]);
+      }
+
+    } catch (BrowseException e) {
+      e.printStackTrace();
+      fail(e.getMessage());
+    }
+    catch(IOException ioe){
+      fail(ioe.getMessage());
+    }
+    finally{
+      if (boboBrowser!=null){
+        try {
+          if(result!=null) result.close();
+          boboBrowser.close();
+        } catch (IOException e) {
+          fail(e.getMessage());
+        }
+      }
+    }
+
+  }  
 }
 
