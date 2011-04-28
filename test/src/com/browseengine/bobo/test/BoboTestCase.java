@@ -173,7 +173,7 @@ public class BoboTestCase extends TestCase {
 		
 	public static Field buildMetaField(String name,String val)
 	{
-	  Field f = new Field(name,val,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+	  Field f = new Field(name,val,Field.Store.NO,Index.NOT_ANALYZED_NO_NORMS);
 	  f.setOmitTermFreqAndPositions(true);
 	  return f;
 	}
@@ -243,7 +243,8 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("longitude", "120"));
 		d1.add(buildMetaField("salary", "04500"));
 		
-		Field sf = new Field("testStored","stored",Store.YES,Index.NO);
+		Field sf = new Field("testStored","stored",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
+		sf.setOmitTermFreqAndPositions(true);
 		d1.add(sf);
 		
 		Document d2=new Document();
@@ -477,6 +478,9 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(multipathHandler);
 		
 		facetHandlers.add(new SimpleFacetHandler("number", numTermFactory));
+		facetHandlers.add(new SimpleFacetHandler("testStored"));
+		
+		
 
 		facetHandlers.add(new SimpleFacetHandler("name"));
 		facetHandlers.add(new RangeFacetHandler("date", new PredefinedTermListFactory(Date.class, "yyyy/MM/dd"), Arrays.asList(new String[]{"[2000/01/01 TO 2003/05/05]", "[2003/05/06 TO 2005/04/04]"})));
@@ -730,6 +734,52 @@ public class BoboTestCase extends TestCase {
 		}
 		buffer.append("}").append('\n');
 		return buffer.toString();
+	}
+
+	public void testStoredFacetField() throws Exception{
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+
+        BrowseSelection colorSel=new BrowseSelection("testStored");
+        colorSel.addValue("stored");
+        br.addSelection(colorSel); 
+        br.setFetchStoredFields(true);
+        
+        BrowseResult result = null;
+        BoboBrowser boboBrowser=null;
+	  	try {
+	  		boboBrowser=newBrowser();
+	  	  
+	        result = boboBrowser.browse(br);
+	        assertEquals(1,result.getNumHits());
+	        BrowseHit hit = result.getHits()[0];
+	        Document storedFields = hit.getStoredFields();
+	        assertNotNull(storedFields);
+	        
+	        String[] values = storedFields.getValues("testStored");
+	        assertNotNull(values);
+	        assertEquals(1, values.length);
+	        assertTrue("stored".equals(values[0]));
+	        
+	  	} catch (BrowseException e) {
+	  		e.printStackTrace();
+	  		fail(e.getMessage());
+	  	}
+	  	catch(IOException ioe){
+	  	  fail(ioe.getMessage());
+	  	}
+	  	finally{
+	  	  if (boboBrowser!=null){
+	  	    try {
+	  	      if(result!=null) result.close();
+	  			boboBrowser.close();
+	  		} catch (IOException e) {
+	  			fail(e.getMessage());
+	  		}
+	  	  }
+	  	}
+        
 	}
 	
 	public void testStoredField() throws Exception{
@@ -2553,9 +2603,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testSimpleGeo");
+	  BoboTestCase test=new BoboTestCase("testGeo");
 		test.setUp();
-		test.testSimpleGeo();
+		test.testGeo();
 		test.tearDown();
 	}
 }

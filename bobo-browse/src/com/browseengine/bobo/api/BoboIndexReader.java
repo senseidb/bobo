@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -729,12 +730,20 @@ public class BoboIndexReader extends FilterIndexReader
         String[] vals = facetHandler.getFieldValues(this,docid);
         if (vals != null)
         {
+          String[] values = doc.getValues(facetHandler.getName());
+          Set<String> storedVals = new HashSet<String>(Arrays.asList(values));
+        	
           for (String val : vals)
           {
-            doc.add(new Field(facetHandler.getName(),
-                              val,
-                              Field.Store.NO,
-                              Field.Index.NOT_ANALYZED));
+        	storedVals.add(val);
+          }
+          doc.removeField(facetHandler.getName());
+          
+          for (String val : storedVals){
+        	  doc.add(new Field(facetHandler.getName(),
+                      val,
+                      Field.Store.NO,
+                      Field.Index.NOT_ANALYZED));
           }
         }
       }
