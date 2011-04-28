@@ -254,7 +254,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
         FacetHandler<?> handler = getFacetHandler(name);
         
         if (handler == null){
-        	logger.warn("facet handler: "+name+" is not defined, ignored.");
+        	logger.error("facet handler: "+name+" is not defined, ignored.");
         	continue;
         }
         

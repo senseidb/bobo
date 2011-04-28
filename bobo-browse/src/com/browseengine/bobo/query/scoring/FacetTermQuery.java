@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
@@ -27,6 +28,8 @@ public class FacetTermQuery extends Query {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private static final Logger logger = Logger.getLogger(FacetTermQuery.class);
 	
 	private final String _name;
 	private final BrowseSelection _sel;
@@ -179,6 +182,9 @@ public class FacetTermQuery extends Query {
 					 scorer = ((FacetScoreable)fhandler).getDocScorer(boboReader,_scoringFactory, _boostMap);
 				 }
 				 return new FacetTermScorer(_similarity,dociter,scorer);
+			  }
+			  else{
+				  logger.error("FacetHandler is not defined for the field: "+FacetTermQuery.this._name);
 			  }
 			  return null;
 			}
