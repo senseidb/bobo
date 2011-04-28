@@ -2603,9 +2603,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testGeo");
+	  BoboTestCase test=new BoboTestCase("testNoCount");
 		test.setUp();
-		test.testGeo();
+		test.testNoCount();
 		test.tearDown();
 	}
 }

@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -152,7 +153,7 @@ public class DispatchUtil {
         	
         };
         
-        ArrayList<BrowseHit> mergedList = ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator);
+        List<BrowseHit> mergedList = req.getCount() > 0 ? ListMerger.mergeLists(req.getOffset(), req.getCount(), iteratorList.toArray(new Iterator[iteratorList.size()]), comparator) : Collections.EMPTY_LIST;
         BrowseHit[] hits = mergedList.toArray(new BrowseHit[mergedList.size()]);
         long end = System.currentTimeMillis();
         

@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.index.IndexReader;
@@ -173,7 +175,7 @@ public class SortCollectorImpl extends SortCollector {
       iterList.add(Arrays.asList(resList).iterator());
     }
 
-    ArrayList<MyScoreDoc> resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
+    List<MyScoreDoc> resList = _count > 0 ? ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR) : Collections.EMPTY_LIST;
     Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
     return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields);
   }
