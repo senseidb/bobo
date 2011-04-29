@@ -60,8 +60,6 @@
 		<delete file="cardemo/cars.war"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="clean"/>
-		<ant antfile="build.xml"
-					 dir="${bobo-gwt}" target="clean"/>
 			<ant antfile="build.xml"
 						 dir="${bobo-demo}" target="clean"/>
 		<ant antfile="build.xml"
