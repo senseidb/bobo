@@ -11,11 +11,9 @@
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
 	<property name="bobo-solr" value="bobo-solr"/>
-	<property name="bobo-gwt" value="bobo-gwt"/>
 	<property name="bobo-demo" value="bobo-demo"/>
 	<property name="bobo-perf" value="bobo-perf"/>
 
-	<property name="geo-local" value="geo-local"/>
 	<property name="bobo-bench" value="bobo-bench"/>
 	<property name="logs" value="logs"/>	
 	<property name="tools-build" value="tools-build" />
