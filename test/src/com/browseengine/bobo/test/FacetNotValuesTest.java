@@ -37,8 +37,14 @@ import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.NumericField;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.NumericRangeQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 
@@ -96,6 +102,7 @@ public class FacetNotValuesTest extends TestCase {
       Document d=new Document();
       d.add(new Field("id",ID,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
       d.add(new Field("color",color,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
+      d.add(new NumericField("NUM").setIntValue(10));
       dataList.add(d);
       
        color = "green";
@@ -103,6 +110,7 @@ public class FacetNotValuesTest extends TestCase {
        d=new Document();
       d.add(new Field("id",ID,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
       d.add(new Field("color",color,Field.Store.YES,Index.NOT_ANALYZED_NO_NORMS));
+      d.add(new NumericField("NUM").setIntValue(11));
       dataList.add(d);
       
     
@@ -189,7 +197,7 @@ public class FacetNotValuesTest extends TestCase {
     BoboBrowser boboBrowser=null;
     int expectedHitNum = (_documentSize/2) - 1;
     try {
-      Directory ramIndexDir = createIndexTwo();
+      Directory ramIndexDir = createIndex();
       IndexReader srcReader=IndexReader.open(ramIndexDir,true);
       boboBrowser = new BoboBrowser(BoboIndexReader.getInstance(srcReader,_facetHandlers, null));
       result = boboBrowser.browse(br);
@@ -236,7 +244,7 @@ public class FacetNotValuesTest extends TestCase {
     BoboBrowser boboBrowser=null;
     
     try {
-      Directory ramIndexDir = createIndex();
+      Directory ramIndexDir = createIndexTwo();
       IndexReader srcReader=IndexReader.open(ramIndexDir,true);
       boboBrowser = new BoboBrowser(BoboIndexReader.getInstance(srcReader,_facetHandlers, null));
       
@@ -253,7 +261,10 @@ public class FacetNotValuesTest extends TestCase {
       idSel.addNotValue(_idRanges[0]);
       int expectedHitNum = 1;
       br.addSelection(idSel);
-
+      BooleanQuery q = new BooleanQuery();
+      q.add(NumericRangeQuery.newIntRange("NUM", 10, 10, true, true), Occur.MUST_NOT);
+      q.add(new MatchAllDocsQuery(), Occur.MUST);
+      br.setQuery(q);
       
       result = boboBrowser.browse(br);
       
