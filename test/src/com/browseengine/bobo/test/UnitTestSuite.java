@@ -37,12 +37,12 @@ public class UnitTestSuite {
 
 	  public static Test suite(){
           TestSuite suite=new TestSuite();
-          suite.addTestSuite(BoboTestCase.class);
-          suite.addTestSuite(ProtoBufConvertTest.class);
-          suite.addTestSuite(FacetHandlerTest.class);
-          suite.addTestSuite(TestSectionSearch.class);
-          suite.addTestSuite(BoboSolrTestCase.class);
-          suite.addTestSuite(BoboFacetIteratorTest.class);
+//          suite.addTestSuite(BoboTestCase.class);
+//          suite.addTestSuite(ProtoBufConvertTest.class);
+//          suite.addTestSuite(FacetHandlerTest.class);
+//          suite.addTestSuite(TestSectionSearch.class);
+//          suite.addTestSuite(BoboSolrTestCase.class);
+//          suite.addTestSuite(BoboFacetIteratorTest.class);
           suite.addTestSuite(FacetNotValuesTest.class);
           return suite;
   }
