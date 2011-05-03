@@ -2304,7 +2304,6 @@ public class BoboTestCase extends TestCase {
 			writer.commit();
 			reader = (BoboIndexReader)boboReader.reopen();
 			assertNotSame(boboReader, reader);
-	//		boboReader.close();
 			assertEquals(numDocs+1,reader.numDocs());
 			boboReader = reader;
 		}
