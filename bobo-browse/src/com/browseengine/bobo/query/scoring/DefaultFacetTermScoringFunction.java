@@ -26,7 +26,7 @@ public class DefaultFacetTermScoringFunction implements FacetTermScoringFunction
 	public Explanation explain(int df, float boost) {
 		Explanation expl = new Explanation();
 		expl.setValue(score(df,boost));
-		expl.setDescription("boost value of: "+boost);
+		expl.setDescription("facet boost value of: "+boost);
 		return expl;
 	}
 

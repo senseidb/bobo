@@ -23,7 +23,7 @@ public abstract class BoboDocScorer {
     
     public static float[] buildBoostList(List<String> valArray,Map<String,Float> boostMap){
     	float[] boostList = new float[valArray.size()];
-    	Arrays.fill(boostList, 1.0f);
+    	Arrays.fill(boostList, 0.0f);
     	if (boostMap!=null && boostMap.size()>0){
     		Iterator<Entry<String,Float>> iter = boostMap.entrySet().iterator();
     		while(iter.hasNext()){

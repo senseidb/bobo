@@ -71,6 +71,7 @@ public class FacetTermQuery extends Query {
 		 */
 		private static final long serialVersionUID = 1L;
 		Similarity _similarity;
+		private float value;
         public FacetTermWeight(Similarity sim) {
         	_similarity = sim;
 		}
@@ -83,7 +84,14 @@ public class FacetTermQuery extends Query {
 				 BoboDocScorer scorer = null;
 				 if (fhandler instanceof FacetScoreable){
 					 scorer = ((FacetScoreable)fhandler).getDocScorer(boboReader,_scoringFactory, _boostMap);
-					 return scorer.explain(docid);
+					 Explanation exp1 =  scorer.explain(docid);
+					 Explanation exp2 = new Explanation(getBoost(), "boost");
+					 Explanation expl = new Explanation();
+					 expl.setDescription("product of:");
+					 expl.setValue(exp1.getValue()*exp2.getValue());
+					 expl.addDetail(exp1);
+					 expl.addDetail(exp2);
+					 return expl;
 				 }
 				 else{
 					 return null;
@@ -97,12 +105,11 @@ public class FacetTermQuery extends Query {
 		}
 
 		public float getValue() {
-			return 0;
+			return value;
 		}
 
-		public void normalize(float score) {
-			// TODO Auto-generated method stub
-			
+		public void normalize(float norm) {
+			value = getBoost();
 		}
 		
 		private final DocIdSetIterator buildIterator(final RandomAccessDocIdSet docset,final TermDocs td){
@@ -211,7 +218,7 @@ public class FacetTermQuery extends Query {
 
 		@Override
 		public float score() throws IOException {
-			return _scorer==null ? 1.0f : _scorer.score(_docSetIter.docID());
+			return _scorer==null ? 1.0f : _scorer.score(_docSetIter.docID())*getBoost();
 		}
 
 		@Override

@@ -61,6 +61,9 @@ import org.apache.lucene.index.IndexWriter.MaxFieldLength;
 import org.apache.lucene.index.Payload;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -2101,6 +2104,44 @@ public class BoboTestCase extends TestCase {
       multiBoboBrowser.close();
 	}
 	
+
+	public void testFacetQueryBoost() throws Exception{
+		BrowseSelection sel = new BrowseSelection("color");
+		sel.addValue("red");
+		sel.addValue("blue");
+		HashMap<String, Float> map = new HashMap<String, Float>();
+		map.put("red", 5.0f);
+		map.put("blue", 4.0f);
+		FacetTermQuery colorQ = new FacetTermQuery(sel,map);
+		
+		BrowseSelection sel2 = new BrowseSelection("shape");
+		sel2.addValue("circle");
+		sel2.addValue("square");
+		HashMap<String, Float> map2 = new HashMap<String, Float>();
+		map2.put("circle", 3.0f);
+		map2.put("square", 2.0f);
+		FacetTermQuery shapeQ = new FacetTermQuery(sel2,map2);
+		shapeQ.setBoost(3.0f);
+		
+		BooleanQuery bq = new BooleanQuery();
+		bq.add(shapeQ,Occur.SHOULD);
+		bq.add(colorQ,Occur.SHOULD);
+		
+		BrowseRequest br = new BrowseRequest();
+		br.setSort(new SortField[]{SortField.FIELD_SCORE});
+		br.setQuery(bq);
+		br.setOffset(0);
+		br.setCount(10);
+		
+		
+		BrowseResult res = doTest(br,6,null,new String[]{"4","1","7","5","3","2"});
+		BrowseHit[] hits = res.getHits();
+		float[] scores = new float[]{13,11,11,10,4.5f,2.5f};  // default coord = 1/2
+		for (int i=0;i<hits.length;++i){
+			assertEquals(scores[i],hits[i].getScore());
+		}
+	}
+	
 	public void testFacetQuery() throws Exception{
 		BrowseSelection sel = new BrowseSelection("color");
 		sel.addValue("red");
@@ -2126,12 +2167,12 @@ public class BoboTestCase extends TestCase {
 		
 		doTest(br,5,null,new String[]{"1","2","7","4","5"});
 		
-		BoboBrowser b = newBrowser();
-		Explanation expl = b.explain(colorQ, 0);
+		//BoboBrowser b = newBrowser();
+	//	Explanation expl = b.explain(colorQ, 0);
 		
 		br.setQuery(tagQ);
 		doTest(br,4,null,new String[]{"7","1","3","2"});
-		expl = b.explain(tagQ, 6);
+	//	expl = b.explain(tagQ, 6);
 		
 	}
 	
@@ -2602,9 +2643,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testNoCount");
+	  BoboTestCase test=new BoboTestCase("testFacetQueryBoost");
 		test.setUp();
-		test.testNoCount();
+		test.testFacetQueryBoost();
 		test.tearDown();
 	}
 }
