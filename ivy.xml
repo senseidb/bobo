@@ -5,7 +5,6 @@
        <conf name="test"    visibility="private" description="is only available for the test compilation and execution phases."/>
        <conf name="jetty"   visibility="public" description="server related jars" />
        <conf name="solr"    visibility="public" description="libs for solr plugin" />
-       <conf name="gui"     visibility="public" description="ui related jars" />
     </configurations>
     <publications>
       <artifact name="browseengine" type="jar" ext="jar" conf="master" />
@@ -29,9 +28,7 @@
         <dependency org="org.json" name="json" rev="20080701" conf="master"/>
         <dependency org="junit" name="junit" rev="4.5" conf="test->master"/>
         <dependency org="log4j" name="log4j" rev="1.2.15" conf="master"/>
-        <dependency org="org.apache.lucene" name="lucene-highlighter" rev="3.0.2" conf="master"/>
-        <dependency org="org.apache.lucene" name="lucene-core" rev="3.0.2" conf="master"/>
-        <dependency org="com.sna-projects.kamikaze" name="kamikaze" rev="3.0.3" conf="master"/>
+        <dependency org="com.linkedin.kamikaze" name="kamikaze" rev="3.0.4" conf="master"/>
         <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="master"/>
         <dependency org="org.springframework" name="spring-webmvc" rev="2.5.5" conf="master"/>
         <dependency org="org.springframework" name="spring" rev="2.5.5" conf="master"/>

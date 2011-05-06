@@ -11,7 +11,6 @@
 	<property name="bobo-browse" value="bobo-browse"/>
 	<property name="bobo-service" value="bobo-service"/>
 	<property name="bobo-solr" value="bobo-solr"/>
-	<property name="bobo-demo" value="bobo-demo"/>
 	<property name="bobo-perf" value="bobo-perf"/>
 
 	<property name="bobo-bench" value="bobo-bench"/>
@@ -60,8 +59,6 @@
 		<delete file="cardemo/cars.war"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-browse}" target="clean"/>
-			<ant antfile="build.xml"
-						 dir="${bobo-demo}" target="clean"/>
 		<ant antfile="build.xml"
 			 dir="${bobo-service}" target="clean"/>
 		<ant antfile="build.xml"
@@ -224,16 +221,6 @@
 		<delete dir="cardemo/cars" />
 	</target>
 	
-	<target name="bobo-demo" description="==> bobo-demo" depends="jars">
-		<ant antfile="build.xml"
-					 dir="${bobo-demo}" target="dist"/>
-	</target>
-	
-	<target name="bobo-demo-dev" depends="jars">
-		<ant antfile="build.xml"
-							 dir="${bobo-demo}" target="hosted"/>
-	</target>
-	
 	<target name="run-cardemo" description="==> run car demo" depends="dist,make-car-war" > 
 		<mkdir dir="${logs}" />
 		<java fork="true" jar="${bobo.root}/zoie-server-2.0.0.jar" failonerror="true" maxmemory="1000m">
@@ -256,7 +243,7 @@
 		</java>
 	</target>
 	
-	<target name="run-server"> <!--  depends="bobo-demo" > --> 
+	<target name="run-server"> 
 		<mkdir dir="${logs}" />
 		<java fork="true" jar="${bobo.root}/zoie-server-2.0.0.jar" failonerror="true" maxmemory="1000m">
 								<sysproperty key="log.home" value="${logs}" />

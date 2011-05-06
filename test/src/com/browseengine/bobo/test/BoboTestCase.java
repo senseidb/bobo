@@ -2643,9 +2643,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testFacetQueryBoost");
+	  BoboTestCase test=new BoboTestCase("testFacetBoost");
 		test.setUp();
-		test.testFacetQueryBoost();
+		test.testFacetBoost();
 		test.tearDown();
 	}
 }

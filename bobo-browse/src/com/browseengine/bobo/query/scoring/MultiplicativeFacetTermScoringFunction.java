@@ -20,7 +20,9 @@ public class MultiplicativeFacetTermScoringFunction implements FacetTermScoringF
   
   public final void scoreAndCollect(int df,float boost)
   {
-    _boost *= boost;
+	if (boost>0){
+      _boost *= boost;
+	}
   }
 
   public final float getCurrentScore()

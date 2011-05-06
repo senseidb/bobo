@@ -105,7 +105,10 @@ public class FacetBasedBoostScorerBuilder implements ScorerBuilder
       float score = _innerScorer.score();
       for(BoboDocScorer facetScorer : _facetScorers)
       {
-        score *= facetScorer.score(_docid);
+        float fscore = facetScorer.score(_docid);
+        if (fscore>0.0){
+        	score*=fscore;
+        }
       }
       return score;
     }
