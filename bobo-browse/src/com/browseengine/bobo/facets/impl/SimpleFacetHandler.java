@@ -100,7 +100,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 
 		@Override
 		public String getName() {
-			return _name;
+			return _indexFieldName;
 		}
     	
     }, f, new String[]{value}, false);
