@@ -138,10 +138,9 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 	  return _dataCache;
   }
   
-  public static List<BrowseFacet> getFacets(FacetSpec ospec,int[] count,final TermValueList<?> valList){
+  public static List<BrowseFacet> getFacets(FacetSpec ospec,int[] count, int countlength, final TermValueList<?> valList){
 	  if (ospec!=null)
 	    {
-		  int countlength = count.length;
 	      int minCount=ospec.getMinHitCount();
 	      int max=ospec.getMaxCount();
 	      if (max <= 0) max=countlength;
@@ -221,7 +220,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
       throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
     }
     
-    return getFacets(_ospec,_count,_dataCache.valArray);
+    return getFacets(_ospec,_count, _countlength, _dataCache.valArray);
     
   }
 

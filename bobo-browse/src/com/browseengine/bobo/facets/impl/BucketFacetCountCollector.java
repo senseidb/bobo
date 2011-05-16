@@ -117,7 +117,7 @@ public class BucketFacetCountCollector implements FacetCountCollector
   {
 
 	int[] counts = getCollapsedCounts();
-    return DefaultFacetCountCollector.getFacets(_ospec, counts, _bucketValues);
+    return DefaultFacetCountCollector.getFacets(_ospec, counts, counts.length, _bucketValues);
 
   }
   
