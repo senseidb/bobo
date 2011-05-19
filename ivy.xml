@@ -38,6 +38,10 @@
         <dependency org="org.apache.solr" name="solr-core" rev="1.4.0" conf="solr->master"/>
         <dependency org="org.apache.solr" name="solr-solrj" rev="1.4.0" conf="solr->master"/>
         <dependency org="org.slf4j" name="slf4j-api" rev="1.6.1" conf="solr->master"/>
+        <dependency org="net.sourceforge.cobertura" name="cobertura" rev="1.9.4.1" conf="master"/>
+	<dependency org="asm" name="asm" rev="3.0" conf="master"/>
+        <dependency org="asm" name="asm-tree" rev="3.0" conf="master"/>
+        <dependency org="oro" name="oro" rev="2.0.8" conf="master"/>
         <dependency org="commons-codec" name="commons-codec" rev="1.4" conf="solr->master"/>
     </dependencies>
 </ivy-module>

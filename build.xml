@@ -30,6 +30,7 @@
 	<property name="lib.test" location="${lib}/test" />
 	
 	<property name="test.report.dir" location="${dist}/junit-reports" />
+        <property name="cubertura.report.dir" location="${dist}/cubertura-reports" />
 	
 	<property name="test.html.dir" location="${test.report.dir}/html" />
 	
@@ -42,7 +43,20 @@
 	 <property name="ivy.install.version" value="2.0.0-beta1"/>
 	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
 	 <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
-	 
+
+	<property name="cobertura.dir" value="${lib.master}" />
+	
+	<path id="cobertura.classpath">
+		<fileset dir="${cobertura.dir}">
+			<include name="cobertura.jar" />
+			<include name="log4j.jar" />
+			<include name="asm*.jar" />
+                        <include name="oro.jar" />
+			<include name="lib/**/*.jar" />
+		</fileset>
+	</path>
+
+	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
 		
 	<target name="init" depends="resolve">
 		<mkdir dir="${dist}" />
@@ -290,7 +304,7 @@
 		</java>
 	</target>
 				
-	<target name="test-build" depends="bobo-browse-jar,bobo-solr-jar">
+	<target name="test-build" depends="bobo-browse-jar,cobertura-instrument,bobo-solr-jar">
 		<javac destdir="${build.test}">
             <src path="${test}"/>
             <classpath refid="test.compile.class.path"/>
@@ -298,6 +312,16 @@
 		<jar destfile="${dist}/bobo-test.jar"  basedir="${build.test}" />
 	</target>
 	
+	<target name="cobertura-instrument" description="instrumentation for cobertura">
+		<delete file="cobertura.ser" />
+		<cobertura-instrument>
+			<ignore regex="org.apache.log4j.*" />
+			<ignore regex="org.objectweb.*" />
+			<fileset dir="${dist}">
+				<include name="bobo-browse-2.5.2-SNAPSHOT.jar" />
+			</fileset>
+		</cobertura-instrument>
+	</target>
 	<target name="test" description="Runs JUnit Tests" depends="test-build">
 		<echo>=== Running JUnit Tests ===</echo>
 		<mkdir dir="${test.report.dir}" />
@@ -309,7 +333,9 @@
 
 		    <!-- classpath must include all jar dependencies and classes -->
 			<classpath refid="test.compile.class.path" />
+			<classpath refid="cobertura.classpath" />
 			
+		<sysproperty key="net.sourceforge.cobertura.datafile" file="${basedir}/cobertura.ser" />
 	      	<!-- formatter to use for output -->
         	<formatter type="xml"/>
 	        <batchtest fork="yes" todir="${test.report.dir}">
@@ -324,6 +350,9 @@
 		  </fileset>
 		  <report todir="${test.html.dir}" format="frames" />
 		</junitreport>
+	</target>
+	<target name="cobertura-report" description="cobertura-report" depends="test">
+		<cobertura-report format="html" destdir="${cubertura.report.dir}" srcdir="${basedir}/bobo-browse/src" />
 	</target>
 	<target name="lucene-test" description="Lucene-test" depends="test-build">
 		<echo>=== Running Lucene 2.9 Perf ===</echo>
