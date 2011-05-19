@@ -352,7 +352,20 @@
 		</junitreport>
 	</target>
 	<target name="cobertura-report" description="cobertura-report" depends="test">
-		<cobertura-report format="html" destdir="${cubertura.report.dir}" srcdir="${basedir}/bobo-browse/src" />
+		<cobertura-report format="html" destdir="${cubertura.report.dir}/html">
+			<fileset dir="${basedir}/bobo-browse/src">
+				<include name="com/browseengine/bobo/**/*.java" />
+				<exclude name="com/browseengine/bobo/protobuf/**/*.java" />
+                                <exclude name="com/browseengine/bobo/service/**/*.java" />
+			</fileset>
+		</cobertura-report>
+                <cobertura-report format="xml" destdir="${cubertura.report.dir}/xml">
+                        <fileset dir="${basedir}/bobo-browse/src">
+                                <include name="com/browseengine/bobo/**/*.java" />
+                                <exclude name="com/browseengine/bobo/protobuf/**/*.java" />
+                                <exclude name="com/browseengine/bobo/service/**/*.java" />
+                        </fileset>
+                </cobertura-report>
 	</target>
 	<target name="lucene-test" description="Lucene-test" depends="test-build">
 		<echo>=== Running Lucene 2.9 Perf ===</echo>
