@@ -58,13 +58,17 @@ public class BoboBrowser extends MultiBoboBrowser
     return createSegmentedBrowsables(readerList);
   }
   
-  public static Browsable[] createBrowsables(List<BoboIndexReader> readerList){
-	  List<Browsable> browsableList = new ArrayList<Browsable>();
-	  for (BoboIndexReader boboReader : readerList){
-		  Browsable[] sub = createBrowsables(boboReader);
-		  browsableList.addAll(Arrays.asList(sub));
+  public static List<BoboIndexReader> gatherSubReaders(List<BoboIndexReader> readerList){
+	  List<BoboIndexReader> subreaderList = new ArrayList<BoboIndexReader>();
+	  for (BoboIndexReader reader : readerList){
+		  gatherSubReaders(subreaderList, reader);
 	  }
-	  return browsableList.toArray(new Browsable[browsableList.size()]);
+	  return subreaderList;
+  }
+  
+  public static Browsable[] createBrowsables(List<BoboIndexReader> readerList){
+	  List<BoboIndexReader> subreaders = gatherSubReaders(readerList);
+	  return createSegmentedBrowsables(subreaders);
   }
   
   /**
