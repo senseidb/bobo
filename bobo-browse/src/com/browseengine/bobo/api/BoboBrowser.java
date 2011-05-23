@@ -28,25 +28,34 @@ public class BoboBrowser extends MultiBoboBrowser
   {
     super(createBrowsables(reader));
   }
+  
+  public static void gatherSubReaders(List<BoboIndexReader> readerList,BoboIndexReader reader){
+	  BoboIndexReader[] subReaders = reader._subReaders;
+	  if (subReaders == null){
+		  readerList.add(reader);
+	  }
+	  else{
+		  for (int i = 0; i < subReaders.length; i++) {
+			 gatherSubReaders(readerList, subReaders[i]);
+		  }  
+	  }
+  }
+  
+  public static BoboSubBrowser[] createSegmentedBrowsables(List<BoboIndexReader> readerList){
+	  BoboSubBrowser[] browsables = new BoboSubBrowser[readerList.size()];
+	  int i = 0;
+	  for (BoboIndexReader reader : readerList){
+		  browsables[i] = new BoboSubBrowser(reader);
+		  i++;
+	  }
+	  return browsables;
+  }
 
   public static Browsable[] createBrowsables(BoboIndexReader reader)
   {
-    List<IndexReader> readerList = new ArrayList<IndexReader>();
-    ReaderUtil.gatherSubReaders(readerList, reader);
-    IndexReader[] subReaders = (IndexReader[])readerList.toArray(new IndexReader[readerList.size()]);
-    if(subReaders == null || subReaders.length == 0)
-    {
-      return new Browsable[]{ new BoboSubBrowser(reader) };
-    }
-    else
-    {
-      Browsable[] subBrowsables = new Browsable[subReaders.length];
-      for(int i = 0; i < subReaders.length; i++)
-      {
-        subBrowsables[i] = new BoboSubBrowser((BoboIndexReader)subReaders[i]);
-      }
-      return subBrowsables;
-    }
+    List<BoboIndexReader> readerList = new ArrayList<BoboIndexReader>();
+    gatherSubReaders(readerList, reader);
+    return createSegmentedBrowsables(readerList);
   }
   
   public static Browsable[] createBrowsables(List<BoboIndexReader> readerList){
