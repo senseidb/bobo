@@ -132,19 +132,19 @@ public class ListMerger
     return new MergedIterator<T>(iterators, comparator);
   }
   
-  public static <T> List<T> mergeLists(int offset, int count, Iterator<T>[] iterators, Comparator<T> comparator)
+  public static <T> ArrayList<T> mergeLists(int offset, int count, Iterator<T>[] iterators, Comparator<T> comparator)
   {
     return mergeLists(offset, count, new MergedIterator<T>(iterators, comparator));
   }
   
-  public static <T> List<T> mergeLists(int offset, int count, List<Iterator<T>> iterators, Comparator<T> comparator)
+  public static <T> ArrayList<T> mergeLists(int offset, int count, List<Iterator<T>> iterators, Comparator<T> comparator)
   {
     return mergeLists(offset, count, new MergedIterator<T>(iterators, comparator));
   }
   
-  private static <T> List<T> mergeLists(int offset, int count, Iterator<T> mergedIter)
+  private static <T> ArrayList<T> mergeLists(int offset, int count, Iterator<T> mergedIter)
   {
-	if (count == 0) return Collections.EMPTY_LIST;
+	if (count == 0) return new ArrayList();
     for (int c = 0; c < offset && mergedIter.hasNext(); c++)
     {
       mergedIter.next();
