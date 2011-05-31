@@ -51,6 +51,7 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
@@ -141,8 +142,8 @@ public class FacetNameTest extends TestCase {
     List<FacetHandler<?>> facetHandlers = new ArrayList<FacetHandler<?>>();
     facetHandlers.add(new SimpleFacetHandler("id"));
     facetHandlers.add(new SimpleFacetHandler("make"));
-    facetHandlers.add(new SimpleFacetHandler("mycolor", "color"));
-    
+   // facetHandlers.add(new SimpleFacetHandler("mycolor", "color"));
+    facetHandlers.add(new MultiValueFacetHandler("multicolor", "color"));
     return facetHandlers;
   }
   
@@ -168,6 +169,61 @@ public class FacetNameTest extends TestCase {
     br.setFacetSpec("mycolor", spec);
     br.setFacetSpec("id", spec);
     br.setFacetSpec("make", spec);
+    br.setFacetSpec("multicolor", spec);
+    
+    BrowseResult result = null;
+    BoboBrowser boboBrowser=null;
+    int expectedHitNum = 3;
+    try {
+      Directory ramIndexDir = createIndex();
+      IndexReader srcReader=IndexReader.open(ramIndexDir,true);
+      boboBrowser = new BoboBrowser(BoboIndexReader.getInstance(srcReader,_facetHandlers, null));
+      result = boboBrowser.browse(br);
+      
+      assertEquals(expectedHitNum,result.getNumHits());
+    } catch (BrowseException e) {
+      e.printStackTrace();
+      fail(e.getMessage());
+    }
+    catch(IOException ioe){
+      fail(ioe.getMessage());
+    }
+    finally{
+      if (boboBrowser!=null){
+        try {
+          if(result!=null) result.close();
+          boboBrowser.close();
+        } catch (IOException e) {
+          fail(e.getMessage());
+        }
+      }
+    }
+
+  }  
+  
+  
+  public void testFacetNameForMultiValueFacetHandler() throws Exception{
+    BrowseRequest br=new BrowseRequest();
+    br.setCount(20);
+    br.setOffset(0);
+
+    BrowseSelection colorSel=new BrowseSelection("multicolor");
+    colorSel.addValue("yellow");
+    br.addSelection(colorSel); 
+    
+    BrowseSelection makeSel=new BrowseSelection("make");
+    makeSel.addValue("rav4");
+    br.addSelection(makeSel);
+        
+    FacetSpec spec=new FacetSpec();
+    spec.setExpandSelection(true);
+    spec.setOrderBy(FacetSortSpec.OrderHitsDesc);
+    spec.setMaxCount(15);
+    
+    br.setFacetSpec("mycolor", spec);
+    br.setFacetSpec("id", spec);
+    br.setFacetSpec("make", spec);
+    br.setFacetSpec("multicolor", spec);
 
     BrowseResult result = null;
     BoboBrowser boboBrowser=null;
