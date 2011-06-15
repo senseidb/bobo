@@ -34,7 +34,7 @@ public class DocIDPriorityQueue {
   public final ScoreDoc add(ScoreDoc element) {
     size++;
     heap[size] = element;
-    upHeap();
+    upHeap(size);
     return heap[1];
   }
 
@@ -53,7 +53,24 @@ public class DocIDPriorityQueue {
 
   public ScoreDoc replace(ScoreDoc element) {
     heap[1] = element;
-    downHeap();
+    downHeap(1);
+    return heap[1];
+  }
+
+  /**
+   * Takes O(size) time.
+   *
+   * @return the 'bottom' element in the queue.
+   **/
+  public ScoreDoc replace(ScoreDoc newEle, ScoreDoc oldEle) {
+    for (int i=1; i<=size; ++i) {
+      if (heap[i] == oldEle) {
+        heap[i] = newEle;
+        upHeap(i);
+        downHeap(i);
+        break;
+      }
+    }
     return heap[1];
   }
 
@@ -73,7 +90,7 @@ public class DocIDPriorityQueue {
       heap[1] = heap[size];			  // move last to first
       heap[size] = null;			  // permit GC of objects
       size--;
-      downHeap();				  // adjust heap
+      downHeap(1);				  // adjust heap
       return result;
     } else
       return null;
@@ -99,7 +116,7 @@ public class DocIDPriorityQueue {
    * @return the new 'top' element.
    */
   public final ScoreDoc updateTop() {
-    downHeap();
+    downHeap(1);
     return heap[1];
   }
 
@@ -116,8 +133,7 @@ public class DocIDPriorityQueue {
     size = 0;
   }
 
-  private final void upHeap() {
-    int i = size;
+  private final void upHeap(int i) {
     ScoreDoc node = heap[i];			  // save bottom node
     int j = i >>> 1;
     while (j > 0 && compare(node, heap[j]) < 0) {
@@ -128,8 +144,7 @@ public class DocIDPriorityQueue {
     heap[i] = node;				  // install saved node
   }
 
-  private final void downHeap() {
-    int i = 1;
+  private final void downHeap(int i) {
     ScoreDoc node = heap[i];			  // save top node
     int j = i << 1;				  // find smaller child
     int k = j + 1;

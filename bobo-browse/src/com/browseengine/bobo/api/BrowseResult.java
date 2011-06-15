@@ -62,7 +62,10 @@ public class BrowseResult implements Serializable{
   }
 
 	private int numHits;
+	private int numGroups;
 	private int totalDocs;
+	private Map<String,Integer> _groupMap;
+  //private int totalGroups;
 	private Map<String,FacetAccessible> _facetMap;
 	private BrowseHit[] hits;
 	private long time;
@@ -74,11 +77,30 @@ public class BrowseResult implements Serializable{
 	public BrowseResult() {
 		super();
 		_facetMap=new HashMap<String,FacetAccessible>();
+    _groupMap = null;
 		numHits=0;
+		numGroups=0;
 		totalDocs=0;
+    //totalGroups=0;
 		hits=null;
 		time=0L;
 	}
+
+  /**
+   * Get the group map.
+   * @return the group map.
+   */
+  public Map<String, Integer> getGroupMap() {
+    return _groupMap;
+  }
+
+  /**
+   * Set the group map.
+   * @param groupMap the group map.
+   */
+  public void setGroupMap(Map<String, Integer> groupMap) {
+    _groupMap = groupMap;
+  }
 	
 	/**
 	 * Get the facets by name
@@ -108,6 +130,24 @@ public class BrowseResult implements Serializable{
 	}
 
 	/**
+	 * Get the group count
+	 * @return group count
+	 * @see #setNumGroups(int)
+	 */
+	public int getNumGroups() {
+		return numGroups;
+	}
+
+	/**
+	 * Sets the group count
+	 * @param groups group count
+	 * @see #getNumGroups()
+	 */
+	public void setNumGroups(int groups) {
+		numGroups = groups;
+	}
+
+	/**
 	 * Gets the total number of docs in the index
 	 * @return total number of docs in the index.
 	 * @see #setTotalDocs(int)
@@ -124,6 +164,24 @@ public class BrowseResult implements Serializable{
 	public void setTotalDocs(int docs) {
 		totalDocs = docs;
 	}
+	
+	/**
+	 * Gets the total number of groups in the index
+	 * @return total number of groups in the index.
+	 * @see #setTotalGroups(int)
+	 */
+	//public int getTotalGroups() {
+		//return totalGroups;
+	//}
+
+	/**
+	 * Sets the total number of groups in the index
+	 * @param groups total number of groups in the index
+	 * @see #getTotalGroups()
+	 */
+	//public void setTotalGroups(int groups) {
+		//totalGroups = groups;
+	//}
 	
 	/**
 	 * Add a container full of choices
