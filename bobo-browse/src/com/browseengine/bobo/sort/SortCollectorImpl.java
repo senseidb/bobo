@@ -153,45 +153,43 @@ public class SortCollectorImpl extends SortCollector {
 
   @Override
   public void collect(int doc) throws IOException {
-    int i=0;
-
     ++_totalHits;
     ++_totalGroups;
 
     if (_groupBy != null) {
       if (_facetCountCollector != null)
         _facetCountCollector.collect(doc);
-      Integer order = ((FacetDataCache)_groupBy.getFacetData(_currentReader)).orderArray.get(doc);
       //Object val = _groupBy.getRawFieldValues(_currentReader, doc)[0];
 
       if (_count > 0) {
         final float score = (_doScoring ? _scorer.score() : 0.0f);
         _tmpScoreDoc.doc = doc;
         _tmpScoreDoc.score = score;
-        ScoreDoc pre = _currentValueDocMaps.get(order);
-        if (pre != null) {
-          if ( _currentComparator.compare(pre, _tmpScoreDoc) > 0) {
-            ScoreDoc tmp = pre;
-            _bottom = _currentQueue.replace(_tmpScoreDoc, pre);
-            _currentValueDocMaps.put(order, _tmpScoreDoc);
-            _tmpScoreDoc = tmp;
+        if (!_queueFull || _currentComparator.compare(_bottom,_tmpScoreDoc) > 0) {
+          final Integer order = ((FacetDataCache)_groupBy.getFacetData(_currentReader)).orderArray.get(doc);
+          ScoreDoc pre = _currentValueDocMaps.get(order);
+          if (pre != null) {
+            if ( _currentComparator.compare(pre, _tmpScoreDoc) > 0) {
+              ScoreDoc tmp = pre;
+              _bottom = _currentQueue.replace(_tmpScoreDoc, pre);
+              _currentValueDocMaps.put(order, _tmpScoreDoc);
+              _tmpScoreDoc = tmp;
+            }
           }
-        }
-        else {
-          if (_queueFull){
-            if (_currentComparator.compare(_bottom,_tmpScoreDoc) > 0){
+          else {
+            if (_queueFull){
               MyScoreDoc tmp = (MyScoreDoc)_bottom;
               _currentValueDocMaps.remove(((FacetDataCache)_groupBy.getFacetData(tmp.reader)).orderArray.get(tmp.doc));
               _bottom = _currentQueue.replace(_tmpScoreDoc);
               _currentValueDocMaps.put(order, _tmpScoreDoc);
               _tmpScoreDoc = tmp;
             }
-          }
-          else{ 
-            ScoreDoc tmp = new MyScoreDoc(doc,score,_currentQueue,_currentReader);
-            _bottom = _currentQueue.add(tmp);
-            _currentValueDocMaps.put(order, tmp);
-            _queueFull = (_currentQueue.size >= _numHits);
+            else{ 
+              ScoreDoc tmp = new MyScoreDoc(doc,score,_currentQueue,_currentReader);
+              _bottom = _currentQueue.add(tmp);
+              _currentValueDocMaps.put(order, tmp);
+              _queueFull = (_currentQueue.size >= _numHits);
+            }
           }
         }
       }
