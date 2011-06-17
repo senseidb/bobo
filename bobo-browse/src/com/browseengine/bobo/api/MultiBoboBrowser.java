@@ -197,7 +197,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     result.setHits(hits);
     result.setNumHits(collector.getTotalHits());
     result.setNumGroups(collector.getTotalGroups());
-    result.setGroupMap(collector.getGroupMap());
+    result.setGroupAccessible(collector.getGroupAccessible());
     result.setTotalDocs(numDocs());
     result.addAll(facetCollectors);
     long end = System.currentTimeMillis();

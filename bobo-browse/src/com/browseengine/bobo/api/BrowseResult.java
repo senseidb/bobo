@@ -64,7 +64,7 @@ public class BrowseResult implements Serializable{
 	private int numHits;
 	private int numGroups;
 	private int totalDocs;
-	private Map<String,Integer> _groupMap;
+	private FacetAccessible _groupAccessible;
   //private int totalGroups;
 	private Map<String,FacetAccessible> _facetMap;
 	private BrowseHit[] hits;
@@ -77,7 +77,7 @@ public class BrowseResult implements Serializable{
 	public BrowseResult() {
 		super();
 		_facetMap=new HashMap<String,FacetAccessible>();
-    _groupMap = null;
+    _groupAccessible = null;
 		numHits=0;
 		numGroups=0;
 		totalDocs=0;
@@ -87,19 +87,19 @@ public class BrowseResult implements Serializable{
 	}
 
   /**
-   * Get the group map.
-   * @return the group map.
+   * Get the group accessible.
+   * @return the group accessible.
    */
-  public Map<String, Integer> getGroupMap() {
-    return _groupMap;
+  public FacetAccessible getGroupAccessible() {
+    return _groupAccessible;
   }
 
   /**
-   * Set the group map.
-   * @param groupMap the group map.
+   * Set the group accessible.
+   * @param groupAccessible the group accessible.
    */
-  public void setGroupMap(Map<String, Integer> groupMap) {
-    _groupMap = groupMap;
+  public void setGroupAccessible(FacetAccessible groupAccessible) {
+    _groupAccessible = groupAccessible;
   }
 	
 	/**

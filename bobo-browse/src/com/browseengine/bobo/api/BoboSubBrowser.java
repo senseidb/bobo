@@ -442,7 +442,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
     result.setHits(hits);
     result.setNumHits(collector.getTotalHits());
     result.setNumGroups(collector.getTotalGroups());
-    result.setGroupMap(collector.getGroupMap());
+    result.setGroupAccessible(collector.getGroupAccessible());
     result.setTotalDocs(_reader.numDocs());
     result.addAll(facetCollectors);
     long end = System.currentTimeMillis();

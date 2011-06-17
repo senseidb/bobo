@@ -21,7 +21,13 @@ import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.Browsable;
+import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.FacetAccessible;
+import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.CombinedFacetAccessible;
+import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.util.ListMerger;
 
@@ -64,6 +70,7 @@ public class SortCollectorImpl extends SortCollector {
   private DocComparatorSource _compSource;
   private DocIDPriorityQueue _currentQueue;
   private BoboIndexReader _currentReader=null;
+  private FacetCountCollector _facetCountCollector;
 
   private final boolean _doScoring;
   private Scorer _scorer;
@@ -72,8 +79,9 @@ public class SortCollectorImpl extends SortCollector {
 
   private final Browsable _boboBrowser;
   private final FacetHandler<?> _groupBy;
-  private final Map<String, Integer> _groupMap;
-  private final Map<String, ScoreDoc> _currentValueDocMaps;
+  private CombinedFacetAccessible _groupAccessible;
+  private final List<FacetAccessible> _facetAccessibles;
+  private final Map<Integer, ScoreDoc> _currentValueDocMaps;
   static class MyScoreDoc extends ScoreDoc {
     private static final long serialVersionUID = 1L;
 
@@ -122,22 +130,19 @@ public class SortCollectorImpl extends SortCollector {
     _tmpScoreDoc = new MyScoreDoc();
     if (groupBy != null) {
       _groupBy = boboBrowser.getFacetHandler(groupBy);
-      if (_groupBy != null) {
-        _groupMap = new HashMap<String, Integer>();
-        if (_count > 0)
-          _currentValueDocMaps = new HashMap<String, ScoreDoc>(_count);
-        else
-          _currentValueDocMaps = null;
+      if (_groupBy != null && _count > 0) {
+        _currentValueDocMaps = new HashMap<Integer, ScoreDoc>(_count);
+        _facetAccessibles = new LinkedList<FacetAccessible>();
       }
       else {
-        _groupMap = null;
         _currentValueDocMaps = null;
+        _facetAccessibles = null;
       }
     }
     else {
       _groupBy = null;
-      _groupMap = null;
       _currentValueDocMaps = null;
+      _facetAccessibles = null;
     }
   }
 
@@ -154,28 +159,21 @@ public class SortCollectorImpl extends SortCollector {
     ++_totalGroups;
 
     if (_groupBy != null) {
-      String val = _groupBy.getFieldValue(_currentReader, doc);
-      if (val != null) {
-        Integer count = _groupMap.get(val);
-        if (count == null)
-          count = 1;
-        else {
-          ++count;
-          --_totalGroups;
-        }
-        _groupMap.put(val, count);
-      }
+      if (_facetCountCollector != null)
+        _facetCountCollector.collect(doc);
+      Integer order = ((FacetDataCache)_groupBy.getFacetData(_currentReader)).orderArray.get(doc);
+      //Object val = _groupBy.getRawFieldValues(_currentReader, doc)[0];
 
       if (_count > 0) {
         final float score = (_doScoring ? _scorer.score() : 0.0f);
         _tmpScoreDoc.doc = doc;
         _tmpScoreDoc.score = score;
-        ScoreDoc pre = _currentValueDocMaps.get(val);
+        ScoreDoc pre = _currentValueDocMaps.get(order);
         if (pre != null) {
           if ( _currentComparator.compare(pre, _tmpScoreDoc) > 0) {
             ScoreDoc tmp = pre;
             _bottom = _currentQueue.replace(_tmpScoreDoc, pre);
-            _currentValueDocMaps.put(val, _tmpScoreDoc);
+            _currentValueDocMaps.put(order, _tmpScoreDoc);
             _tmpScoreDoc = tmp;
           }
         }
@@ -183,16 +181,16 @@ public class SortCollectorImpl extends SortCollector {
           if (_queueFull){
             if (_currentComparator.compare(_bottom,_tmpScoreDoc) > 0){
               MyScoreDoc tmp = (MyScoreDoc)_bottom;
-              _currentValueDocMaps.remove(_groupBy.getFieldValue(tmp.reader, tmp.doc));
+              _currentValueDocMaps.remove(((FacetDataCache)_groupBy.getFacetData(tmp.reader)).orderArray.get(tmp.doc));
               _bottom = _currentQueue.replace(_tmpScoreDoc);
-              _currentValueDocMaps.put(val, _tmpScoreDoc);
+              _currentValueDocMaps.put(order, _tmpScoreDoc);
               _tmpScoreDoc = tmp;
             }
           }
           else{ 
             ScoreDoc tmp = new MyScoreDoc(doc,score,_currentQueue,_currentReader);
             _bottom = _currentQueue.add(tmp);
-            _currentValueDocMaps.put(val, tmp);
+            _currentValueDocMaps.put(order, tmp);
             _queueFull = (_currentQueue.size >= _numHits);
           }
         }
@@ -228,8 +226,11 @@ public class SortCollectorImpl extends SortCollector {
     _currentReader = (BoboIndexReader)reader;
     _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
-    if (_currentValueDocMaps != null)
+    if (_groupBy != null) {
+      _facetCountCollector = _groupBy.getFacetCountCollectorSource(null, null).getFacetCountCollector(_currentReader, docBase);
+      _facetAccessibles.add(_facetCountCollector);
       _currentValueDocMaps.clear();
+    }
     MyScoreDoc myScoreDoc = (MyScoreDoc)_tmpScoreDoc;
     myScoreDoc.queue = _currentQueue;
     myScoreDoc.reader = _currentReader;
@@ -255,8 +256,8 @@ public class SortCollectorImpl extends SortCollector {
   }
 
   @Override
-  public Map<String, Integer> getGroupMap(){
-    return _groupMap;
+  public CombinedFacetAccessible getGroupAccessible(){
+    return _groupAccessible;
   }
 
   @Override
@@ -277,14 +278,15 @@ public class SortCollectorImpl extends SortCollector {
         resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
       }
       else {
+        _groupAccessible = new CombinedFacetAccessible(new FacetSpec(), _facetAccessibles);
         resList = new ArrayList<MyScoreDoc>(_count);
         Iterator<MyScoreDoc> mergedIter = ListMerger.mergeLists(iterList, MERGE_COMPATATOR);
-        Set<String> groupSet = new HashSet<String>(_offset+_count);
+        Set<Object> groupSet = new HashSet<Object>(_offset+_count);
         int offsetLeft = _offset;
         while(mergedIter.hasNext())
         {
           MyScoreDoc scoreDoc = mergedIter.next();
-          String val = _groupBy.getFieldValue(scoreDoc.reader, scoreDoc.doc);
+          Object val = _groupBy.getRawFieldValues(scoreDoc.reader, scoreDoc.doc)[0];
           if (!groupSet.contains(val))
           {
             if (offsetLeft > 0)
@@ -302,10 +304,10 @@ public class SortCollectorImpl extends SortCollector {
       resList = Collections.EMPTY_LIST;
 
     Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
-    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _groupBy, _groupMap);
+    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _groupBy, _groupAccessible);
   }
 
-  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, FacetHandler<?> groupBy, Map<String, Integer> groupMap)
+  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
   throws IOException
   {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
@@ -333,8 +335,10 @@ public class SortCollectorImpl extends SortCollector {
       hit.setComparable(fdoc.getValue());
       if (groupBy != null) {
         hit.setGroupValue(hit.getField(groupBy.getName()));
-        if (groupMap.containsKey(hit.getGroupValue()))
-          hit.setGroupHitsCount(groupMap.get(hit.getGroupValue()));
+        if (hit.getGroupValue() != null && groupAccessible != null) {
+          BrowseFacet facet = groupAccessible.getFacet(hit.getGroupValue());
+          hit.setGroupHitsCount(facet.getFacetValueHitCount());
+        }
       }
       hits[i] = hit;
     }

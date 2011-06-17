@@ -15,6 +15,7 @@ import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboSubBrowser;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
 import com.browseengine.bobo.sort.DocComparatorSource.RelevanceDocComparatorSource;
@@ -35,7 +36,7 @@ public abstract class SortCollector extends Collector {
 
 	abstract public int getTotalHits();
 	abstract public int getTotalGroups();
-	abstract public Map<String, Integer> getGroupMap();
+	abstract public FacetAccessible getGroupAccessible();
 	
 	private static DocComparatorSource getNonFacetComparatorSource(SortField sf){
 		String fieldname = sf.getField();
