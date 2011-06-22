@@ -3,9 +3,11 @@ package com.browseengine.bobo.facets.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.search.Explanation;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -23,9 +25,13 @@ import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter.FacetRangeValueConverter;
+import com.browseengine.bobo.facets.impl.SimpleFacetHandler.SimpleBoboDocScorer;
+import com.browseengine.bobo.query.scoring.BoboDocScorer;
+import com.browseengine.bobo.query.scoring.FacetScoreable;
+import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.sort.DocComparatorSource;
 
-public class RangeFacetHandler extends FacetHandler<FacetDataCache>{
+public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements FacetScoreable{
 	private static Logger logger = Logger.getLogger(RangeFacetHandler.class);
 	private final String _indexFieldName;
 	private final TermListFactory _termListFactory;
@@ -163,5 +169,35 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache>{
 	    FacetDataCache dataCache = new FacetDataCache();
 		dataCache.load(_indexFieldName, reader, _termListFactory);
 		return dataCache;
+	}
+
+	@Override
+	public BoboDocScorer getDocScorer(BoboIndexReader reader,
+			FacetTermScoringFunctionFactory scoringFunctionFactory,
+			Map<String, Float> boostMap) {
+		FacetDataCache dataCache = getFacetData(reader);
+		float[] boostList = BoboDocScorer.buildBoostList(dataCache.valArray, boostMap);
+		return new RangeBoboDocScorer(dataCache,scoringFunctionFactory,boostList);
 	}	
+	
+	public static final class RangeBoboDocScorer extends BoboDocScorer{
+		private final FacetDataCache _dataCache;
+		
+		public RangeBoboDocScorer(FacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
+			super(scoreFunctionFactory.getFacetTermScoringFunction(dataCache.valArray.size(), dataCache.orderArray.size()),boostList);
+			_dataCache = dataCache;
+		}
+		
+		@Override
+		public Explanation explain(int doc){
+			int idx = _dataCache.orderArray.get(doc);
+			return _function.explain(_dataCache.freqs[idx],_boostList[idx]);
+		}
+
+		@Override
+		public final float score(int docid) {
+			int idx = _dataCache.orderArray.get(docid);
+			return _function.score(_dataCache.freqs[idx],_boostList[idx]);
+		}
+	}
 }

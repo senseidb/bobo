@@ -1636,7 +1636,7 @@ public class BoboTestCase extends TestCase {
 	public void testQueryWithScore() throws Exception{
 		BrowseRequest br=new BrowseRequest();
 		br.setShowExplanation(false);	// default
-		  QueryParser parser=new QueryParser(Version.LUCENE_CURRENT,"color",new StandardAnalyzer(Version.LUCENE_CURRENT));
+		  QueryParser parser=new QueryParser(Version.LUCENE_29,"color",new StandardAnalyzer(Version.LUCENE_29));
 		  br.setQuery(parser.parse("color:red OR shape:square"));
 	      br.setCount(10);
 	      br.setOffset(0);
@@ -1679,7 +1679,7 @@ public class BoboTestCase extends TestCase {
   public void testBrowseWithQuery(){
 		try{
 		  BrowseRequest br=new BrowseRequest();
-		  QueryParser parser=new QueryParser(Version.LUCENE_CURRENT,"shape",new StandardAnalyzer(Version.LUCENE_CURRENT));
+		  QueryParser parser=new QueryParser(Version.LUCENE_29,"shape",new StandardAnalyzer(Version.LUCENE_29));
 		  br.setQuery(parser.parse("square OR circle"));
 	      br.setCount(10);
 	      br.setOffset(0);
@@ -2176,6 +2176,23 @@ public class BoboTestCase extends TestCase {
 		
 	}
 	
+	public void testFacetRangeQuery() throws Exception{
+		BrowseSelection sel = new BrowseSelection("numendorsers");
+		sel.addValue("[* TO 000010]");
+		
+		HashMap<String, Float> map = new HashMap<String, Float>();
+		map.put("000002", 100.0f);
+		map.put("000010", 50.0f);
+		FacetTermQuery numberQ = new FacetTermQuery(sel,map);
+		
+		BrowseRequest br = new BrowseRequest();
+		br.setQuery(numberQ);
+		br.setOffset(0);
+		br.setCount(10);
+		
+		doTest(br,4,null,new String[]{"5","2","1","6"});
+	}
+	
 	public void testFacetBoost() throws Exception{
 	  Map<String,Map<String,Float>> boostMaps = new HashMap<String,Map<String,Float>>();
       HashMap<String,Float> map;
@@ -2643,9 +2660,9 @@ public class BoboTestCase extends TestCase {
 	 
 	public static void main(String[] args)throws Exception {
 		//BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-	  BoboTestCase test=new BoboTestCase("testFacetBoost");
+	  BoboTestCase test=new BoboTestCase("testFacetRangeQuery");
 		test.setUp();
-		test.testFacetBoost();
+		test.testFacetRangeQuery();
 		test.tearDown();
 	}
 }
