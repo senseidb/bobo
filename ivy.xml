@@ -23,6 +23,7 @@
         <dependency org="xerces" name="xmlParserAPIs" rev="2.6.2" conf="master"/>
         <dependency org="org.directwebremoting" name="dwr" rev="3.0.M1" conf="master"/>
         <dependency org="org.apache.ant" name="ant" rev="1.7.1" conf="master"/>
+        <dependency org="org.apache.lucene" name="lucene-core" rev="3.0.2" conf="master"/>
         <dependency org="fastutil" name="fastutil" rev="5.0.5" conf="master"/>
         <dependency org="com.thoughtworks.xstream" name="xstream" rev="1.3.1" conf="master"/>
         <dependency org="org.json" name="json" rev="20080701" conf="master"/>
