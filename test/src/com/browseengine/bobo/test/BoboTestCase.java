@@ -2176,6 +2176,40 @@ public class BoboTestCase extends TestCase {
 		
 	}
 	
+	 public void testFacetQueryBoolean() throws Exception{
+	    BrowseSelection sel = new BrowseSelection("color");
+	    sel.addValue("red");
+	    sel.addValue("blue");
+	    HashMap<String, Float> map = new HashMap<String, Float>();
+	    map.put("red", 3.0f);
+	    map.put("blue", 2.0f);
+	    FacetTermQuery colorQ = new FacetTermQuery(sel,map);
+	    
+	    BrowseSelection sel2 = new BrowseSelection("tag");
+	    sel2.addValue("rabbit");
+	    sel2.addValue("dog");
+	    HashMap<String, Float> map2 = new HashMap<String, Float>();
+	    map2.put("rabbit", 100.0f);
+	    map2.put("dog", 50.0f);
+	    FacetTermQuery tagQ = new FacetTermQuery(sel2,map2);
+	    
+	    
+	    BrowseRequest br = new BrowseRequest();
+
+	    br.setOffset(0);
+	    br.setCount(10);
+	    
+	    
+	    BooleanQuery bq = new BooleanQuery(true);
+	    bq.add(colorQ, Occur.SHOULD);
+	    bq.add(tagQ, Occur.SHOULD);
+	    
+	    br.setQuery(bq);
+	    doTest(br, 6, null, new String[]{"7","1","3","2","4","5"});
+	    
+	    
+	  }
+	
 	public void testFacetRangeQuery() throws Exception{
 		BrowseSelection sel = new BrowseSelection("numendorsers");
 		sel.addValue("[* TO 000010]");
