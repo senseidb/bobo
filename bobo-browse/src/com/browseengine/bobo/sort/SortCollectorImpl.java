@@ -154,7 +154,6 @@ public class SortCollectorImpl extends SortCollector {
   @Override
   public void collect(int doc) throws IOException {
     ++_totalHits;
-    ++_totalGroups;
 
     if (_groupBy != null) {
       if (_facetCountCollector != null)
@@ -218,6 +217,14 @@ public class SortCollectorImpl extends SortCollector {
     if (_collector != null) _collector.collect(doc);
   }
 
+  private void collectTotalGrous() {
+    int[] count = _facetCountCollector.getCountDistribution();
+    for (int c : count) {
+      if (c > 0)
+        ++_totalGroups;
+    }
+  }
+
   @Override
   public void setNextReader(IndexReader reader, int docBase) throws IOException {
     assert reader instanceof BoboIndexReader;
@@ -225,6 +232,8 @@ public class SortCollectorImpl extends SortCollector {
     _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
     if (_groupBy != null) {
+      if (_facetCountCollector != null)
+        collectTotalGrous();
       _facetCountCollector = _groupBy.getFacetCountCollectorSource(null, null).getFacetCountCollector(_currentReader, docBase);
       _facetAccessibles.add(_facetCountCollector);
       _currentValueDocMaps.clear();
