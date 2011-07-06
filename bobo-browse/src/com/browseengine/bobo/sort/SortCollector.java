@@ -2,6 +2,7 @@ package com.browseengine.bobo.sort;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -14,6 +15,7 @@ import com.browseengine.bobo.api.BoboCustomSortField;
 import com.browseengine.bobo.api.BoboSubBrowser;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
 import com.browseengine.bobo.sort.DocComparatorSource.RelevanceDocComparatorSource;
@@ -33,6 +35,8 @@ public abstract class SortCollector extends Collector {
 	abstract public BrowseHit[] topDocs() throws IOException;
 
 	abstract public int getTotalHits();
+	abstract public int getTotalGroups();
+	abstract public FacetAccessible getGroupAccessible();
 	
 	private static DocComparatorSource getNonFacetComparatorSource(SortField sf){
 		String fieldname = sf.getField();
@@ -124,7 +128,7 @@ public abstract class SortCollector extends Collector {
 			return sort;
 		}
 	}
-	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields){
+	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, String groupBy){
 		boolean doScoring=forceScoring;
 		if (sort == null || sort.length==0){	
 			if (q!=null && !(q instanceof MatchAllDocsQuery)){
@@ -156,7 +160,7 @@ public abstract class SortCollector extends Collector {
 			}
 			compSource = new MultiDocIdComparatorSource(compSources);
 		}
-		return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring, fetchStoredFields);
+		return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring, fetchStoredFields, groupBy);
 	}
 	
 	public void setCollector(Collector collector){

@@ -161,15 +161,30 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 
   @Override
 	public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel,final FacetSpec ospec) {
-	  return new FacetCountCollectorSource(){
+    return getFacetCountCollectorSource(sel, ospec, false);
+	}
 
-		@Override
-		public FacetCountCollector getFacetCountCollector(
-				BoboIndexReader reader, int docBase) {
-			FacetDataCache dataCache = SimpleFacetHandler.this.getFacetData(reader);
-			return new SimpleFacetCountCollector(_name,dataCache,docBase,sel,ospec);
-		}  
-	  };
+	public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel,final FacetSpec ospec, final boolean groupMode) {
+    if (groupMode) {
+      return new FacetCountCollectorSource(){
+        @Override
+        public FacetCountCollector getFacetCountCollector(
+            BoboIndexReader reader, int docBase) {
+          FacetDataCache dataCache = SimpleFacetHandler.this.getFacetData(reader);
+          return new SimpleGroupByFacetCountCollector(_name,dataCache,docBase,sel,ospec);
+        }  
+      };
+    }
+    else {
+      return new FacetCountCollectorSource(){
+        @Override
+        public FacetCountCollector getFacetCountCollector(
+            BoboIndexReader reader, int docBase) {
+          FacetDataCache dataCache = SimpleFacetHandler.this.getFacetData(reader);
+          return new SimpleFacetCountCollector(_name,dataCache,docBase,sel,ospec);
+        }  
+      };
+    }
 	}
 
 	@Override
@@ -199,6 +214,39 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		public final void collectAll() {
 		  _count = _dataCache.freqs;
 		}
+	}
+	
+	public static final class SimpleGroupByFacetCountCollector extends DefaultFacetCountCollector
+	{
+    private int _totalGroups;
+
+		public SimpleGroupByFacetCountCollector(String name,FacetDataCache dataCache,int docBase,BrowseSelection sel,FacetSpec ospec)
+		{
+		    super(name,dataCache,docBase,sel,ospec);
+        _totalGroups = 0;
+		}
+		
+		public final void collect(int docid) {
+			if(++_count[_array.get(docid)] <= 1)
+        ++_totalGroups;
+		}
+		
+		public final void collectAll() {
+		  _count = _dataCache.freqs;
+      _totalGroups = -1;
+		}
+
+    public final int getTotalGroups() {
+      if (_totalGroups >= 0)
+        return _totalGroups;
+
+      _totalGroups = 0;
+      for (int c: _count) {
+        if (c > 0)
+          ++_totalGroups;
+      }
+      return _totalGroups;
+    }
 	}
 	
 	public static final class SimpleBoboDocScorer extends BoboDocScorer{

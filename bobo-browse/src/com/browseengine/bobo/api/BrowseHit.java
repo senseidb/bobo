@@ -95,7 +95,25 @@ public class BrowseHit
 	private Map<String,Object[]> _rawFieldValues;
 	private Comparable<?> _comparable;
 	private Document _storedFields;
+  private String _groupValue;
+  private int _groupHitsCount;
 	private Explanation _explanation;
+
+  public String getGroupValue() {
+    return _groupValue;
+  }
+
+  public void setGroupValue(String group) {
+    _groupValue = group;
+  }
+
+  public int getGroupHitsCount() {
+    return _groupHitsCount;
+  }
+
+  public void setGroupHitsCount(int count) {
+    _groupHitsCount = count;
+  }
 	
 	public Explanation getExplanation() {
 		return _explanation;

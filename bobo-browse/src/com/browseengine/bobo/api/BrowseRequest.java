@@ -79,6 +79,7 @@ public class BrowseRequest implements Serializable{
 	private boolean _fetchStoredFields;
 	private Filter _filter;
 	private boolean _showExplanation;
+	private String _groupBy;
 	
 	public boolean isShowExplanation() {
 		return _showExplanation;
@@ -169,6 +170,7 @@ public class BrowseRequest implements Serializable{
 		_facetHandlerDataMap = new HashMap<String, FacetHandlerInitializerParam>();
 		_filter = null;
 		_fetchStoredFields = false;
+		_groupBy = null;
 	}
 	
 	public void clearSort(){
@@ -181,6 +183,14 @@ public class BrowseRequest implements Serializable{
 	
 	public void setFetchStoredFields(boolean fetchStoredFields){
 		_fetchStoredFields = fetchStoredFields;
+	}
+	
+	public String getGroupBy(){
+		return _groupBy;
+	}
+	
+	public void setGroupBy(String groupBy){
+		_groupBy = groupBy;
 	}
 	
 	/**
@@ -357,7 +367,8 @@ public class BrowseRequest implements Serializable{
       buf.append("sort spec: ").append(_sortSpecs).append('\n');
       buf.append("selections: ").append(_selections).append('\n');
       buf.append("facet spec: ").append(_facetSpecMap).append('\n');
-      buf.append("fetch stored fields: ").append(_fetchStoredFields);
+      buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
+      buf.append("group by: ").append(_groupBy);
       return buf.toString();
 	}
 }
