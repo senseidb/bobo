@@ -80,6 +80,8 @@ public class BrowseRequest implements Serializable{
 	private Filter _filter;
 	private boolean _showExplanation;
 	private String _groupBy;
+	private int _maxPerGroup;
+	private boolean _collectDocIdCache;
 	
 	public boolean isShowExplanation() {
 		return _showExplanation;
@@ -171,6 +173,8 @@ public class BrowseRequest implements Serializable{
 		_filter = null;
 		_fetchStoredFields = false;
 		_groupBy = null;
+    _maxPerGroup = 0;
+    _collectDocIdCache = false;
 	}
 	
 	public void clearSort(){
@@ -191,6 +195,22 @@ public class BrowseRequest implements Serializable{
 	
 	public void setGroupBy(String groupBy){
 		_groupBy = groupBy;
+	}
+
+	public int getMaxPerGroup(){
+		return _maxPerGroup;
+	}
+	
+	public void setMaxPerGroup(int maxPerGroup){
+		_maxPerGroup = maxPerGroup;
+	}
+
+	public boolean getCollectDocIdCache(){
+		return _collectDocIdCache;
+	}
+	
+	public void setCollectDocIdCache(boolean collectDocIdCache){
+		_collectDocIdCache = collectDocIdCache;
 	}
 	
 	/**
