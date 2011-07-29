@@ -244,8 +244,10 @@ public class SortCollectorImpl extends SortCollector {
         _facetCountCollector = ((SimpleFacetHandler)_groupBy).getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
       else
         _facetCountCollector = _groupBy.getFacetCountCollectorSource(null, null).getFacetCountCollector(_currentReader, docBase);
-      _facetAccessibles.add(_facetCountCollector);
-      _currentValueDocMaps.clear();
+      if (_facetAccessibles != null)
+        _facetAccessibles.add(_facetCountCollector);
+      if (_currentValueDocMaps != null)
+        _currentValueDocMaps.clear();
     }
     MyScoreDoc myScoreDoc = (MyScoreDoc)_tmpScoreDoc;
     myScoreDoc.queue = _currentQueue;
