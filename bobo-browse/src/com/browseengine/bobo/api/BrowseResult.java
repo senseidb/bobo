@@ -291,6 +291,10 @@ public class BrowseResult implements Serializable{
 	
 	public void close()
 	{
+    if (_groupAccessible != null)
+      _groupAccessible.close();
+    if (_sortCollector != null)
+      _sortCollector.close();
 	  if (_facetMap == null) return;
 	  Collection<FacetAccessible> accessibles = _facetMap.values();
 	  for(FacetAccessible fa : accessibles)

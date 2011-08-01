@@ -114,6 +114,7 @@ public abstract class SortCollector extends Collector {
 	protected Collector _collector = null;
 	protected final SortField[] _sortFields;
 	protected final boolean _fetchStoredFields;
+  protected boolean _closed = false;
 	
 	protected SortCollector(SortField[] sortFields,boolean fetchStoredFields){
 		_sortFields = sortFields;
@@ -258,4 +259,23 @@ public abstract class SortCollector extends Collector {
 	public Collector getCollector(){
 		return _collector; 
 	}
+
+  public void close() {
+    if (!_closed)
+    {
+      _closed = true;
+      if (docidarraylist != null) {
+        while(!docidarraylist.isEmpty())
+        {
+          intarraymgr.release(docidarraylist.poll());
+        }
+      }
+      if (scorearraylist != null) {
+        while(!scorearraylist.isEmpty())
+        {
+          floatarraymgr.release(scorearraylist.poll());
+        }
+      }
+    }
+  }
 }
