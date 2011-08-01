@@ -344,7 +344,10 @@ public class SortCollectorImpl extends SortCollector {
         while(mergedIter.hasNext())
         {
           MyScoreDoc scoreDoc = mergedIter.next();
-          Object val = groupBy.getRawFieldValues(scoreDoc.reader, scoreDoc.doc)[0];
+          Object[] vals = groupBy.getRawFieldValues(scoreDoc.reader, scoreDoc.doc);
+          Object val = null;
+          if (vals != null && vals.length > 0)
+            val = vals[0];
           if (!groupSet.contains(val))
           {
             if (offsetLeft > 0)
