@@ -281,8 +281,10 @@ public class SortCollectorImpl extends SortCollector {
         _facetCountCollector = ((SimpleFacetHandler)groupBy).getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
       else
         _facetCountCollector = groupBy.getFacetCountCollectorSource(null, null).getFacetCountCollector(_currentReader, docBase);
-      _facetAccessibles.add(_facetCountCollector);
-      _currentValueDocMaps.clear();
+      if (_facetAccessibles != null)
+        _facetAccessibles.add(_facetCountCollector);
+      if (_currentValueDocMaps != null)
+        _currentValueDocMaps.clear();
 
       if (contextList != null) {
         _currentContext = new CollectorContext(_currentReader, docBase, _currentComparator);
