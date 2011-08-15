@@ -466,9 +466,9 @@ public class BoboIndexReader extends FilterIndexReader
 	  }
 	  
       String absolutePath = file.getAbsolutePath();
-      String partOne = absolutePath.substring(0, absolutePath.lastIndexOf("/"));
-      String partTwo = URLEncoder.encode(absolutePath.substring(absolutePath.lastIndexOf("/") + 1), "UTF-8");
-      absolutePath = partOne + "/" + partTwo;
+      String partOne = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator ));
+      String partTwo = URLEncoder.encode(absolutePath.substring(absolutePath.lastIndexOf(File.separator ) + 1), "UTF-8");
+      absolutePath = partOne + File.separator + partTwo;
       
       File springFile = new File(new File(absolutePath), SPRING_CONFIG);
       appCtx.setConfigLocation("file:" + springFile.getAbsolutePath());
