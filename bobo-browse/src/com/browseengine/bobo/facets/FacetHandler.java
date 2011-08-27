@@ -264,6 +264,15 @@ public abstract class FacetHandler<D>
 	 * @return a FacetCountCollector
 	 */
 	abstract public FacetCountCollectorSource getFacetCountCollectorSource(BrowseSelection sel, FacetSpec fspec);
+
+  /**
+   * Override this method if your facet handler have a better group mode like the SimpleFacetHandler.
+   */
+	public FacetCountCollectorSource getFacetCountCollectorSource(BrowseSelection sel,
+                                                                FacetSpec ospec,
+                                                                boolean groupMode) {
+    return getFacetCountCollectorSource(sel, ospec);
+  }
 	
 	/**
 	 * Gets the field value

@@ -28,6 +28,7 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.impl.GroupByFacetCountCollector;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -256,8 +257,8 @@ public class SortCollectorImpl extends SortCollector {
   }
 
   private void collectTotalGrous() {
-    if (_facetCountCollector instanceof SimpleFacetHandler.SimpleGroupByFacetCountCollector) {
-      _totalGroups += ((SimpleFacetHandler.SimpleGroupByFacetCountCollector)_facetCountCollector).getTotalGroups();
+    if (_facetCountCollector instanceof GroupByFacetCountCollector) {
+      _totalGroups += ((GroupByFacetCountCollector)_facetCountCollector).getTotalGroups();
       return;
     }
 
@@ -277,10 +278,7 @@ public class SortCollectorImpl extends SortCollector {
     if (groupBy != null) {
       if (_facetCountCollector != null)
         collectTotalGrous();
-      if (groupBy instanceof SimpleFacetHandler)
         _facetCountCollector = ((SimpleFacetHandler)groupBy).getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
-      else
-        _facetCountCollector = groupBy.getFacetCountCollectorSource(null, null).getFacetCountCollector(_currentReader, docBase);
       if (_facetAccessibles != null)
         _facetAccessibles.add(_facetCountCollector);
       if (_currentValueDocMaps != null)

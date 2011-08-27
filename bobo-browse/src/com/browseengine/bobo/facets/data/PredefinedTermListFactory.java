@@ -60,27 +60,32 @@ public class PredefinedTermListFactory<T> implements TermListFactory<T>
     this(cls, null);
   }
 
-  public TermValueList<T> createTermList()
+  public TermValueList<T> createTermList(int capacity)
   {
     if (TermCharList.class.equals(_listClass)) // we treat char type separate as
                                                // it does not have a format
                                                // string
     {
       @SuppressWarnings("unchecked")
-      TermValueList<T> retlist = (TermValueList<T>) (new TermCharList());;
+      TermValueList<T> retlist = (TermValueList<T>) (new TermCharList(capacity));;
       return retlist;
     } else
     {
       try
       {
         Constructor<? extends TermValueList<T>> constructor = _listClass
-            .getConstructor(String.class); // the constructor takes the format String as parameter
-        return constructor.newInstance(_format);
+            .getConstructor(int.class, String.class); // the constructor also takes the format String as parameter
+        return constructor.newInstance(capacity, _format);
       } catch (Exception e)
       {
         throw new RuntimeException(e.getMessage());
       }
     }
+  }
+
+  public TermValueList<T> createTermList()
+  {
+    return createTermList(-1);
   }
 
   public Class<T> getType()

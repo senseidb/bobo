@@ -7,6 +7,15 @@ import java.util.List;
 public class TermStringList extends TermValueList<String> {
   private String sanity = null;
   private boolean withDummy = true;
+
+  public TermStringList(int capacity) {
+    super(capacity);
+  }
+
+  public TermStringList() {
+    this(-1);
+  }
+
 	@Override
 	public boolean add(String o) {
     if (_innerList.size() == 0 && o!=null) withDummy = false; // the first value added is not null
