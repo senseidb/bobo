@@ -296,6 +296,11 @@ public class SortCollectorImpl extends SortCollector {
         resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
       }
       else {
+        if (_facetCountCollector != null)
+        {
+          collectTotalGrous();
+          _facetCountCollector = null;
+        }
         _groupAccessible = new CombinedFacetAccessible(new FacetSpec(), _facetAccessibles);
         resList = new ArrayList<MyScoreDoc>(_count);
         Iterator<MyScoreDoc> mergedIter = ListMerger.mergeLists(iterList, MERGE_COMPATATOR);
