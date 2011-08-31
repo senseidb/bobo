@@ -256,7 +256,7 @@ public class SortCollectorImpl extends SortCollector {
     if (_collector != null) _collector.collect(doc);
   }
 
-  private void collectTotalGrous() {
+  private void collectTotalGroups() {
     if (_facetCountCollector instanceof GroupByFacetCountCollector) {
       _totalGroups += ((GroupByFacetCountCollector)_facetCountCollector).getTotalGroups();
       return;
@@ -277,7 +277,7 @@ public class SortCollectorImpl extends SortCollector {
     _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
     if (groupBy != null) {
       if (_facetCountCollector != null)
-        collectTotalGrous();
+        collectTotalGroups();
       _facetCountCollector = ((SimpleFacetHandler)groupBy).getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
       if (_facetAccessibles != null)
         _facetAccessibles.add(_facetCountCollector);
@@ -338,7 +338,7 @@ public class SortCollectorImpl extends SortCollector {
       else {
         if (_facetCountCollector != null)
         {
-          collectTotalGrous();
+          collectTotalGroups();
           _facetCountCollector = null;
         }
         _groupAccessible = new CombinedFacetAccessible(new FacetSpec(), _facetAccessibles);

@@ -240,6 +240,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
       if (_totalGroups >= 0)
         return _totalGroups;
 
+      // If the user calls collectAll instead of collect, we have to collect all the groups here:
       _totalGroups = 0;
       for (int c: _count) {
         if (c > 0)
