@@ -96,7 +96,9 @@ public class BrowseHit
 	private Comparable<?> _comparable;
 	private Document _storedFields;
   private String _groupValue;
+  private Object _rawGroupValue;
   private int _groupHitsCount;
+  private BrowseHit[] _groupHits;
 	private Explanation _explanation;
 
   public String getGroupValue() {
@@ -107,12 +109,28 @@ public class BrowseHit
     _groupValue = group;
   }
 
+  public Object getRawGroupValue() {
+    return _rawGroupValue;
+  }
+
+  public void setRawGroupValue(Object group) {
+    _rawGroupValue = group;
+  }
+
   public int getGroupHitsCount() {
     return _groupHitsCount;
   }
 
   public void setGroupHitsCount(int count) {
     _groupHitsCount = count;
+  }
+
+  public BrowseHit[] getGroupHits() {
+    return _groupHits;
+  }
+
+  public void setGroupHits(BrowseHit[] hits) {
+    _groupHits = hits;
   }
 	
 	public Explanation getExplanation() {

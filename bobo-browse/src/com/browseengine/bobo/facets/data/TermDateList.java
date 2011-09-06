@@ -19,6 +19,7 @@ public class TermDateList extends TermLongList {
 	public TermDateList(int capacity,String formatString)
 	{
 		super(capacity,formatString);
+		setFormatString(formatString);
 	}
 	
 	public String getFormatString()

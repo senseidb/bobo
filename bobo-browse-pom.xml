@@ -5,7 +5,7 @@
 	<artifactId>bobo-browse</artifactId>
 	<packaging>jar</packaging>
 	<name>bobo browse</name>
-	<version>2.5.2-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<description>Bobo is a Faceted Search implementation written purely in Java, an extension of Apache Lucene</description>
 	<url>http://javasoze.github.com/bobo</url>
 
@@ -126,9 +126,9 @@
 			<version>2.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.sna-projects.kamikaze</groupId>
+			<groupId>com.linkedin.kamikaze</groupId>
 			<artifactId>kamikaze</artifactId>
-			<version>3.0.3</version>
+			<version>3.0.4</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

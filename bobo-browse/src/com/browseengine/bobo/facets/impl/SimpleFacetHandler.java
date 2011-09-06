@@ -35,8 +35,8 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 {
 	private static Logger logger = Logger.getLogger(SimpleFacetHandler.class);
 	
-	private final TermListFactory _termListFactory;
-	private final String _indexFieldName;
+	protected TermListFactory _termListFactory;
+	protected final String _indexFieldName;
 	
 	public SimpleFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,Set<String> dependsOn)
 	{
@@ -216,9 +216,9 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		}
 	}
 	
-	public static final class SimpleGroupByFacetCountCollector extends DefaultFacetCountCollector
+	public static final class SimpleGroupByFacetCountCollector extends GroupByFacetCountCollector
 	{
-    private int _totalGroups;
+    protected int _totalGroups;
 
 		public SimpleGroupByFacetCountCollector(String name,FacetDataCache dataCache,int docBase,BrowseSelection sel,FacetSpec ospec)
 		{
@@ -240,6 +240,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
       if (_totalGroups >= 0)
         return _totalGroups;
 
+      // If the user calls collectAll instead of collect, we have to collect all the groups here:
       _totalGroups = 0;
       for (int c: _count) {
         if (c > 0)
@@ -250,7 +251,7 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 	}
 	
 	public static final class SimpleBoboDocScorer extends BoboDocScorer{
-		private final FacetDataCache _dataCache;
+		protected final FacetDataCache _dataCache;
 		
 		public SimpleBoboDocScorer(FacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
 			super(scoreFunctionFactory.getFacetTermScoringFunction(dataCache.valArray.size(), dataCache.orderArray.size()),boostList);

@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import com.browseengine.bobo.sort.SortCollector;
+
 
 /**
  * A Browse result
@@ -65,6 +67,7 @@ public class BrowseResult implements Serializable{
 	private int numGroups;
 	private int totalDocs;
 	private FacetAccessible _groupAccessible;
+  private SortCollector _sortCollector;
   //private int totalGroups;
 	private Map<String,FacetAccessible> _facetMap;
 	private BrowseHit[] hits;
@@ -78,6 +81,7 @@ public class BrowseResult implements Serializable{
 		super();
 		_facetMap=new HashMap<String,FacetAccessible>();
     _groupAccessible = null;
+    _sortCollector = null;
 		numHits=0;
 		numGroups=0;
 		totalDocs=0;
@@ -100,6 +104,22 @@ public class BrowseResult implements Serializable{
    */
   public void setGroupAccessible(FacetAccessible groupAccessible) {
     _groupAccessible = groupAccessible;
+  }
+
+  /**
+   * Get the sort collector.
+   * @return the sort collector.
+   */
+  public SortCollector getSortCollector() {
+    return _sortCollector;
+  }
+
+  /**
+   * Set the sort collector.
+   * @param sortCollector the sort collector
+   */
+  public void setSortCollector(SortCollector sortCollector) {
+    _sortCollector = sortCollector;
   }
 	
 	/**
@@ -271,6 +291,10 @@ public class BrowseResult implements Serializable{
 	
 	public void close()
 	{
+    if (_groupAccessible != null)
+      _groupAccessible.close();
+    if (_sortCollector != null)
+      _sortCollector.close();
 	  if (_facetMap == null) return;
 	  Collection<FacetAccessible> accessibles = _facetMap.values();
 	  for(FacetAccessible fa : accessibles)
