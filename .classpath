@@ -23,7 +23,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/master/xmlParserAPIs.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/xstream.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/test/junit.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core-3.0.2.jar" sourcepath="/Users/xgu/.m2/repository/org/apache/lucene/lucene-core/2.9.2/lucene-core-2.9.2-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/master/lucene-core.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-configuration.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-lang.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/solr/solr-core.jar"/>
