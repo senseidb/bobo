@@ -1,0 +1,10 @@
+
+search todo
+- use x,y,z,docid bitwise interlace
+- add locality of reference to preserve triangle-tree overlay, helps  
+if not in-memory
+- add refinement step for values in range
+- add refinement step from the paper, for narrowing the boundaries on  
+dense hits sorted by distance
+- fix merge out-of-order condition
+
