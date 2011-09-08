@@ -28,6 +28,7 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.facets.impl.GroupByFacetCountCollector;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
@@ -336,6 +337,12 @@ public class SortCollectorImpl extends SortCollector {
         resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
       }
       else {
+        int rawGroupValueType = 0;  // 0: unknown, 1: normal, 2: long[]
+
+        PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
+
+        Object rawGroupValue = null;
+
         if (_facetCountCollector != null)
         {
           collectTotalGroups();
@@ -350,19 +357,37 @@ public class SortCollectorImpl extends SortCollector {
         {
           MyScoreDoc scoreDoc = mergedIter.next();
           Object[] vals = groupBy.getRawFieldValues(scoreDoc.reader, scoreDoc.doc);
-          Object val = null;
+          rawGroupValue = null;
           if (vals != null && vals.length > 0)
-            val = vals[0];
-          if (!groupSet.contains(val))
+            rawGroupValue = vals[0];
+
+          if (rawGroupValueType == 0) {
+            if (rawGroupValue != null)
+            {
+              if (rawGroupValue instanceof long[])
+                rawGroupValueType = 2;
+              else
+                rawGroupValueType = 1;
+            }
+          }
+          if (rawGroupValueType == 2)
+          {
+            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+            rawGroupValue = primitiveLongArrayWrapperTmp;
+          }
+
+          if (!groupSet.contains(rawGroupValue))
           {
             if (offsetLeft > 0)
               --offsetLeft;
             else
+            {
               resList.add(scoreDoc);
-            groupSet.add(val);
+              if (resList.size() >= _count)
+                break;
+            }
+            groupSet.add(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data));
           }
-          if (resList.size() >= _count)
-            break;
         }
       }
     }
