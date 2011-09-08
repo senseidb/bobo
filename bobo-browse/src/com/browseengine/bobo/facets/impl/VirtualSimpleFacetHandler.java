@@ -118,6 +118,7 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
       }
       docList.add(doc);
     }
+    _facetDataFetcher.close();
 
     int maxDoc = reader.maxDoc();
     int size = dataMap == null ? 1:(dataMap.size() + 1);
