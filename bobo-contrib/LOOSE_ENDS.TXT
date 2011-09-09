@@ -1,5 +1,0 @@
-Loose ends.
-
-1. resolve lucene 3.0.x/3.3 difference between bobo and bobo-contrib.
-2. figure out how to make ivy work for dependent libraries.
-

@@ -1,5 +1,8 @@
+bobo-contrib todo
+- resolve lucene 3.0.x/3.3 difference between bobo and bobo-contrib.
+- figure out how to make ivy work for dependent libraries.
 
-search todo
+btree-bitwise-interlace-geosearch todo
 - use x,y,z,docid bitwise interlace
 - add locality of reference to preserve triangle-tree overlay, helps  
 if not in-memory
