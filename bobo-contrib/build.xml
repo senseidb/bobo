@@ -7,6 +7,7 @@
   <property name="revision" value="0.1" />
   <property name="git.revision" value="123" />
   <property name="jar.name" value="bobo-contrib" />
+  <property name="lucene-patch.jar.name" value="lucene-patch" />
   <property name="jar.name.append" value="-${revision}" />
 
   <property name="test.dir" value="test" />
@@ -15,9 +16,14 @@
   <property name="logs" value="logs" />
 
   <path id="bobo-contrib-classpath">
+<!--
      <dirset dir="${target.dir}">
         <include name="lucene-patch-classes"/>
       </dirset>
+-->
+    <fileset dir="${target.dir}">
+      <include name="${lucene-patch.jar.name}${jar.name.append}.jar" />
+    </fileset>
     <fileset dir="lib">
       <include name="*.jar" />
     </fileset>
@@ -46,7 +52,16 @@ xcludes}">
 
   </target>
 
-  <target name="build" depends="lucene-patch-build" description="builds the class files for bobo-contrib">
+  <target name="lucene-patch-dist" depends="lucene-patch-build" description="jars the lucene indexing patch">
+                 <manifest file="MANIFEST.MF">
+                        <attribute name="Revision" value="${revision}"/>
+                                <attribute name="Implementation-Version" value="${git.revision}"/>
+                  </manifest>
+        <jar destfile="${target.dir}/${lucene-patch.jar.name}${jar.name.append}.jar" basedir="${target.dir}/lucene-patch-classes" manifest="MANIFEST.MF"/>
+
+  </target>
+
+  <target name="build" depends="lucene-patch-dist" description="builds the class files for bobo-contrib">
         <javac destdir="${target.dir}/classes" source="1.6" target="1.6" debug="true" deprecation="false" optimize="false" failonerror="true" debuglevel="lines,vars,source" excludes="${build.excludes}">
                 <src path="${src.dir}" />
                 <classpath refid="bobo-contrib-classpath" />
