@@ -6,5 +6,5 @@ public interface FacetDataFetcher
 {
   public Object fetch(BoboIndexReader reader, int doc);
 
-  public void close();
+  public void cleanup(BoboIndexReader reader);
 }
