@@ -3,8 +3,13 @@ search todo
 - use x,y,z,docid bitwise interlace
 - add locality of reference to preserve triangle-tree overlay, helps  
 if not in-memory
-- add refinement step for values in range
+- add refinement step for values in range, for the case where geosearch 
+distance is the dominant score component, including narrowing the 
+range from block to block of docids.  this will hit answers even faster 
+at the expense of an imprecise hitcount, which is often tolerable 
+particularly for large indexes
 - add refinement step from the paper, for narrowing the boundaries on  
 dense hits sorted by distance
 - fix merge out-of-order condition
+
 
