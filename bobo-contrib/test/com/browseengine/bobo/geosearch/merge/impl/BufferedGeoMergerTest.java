@@ -4,9 +4,11 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -20,6 +22,7 @@ import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -42,6 +45,7 @@ import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
  */
 @RunWith(SpringJUnit4ClassRunner.class) 
 @ContextConfiguration( { "/TEST-servlet.xml" }) 
+@IfProfileValue(name = "test-suite", values = { "unit", "all" })
 public class BufferedGeoMergerTest {
     Mockery context = new Mockery(); 
     
@@ -195,7 +199,12 @@ public class BufferedGeoMergerTest {
         return false;
     }
     
+    boolean isVerifyOutputTreeAgainstExpected = true;
+    
     private void checkOutputTreeAgainstExpected() throws IOException {
+        if (!isVerifyOutputTreeAgainstExpected) {
+            return;
+        }
         assertEquals("trees sould be equal in size", expectedOutputTree.size(), outputTree.getArrayLength());
         Iterator<GeoRecord> outputIterator = outputTree.getIterator(GeoRecord.MIN_VALID_GEORECORD, GeoRecord.MAX_VALID_GEORECORD);
         Iterator<GeoRecord> expectedIterator = expectedOutputTree.iterator();
@@ -214,29 +223,124 @@ public class BufferedGeoMergerTest {
         }
     }
     
+    private boolean isNoGeoFiles = false;
+    
     private void doMerge() throws IOException {
-        context.checking(new Expectations() {
-            {
-                atLeast(1).of(geoMergeInfo).getSegmentsToMerge();
-                will(returnValue(segmentsToMerge));
+        if (isNoGeoFiles) {
+            context.checking(new Expectations() {
+                {
+                    atLeast(1).of(geoMergeInfo).getSegmentsToMerge();
+                    will(returnValue(segmentsToMerge));
+                    
+                    ignoring(geoMergeInfo).checkAborted(dir);
+                    
+                    // the expectation is that if there are no geo files,
+                    // getNewSegment() will not be called.
+                    //atLeast(1).of(geoMergeInfo).getNewSegment();
+                    //will(returnValue(newSegment));
+                    
+                    ignoring(geoMergeInfo).getDirectory();
+                    will(returnValue(dir));
+                    
+                    atLeast(1).of(geoMergeInfo).getReaders();
+                    will(returnValue(segmentReaders));
+                }
+            });
+
+        } else {
+            context.checking(new Expectations() {
+                {
+                    atLeast(1).of(geoMergeInfo).getSegmentsToMerge();
+                    will(returnValue(segmentsToMerge));
                 
-                ignoring(geoMergeInfo).checkAborted(dir);
+                    ignoring(geoMergeInfo).checkAborted(dir);
                 
-                atLeast(1).of(geoMergeInfo).getNewSegment();
-                will(returnValue(newSegment));
+                    atLeast(1).of(geoMergeInfo).getNewSegment();
+                    will(returnValue(newSegment));
                 
-                ignoring(geoMergeInfo).getDirectory();
-                will(returnValue(dir));
+                    ignoring(geoMergeInfo).getDirectory();
+                    will(returnValue(dir));
                 
-                atLeast(1).of(geoMergeInfo).getReaders();
-                will(returnValue(segmentReaders));
-            }
-        });
+                    atLeast(1).of(geoMergeInfo).getReaders();
+                    will(returnValue(segmentReaders));
+                }
+            });
+        }
         
         bufferedGeoMerger.merge(geoMergeInfo, geoConfig);
         checkOutputTreeAgainstExpected();
         
         context.assertIsSatisfied();
+    }
+    
+    @Test
+    public void testMerge_no_segment0_GeoFile() throws IOException {
+        noGeoFileNames = new HashSet<String>();
+        noGeoFileNames.add("segment0.geo");
+
+        verifyMissingGeoFile();
+    }
+    
+    @Test
+    public void testMerge_no_segment1_GeoFile() throws IOException {
+        noGeoFileNames = new HashSet<String>();
+        noGeoFileNames.add("segment1.geo");
+
+        verifyMissingGeoFile();
+    }
+    
+    @Test
+    public void testMerge_no_GeoFiles() throws IOException {
+        isNoGeoFiles = true;
+        
+        noGeoFileNames = new HashSet<String>();
+        noGeoFileNames.add("segment0.geo");
+        noGeoFileNames.add("segment1.geo");
+
+        verifyMissingGeoFile();
+    }
+
+
+    
+    private void verifyMissingGeoFile() throws IOException {
+        isVerifyOutputTreeAgainstExpected = false;
+
+        initNoGeoFile();
+        
+        testMergeSimple();
+    }
+    
+    private Set<String> noGeoFileNames;
+    
+    private void initNoGeoFile() {
+        
+        bufferedGeoMerger = new BufferedGeoMerger() {
+            @Override
+            public BTree<GeoRecord> getInputBTree(Directory directory, String geoFileName, 
+                    int bufferSizePerGeoReader) throws IOException {
+                if (noGeoFileNames.contains(geoFileName)) {
+                    // empty TreeSet<GeoRecord> tree
+                    return new GeoRecordBTree(new TreeSet<GeoRecord>());
+                }
+                return inputTrees.get(geoFileName);
+            }
+            
+            @Override
+            public BTree<GeoRecord> getOutputBTree(int newSegmentSize, Iterator<GeoRecord> inputIterator,
+                    Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
+                outputTree = new GeoRecordBTree(newSegmentSize, inputIterator, directory, outputFileName, geoSegmentInfo);
+                return outputTree;
+            }
+            
+            public IFieldNameFilterConverter readFieldNameFilterConverter(Directory directory, String geoFileName,
+                    IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+                if (noGeoFileNames.contains(geoFileName)) {
+                    return null;
+                }
+                return new MappedFieldNameFilterConverter();
+            }
+        };
+
     }
     
     @Test
