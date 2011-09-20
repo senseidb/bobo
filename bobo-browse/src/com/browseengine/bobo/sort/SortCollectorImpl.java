@@ -422,9 +422,12 @@ public class SortCollectorImpl extends SortCollector {
         hit.setTermFreqMap(tvMap);
         for (String field : termVectorsToFetch){
           TermFreqVector tv = reader.getTermFreqVector(fdoc.doc, field);
-          int[] freqs = tv.getTermFrequencies();
-          String[] terms = tv.getTerms();
-          tvMap.put(field, new TermFrequencyVector(terms, freqs));
+          if (tv != null)
+          {
+            int[] freqs = tv.getTermFrequencies();
+            String[] terms = tv.getTerms();
+            tvMap.put(field, new TermFrequencyVector(terms, freqs));
+          }
         }
       }
       Map<String,String[]> map = new HashMap<String,String[]>();
