@@ -55,6 +55,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.Field.TermVector;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
@@ -81,6 +82,7 @@ import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -249,6 +251,11 @@ public class BoboTestCase extends TestCase {
 		Field sf = new Field("testStored","stored",Store.YES,Index.NOT_ANALYZED_NO_NORMS);
 		sf.setOmitTermFreqAndPositions(true);
 		d1.add(sf);
+		
+
+        Field tvf = new Field("tv","bobo bobo lucene lucene lucene test",Store.NO,Index.ANALYZED,TermVector.YES);
+        
+        d1.add(tvf);
 		
 		Document d2=new Document();
 		d2.add(buildMetaField("id","2"));
@@ -841,6 +848,76 @@ public class BoboTestCase extends TestCase {
 	  	}
         
 	}
+	
+	public void testRetrieveTermVector() throws Exception{
+      BrowseRequest br=new BrowseRequest();
+      br.setCount(10);
+      br.setOffset(0);
+
+      BrowseSelection colorSel=new BrowseSelection("color");
+      colorSel.addValue("red");
+      br.addSelection(colorSel); 
+
+      BrowseSelection shapeSel=new BrowseSelection("shape");
+      shapeSel.addValue("square");
+      br.addSelection(shapeSel);
+      
+      BrowseSelection sizeSel=new BrowseSelection("size");
+      sizeSel.addValue("[4 TO 4]");
+      br.addSelection(sizeSel);
+      
+      br.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(new String[]{"tv"})));
+
+      BrowseResult result = null;
+      BoboBrowser boboBrowser=null;
+      try {
+          boboBrowser=newBrowser();
+        
+          result = boboBrowser.browse(br);
+          assertEquals(1,result.getNumHits());
+          BrowseHit hit = result.getHits()[0];
+          assertNull(hit.getStoredFields());
+          
+          br.setFetchStoredFields(true);
+          result = boboBrowser.browse(br);
+          assertEquals(1,result.getNumHits());
+          hit = result.getHits()[0];
+          Map<String,TermFrequencyVector> tvMap = hit.getTermFreqMap();
+          assertNotNull(tvMap);
+          
+          assertEquals(1, tvMap.size());
+          
+          TermFrequencyVector tv = tvMap.get("tv");
+          assertNotNull(tv);
+          
+          assertEquals("bobo", tv.terms[0]);
+          assertEquals(2, tv.freqs[0]);
+          
+          assertEquals("lucene", tv.terms[1]);
+          assertEquals(3, tv.freqs[1]);
+
+          assertEquals("test", tv.terms[2]);
+          assertEquals(1, tv.freqs[2]);
+          
+      } catch (BrowseException e) {
+          e.printStackTrace();
+          fail(e.getMessage());
+      }
+      catch(IOException ioe){
+        fail(ioe.getMessage());
+      }
+      finally{
+        if (boboBrowser!=null){
+          try {
+            if(result!=null) result.close();
+              boboBrowser.close();
+          } catch (IOException e) {
+              fail(e.getMessage());
+          }
+        }
+      }
+      
+  }
 	
 	public void testRawDataRetrieval() throws Exception{
 		BrowseRequest br=new BrowseRequest();
