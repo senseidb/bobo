@@ -30,6 +30,9 @@ public class GeoWeight extends Weight {
     private static final long serialVersionUID = 1L;
     
     private final GeoQuery geoQuery;
+    private float queryWeight;
+    private float queryNorm;
+    private float value;
 
     public GeoWeight(GeoQuery geoQuery) {
         this.geoQuery = geoQuery;
@@ -42,7 +45,7 @@ public class GeoWeight extends Weight {
     public Explanation explain(IndexReader reader, int doc) throws IOException {
         // TODO: improve this to provide the actual distance component of the score, 
         // and explain how we take smoothed 1/distance^2.
-        return new Explanation(doc, geoQuery.toString());
+        return new Explanation(doc, geoQuery.toString()+", queryNorm: "+queryNorm);
     }
 
     /**
@@ -53,24 +56,6 @@ public class GeoWeight extends Weight {
         return geoQuery;
     }
     
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public float getValue() {
-        // TODO: tune
-        return 1;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void normalize(float norm) {
-        // TODO: tune
-        // no-op
-    }
-
     /**
      * {@inheritDoc}
      * 
@@ -96,13 +81,34 @@ public class GeoWeight extends Weight {
         return new GeoScorer(this, segmentsInOrder, wholeIndexDeletedDocs, 
                 centroidLongitudeDegrees, centroidLatitudeDegrees, rangeInMiles);
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public float getValue() {
+        return value;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void normalize(float queryNorm) {
+        this.queryNorm = queryNorm;
+        queryWeight *= queryNorm;                   // normalize query weight
+        // idf is effectively 1
+        value = queryWeight;                  // idf for document
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public float sumOfSquaredWeights() throws IOException {
-        return 1;
+        // idf is effectively 1
+        queryWeight = geoQuery.getBoost();
+        return queryWeight * queryWeight;
     }
     
     
