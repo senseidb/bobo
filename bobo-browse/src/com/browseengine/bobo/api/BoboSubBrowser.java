@@ -389,8 +389,8 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
     }
   }
   
-  public SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,boolean forceScoring,String groupBy, int maxPerGroup, boolean collectDocIdCache){
-	  return SortCollector.buildSortCollector(this,q,sort, offset, count, forceScoring,fetchStoredFields, groupBy, maxPerGroup, collectDocIdCache);
+  public SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,Set<String> termVectorsToFetch,boolean forceScoring,String groupBy, int maxPerGroup, boolean collectDocIdCache){
+	  return SortCollector.buildSortCollector(this,q,sort, offset, count, forceScoring,fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
   }
 
   /**
@@ -409,7 +409,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
 
     long start = System.currentTimeMillis();
 
-    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),false,req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache());
+    SortCollector collector = getSortCollector(req.getSort(),req.getQuery(), req.getOffset(), req.getCount(), req.isFetchStoredFields(),req.getTermVectorsToFetch(),false,req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache());
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);

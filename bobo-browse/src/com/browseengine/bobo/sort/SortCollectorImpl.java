@@ -17,6 +17,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.TermFreqVector;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
@@ -25,9 +26,11 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.facets.impl.GroupByFacetCountCollector;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
@@ -116,6 +119,7 @@ public class SortCollectorImpl extends SortCollector {
   private float[] _currentScoreArray;
   private int _docIdArrayCursor = 0;
   private int _docIdCacheCapacity = 0;
+  private Set<String> _termVectorsToFetch;
 
 
   public SortCollectorImpl(DocComparatorSource compSource,
@@ -125,6 +129,7 @@ public class SortCollectorImpl extends SortCollector {
                            int count,
                            boolean doScoring,
                            boolean fetchStoredFields,
+                           Set<String> termVectorsToFetch,
                            String groupBy,
                            int maxPerGroup,
                            boolean collectDocIdCache) {
@@ -141,6 +146,7 @@ public class SortCollectorImpl extends SortCollector {
     _queueFull = false;
     _doScoring = doScoring;
     _tmpScoreDoc = new MyScoreDoc();
+    _termVectorsToFetch = termVectorsToFetch;
     _collectDocIdCache = collectDocIdCache; // TODO: take maxPerGroup into consideration.
     if (groupBy != null) {
       this.groupBy = boboBrowser.getFacetHandler(groupBy);
@@ -336,6 +342,12 @@ public class SortCollectorImpl extends SortCollector {
         resList = ListMerger.mergeLists(_offset, _count, iterList, MERGE_COMPATATOR);
       }
       else {
+        int rawGroupValueType = 0;  // 0: unknown, 1: normal, 2: long[]
+
+        PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
+
+        Object rawGroupValue = null;
+
         if (_facetCountCollector != null)
         {
           collectTotalGroups();
@@ -350,19 +362,37 @@ public class SortCollectorImpl extends SortCollector {
         {
           MyScoreDoc scoreDoc = mergedIter.next();
           Object[] vals = groupBy.getRawFieldValues(scoreDoc.reader, scoreDoc.doc);
-          Object val = null;
+          rawGroupValue = null;
           if (vals != null && vals.length > 0)
-            val = vals[0];
-          if (!groupSet.contains(val))
+            rawGroupValue = vals[0];
+
+          if (rawGroupValueType == 0) {
+            if (rawGroupValue != null)
+            {
+              if (rawGroupValue instanceof long[])
+                rawGroupValueType = 2;
+              else
+                rawGroupValueType = 1;
+            }
+          }
+          if (rawGroupValueType == 2)
+          {
+            primitiveLongArrayWrapperTmp.data = (long[])rawGroupValue;
+            rawGroupValue = primitiveLongArrayWrapperTmp;
+          }
+
+          if (!groupSet.contains(rawGroupValue))
           {
             if (offsetLeft > 0)
               --offsetLeft;
             else
+            {
               resList.add(scoreDoc);
-            groupSet.add(val);
+              if (resList.size() >= _count)
+                break;
+            }
+            groupSet.add(new PrimitiveLongArrayWrapper(primitiveLongArrayWrapperTmp.data));
           }
-          if (resList.size() >= _count)
-            break;
         }
       }
     }
@@ -370,10 +400,10 @@ public class SortCollectorImpl extends SortCollector {
       resList = Collections.EMPTY_LIST;
 
     Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
-    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, groupBy, _groupAccessible);
+    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _termVectorsToFetch,groupBy, _groupAccessible);
   }
 
-  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
+  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields,Set<String> termVectorsToFetch, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
   throws IOException
   {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
@@ -386,6 +416,18 @@ public class SortCollectorImpl extends SortCollector {
       if (fetchStoredFields){
 
         hit.setStoredFields(reader.document(fdoc.doc));
+      }
+      if (termVectorsToFetch!=null && termVectorsToFetch.size()>0){
+        Map<String,TermFrequencyVector> tvMap = new HashMap<String,TermFrequencyVector>();
+        hit.setTermFreqMap(tvMap);
+        for (String field : termVectorsToFetch){
+          TermFreqVector tv = reader.getTermFreqVector(fdoc.doc, field);
+          if (tv!=null){
+            int[] freqs = tv.getTermFrequencies();
+            String[] terms = tv.getTerms();
+            tvMap.put(field, new TermFrequencyVector(terms, freqs));
+          }
+        }
       }
       Map<String,String[]> map = new HashMap<String,String[]>();
       Map<String,Object[]> rawMap = new HashMap<String,Object[]>();

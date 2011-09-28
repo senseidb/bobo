@@ -82,6 +82,15 @@ public class BrowseRequest implements Serializable{
 	private String _groupBy;
 	private int _maxPerGroup;
 	private boolean _collectDocIdCache;
+	private Set<String> _termVectorsToFetch;
+	
+	public Set<String> getTermVectorsToFetch(){
+	  return _termVectorsToFetch;
+	}
+	
+	public void setTermVectorsToFetch(Set<String> termVectorsToFetch){
+	  _termVectorsToFetch = termVectorsToFetch;
+	}
 	
 	public boolean isShowExplanation() {
 		return _showExplanation;
