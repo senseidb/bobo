@@ -2,6 +2,7 @@ package com.browseengine.bobo.api;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,18 @@ public class BrowseHit
 	implements Serializable
 {
 	private static final long serialVersionUID = 1L;
+	
+	public static class TermFrequencyVector implements Serializable{
+
+	  private static final long serialVersionUID = 1L;
+	  public final String[] terms;
+	  public final int[] freqs;
+	  
+	  public TermFrequencyVector(String[] terms,int[] freqs){
+	    this.terms = terms;
+	    this.freqs = freqs;
+	  }
+	}
 
 	/**
 	 * Get the score
@@ -95,31 +108,41 @@ public class BrowseHit
 	private Map<String,Object[]> _rawFieldValues;
 	private Comparable<?> _comparable;
 	private Document _storedFields;
-  private String _groupValue;
-  private Object _rawGroupValue;
-  private int _groupHitsCount;
-  private BrowseHit[] _groupHits;
+    private String _groupValue;
+    private Object _rawGroupValue;
+    private int _groupHitsCount;
+    private BrowseHit[] _groupHits;
 	private Explanation _explanation;
+	
+	private Map<String,TermFrequencyVector> _termFreqMap = new HashMap<String,TermFrequencyVector>();
+	
+	public Map<String,TermFrequencyVector> getTermFreqMap(){
+	  return _termFreqMap;
+	}
+	
+	public void setTermFreqMap(Map<String,TermFrequencyVector> termFreqMap){
+	  _termFreqMap = termFreqMap;
+	}
 
-  public String getGroupValue() {
-    return _groupValue;
-  }
+    public String getGroupValue() {
+      return _groupValue;
+    }
 
-  public void setGroupValue(String group) {
-    _groupValue = group;
-  }
+    public void setGroupValue(String group) {
+      _groupValue = group;
+    }
 
-  public Object getRawGroupValue() {
-    return _rawGroupValue;
-  }
+    public Object getRawGroupValue() {
+      return _rawGroupValue;
+    }
 
-  public void setRawGroupValue(Object group) {
-    _rawGroupValue = group;
-  }
+    public void setRawGroupValue(Object group) {
+      _rawGroupValue = group;
+    }
 
-  public int getGroupHitsCount() {
-    return _groupHitsCount;
-  }
+    public int getGroupHitsCount() {
+      return _groupHitsCount;
+    }
 
   public void setGroupHitsCount(int count) {
     _groupHitsCount = count;

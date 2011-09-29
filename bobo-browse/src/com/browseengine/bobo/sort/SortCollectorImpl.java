@@ -17,6 +17,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.TermFreqVector;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.SortField;
@@ -25,6 +26,7 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.data.FacetDataCache;
@@ -117,6 +119,7 @@ public class SortCollectorImpl extends SortCollector {
   private float[] _currentScoreArray;
   private int _docIdArrayCursor = 0;
   private int _docIdCacheCapacity = 0;
+  private Set<String> _termVectorsToFetch;
 
 
   public SortCollectorImpl(DocComparatorSource compSource,
@@ -126,6 +129,7 @@ public class SortCollectorImpl extends SortCollector {
                            int count,
                            boolean doScoring,
                            boolean fetchStoredFields,
+                           Set<String> termVectorsToFetch,
                            String groupBy,
                            int maxPerGroup,
                            boolean collectDocIdCache) {
@@ -142,6 +146,7 @@ public class SortCollectorImpl extends SortCollector {
     _queueFull = false;
     _doScoring = doScoring;
     _tmpScoreDoc = new MyScoreDoc();
+    _termVectorsToFetch = termVectorsToFetch;
     _collectDocIdCache = collectDocIdCache; // TODO: take maxPerGroup into consideration.
     if (groupBy != null) {
       this.groupBy = boboBrowser.getFacetHandler(groupBy);
@@ -395,10 +400,10 @@ public class SortCollectorImpl extends SortCollector {
       resList = Collections.EMPTY_LIST;
 
     Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
-    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, groupBy, _groupAccessible);
+    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _termVectorsToFetch,groupBy, _groupAccessible);
   }
 
-  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
+  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields,Set<String> termVectorsToFetch, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
   throws IOException
   {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
@@ -411,6 +416,19 @@ public class SortCollectorImpl extends SortCollector {
       if (fetchStoredFields){
 
         hit.setStoredFields(reader.document(fdoc.doc));
+      }
+      if (termVectorsToFetch!=null && termVectorsToFetch.size()>0){
+        Map<String,TermFrequencyVector> tvMap = new HashMap<String,TermFrequencyVector>();
+        hit.setTermFreqMap(tvMap);
+        for (String field : termVectorsToFetch){
+          TermFreqVector tv = reader.getTermFreqVector(fdoc.doc, field);
+          if (tv != null)
+          {
+            int[] freqs = tv.getTermFrequencies();
+            String[] terms = tv.getTerms();
+            tvMap.put(field, new TermFrequencyVector(terms, freqs));
+          }
+        }
       }
       Map<String,String[]> map = new HashMap<String,String[]>();
       Map<String,Object[]> rawMap = new HashMap<String,Object[]>();
