@@ -121,6 +121,21 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
     }
     return filter;
   }
+  
+  private static int countBits(int val){
+	  int c=0;
+	  for (c=0;val>0;c++){
+		  val &= val-1;
+	  }
+	  return c;
+  }
+  
+  @Override
+  public int getNumItems(BoboIndexReader reader, int id) {
+	FacetDataCache dataCache = getFacetData(reader);
+	int encoded=dataCache.orderArray.get(id);
+	return countBits(encoded);
+  }
 
   @Override
 	public String[] getFieldValues(BoboIndexReader reader,int id) {

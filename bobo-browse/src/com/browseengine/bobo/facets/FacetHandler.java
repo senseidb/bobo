@@ -283,6 +283,10 @@ public abstract class FacetHandler<D>
 	 */
 	abstract public String[] getFieldValues(BoboIndexReader reader,int id);
 	
+	public int getNumItems(BoboIndexReader reader,int id){
+	  throw new UnsupportedOperationException("getNumItems is not supported for this facet handler: "+getClass().getName());
+	}
+	
 	public Object[] getRawFieldValues(BoboIndexReader reader,int id){
 		return getFieldValues(reader, id);
 	}

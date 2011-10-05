@@ -45,6 +45,14 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 		_predefinedRanges = predefinedRanges;
 	}
 	
+	
+	
+	@Override
+	public int getNumItems(BoboIndexReader reader, int id) {
+		FacetDataCache data = getFacetData(reader);
+		return data.getNumItems(id);
+	}
+
 	public RangeFacetHandler(String name,TermListFactory termListFactory,List<String> predefinedRanges)
     {
 	   this(name,name,termListFactory,predefinedRanges);

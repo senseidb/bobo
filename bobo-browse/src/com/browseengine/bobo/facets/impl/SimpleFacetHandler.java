@@ -71,6 +71,12 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 	}
 	
 	@Override
+	public int getNumItems(BoboIndexReader reader, int id) {
+		FacetDataCache data = getFacetData(reader);
+		return data.getNumItems(id);
+	}
+	
+	@Override
 	public DocComparatorSource getDocComparatorSource() {
 		return new FacetDataCache.FacetDocComparatorSource(this);
 	}

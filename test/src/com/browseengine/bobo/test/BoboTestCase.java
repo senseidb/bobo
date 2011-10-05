@@ -2454,7 +2454,7 @@ public class BoboTestCase extends TestCase {
 						int v2 = Integer.parseInt(o2.getValue());
 						int val = v2-v1;
 						if (val == 0){
-							val = o2.getHitCount()-o1.getHitCount();
+							val = o2.getFacetValueHitCount()-o1.getFacetValueHitCount();
 						}
 						return val;
 					}
