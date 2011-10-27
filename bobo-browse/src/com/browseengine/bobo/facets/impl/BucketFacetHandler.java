@@ -122,6 +122,13 @@ public class BucketFacetHandler extends FacetHandler<FacetDataNone>{
 		}
 	}
   }
+  
+	@Override
+	public int getNumItems(BoboIndexReader reader, int id) {
+		FacetHandler<FacetDataCache<?>> dependOnFacetHandler = (FacetHandler<FacetDataCache<?>>)getDependedFacetHandler(_dependsOnFacetName);
+		FacetDataCache data = dependOnFacetHandler.getFacetData(reader);
+		return data.getNumItems(id);
+	}
 
   @Override
   public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel, final FacetSpec ospec) 

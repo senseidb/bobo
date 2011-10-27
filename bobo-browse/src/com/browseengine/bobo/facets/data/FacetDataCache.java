@@ -57,6 +57,11 @@ public class FacetDataCache<T> implements Serializable {
 	  _termCountSize = TermCountSize.large;
 	}
 	
+	public int getNumItems(int docid){
+		int valIdx = orderArray.get(docid);
+		return valIdx<=0 ? 0 : 1;
+	}
+	
 	private final static BigSegmentedArray newInstance(TermCountSize termCountSize,int maxDoc){
 		if (termCountSize == TermCountSize.small){
 			return new BigByteArray(maxDoc);

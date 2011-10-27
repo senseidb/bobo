@@ -1,10 +1,12 @@
 package com.browseengine.bobo.geosearch.merge.impl;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.index.SegmentInfo;
 import org.apache.lucene.index.SegmentReader;
 import org.apache.lucene.store.DataInput;
@@ -36,6 +38,8 @@ import com.browseengine.bobo.geosearch.merge.IGeoMerger;
 @Component
 public class BufferedGeoMerger implements IGeoMerger {
 
+    private static final Logger LOGGER = Logger.getLogger(BufferedGeoMerger.class);
+
     public static final int BUFFER_CAPACITY = 10000;
     
     @Override
@@ -52,9 +56,11 @@ public class BufferedGeoMerger implements IGeoMerger {
         List<BitVector> deletedDocsList =  new ArrayList<BitVector>(segments.size());
         boolean success = false;
         try {
-            IFieldNameFilterConverter fieldNameFilterConverter = config.getGeoConverter().getFieldNameFilterConverter();
+            assert (readers.size() == segments.size());
             
-            boolean firstLoop = true;
+            IFieldNameFilterConverter fieldNameFilterConverter = config.getGeoConverter().getFieldNameFilterConverter();
+
+            boolean hasFieldNameFilterConverter = false;
             for (SegmentReader reader : readers) {
                 String geoFileName = config.getGeoFileName(reader.getSegmentName());
                 
@@ -66,14 +72,20 @@ public class BufferedGeoMerger implements IGeoMerger {
                 deletedDocsList.add(deletedDocs);
                 
                 //just take the first fieldNameFilterConverter for now.  Don't worry about merging them.
-                if (firstLoop) {
+                if (!hasFieldNameFilterConverter) {
                     fieldNameFilterConverter = readFieldNameFilterConverter(directory, geoFileName, fieldNameFilterConverter);
+                    hasFieldNameFilterConverter = null != fieldNameFilterConverter;
                 }
-                
-                firstLoop = false;
             }
             
-            assert (readers.size() == segments.size());
+            if (!hasFieldNameFilterConverter) {
+                // we are merging a bunch of segments, none of which have a corresponding .geo file
+                // so there is nothing to do, it is okay if the outcome of this merge continues to 
+                // not have a .geo file.
+                LOGGER.warn("nothing to do during geo merge, no .geo files found for segments");
+                success = true;
+                return;
+            }
             
             int newSegmentSize = calculateMergedSegmentSize(deletedDocsList, mergeInputBTrees, geoConverter);
             
@@ -88,14 +100,19 @@ public class BufferedGeoMerger implements IGeoMerger {
     
     protected IFieldNameFilterConverter readFieldNameFilterConverter(Directory directory, String geoFileName,
             IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
-        DataInput input = directory.openInput(geoFileName);
-        input.readVInt();  //read version
-        input.readInt();   //throw out tree position
-        input.readVInt();  //throw out tree name
+        try {
+            DataInput input = directory.openInput(geoFileName);
+            input.readVInt();  //read version
+            input.readInt();   //throw out tree position
+            input.readVInt();  //throw out tree size
         
-        fieldNameFilterConverter.loadFromInput(input);
+            fieldNameFilterConverter.loadFromInput(input);
         
-        return fieldNameFilterConverter;
+            return fieldNameFilterConverter;
+        } catch (FileNotFoundException e) {
+            LOGGER.warn("suppressing missing geo file pair, treating as no field names: "+e);
+            return null;
+        }
     }
 
     private void buildMergedSegment(List<BTree<GeoRecord>> mergeInputBTrees, 

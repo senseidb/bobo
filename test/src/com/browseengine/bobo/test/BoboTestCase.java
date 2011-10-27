@@ -25,7 +25,12 @@
 
 package com.browseengine.bobo.test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -64,7 +69,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.DefaultSimilarity;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -1585,6 +1589,60 @@ public class BoboTestCase extends TestCase {
       
       doTest(br,7,null,new String[]{"1","3","5","2","4","7","6"});
     }
+    
+    public void testMultiSort(){
+  	  // no sel
+  	  BrowseRequest br=new BrowseRequest();
+        br.setCount(10);
+        br.setOffset(0);
+
+
+        br.setSort(new SortField[]{new SortField("color",SortField.CUSTOM,false),new SortField("number",SortField.CUSTOM,true)});
+
+        doTest(br,7,null,new String[]{"5","4","6","3","2","1","7"});
+        
+        // now test with serialization
+        
+        BrowseResult result = null;
+        BoboBrowser boboBrowser=null;
+        try {
+            boboBrowser=newBrowser();
+          
+            result = boboBrowser.browse(br);
+            
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            ObjectOutputStream oout = new ObjectOutputStream(bout);
+            oout.writeObject(result);
+            oout.flush();
+            byte[] serialized = bout.toByteArray();
+            
+            ByteArrayInputStream bin = new ByteArrayInputStream(serialized);
+            ObjectInputStream oin = new ObjectInputStream(bin);
+            
+            result = (BrowseResult)oin.readObject();
+            
+            doTest(result,br,7,null,new String[]{"5","4","6","3","2","1","7"});
+            
+        } catch (BrowseException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        catch(Exception ioe){
+        	ioe.printStackTrace();
+          fail(ioe.getMessage());
+        }
+        finally{
+          if (boboBrowser!=null){
+            try {
+              if(result!=null) result.close();
+                boboBrowser.close();
+            } catch (IOException e) {
+                fail(e.getMessage());
+            }
+          }
+        }
+  	}
+  	
 	
 	public void testSort(){
 	  // no sel
@@ -1622,7 +1680,12 @@ public class BoboTestCase extends TestCase {
 				return new CustomSortDocComparator();
 			}
 
-			final class CustomSortDocComparator extends DocComparator{
+			final class CustomSortDocComparator extends DocComparator implements Serializable{
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
 
 				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
 					int id1 = Math.abs(doc1.doc - 4);
@@ -2391,7 +2454,7 @@ public class BoboTestCase extends TestCase {
 						int v2 = Integer.parseInt(o2.getValue());
 						int val = v2-v1;
 						if (val == 0){
-							val = o2.getHitCount()-o1.getHitCount();
+							val = o2.getFacetValueHitCount()-o1.getFacetValueHitCount();
 						}
 						return val;
 					}

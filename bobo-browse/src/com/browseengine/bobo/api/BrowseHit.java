@@ -106,7 +106,7 @@ public class BrowseHit
 	
 	private Map<String,String[]> _fieldValues;
 	private Map<String,Object[]> _rawFieldValues;
-	private Comparable<?> _comparable;
+	private transient Comparable<?> _comparable;
 	private Document _storedFields;
     private String _groupValue;
     private Object _rawGroupValue;

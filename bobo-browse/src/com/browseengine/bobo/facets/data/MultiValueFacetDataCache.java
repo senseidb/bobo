@@ -52,6 +52,11 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
   }
   
   @Override
+  public int getNumItems(int docid){
+	  return _nestedArray.getNumItems(docid);
+  }
+  
+  @Override
   public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory) throws IOException
   {
     this.load(fieldName, reader, listFactory, new WorkArea());

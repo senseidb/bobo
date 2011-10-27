@@ -87,6 +87,14 @@ public class PathFacetHandler extends FacetHandler<FacetDataCache>
     	}
     }
     
+
+	@Override
+	public int getNumItems(BoboIndexReader reader, int id) {
+		FacetDataCache data = getFacetData(reader);
+		return data.getNumItems(id);
+	}
+	
+    
     /**
      * Gets the depth.  Used if the field is of type <b><i>path</i></b>.
      * @return depth

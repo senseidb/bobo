@@ -422,8 +422,7 @@ public class SortCollectorImpl extends SortCollector {
         hit.setTermFreqMap(tvMap);
         for (String field : termVectorsToFetch){
           TermFreqVector tv = reader.getTermFreqVector(fdoc.doc, field);
-          if (tv != null)
-          {
+          if (tv!=null){
             int[] freqs = tv.getTermFrequencies();
             String[] terms = tv.getTerms();
             tvMap.put(field, new TermFrequencyVector(terms, freqs));

@@ -67,7 +67,7 @@ public class BrowseResult implements Serializable{
 	private int numGroups;
 	private int totalDocs;
 	private FacetAccessible _groupAccessible;
-  private SortCollector _sortCollector;
+    transient private SortCollector _sortCollector;
   //private int totalGroups;
 	private Map<String,FacetAccessible> _facetMap;
 	private BrowseHit[] hits;

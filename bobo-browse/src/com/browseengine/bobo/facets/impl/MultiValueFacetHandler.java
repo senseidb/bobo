@@ -67,6 +67,12 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     _sizePayloadTerm = sizePayloadTerm;
   }
   
+  @Override
+	public int getNumItems(BoboIndexReader reader, int id) {
+	  MultiValueFacetDataCache data = getFacetData(reader);
+	  return data.getNumItems(id);
+	}
+  
   public MultiValueFacetHandler(String name, String indexFieldName, TermListFactory termListFactory, Term sizePayloadTerm)
   {
     this(name, indexFieldName, termListFactory, sizePayloadTerm, null);

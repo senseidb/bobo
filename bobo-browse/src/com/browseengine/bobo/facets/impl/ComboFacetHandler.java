@@ -186,6 +186,23 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 		}
 		return valueList.toArray(new String[0]);
 	}
+	
+	
+
+	@Override
+	public int getNumItems(BoboIndexReader reader, int id) {
+		Set<String> dependsOn = this.getDependsOn();
+		List<String> valueList = new LinkedList<String>();
+		int count = 0;
+		for (String depends : dependsOn){
+			FacetHandler<?> facetHandler = getDependedFacetHandler(depends);
+			String[] fieldValues = facetHandler.getFieldValues(reader, id);
+			if (fieldValues!=null){
+				count++;
+			}
+		}
+		return count;
+	}
 
 	@Override
 	public FacetDataNone load(BoboIndexReader reader) throws IOException {
