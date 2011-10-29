@@ -13,6 +13,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositions;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -175,6 +176,16 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
+
+    int doc = 0;
+    while(doc <= maxdoc && (doc = _nestedArray.findValue(0, doc, maxdoc, true)) != DocIdSetIterator.NO_MORE_DOCS)
+    {
+      if (this.minIDs[0] < 0)
+        this.minIDs[0] = doc;
+      this.maxIDs[0] = doc;
+      ++this.freqs[0];
+      ++doc;
+    }
   }
 
   /**
@@ -289,6 +300,16 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
+
+    int doc = 0;
+    while(doc <= maxdoc && (doc = _nestedArray.findValue(0, doc, maxdoc, true)) != DocIdSetIterator.NO_MORE_DOCS)
+    {
+      if (this.minIDs[0] < 0)
+        this.minIDs[0] = doc;
+      this.maxIDs[0] = doc;
+      ++this.freqs[0];
+      ++doc;
+    }
   }
   
   private void logOverflow(String fieldName)

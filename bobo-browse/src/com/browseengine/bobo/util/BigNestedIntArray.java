@@ -619,6 +619,11 @@ public final class BigNestedIntArray
   
   public final int findValue(int value, int id, int maxID)
   {
+    return findValue(value, id, maxID, false);
+  }
+
+  public final int findValue(int value, int id, int maxID, boolean withMissing)
+  {
     int[] page = _list[id >> PAGEID_SHIFT];
     if(page == null) page = MISSING_PAGE;
     
@@ -638,6 +643,10 @@ public final class BigNestedIntArray
           if(page[idx++] == value) return id;  
         }
       }
+      else if (withMissing)
+      {
+        if(0 == value) return id;
+      }
       if(id >= maxID) break;
       
       if(((++id) & SLOTID_MASK) == 0)
@@ -651,6 +660,11 @@ public final class BigNestedIntArray
   }
   
   public final int findValues(BitVector values, int id, int maxID)
+  {
+    return findValues(values, id, maxID, false);
+  }
+
+  public final int findValues(BitVector values, int id, int maxID, boolean withMissing)
   {
     int[] page = _list[id >> PAGEID_SHIFT];
     if(page == null) page = MISSING_PAGE;
@@ -670,6 +684,10 @@ public final class BigNestedIntArray
         {
           if(values.get(page[idx++])) return id;  
         }
+      }
+      else if(withMissing)
+      {
+        if(values.get(0)) return id;
       }
       if(id >= maxID) break;
       

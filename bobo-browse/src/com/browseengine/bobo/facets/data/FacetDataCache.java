@@ -11,6 +11,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -162,6 +163,16 @@ public class FacetDataCache<T> implements Serializable {
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
+
+    int doc = 0;
+    while(doc <= maxDoc && (doc = order.findValue(0, doc, maxDoc)) != DocIdSetIterator.NO_MORE_DOCS)
+    {
+      if (this.minIDs[0] < 0)
+        this.minIDs[0] = doc;
+      this.maxIDs[0] = doc;
+      ++this.freqs[0];
+      ++doc;
+    }
   }
 	
 	private static int[] convertString(FacetDataCache dataCache,String[] vals)
