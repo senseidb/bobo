@@ -45,6 +45,7 @@ public class UnitTestSuite {
           suite.addTestSuite(BoboFacetIteratorTest.class);
           suite.addTestSuite(FacetNotValuesTest.class);
           suite.addTestSuite(FacetNameTest.class);
+          suite.addTestSuite(FacetMaxCountTest.class);
           return suite;
   }
   

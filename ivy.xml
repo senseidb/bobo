@@ -29,6 +29,8 @@
         <dependency org="org.json" name="json" rev="20080701" conf="master"/>
         <dependency org="junit" name="junit" rev="4.5" conf="test->master"/>
         <dependency org="log4j" name="log4j" rev="1.2.15" conf="master"/>
+        <dependency org="org.apache.lucene" name="lucene-core" rev="2.9.1" conf="master"/>
+        <dependency org="org.apache.lucene" name="lucene-highlighter" rev="2.9.1" conf="master"/>
         <dependency org="com.linkedin.kamikaze" name="kamikaze" rev="3.0.4" conf="master"/>
         <dependency org="javax.servlet" name="servlet-api" rev="2.5" conf="master"/>
         <dependency org="org.springframework" name="spring-webmvc" rev="2.5.5" conf="master"/>
@@ -37,6 +39,10 @@
         <dependency org="org.apache.solr" name="solr-core" rev="1.4.0" conf="solr->master"/>
         <dependency org="org.apache.solr" name="solr-solrj" rev="1.4.0" conf="solr->master"/>
         <dependency org="org.slf4j" name="slf4j-api" rev="1.6.1" conf="solr->master"/>
+        <dependency org="net.sourceforge.cobertura" name="cobertura" rev="1.9.4.1" conf="master"/>
+	<dependency org="asm" name="asm" rev="3.0" conf="master"/>
+        <dependency org="asm" name="asm-tree" rev="3.0" conf="master"/>
+        <dependency org="oro" name="oro" rev="2.0.8" conf="master"/>
         <dependency org="commons-codec" name="commons-codec" rev="1.4" conf="solr->master"/>
     </dependencies>
 </ivy-module>

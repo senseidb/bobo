@@ -179,7 +179,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 
 		@Override
 		public String getName() {
-			return _name;
+			return _indexFieldName;
 		}
     	
     }, f, new String[]{value}, false);
@@ -225,7 +225,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 	
 	  		@Override
 	  		public String getName() {
-	  			return _name;
+	  			return _indexFieldName;
 	  		}
 	      	
 	      }, f, vals, false);

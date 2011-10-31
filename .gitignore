@@ -6,6 +6,8 @@ build-test/
 dist/
 ivy/
 doc
+cobertura.ser
+logs
 output
 lib/gui/
 lib/jetty/
