@@ -14,3 +14,6 @@ lib/solr/
 lib/test/
 bobo-browse/MANIFEST.MF
 .settings
+TAGS
+*~
+cscope.*
