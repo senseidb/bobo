@@ -575,8 +575,22 @@ public final class BigNestedIntArray
 
   public final boolean contains(int id, int value)
   {
+    return contains(id, value, false);
+  }
+
+  public final boolean contains(int id, int value, boolean withMissing)
+  {
     final int[] page = _list[id >> PAGEID_SHIFT];
-    if(page == null) return false;
+    if(page == null) {
+      if (withMissing && value == 0)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
     
     final int val = page[id & SLOTID_MASK];
     if (val >= 0)
@@ -591,6 +605,10 @@ public final class BigNestedIntArray
       {
         if(page[idx++] == value) return true;  
       }
+    }
+    else if (withMissing)
+    {
+      return (value == 0);
     }
     return false;
   }
