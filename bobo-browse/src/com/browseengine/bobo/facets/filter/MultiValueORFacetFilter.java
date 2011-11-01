@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.util.BitVector;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
@@ -62,7 +62,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
   private final static class MultiValueOrFacetDocIdSetIterator extends FacetOrDocIdSetIterator
   {
       private final BigNestedIntArray _nestedArray;
-      public MultiValueOrFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, BitVector bs) 
+      public MultiValueOrFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, OpenBitSet bs) 
       {
         super(dataCache,bs);
         _nestedArray = dataCache._nestedArray;
@@ -88,65 +88,61 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
   @Override
   public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException
   {
-	final MultiValueFacetDataCache dataCache = (MultiValueFacetDataCache)_facetHandler.getFacetData(reader);
-	final int[] index = _valueConverter.convert(dataCache, _vals);
-	final BigNestedIntArray nestedArray = dataCache._nestedArray;
-	final BitVector bitset = new BitVector(dataCache.valArray.size());
-	
-	for (int i : index){
-		bitset.set(i);
+    final MultiValueFacetDataCache dataCache = (MultiValueFacetDataCache)_facetHandler.getFacetData(reader);
+    final int[] index = _valueConverter.convert(dataCache, _vals);
+    final BigNestedIntArray nestedArray = dataCache._nestedArray;
+    final OpenBitSet bitset = new OpenBitSet(dataCache.valArray.size());
+  
+    for (int i : index)
+    {
+      bitset.fastSet(i);
     } 
-	
-	if (_takeCompliment)
+  
+    if (_takeCompliment)
     {
       // flip the bits
-	  int size = bitset.size();
+      int size = dataCache.valArray.size();
       for (int i=0;i<size;++i){
-    	  if (bitset.get(i)){
-    		  bitset.clear(i);
-    	  }
-    	  else{
-    		  bitset.set(i);
-    	  }
+        bitset.fastFlip(i);
       }
     }
-	
-	int count = bitset.count();
-	
+  
+    long count = bitset.cardinality();
+  
     if (count == 0)
     {
       final DocIdSet empty = EmptyDocIdSet.getInstance();
-        return new RandomAccessDocIdSet()
+      return new RandomAccessDocIdSet()
+      {
+        @Override
+        public boolean get(int docId)
         {
-		    @Override
-		    public boolean get(int docId)
-		    {
-		      return false;
-		    }
-		
-		    @Override
-		    public DocIdSetIterator iterator() throws IOException
-		    {
-		      return empty.iterator();
-		    }         
-        };
+          return false;
+        }
+    
+        @Override
+        public DocIdSetIterator iterator() throws IOException
+        {
+          return empty.iterator();
+        }         
+      };
     }
     else
     {
-        return new RandomAccessDocIdSet()
+      return new RandomAccessDocIdSet()
+      {
+        @Override
+        public DocIdSetIterator iterator() 
         {
-            @Override
-            public DocIdSetIterator iterator() 
-            {
-                return new MultiValueOrFacetDocIdSetIterator(dataCache,bitset);
-            }
+          return new MultiValueOrFacetDocIdSetIterator(dataCache,bitset);
+        }
 
-            @Override
-            final public boolean get(int docId)
-            {
-              return nestedArray.contains(docId,bitset);
-            }
-        };
+        @Override
+        final public boolean get(int docId)
+        {
+          return nestedArray.contains(docId,bitset);
+        }
+      };
     }
   }
 

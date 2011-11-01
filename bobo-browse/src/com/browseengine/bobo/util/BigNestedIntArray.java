@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BitVector;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunction;
@@ -634,6 +635,28 @@ public final class BigNestedIntArray
     }
     return false;
   }
+
+  public final boolean contains(int id, OpenBitSet values)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) return false;
+    
+    final int val = page[id & SLOTID_MASK];
+    if (val >= 0)
+    {
+      return (values.fastGet(val));
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+      int end = idx + (val & COUNT_MASK);
+      while(idx < end)          
+      {
+        if(values.fastGet(page[idx++])) return true;  
+      }
+    }
+    return false;
+  }
   
   public final int findValue(int value, int id, int maxID)
   {
@@ -706,6 +729,48 @@ public final class BigNestedIntArray
       else if(withMissing)
       {
         if(values.get(0)) return id;
+      }
+      if(id >= maxID) break;
+      
+      if((++id & SLOTID_MASK) == 0)
+      {
+        page = _list[id >> PAGEID_SHIFT];
+        if(page == null) page = MISSING_PAGE;
+      }
+    }
+    
+    return DocIdSetIterator.NO_MORE_DOCS;
+  }
+  
+  public final int findValues(OpenBitSet values, int id, int maxID)
+  {
+    return findValues(values, id, maxID, false);
+  }
+
+  public final int findValues(OpenBitSet values, int id, int maxID, boolean withMissing)
+  {
+    int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) page = MISSING_PAGE;
+
+    while(true)
+    {
+      final int val = page[id & SLOTID_MASK];
+      if (val >= 0)
+      {
+        if(values.fastGet(val)) return id;
+      }
+      else if(val != MISSING)
+      {
+        int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+        int end = idx + (val & COUNT_MASK);
+        while(idx < end)          
+        {
+          if(values.fastGet(page[idx++])) return id;  
+        }
+      }
+      else if(withMissing)
+      {
+        if(values.fastGet(0)) return id;
       }
       if(id >= maxID) break;
       
@@ -812,6 +877,43 @@ public final class BigNestedIntArray
     count[0]++;
     return;
   }
+
+  public final void countNoReturnWithFilter(final int id, final int[] count, OpenBitSet filter)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) {
+      count[0]++;
+      return;
+    }
+    
+    int val = page[id & SLOTID_MASK];
+    if(val >= 0)
+    {
+      if (filter.fastGet(val))
+      {
+        count[val]++;
+      }
+      return;
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT); // signed shift, remember val is a negative number
+      int cnt = (val & COUNT_MASK);
+      int end = idx + cnt;
+      while(idx < end)
+      {
+        int value = page[idx++];
+        if (filter.fastGet(value))
+        {
+          count[value]++;
+        }
+      }
+      return;
+    }
+    count[0]++;
+    return;
+  }
+
 
   /**
    * returns the number data items for id
