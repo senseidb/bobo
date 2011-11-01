@@ -161,7 +161,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
 
     try
     {
-      _nestedArray.load(maxdoc, loader);
+      _nestedArray.load(maxdoc + 1, loader);
     }
     catch (IOException e)
     {
@@ -203,7 +203,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     
     try
     {
-      _nestedArray.load(maxdoc, loader);
+      _nestedArray.load(maxdoc + 1, loader);
     }
     catch (IOException e)
     {
