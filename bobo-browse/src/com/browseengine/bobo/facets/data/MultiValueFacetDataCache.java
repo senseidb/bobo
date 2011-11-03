@@ -15,6 +15,7 @@ import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositions;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
@@ -83,6 +84,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
+    OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
 
     int t = 0; // current term number
     list.add(null);
@@ -121,11 +123,13 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
               int docid = tdoc.doc();
               if(!loader.add(docid, t)) logOverflow(fieldName);
               minID = docid;
+              bitset.fastSet(docid);
               while(tdoc.next())
               {
                 df++;
                 docid = tdoc.doc();
                 if(!loader.add(docid, t)) logOverflow(fieldName);
+                bitset.fastSet(docid);
               }
               maxID = docid;
             }
@@ -161,7 +165,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
 
     try
     {
-      _nestedArray.load(maxdoc, loader);
+      _nestedArray.load(maxdoc + 1, loader);
     }
     catch (IOException e)
     {
@@ -178,14 +182,24 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while(doc <= maxdoc && (doc = _nestedArray.findValue(0, doc, maxdoc, true)) != DocIdSetIterator.NO_MORE_DOCS)
+    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true))
     {
-      if (this.minIDs[0] < 0)
-        this.minIDs[0] = doc;
-      this.maxIDs[0] = doc;
-      ++this.freqs[0];
       ++doc;
     }
+    if (doc <= maxdoc)
+    {
+      this.minIDs[0] = doc;
+      doc = maxdoc;
+      while (doc > 0 && !_nestedArray.contains(doc, 0, true))
+      {
+        --doc;
+      }
+      if (doc > 0)
+      {
+        this.maxIDs[0] = doc;
+      }
+    }
+    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 
   /**
@@ -203,7 +217,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     
     try
     {
-      _nestedArray.load(maxdoc, loader);
+      _nestedArray.load(maxdoc + 1, loader);
     }
     catch (IOException e)
     {
@@ -220,6 +234,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
+    OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
 
     int t = 0; // current term number
     list.add(null);
@@ -258,11 +273,13 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
               int docid = tdoc.doc();
               if (!_nestedArray.addData(docid, t)) logOverflow(fieldName);
               minID = docid;
+              bitset.fastSet(docid);
               while(tdoc.next())
               {
                 df++;
                 docid = tdoc.doc();
                 if(!_nestedArray.addData(docid, t)) logOverflow(fieldName);
+                bitset.fastSet(docid);
               }
               maxID = docid;
             }
@@ -302,14 +319,24 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while(doc <= maxdoc && (doc = _nestedArray.findValue(0, doc, maxdoc, true)) != DocIdSetIterator.NO_MORE_DOCS)
+    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true))
     {
-      if (this.minIDs[0] < 0)
-        this.minIDs[0] = doc;
-      this.maxIDs[0] = doc;
-      ++this.freqs[0];
       ++doc;
     }
+    if (doc <= maxdoc)
+    {
+      this.minIDs[0] = doc;
+      doc = maxdoc;
+      while (doc > 0 && !_nestedArray.contains(doc, 0, true))
+      {
+        --doc;
+      }
+      if (doc > 0)
+      {
+        this.maxIDs[0] = doc;
+      }
+    }
+    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
   
   private void logOverflow(String fieldName)
