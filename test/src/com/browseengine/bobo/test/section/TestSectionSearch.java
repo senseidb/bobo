@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 
+import junit.framework.TestCase;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
@@ -16,13 +18,15 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.RAMDirectory;
 
 import com.browseengine.bobo.analysis.section.IntMetaDataTokenStream;
@@ -32,8 +36,6 @@ import com.browseengine.bobo.search.section.IntMetaDataQuery;
 import com.browseengine.bobo.search.section.MetaDataCache;
 import com.browseengine.bobo.search.section.MetaDataCacheProvider;
 import com.browseengine.bobo.search.section.SectionSearchQuery;
-
-import junit.framework.TestCase;
 
 /**
  *
@@ -122,13 +124,15 @@ public class TestSectionSearch extends TestCase
     doc.add(field);
   }
   
+  static int getNumHits(Query q,IndexSearcher searcher) throws Exception{
+	  TopDocs hits = searcher.search(q, 10);
+	  return hits.totalHits;
+  }
+  
   public void testSimpleSearch() throws Exception
   {
-    IndexReader reader = searcher.getIndexReader();
-    
     BooleanQuery bquery;
     SectionSearchQuery squery;
-    Scorer scorer;
     int count;
     
     // 1. (+f1:aa +f2:aaa)
@@ -136,15 +140,11 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","aa")), BooleanClause.Occur.MUST);
     bquery.add(new TermQuery(new Term("f2","aaa")), BooleanClause.Occur.MUST);
 
-    scorer = bquery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(bquery,searcher);
     assertEquals("non-section count mismatch", 4, count);
     
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(squery,searcher);
     assertEquals("seciton count mismatch", 2, count);
     
     // 2. (+f1:bb + f2:aaa)
@@ -152,15 +152,11 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","bb")), BooleanClause.Occur.MUST);
     bquery.add(new TermQuery(new Term("f2","aaa")), BooleanClause.Occur.MUST);
 
-    scorer = bquery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(bquery,searcher);
     assertEquals("non-section count mismatch", 4, count);
     
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(squery,searcher);
     assertEquals("seciton count mismatch", 3, count);
     
     // 3. (+f1:aa +f2:bbb)
@@ -168,15 +164,11 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","aa")), BooleanClause.Occur.MUST);
     bquery.add(new TermQuery(new Term("f2","bbb")), BooleanClause.Occur.MUST);
 
-    scorer = bquery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(bquery,searcher);
     assertEquals("non-section count mismatch", 3, count);
     
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(squery,searcher);
     assertEquals("seciton count mismatch", 2, count);
     
     // 4. (+f1:aa +(f2:bbb f2:ccc))
@@ -187,15 +179,11 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","aa")), BooleanClause.Occur.MUST);
     bquery.add(bquery2, BooleanClause.Occur.MUST);
 
-    scorer = bquery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(bquery,searcher);
     assertEquals("non-section count mismatch", 4, count);
     
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
-    count = 0;
-    while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
+    count = getNumHits(squery,searcher);
     assertEquals("section count mismatch", 3, count);
   }
   
@@ -223,7 +211,7 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","aa")), BooleanClause.Occur.MUST);
     bquery.add(new IntMetaDataQuery(intMetaTerm, new IntMetaDataQuery.SimpleValueValidator(100)), BooleanClause.Occur.MUST);
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
+    scorer = squery.createWeight(searcher).scorer(reader, true, true);
     count = 0;
     while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
     assertEquals("section count mismatch", 1, count);
@@ -233,7 +221,7 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","aa")), BooleanClause.Occur.MUST);
     bquery.add(new IntMetaDataQuery(intMetaTerm, new IntMetaDataQuery.SimpleValueValidator(200)), BooleanClause.Occur.MUST);
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
+    scorer = squery.createWeight(searcher).scorer(reader, true, true);
     count = 0;
     while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
     assertEquals("section count mismatch", 1, count);
@@ -243,7 +231,7 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","bb")), BooleanClause.Occur.MUST);
     bquery.add(new IntMetaDataQuery(intMetaTerm, new IntMetaDataQuery.SimpleValueValidator(200)), BooleanClause.Occur.MUST);
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
+    scorer = squery.createWeight(searcher).scorer(reader, true, true);
     count = 0;
     while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
     assertEquals("section count mismatch", 2, count);
@@ -253,7 +241,7 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","aa")), BooleanClause.Occur.MUST);
     bquery.add(new IntMetaDataQuery(intMetaTerm, new IntMetaDataQuery.SimpleValueValidator(300)), BooleanClause.Occur.MUST);
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
+    scorer = squery.createWeight(searcher).scorer(reader, true, true);
     count = 0;
     while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
     assertEquals("section count mismatch", 1, count);
@@ -263,7 +251,7 @@ public class TestSectionSearch extends TestCase
     bquery.add(new TermQuery(new Term("f1","bb")), BooleanClause.Occur.MUST);
     bquery.add(new IntMetaDataQuery(intMetaTerm, new IntMetaDataQuery.SimpleValueValidator(300)), BooleanClause.Occur.MUST);
     squery = new SectionSearchQuery(bquery);
-    scorer = squery.weight(searcher).scorer(reader, true, true);
+    scorer = squery.createWeight(searcher).scorer(reader, true, true);
     count = 0;
     while(scorer.nextDoc() != Scorer.NO_MORE_DOCS) count++;
     assertEquals("section count mismatch", 3, count);
