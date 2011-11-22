@@ -70,6 +70,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   @Override
 	public int getNumItems(BoboIndexReader reader, int id) {
 	  MultiValueFacetDataCache data = getFacetData(reader);
+	  if (data==null) return 0;
 	  return data.getNumItems(id);
 	}
   
@@ -116,15 +117,21 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   @Override
   public String[] getFieldValues(BoboIndexReader reader,int id) 
   {
-	MultiValueFacetDataCache dataCache = getFacetData(reader);
-    return dataCache._nestedArray.getTranslatedData(id, dataCache.valArray);
+	  MultiValueFacetDataCache dataCache = getFacetData(reader);
+	  if (dataCache!=null){
+      return dataCache._nestedArray.getTranslatedData(id, dataCache.valArray);
+	  }
+	  return new String[0];
   }
   
   @Override
   public Object[] getRawFieldValues(BoboIndexReader reader,int id){
 
 	MultiValueFacetDataCache dataCache = getFacetData(reader);
-    return dataCache._nestedArray.getRawData(id, dataCache.valArray);
+	  if (dataCache!=null){
+      return dataCache._nestedArray.getRawData(id, dataCache.valArray);
+	  }
+	  return new String[0];
   }
 
 
