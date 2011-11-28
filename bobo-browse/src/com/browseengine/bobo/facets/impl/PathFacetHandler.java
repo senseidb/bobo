@@ -91,6 +91,7 @@ public class PathFacetHandler extends FacetHandler<FacetDataCache>
 	@Override
 	public int getNumItems(BoboIndexReader reader, int id) {
 		FacetDataCache data = getFacetData(reader);
+		if (data==null) return 0;
 		return data.getNumItems(id);
 	}
 	
@@ -120,6 +121,7 @@ public class PathFacetHandler extends FacetHandler<FacetDataCache>
 	public String[] getFieldValues(BoboIndexReader reader,int id) 
 	{
 		FacetDataCache dataCache = getFacetData(reader);
+		if (dataCache==null) return new String[0];
 		if (_multiValue){
 		  return ((MultiValueFacetDataCache)dataCache)._nestedArray.getTranslatedData(id, dataCache.valArray);	
 		}

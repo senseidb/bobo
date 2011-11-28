@@ -206,7 +206,7 @@ public class BoboIndexReader extends FilterIndexReader
 	  ArrayList<BoboIndexReader> currentReaders = new ArrayList<BoboIndexReader>(size);
 	  boolean isNewReader = false;
 	  for (int i=0;i<size;++i){
-		  SegmentInfo sinfo = (SegmentInfo)sinfos.get(i);
+		  SegmentInfo sinfo = (SegmentInfo)sinfos.info(i);
 		  BoboIndexReader breader = readerMap.remove(sinfo.name);
 		  if (breader!=null){
 			  // should use SegmentReader.reopen
@@ -249,7 +249,7 @@ public class BoboIndexReader extends FilterIndexReader
 	  boolean sameSeg = false;
 	  //get SegmentInfo instance
 	  for (int i=0;i<size;++i){
-		SegmentInfo sinfoTmp = (SegmentInfo)sinfos.get(i);
+		SegmentInfo sinfoTmp = (SegmentInfo)sinfos.info(i);
 		if (sinfoTmp.name.equals(sreader.getSegmentName())){
 		  int numDels2 = sinfoTmp.getDelCount();
 		  sameSeg = numDels==numDels2;

@@ -8,9 +8,9 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.Scorer;
 
 public class LuceneCustomDocComparatorSource extends DocComparatorSource {
-	private final FieldComparator _luceneComparator;
+	private final FieldComparator<Comparable> _luceneComparator;
 	private final String _fieldname;
-	public LuceneCustomDocComparatorSource(String fieldname,FieldComparator luceneComparator){
+	public LuceneCustomDocComparatorSource(String fieldname,FieldComparator<Comparable> luceneComparator){
 		_fieldname = fieldname;
 		_luceneComparator = luceneComparator;
 	}
