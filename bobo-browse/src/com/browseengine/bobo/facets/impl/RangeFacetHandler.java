@@ -87,16 +87,35 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 
 	public static String[] getRangeStrings(String rangeString)
 	{
-	  int index=rangeString.indexOf('[');
-      int index2=rangeString.indexOf(" TO ");
-      int index3=rangeString.indexOf(']');
+
+      
+      int index2 = rangeString.indexOf(" TO ");
+      boolean incLower = true, incUpper = true;
+      
+      if(rangeString.trim().startsWith("<"))
+        incLower = false;
+      
+      if(rangeString.trim().endsWith(">"))
+        incUpper = false;
+      
+      int index = -1, index3 = -1;
+      
+      if(incLower == true)
+        index=rangeString.indexOf('[');
+      else if(incLower == false)
+        index=rangeString.indexOf('<');
+      
+      if(incUpper == true)
+        index3=rangeString.indexOf(']');
+      else if(incUpper == false)
+        index3=rangeString.indexOf('>');
       
       String lower,upper;
       try{
         lower=rangeString.substring(index+1,index2).trim();
         upper=rangeString.substring(index2+4,index3).trim();
       
-        return new String[]{lower,upper};
+        return new String[]{lower,upper, String.valueOf(incLower), String.valueOf(incUpper)};
       }
       catch(RuntimeException re){
         logger.error("problem parsing range string: "+rangeString+":"+re.getMessage(),re);

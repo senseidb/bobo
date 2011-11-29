@@ -131,6 +131,15 @@ public final class FacetRangeFilter extends RandomAccessFilter
 		String[] ranges = RangeFacetHandler.getRangeStrings(rangeString);
 	    String lower=ranges[0];
 	    String upper=ranges[1];
+	    String includeLower = ranges[2];
+	    String includeUpper = ranges[3];
+	    
+	    boolean incLower = true, incUpper = true;
+	    
+	    if("false".equals(includeLower))
+	      incLower = false;
+	    if("false".equals(includeUpper))
+	      incUpper = false;
 	    
 	    if ("*".equals(lower))
 	    {
@@ -154,6 +163,15 @@ public final class FacetRangeFilter extends RandomAccessFilter
 	    	{
 	    		start=-(start + 1);
 	    	}
+	    	else
+	    	{
+	    	  //when the lower value is in the list, we need to consider if we want this lower value included or not;
+	    	  if(incLower == false)
+	    	  {
+	    	    start++;
+	    	  }
+	    	  
+	    	}
 	    }
 	    
 	    if (upper==null)
@@ -167,6 +185,14 @@ public final class FacetRangeFilter extends RandomAccessFilter
 	    	{
 	    		end=-(end + 1);
 	    		end=Math.max(0,end-1);
+	    	}
+	    	else
+	    	{
+	    	//when the lower value is in the list, we need to consider if we want this lower value included or not;
+	    	  if(incUpper == false)
+	    	  {
+	    	    end--;
+	    	  }
 	    	}
 	    }
 	    
