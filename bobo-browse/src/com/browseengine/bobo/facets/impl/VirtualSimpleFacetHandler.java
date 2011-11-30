@@ -51,72 +51,89 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
     TreeMap<Object, LinkedList<Integer>> dataMap = null;
     LinkedList<Integer> docList = null;
 
+    int nullMinId = -1;
+    int nullMaxId = -1;
+    int nullFreq = 0;
+
     TermDocs termDocs = reader.termDocs(null);
-    while(termDocs.next())
+    try
     {
-      doc = termDocs.doc();
-      Object val = _facetDataFetcher.fetch(reader, doc);
-      if (val == null)
-        continue;
-      if (dataMap == null)
+      while(termDocs.next())
       {
-        // Initialize.
-        if (val instanceof long[])
+        doc = termDocs.doc();
+        Object val = _facetDataFetcher.fetch(reader, doc);
+        if (val == null)
         {
-          if(_termListFactory == null)
-            _termListFactory = new TermFixedLengthLongArrayListFactory(
-              ((long[])val).length);
-
-          dataMap = new TreeMap<Object, LinkedList<Integer>>(new Comparator<Object>()
+          if (nullMinId < 0)
+            nullMinId = doc;
+          nullMaxId = doc;
+          ++ nullFreq;
+          continue;
+        }
+        if (dataMap == null)
+        {
+          // Initialize.
+          if (val instanceof long[])
           {
-            public int compare(Object big, Object small)
+            if(_termListFactory == null)
+              _termListFactory = new TermFixedLengthLongArrayListFactory(
+                ((long[])val).length);
+
+            dataMap = new TreeMap<Object, LinkedList<Integer>>(new Comparator<Object>()
             {
-              if (((long[])big).length != ((long[])small).length)
+              public int compare(Object big, Object small)
               {
-                throw new RuntimeException(""+Arrays.asList(((long[])big))+" and "+
-                  Arrays.asList(((long[])small))+" have different length.");
+                if (((long[])big).length != ((long[])small).length)
+                {
+                  throw new RuntimeException(""+Arrays.asList(((long[])big))+" and "+
+                    Arrays.asList(((long[])small))+" have different length.");
+                }
+
+                long r = 0;
+                for (int i=0; i<((long[])big).length; ++i)
+                {
+                  r = ((long[])big)[i] - ((long[])small)[i];
+                  if (r != 0)
+                    break;
+                }
+
+                if (r > 0)
+                  return 1;
+                else if (r < 0)
+                  return -1;
+
+                return 0;
               }
-
-              long r = 0;
-              for (int i=0; i<((long[])big).length; ++i)
-              {
-                r = ((long[])big)[i] - ((long[])small)[i];
-                if (r != 0)
-                  break;
-              }
-
-              if (r > 0)
-                return 1;
-              else if (r < 0)
-                return -1;
-
-              return 0;
-            }
-          });
-        }
-        else if (val instanceof Comparable)
-        {
-          dataMap = new TreeMap<Object, LinkedList<Integer>>();
-        }
-        else
-        {
-          dataMap = new TreeMap<Object, LinkedList<Integer>>(new Comparator<Object>()
+            });
+          }
+          else if (val instanceof Comparable)
           {
-            public int compare(Object big, Object small)
+            dataMap = new TreeMap<Object, LinkedList<Integer>>();
+          }
+          else
+          {
+            dataMap = new TreeMap<Object, LinkedList<Integer>>(new Comparator<Object>()
             {
-              return String.valueOf(big).compareTo(String.valueOf(small));
-            }
-          });
+              public int compare(Object big, Object small)
+              {
+                return String.valueOf(big).compareTo(String.valueOf(small));
+              }
+            });
+          }
         }
-      }
 
-      docList = dataMap.get(val);
-      if (docList == null)
-      {
-        docList = new LinkedList<Integer>();
-        dataMap.put(val, docList);
+        docList = dataMap.get(val);
+        if (docList == null)
+        {
+          docList = new LinkedList<Integer>();
+          dataMap.put(val, docList);
+        }
+        docList.add(doc);
       }
-      docList.add(doc);
+    }
+    finally
+    {
+      termDocs.close();
     }
     _facetDataFetcher.cleanup(reader);
 
@@ -133,9 +150,9 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
     int[] maxIDs = new int[size];
 
     list.add(null);
-    freqs[0] = -1;
-    minIDs[0] = -1;
-    maxIDs[0] = -1;
+    freqs[0] = nullFreq;
+    minIDs[0] = nullMinId;
+    maxIDs[0] = nullMaxId;
 
     if (dataMap != null)
     {

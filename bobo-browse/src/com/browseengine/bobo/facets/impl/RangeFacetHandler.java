@@ -50,6 +50,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 	@Override
 	public int getNumItems(BoboIndexReader reader, int id) {
 		FacetDataCache data = getFacetData(reader);
+		if (data==null) return 0;
 		return data.getNumItems(id);
 	}
 
@@ -76,13 +77,19 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 	@Override
 	public String[] getFieldValues(BoboIndexReader reader,int id) {
 		FacetDataCache dataCache = getFacetData(reader);
-		return new String[]{dataCache.valArray.get(dataCache.orderArray.get(id))};
+		if (dataCache!=null){
+		  return new String[]{dataCache.valArray.get(dataCache.orderArray.get(id))};
+		}
+		return new String[0];
 	}
 	
 	@Override
 	public Object[] getRawFieldValues(BoboIndexReader reader,int id){
 		FacetDataCache dataCache = getFacetData(reader);
-		return new Object[]{dataCache.valArray.getRawValue(dataCache.orderArray.get(id))};
+		if (dataCache!=null){
+		  return new Object[]{dataCache.valArray.getRawValue(dataCache.orderArray.get(id))};
+		}
+    return new String[0];
 	}
 
 	public static String[] getRangeStrings(String rangeString)

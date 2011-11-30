@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.util.BitVector;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
@@ -97,39 +97,35 @@ public class FacetRangeOrFilter extends RandomAccessFilter
   
   public static class FacetOrRandomAccessDocIdSet extends RandomAccessDocIdSet{
 
-  private BitVector _bitset;
+  private OpenBitSet _bitset;
   private final BigSegmentedArray _orderArray;
   private final FacetDataCache _dataCache;
   private final int[] _index;
   
   FacetOrRandomAccessDocIdSet(FacetHandler<FacetDataCache> facetHandler,BoboIndexReader reader,
-                String[] vals,FacetValueConverter valConverter,boolean takeCompliment){
+                              String[] vals,FacetValueConverter valConverter,boolean takeCompliment){
     _dataCache = facetHandler.getFacetData(reader);
     _orderArray = _dataCache.orderArray;
-      _index = valConverter.convert(_dataCache, vals);
-      
-      _bitset = new BitVector(_dataCache.valArray.size());
-      for (int i : _index)
-      {
-        _bitset.set(i);
+    _index = valConverter.convert(_dataCache, vals);
+    int size = _dataCache.valArray.size();
+    _bitset = new OpenBitSet(size);
+
+    for (int i : _index)
+    {
+      _bitset.fastSet(i);
+    }
+    if (takeCompliment)
+    {
+      // flip the bits
+      for (int i=0; i < size; ++i){
+        _bitset.fastFlip(i);
       }
-      if (takeCompliment)
-      {
-        // flip the bits
-        for (int i=0;i<_bitset.size();++i){
-          if (_bitset.get(i)){
-            _bitset.clear(i);
-          }
-          else{
-            _bitset.set(i);
-          }
-        }
-      }
+    }
   }
   
   @Override
   public boolean get(int docId) {
-    return _bitset.get(_orderArray.get(docId));
+    return _bitset.fastGet(_orderArray.get(docId));
   }
 
   @Override
@@ -145,10 +141,10 @@ public class FacetRangeOrFilter extends RandomAccessFilter
       protected final FacetDataCache _dataCache;
       protected final int[] _index;
       protected int _maxID;
-      protected final BitVector _bitset;
+      protected final OpenBitSet _bitset;
       protected final BigSegmentedArray _orderArray;
       
-      public FacetOrDocIdSetIterator(FacetDataCache dataCache,int[] index,BitVector bitset)
+      public FacetOrDocIdSetIterator(FacetDataCache dataCache,int[] index, OpenBitSet bitset)
       {
           _dataCache=dataCache;
           _index=index;
@@ -157,11 +153,11 @@ public class FacetRangeOrFilter extends RandomAccessFilter
               
           _doc = Integer.MAX_VALUE;
           _maxID = -1;
-          int size = bitset.size();
+          int size = _dataCache.valArray.size();
           for (int i=0;i<size;++i){
-        if (!bitset.get(i)){
-          continue;
-        }
+            if (!bitset.fastGet(i)){
+              continue;
+            }
             if (_doc > _dataCache.minIDs[i]){
               _doc = _dataCache.minIDs[i];
             }

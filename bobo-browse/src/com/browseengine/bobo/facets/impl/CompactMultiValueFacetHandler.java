@@ -133,6 +133,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
   @Override
   public int getNumItems(BoboIndexReader reader, int id) {
 	FacetDataCache dataCache = getFacetData(reader);
+	if (dataCache==null) return 0;
 	int encoded=dataCache.orderArray.get(id);
 	return countBits(encoded);
   }
@@ -140,6 +141,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
   @Override
 	public String[] getFieldValues(BoboIndexReader reader,int id) {
 	  FacetDataCache dataCache = getFacetData(reader);
+	  if (dataCache==null) return new String[0];
 		int encoded=dataCache.orderArray.get(id);
 		if (encoded==0) {
 			return new String[]{""};
@@ -163,6 +165,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
     @Override
 	public Object[] getRawFieldValues(BoboIndexReader reader,int id){
     	FacetDataCache dataCache = getFacetData(reader);
+    	if (dataCache==null) return new String[0];
     	int encoded=dataCache.orderArray.get(id);
 		if (encoded==0) {
 			return new Object[0];
