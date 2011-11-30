@@ -92,10 +92,10 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
       int index2 = rangeString.indexOf(" TO ");
       boolean incLower = true, incUpper = true;
       
-      if(rangeString.trim().startsWith("<"))
+      if(rangeString.trim().startsWith("("))
         incLower = false;
       
-      if(rangeString.trim().endsWith(">"))
+      if(rangeString.trim().endsWith(")"))
         incUpper = false;
       
       int index = -1, index3 = -1;
@@ -103,12 +103,12 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
       if(incLower == true)
         index=rangeString.indexOf('[');
       else if(incLower == false)
-        index=rangeString.indexOf('<');
+        index=rangeString.indexOf('(');
       
       if(incUpper == true)
         index3=rangeString.indexOf(']');
       else if(incUpper == false)
-        index3=rangeString.indexOf('>');
+        index3=rangeString.indexOf(')');
       
       String lower,upper;
       try{

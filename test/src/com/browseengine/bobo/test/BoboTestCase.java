@@ -2117,6 +2117,42 @@ public class BoboTestCase extends TestCase {
 		doTest(br,7,answer,null);
 	}
 	
+	public void testNewRangeFacet(){
+	  BrowseRequest br = new BrowseRequest();
+	  br.setCount(10);
+	  br.setOffset(0);
+	  
+	  FacetSpec simpleOutput = new FacetSpec();
+	  simpleOutput.setExpandSelection(true);
+	  br.setFacetSpec("date", simpleOutput);
+	  
+//	  d1.add(buildMetaField("date","2000/01/01"));
+//	  d3.add(buildMetaField("date","2001/12/25"));
+//	  d5.add(buildMetaField("date","2002/03/08"));
+//	  d2.add(buildMetaField("date","2003/02/14"));
+//	  d4.add(buildMetaField("date","2004/11/24"));
+//	  d7.add(buildMetaField("date","2006/06/01"));
+//	  d6.add(buildMetaField("date","2007/08/01"));
+	  
+      BrowseSelection sel1 = new BrowseSelection("date");
+      sel1.setValues(new String[]{"(2000/01/01 TO 2003/02/14]"});
+      BrowseSelection sel2 = new BrowseSelection("date");
+      sel2.setValues(new String[]{"(2000/01/01 TO 2003/02/14)"});
+      
+      
+      br.addSelection(sel1);
+      
+      HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+      answer.put("date",  Arrays.asList(new BrowseFacet[]{new BrowseFacet("[2000/01/01 TO 2003/02/14]", 4), new BrowseFacet("[2003/05/06 TO 2005/04/04]",1)}));
+      doTest(br,3,null,null);
+      
+      br.clearSelections();
+      br.addSelection(sel2);
+      doTest(br, 2, null, null);
+      
+      
+	}
+	
 	/**
 	 * Verifies the range facet numbers are returned correctly (as they were passed in)
 	 */
