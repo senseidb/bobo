@@ -77,6 +77,7 @@ public class BrowseRequest implements Serializable{
 	private int _offset;
 	private int _count;
 	private boolean _fetchStoredFields;
+  private boolean _fetchStoredValue;
 	private Filter _filter;
 	private boolean _showExplanation;
 	private String _groupBy;
@@ -181,6 +182,7 @@ public class BrowseRequest implements Serializable{
 		_facetHandlerDataMap = new HashMap<String, FacetHandlerInitializerParam>();
 		_filter = null;
 		_fetchStoredFields = false;
+		_fetchStoredValue = false;
 		_groupBy = null;
     _maxPerGroup = 0;
     _collectDocIdCache = false;
@@ -197,6 +199,16 @@ public class BrowseRequest implements Serializable{
 	public void setFetchStoredFields(boolean fetchStoredFields){
 		_fetchStoredFields = fetchStoredFields;
 	}
+
+  public boolean isFetchStoredValue()
+  {
+    return _fetchStoredValue;
+  }
+
+  public void setFetchStoredValue(boolean fetchStoredValue)
+  {
+    _fetchStoredValue = fetchStoredValue;
+  }
 	
 	public String getGroupBy(){
 		return _groupBy;

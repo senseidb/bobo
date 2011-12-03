@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import proj.zoie.api.DataConsumer.DataEvent;
 import proj.zoie.impl.indexing.StreamDataProvider;
+import proj.zoie.impl.indexing.ZoieConfig;
 
 public class PropertyFileDataProvider extends StreamDataProvider<PropertiesData>
 {
@@ -21,6 +22,7 @@ public class PropertyFileDataProvider extends StreamDataProvider<PropertiesData>
   
   public PropertyFileDataProvider(File datafile, int maxID) throws IOException
   {
+    super(ZoieConfig.DEFAULT_VERSION_COMPARATOR);
     FileInputStream fin = null;
     ArrayList<HashMap<String,String>> propDataList = new ArrayList<HashMap<String,String>>();
     try
@@ -79,7 +81,7 @@ public class PropertyFileDataProvider extends StreamDataProvider<PropertiesData>
 
     HashMap<String,String> data = _propDataList[index];
     PropertiesData propData = new PropertiesData(data,_currentID);
-    DataEvent<PropertiesData> event = new DataEvent<PropertiesData>(_currentVersion,propData);
+    DataEvent<PropertiesData> event = new DataEvent<PropertiesData>(propData, String.valueOf(_currentVersion));
     _currentID ++;
     if (index == 0)
     {
@@ -99,4 +101,8 @@ public class PropertyFileDataProvider extends StreamDataProvider<PropertiesData>
     _currentVersion = 0;
   }
 
+  public void setStartingOffset(String version)
+  {
+    _currentVersion = Integer.parseInt(version);
+  }
 }

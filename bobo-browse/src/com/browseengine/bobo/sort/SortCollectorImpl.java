@@ -38,6 +38,8 @@ import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.util.ListMerger;
 
+import proj.zoie.api.ZoieIndexReader;
+
 public class SortCollectorImpl extends SortCollector {
   private static final Comparator<MyScoreDoc> MERGE_COMPATATOR = new Comparator<MyScoreDoc>()
   {
@@ -129,11 +131,12 @@ public class SortCollectorImpl extends SortCollector {
                            int count,
                            boolean doScoring,
                            boolean fetchStoredFields,
+                           boolean fetchStoredValue,
                            Set<String> termVectorsToFetch,
                            String groupBy,
                            int maxPerGroup,
                            boolean collectDocIdCache) {
-    super(sortFields,fetchStoredFields);
+    super(sortFields, fetchStoredFields, fetchStoredValue);
     assert (offset>=0 && count>=0);
     _boboBrowser = boboBrowser;
     _compSource = compSource;
@@ -400,10 +403,10 @@ public class SortCollectorImpl extends SortCollector {
       resList = Collections.EMPTY_LIST;
 
     Map<String,FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
-    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _termVectorsToFetch,groupBy, _groupAccessible);
+    return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap, _fetchStoredFields, _fetchStoredValue, _termVectorsToFetch,groupBy, _groupAccessible);
   }
 
-  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields,Set<String> termVectorsToFetch, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
+  protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs,SortField[] sortFields,Map<String,FacetHandler<?>> facetHandlerMap,boolean fetchStoredFields, boolean fetchStoredValue,Set<String> termVectorsToFetch, FacetHandler<?> groupBy, CombinedFacetAccessible groupAccessible)
   throws IOException
   {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
@@ -413,9 +416,19 @@ public class SortCollectorImpl extends SortCollector {
       MyScoreDoc fdoc = scoreDocs[i];
       BoboIndexReader reader = fdoc.reader;
       BrowseHit hit=new BrowseHit();
-      if (fetchStoredFields){
-
-        hit.setStoredFields(reader.document(fdoc.doc));
+      if (fetchStoredFields || fetchStoredValue)
+      {
+        if (fetchStoredFields)
+        {
+          hit.setStoredFields(reader.document(fdoc.doc));
+        }
+        IndexReader innerReader = reader.getInnerReader();
+        if (innerReader instanceof ZoieIndexReader)
+        {
+          hit.setStoredValue(
+            ((ZoieIndexReader)innerReader).getStoredValue(
+              ((ZoieIndexReader)innerReader).getUID(fdoc.doc)));
+        }
       }
       if (termVectorsToFetch!=null && termVectorsToFetch.size()>0){
         Map<String,TermFrequencyVector> tvMap = new HashMap<String,TermFrequencyVector>();
