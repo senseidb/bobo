@@ -304,7 +304,7 @@ public class BoboSearcher2 extends IndexSearcher{
 
     for (int i = 0; i < _subReaders.length; i++) {
       DocIdSet filterDocIdSet = filter.getDocIdSet(_subReaders[i]);
-      if (filterDocIdSet == null) return;
+      if (filterDocIdSet == null) return;  //shall we use return or continue here ??
       int docStart = start + _docStarts[i];
       collector.setNextReader(_subReaders[i], docStart);
       validator.setNextReader(_subReaders[i], docStart);
@@ -313,6 +313,9 @@ public class BoboSearcher2 extends IndexSearcher{
         collector.setScorer(scorer);
         DocIdSetIterator filterDocIdIterator = filterDocIdSet.iterator(); // CHECKME: use ConjunctionScorer here?
 
+        if(filterDocIdIterator == null)
+          continue;
+        
         int doc = -1;
         target = filterDocIdIterator.nextDoc();
         while(target < DocIdSetIterator.NO_MORE_DOCS)
