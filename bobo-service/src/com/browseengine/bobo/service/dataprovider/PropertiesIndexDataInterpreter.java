@@ -76,20 +76,29 @@ public class PropertiesIndexDataInterpreter implements ZoieIndexableInterpreter<
       return _prop.isSkip();
     }
 
-	public IndexingReq[] buildIndexingReqs() {
-		Document doc = buildDocument();
-		IndexingReq req = new IndexingReq(doc);
-		return new IndexingReq[]{req};
-	}
+    public IndexingReq[] buildIndexingReqs() {
+      Document doc = buildDocument();
+      IndexingReq req = new IndexingReq(doc);
+      return new IndexingReq[]{req};
+    }
 
-	public Document[] buildDocuments() {
-		return new Document[]{buildDocument()};
-	}
-    
+    public Document[] buildDocuments() {
+      return new Document[]{buildDocument()};
+    }
+
+    public boolean isStorable()
+    {
+      return false;
+    }
+
+    public byte[] getStoreValue()
+    { 
+      return null;
+    }
   }
 
   public ZoieIndexable convertAndInterpret(PropertiesData props) {
-	return new PropertiesIndexable(props);
+    return new PropertiesIndexable(props);
   }
 
 }
