@@ -1,4 +1,4 @@
-    package com.browseengine.bobo.geosearch.index.impl;
+package com.browseengine.bobo.geosearch.index.impl;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -88,7 +88,12 @@ public class GeoIndexer implements IGeoIndexer {
             
             success = true;
         } finally {
-            IOUtils.closeSafely(!success, geoRecordBTree);
+            // see https://issues.apache.org/jira/browse/LUCENE-3405
+            if (success) {
+                IOUtils.close(geoRecordBTree);
+            } else {
+                IOUtils.closeWhileHandlingException(geoRecordBTree);
+            }
         }
     }
 

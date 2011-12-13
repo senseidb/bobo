@@ -136,7 +136,7 @@ public class GeoDocConsumerTest {
     @Test
     public void testFlush() throws IOException {
         final String segmentName = "segmentA";
-        BufferedDeletes bufferedDeletes = new BufferedDeletes(false);
+        BufferedDeletes bufferedDeletes = new BufferedDeletes();
         final SegmentWriteState segmentWriteState = new SegmentWriteState(null, directory, segmentName, fieldInfos, 10, 0, bufferedDeletes );
         final Collection<DocConsumerPerThread> threads = Collections.emptyList();
         context.checking(new Expectations() {

@@ -4,6 +4,7 @@ import java.io.Reader;
 
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Fieldable;
+import org.apache.lucene.index.FieldInfo.IndexOptions;
 
 /**
  * 
@@ -119,9 +120,9 @@ public class GeoCoordinateField implements Fieldable {
 
     @Override
     public void setOmitNorms(boolean omitNorms) {
-        if (omitNorms != getOmitTermFreqAndPositions()) {
+        if (omitNorms != getOmitNorms()) {
             throw new IllegalArgumentException("GeoCoordinate fields only support " + getOmitNorms()
-                    + " for omitTermFregAndPositions");
+                    + " for omitNorms");
         }
     }
 
@@ -149,16 +150,23 @@ public class GeoCoordinateField implements Fieldable {
         return null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean getOmitTermFreqAndPositions() {
-        return true;
+    public IndexOptions getIndexOptions() {
+        return IndexOptions.DOCS_ONLY;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void setOmitTermFreqAndPositions(boolean omitTermFreqAndPositions) {
-        if (omitTermFreqAndPositions != getOmitTermFreqAndPositions()) {
-            throw new IllegalArgumentException("GeoCoordinate fields only support " + getOmitTermFreqAndPositions()
-                    + " for omitTermFregAndPositions");
+    public void setIndexOptions(IndexOptions indexOptions) {
+        if (indexOptions != getIndexOptions()) {
+            throw new IllegalArgumentException("GeoCoordinate fields only support " + getIndexOptions()
+                    + " for indexOptions");
+
         }
     }
 

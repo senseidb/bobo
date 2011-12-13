@@ -37,7 +37,7 @@ import com.browseengine.bobo.geosearch.merge.IGeoMerger;
  */
 @Component
 public class BufferedGeoMerger implements IGeoMerger {
-
+    
     private static final Logger LOGGER = Logger.getLogger(BufferedGeoMerger.class);
 
     public static final int BUFFER_CAPACITY = 10000;
@@ -94,7 +94,12 @@ public class BufferedGeoMerger implements IGeoMerger {
             
             //TODO:  What should we do on an exception just propoate up or cast to a new exception type
         } finally {
-            IOUtils.closeSafely(!success, mergeInputBTrees);
+            // see https://issues.apache.org/jira/browse/LUCENE-3405
+            if (success) {
+                IOUtils.close(mergeInputBTrees);
+            } else {
+                IOUtils.closeWhileHandlingException(mergeInputBTrees);
+            }
         }
     }
     
@@ -137,7 +142,12 @@ public class BufferedGeoMerger implements IGeoMerger {
             
             success = true;
         } finally {
-            IOUtils.closeSafely(!success, mergeOutputBTree);
+            // see https://issues.apache.org/jira/browse/LUCENE-3405
+            if (success) {
+                IOUtils.close(mergeInputBTrees);
+            } else {
+                IOUtils.closeWhileHandlingException(mergeInputBTrees);
+            }
         }
     }
     

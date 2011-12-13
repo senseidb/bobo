@@ -32,7 +32,7 @@ import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 /**
  * Superclass for GeoSearch functional test containing common methods for
  * building and searching indices
- * 
+ *
  * @author Geoff Cooney
  *
  */
@@ -240,16 +240,16 @@ public class GeoSearchFunctionalTezt {
         }
         
         @Override
-        public MergeSpecification findMergesToExpungeDeletes(SegmentInfos segmentInfos) throws CorruptIndexException,
+        public MergeSpecification findForcedDeletesMerges(SegmentInfos segmentInfos) throws CorruptIndexException,
                 IOException {
             return null;
         }
         @Override
-        public MergeSpecification findMergesForOptimize(SegmentInfos segmentInfos, int maxSegmentCount,
-                Map<SegmentInfo, Boolean> segmentsToOptimize) throws CorruptIndexException, IOException {
+        public MergeSpecification findForcedMerges(SegmentInfos segmentInfos, int maxSegmentCount,
+                Map<SegmentInfo, Boolean> segmentsToMerge) throws CorruptIndexException, IOException {
             List<SegmentInfo> activeSegmentsToOptimize = new Vector<SegmentInfo>();
             for (SegmentInfo segmentInfo: segmentInfos) {
-                if (segmentsToOptimize.get(segmentInfo)) {
+                if (segmentsToMerge.get(segmentInfo)) {
                     activeSegmentsToOptimize.add(segmentInfo);
                 }
             }
