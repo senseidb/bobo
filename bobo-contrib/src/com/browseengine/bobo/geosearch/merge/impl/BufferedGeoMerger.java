@@ -144,9 +144,9 @@ public class BufferedGeoMerger implements IGeoMerger {
         } finally {
             // see https://issues.apache.org/jira/browse/LUCENE-3405
             if (success) {
-                IOUtils.close(mergeInputBTrees);
+                IOUtils.close(mergeOutputBTree);
             } else {
-                IOUtils.closeWhileHandlingException(mergeInputBTrees);
+                IOUtils.closeWhileHandlingException(mergeOutputBTree);
             }
         }
     }
