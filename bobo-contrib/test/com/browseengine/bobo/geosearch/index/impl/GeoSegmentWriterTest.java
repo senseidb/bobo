@@ -41,7 +41,7 @@ public class GeoSegmentWriterTest {
     Directory directory;
     IndexOutput mockOutput;
     
-    //@Resource(type = GeoSearchConfig.class)
+    // can't use the spring bean, because herein we mock
     GeoSearchConfig config = new GeoSearchConfig();
     
     TreeSet<GeoRecord> treeSet;
