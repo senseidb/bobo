@@ -43,7 +43,6 @@ public class GeoIndexerTest {
     
     GeoIndexer geoIndexer;
     
-    //@Resource(type = GeoSearchConfig.class)
     GeoSearchConfig config = new GeoSearchConfig();
     
     String locationField = "location1";
