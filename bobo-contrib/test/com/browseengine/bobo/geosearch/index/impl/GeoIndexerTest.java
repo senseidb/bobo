@@ -20,8 +20,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
+import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
+import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 
@@ -51,7 +54,8 @@ public class GeoIndexerTest {
     
     String segmentName = "0a";
     
-    IFieldNameFilterConverter fieldNameFilterConverter;
+    IGeoConverter mockConverter;
+    IFieldNameFilterConverter mockFieldNameFilterConverter;
     
     @Before
     public void setUp() {
@@ -59,8 +63,10 @@ public class GeoIndexerTest {
         
         mockOutput = context.mock(IndexOutput.class);
         
-        fieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
-        config.setFieldNameFilterConverter(fieldNameFilterConverter);
+        mockConverter = context.mock(IGeoConverter.class);
+        config.setGeoConverter(mockConverter);
+        
+        mockFieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
         
         geoIndexer = new GeoIndexer(config);
     }
@@ -75,13 +81,16 @@ public class GeoIndexerTest {
         addIgnoreFieldNameConverterExpectation();
         context.checking(new Expectations() {
             {
+                one(mockConverter).makeFieldNameFilterConverter();
+                will(returnValue(mockFieldNameFilterConverter));
+                
                 ignoring(directory).createOutput(segmentName + "." + config.getGeoFileExtension());
                 will(returnValue(mockOutput));
                 
                 ignoring(mockOutput).getFilePointer();
                 ignoring(mockOutput).seek(with(any(Integer.class)));
                 
-                ignoring(fieldNameFilterConverter).writeToOutput(mockOutput);
+                ignoring(mockFieldNameFilterConverter).writeToOutput(mockOutput);
                 
                 one(mockOutput).writeVInt(GeoVersion.CURRENT_VERSION);
                 one(mockOutput).writeVInt(0);
@@ -102,17 +111,44 @@ public class GeoIndexerTest {
         
         addIgnoreFieldNameConverterExpectation();
         
-        for (int i=0; i<docsToAdd; i++) {
-            float lattitide = (float)Math.random();
+        for (int docId =0; docId <docsToAdd; docId++) {
+            float latitude = (float)Math.random();
             float longitude = (float)Math.random();
-            String fieldName = i < locationFieldDocs ? locationField : unmappedLocation;
+            final String fieldName = docId < locationFieldDocs ? locationField : unmappedLocation;
             
-            GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
+            final GeoCoordinate geoCoordinate = new GeoCoordinate(latitude, longitude);
             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-            geoIndexer.index(i, field);
+            
+            index(docId, field);
         }
         
         doFlushAndTest(docsToAdd, locationFieldDocs);
+    }
+    
+    private void index(int docId, GeoCoordinateField field) {
+        // because of a mockFieldNameFilterConverter, there are no registered fields.  we always use the default filterByte.
+        final byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+
+        GeoCoordinate geoCoordinate = field.getGeoCoordinate();
+        double latitude = geoCoordinate.getLatitude();
+        double longitude = geoCoordinate.getLongitude();
+        
+        LatitudeLongitudeDocId latitudeLongitudeDocId = new LatitudeLongitudeDocId(latitude, longitude, docId);
+        final GeoRecord geoRecord = new GeoConverter().toGeoRecord(filterByte, latitudeLongitudeDocId);
+        
+        context.checking(new Expectations() {
+            {
+                one(mockConverter).makeFieldNameFilterConverter();
+                will(returnValue(mockFieldNameFilterConverter));
+                
+                one(mockConverter).toGeoRecord(with(any(IFieldNameFilterConverter.class)), 
+                        with(any(String.class)), with(any(LatitudeLongitudeDocId.class)));
+                will(returnValue(geoRecord));
+            }
+        });
+        
+        geoIndexer.index(docId, field);
+
     }
 
     @Test
@@ -131,7 +167,7 @@ public class GeoIndexerTest {
             
             GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-            geoIndexer.index(docId, field);
+            index(docId, field);
         }
         
         doFlushAndTest(docsToAdd, locationFieldDocs);
@@ -158,7 +194,7 @@ public class GeoIndexerTest {
                             
                             GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
                             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-                            geoIndexer.index(i, field);
+                            index(i, field);
                         }
                     } finally {
                         latch.countDown();
@@ -192,6 +228,9 @@ public class GeoIndexerTest {
         context.assertIsSatisfied();  //we should have no calls to mock Objects before we flush
         context.checking(new Expectations() {
             {
+                one(mockConverter).makeFieldNameFilterConverter();
+                will(returnValue(mockFieldNameFilterConverter));
+                
                 ignoring(mockOutput).getFilePointer();
                 
                 //get output
@@ -205,7 +244,7 @@ public class GeoIndexerTest {
                 inSequence(outputSequence);
                 one(mockOutput).writeVInt(docsToAdd);
                 inSequence(outputSequence);
-                one(fieldNameFilterConverter).writeToOutput(mockOutput);
+                one(mockFieldNameFilterConverter).writeToOutput(mockOutput);
                 inSequence(outputSequence);
 
                 one(mockOutput).seek(with(any(Integer.class)));
@@ -227,13 +266,12 @@ public class GeoIndexerTest {
                 will(returnValue((long)(7+13*docsToAdd)));
                 inSequence(outputSequence);
 
-                
                 //write actual tree
                 exactly(docsToAdd).of(mockOutput).seek(with(any(Long.class)));
                 exactly(docsToAdd).of(mockOutput).writeLong(with(any(Long.class)));
                 exactly(docsToAdd).of(mockOutput).writeInt(with(any(Integer.class)));
                 exactly(docsToAdd).of(mockOutput).writeByte(GeoRecord.DEFAULT_FILTER_BYTE);
-                
+
                 //close
                 one(mockOutput).close();
             }
@@ -259,7 +297,7 @@ public class GeoIndexerTest {
             
             GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-            geoIndexer.index(docId, field);
+            index(docId, field);
         }
         
         geoIndexer.abort();
@@ -268,7 +306,7 @@ public class GeoIndexerTest {
     public void addIgnoreFieldNameConverterExpectation() {
         context.checking(new Expectations() {
             {
-                ignoring(fieldNameFilterConverter).getFilterValue(with(any(String[].class)));
+                ignoring(mockFieldNameFilterConverter).getFilterValue(with(any(String[].class)));
             }
         });
     }

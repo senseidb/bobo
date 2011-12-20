@@ -94,9 +94,9 @@ public class BufferedGeoMergerTest {
             }
             
             @Override
-            public IFieldNameFilterConverter readFieldNameFilterConverter(Directory directory, String geoFileName,
+            public boolean loadFieldNameFilterConverter(Directory directory, String geoFileName,
                     IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
-                return new MappedFieldNameFilterConverter();
+                return true;
             }
         };
         
@@ -332,12 +332,10 @@ public class BufferedGeoMergerTest {
                 return outputTree;
             }
             
-            public IFieldNameFilterConverter readFieldNameFilterConverter(Directory directory, String geoFileName,
+            @Override
+            public boolean loadFieldNameFilterConverter(Directory directory, String geoFileName,
                     IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
-                if (noGeoFileNames.contains(geoFileName)) {
-                    return null;
-                }
-                return new MappedFieldNameFilterConverter();
+                return !noGeoFileNames.contains(geoFileName);
             }
         };
 

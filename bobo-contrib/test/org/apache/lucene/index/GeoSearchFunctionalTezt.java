@@ -103,21 +103,16 @@ public class GeoSearchFunctionalTezt {
         config.setMergePolicy(new MergeOnOptimizeOnly());
         
         geoConfig = getGeoSearchConfig();
-        MappedFieldNameFilterConverter fieldNameConverter = new MappedFieldNameFilterConverter();
-        fieldNameConverter.addFieldBitMask(LOCATION_FIELD, LOCATION_BIT_MASK);
-        fieldNameConverter.addFieldBitMask(IMAGE_LOCATION_FIELD, IMAGE_LOCATION_BIT_MASK);
-        geoConfig.setFieldNameFilterConverter(fieldNameConverter);
-        
+        geoConfig.addFieldBitMask(LOCATION_FIELD, LOCATION_BIT_MASK);
+        geoConfig.addFieldBitMask(IMAGE_LOCATION_FIELD, IMAGE_LOCATION_BIT_MASK);
         
         writer = new GeoIndexWriter(directory, config, geoConfig);
     }
     
     public static GeoSearchConfig getGeoSearchConfig() {
         GeoSearchConfig geoConfig = new GeoSearchConfig();
-        MappedFieldNameFilterConverter fieldNameConverter = new MappedFieldNameFilterConverter();
         
-        fieldNameConverter.addFieldBitMask(LOCATION_FIELD, (byte)1);
-        geoConfig.setFieldNameFilterConverter(fieldNameConverter);
+        geoConfig.addFieldBitMask(LOCATION_FIELD, (byte)1);
         
         return geoConfig;
     }

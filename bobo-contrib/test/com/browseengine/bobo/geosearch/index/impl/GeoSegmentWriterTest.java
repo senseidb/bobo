@@ -56,7 +56,6 @@ public class GeoSegmentWriterTest {
         fieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
         
         config.setGeoFileExtension("gto");
-        config.setFieldNameFilterConverter(fieldNameFilterConverter);
         
         treeSet = new TreeSet<GeoRecord>(new Comparator<GeoRecord>() {
 
