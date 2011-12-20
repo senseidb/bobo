@@ -3,7 +3,9 @@
  */
 package com.browseengine.bobo.geosearch.impl;
 
-import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.springframework.stereotype.Component;
 
@@ -27,18 +29,23 @@ public class GeoConverter implements IGeoConverter {
     private static final int INTLENGTH = 32;
     private static final long ONE_AS_LONG = 1L;
     private static final int ONE_AS_INT = 1;
-
-    private IFieldNameFilterConverter fieldNameFilterConverter = new MappedFieldNameFilterConverter();
+    
+    Map<String, Byte> bitmasks = new HashMap<String, Byte>();
     
     @Override
-    @Resource(type = IFieldNameFilterConverter.class)
-    public void setFieldNameFilterConverter(IFieldNameFilterConverter fieldNameFilterConverter) {
-        this.fieldNameFilterConverter = fieldNameFilterConverter;
+    public void addFieldBitMask(String fieldName, byte bitMask) {
+        bitmasks.put(fieldName, bitMask);
     }
     
     @Override
-    public IFieldNameFilterConverter getFieldNameFilterConverter() {
-        return fieldNameFilterConverter;
+    public IFieldNameFilterConverter makeFieldNameFilterConverter() {
+        MappedFieldNameFilterConverter mappedFieldNameFilterConverter = new MappedFieldNameFilterConverter();
+        for (Entry<String, Byte> bitmask : bitmasks.entrySet()) {
+            String fieldName = bitmask.getKey();
+            Byte bitMask = bitmask.getValue();
+            mappedFieldNameFilterConverter.addFieldBitMask(fieldName, bitMask);
+        }
+        return mappedFieldNameFilterConverter;
     }
     
     @Override
@@ -117,7 +124,8 @@ public class GeoConverter implements IGeoConverter {
      * {@inheritDoc}
      */
     @Override
-    public GeoRecord toGeoRecord(String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
+    public GeoRecord toGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
+            String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
         byte filterByte = fieldNameFilterConverter == null ? 
                 GeoRecord.DEFAULT_FILTER_BYTE : 
                 fieldNameFilterConverter.getFilterValue(new String[] {fieldName});
@@ -126,16 +134,16 @@ public class GeoConverter implements IGeoConverter {
     }
 
     @Override
-    public GeoRecord toGeoRecord(byte filterByte, LatitudeLongitudeDocId longitudeLatitudeDocId) {
+    public GeoRecord toGeoRecord(byte filterByte, LatitudeLongitudeDocId latitudeLongitudeDocId) {
         double lng, lat;
         double lngDivisor, latDivisor;
         long lShift;
         int iShift;
         int docPlace;
 
-        lng = longitudeLatitudeDocId.longitude + PIRADIANS; // make (-180, 180]
+        lng = latitudeLongitudeDocId.longitude + PIRADIANS; // make (-180, 180]
                                                             // go to (0, 360]
-        lat = longitudeLatitudeDocId.latitude + (PIRADIANS / 2.0); // make [-90,
+        lat = latitudeLongitudeDocId.latitude + (PIRADIANS / 2.0); // make [-90,
                                                                    // 90] go to
         // [0, 180]
         lngDivisor = PIRADIANS;
@@ -148,7 +156,7 @@ public class GeoConverter implements IGeoConverter {
         docPlace = INTLENGTH - 1;
 
         while (iShift > -1) {
-            if ((longitudeLatitudeDocId.docid & (ONE_AS_INT << docPlace)) == (ONE_AS_INT << docPlace)) {
+            if ((latitudeLongitudeDocId.docid & (ONE_AS_INT << docPlace)) == (ONE_AS_INT << docPlace)) {
                 if (lShift > -1) {
                     hob += (ONE_AS_LONG << lShift);
                     lShift--;

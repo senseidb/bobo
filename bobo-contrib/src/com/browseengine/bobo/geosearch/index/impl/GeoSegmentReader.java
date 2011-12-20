@@ -109,7 +109,9 @@ public class GeoSegmentReader extends BTree<GeoRecord> implements Closeable{
 
     @Override
     public void close() throws IOException {
-        indexInput.close();
+        if (null != indexInput) {
+            indexInput.close();
+        }
     }
 
 }

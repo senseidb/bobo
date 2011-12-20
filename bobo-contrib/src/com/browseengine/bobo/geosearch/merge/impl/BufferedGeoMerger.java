@@ -58,7 +58,7 @@ public class BufferedGeoMerger implements IGeoMerger {
         try {
             assert (readers.size() == segments.size());
             
-            IFieldNameFilterConverter fieldNameFilterConverter = config.getGeoConverter().getFieldNameFilterConverter();
+            IFieldNameFilterConverter fieldNameFilterConverter = config.getGeoConverter().makeFieldNameFilterConverter();
 
             boolean hasFieldNameFilterConverter = false;
             for (SegmentReader reader : readers) {
@@ -73,8 +73,7 @@ public class BufferedGeoMerger implements IGeoMerger {
                 
                 //just take the first fieldNameFilterConverter for now.  Don't worry about merging them.
                 if (!hasFieldNameFilterConverter) {
-                    fieldNameFilterConverter = readFieldNameFilterConverter(directory, geoFileName, fieldNameFilterConverter);
-                    hasFieldNameFilterConverter = null != fieldNameFilterConverter;
+                    hasFieldNameFilterConverter = loadFieldNameFilterConverter(directory, geoFileName, fieldNameFilterConverter);
                 }
             }
             
@@ -103,7 +102,15 @@ public class BufferedGeoMerger implements IGeoMerger {
         }
     }
     
-    protected IFieldNameFilterConverter readFieldNameFilterConverter(Directory directory, String geoFileName,
+    /**
+     * 
+     * @param directory
+     * @param geoFileName
+     * @param fieldNameFilterConverter
+     * @return true iff successful
+     * @throws IOException
+     */
+    protected boolean loadFieldNameFilterConverter(Directory directory, String geoFileName,
             IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
         try {
             DataInput input = directory.openInput(geoFileName);
@@ -113,10 +120,10 @@ public class BufferedGeoMerger implements IGeoMerger {
         
             fieldNameFilterConverter.loadFromInput(input);
         
-            return fieldNameFilterConverter;
+            return true;
         } catch (FileNotFoundException e) {
             LOGGER.warn("suppressing missing geo file pair, treating as no field names: "+e);
-            return null;
+            return false;
         }
     }
 

@@ -51,7 +51,8 @@ public class GeoIndexer implements IGeoIndexer {
         LatitudeLongitudeDocId longLatDocId = new LatitudeLongitudeDocId(coordinate.getLatitude(), 
                 coordinate.getLongitude(), docID);
         
-        GeoRecord geoRecord = geoConverter.toGeoRecord(fieldName, longLatDocId);
+        IFieldNameFilterConverter fieldNameFilterConverter = geoConverter.makeFieldNameFilterConverter();
+        GeoRecord geoRecord = geoConverter.toGeoRecord(fieldNameFilterConverter, fieldName, longLatDocId);
         
         //For now, we need to synchronize this since we can only safely have one thread at a
         //time adding an item to a treeset.  One alternative strategy is to add geoRecords to
@@ -105,9 +106,9 @@ public class GeoIndexer implements IGeoIndexer {
         info.setSegmentName(segmentName);
         
         //now write field -> filterByte mapping info
-        IFieldNameFilterConverter fieldNameConverter = geoConverter.getFieldNameFilterConverter();
-        if (fieldNameConverter != null) {
-            info.setFieldNameFilterConverter(fieldNameConverter);
+        IFieldNameFilterConverter fieldNameFilterConverter = geoConverter.makeFieldNameFilterConverter();
+        if (fieldNameFilterConverter != null) {
+            info.setFieldNameFilterConverter(fieldNameFilterConverter);
         }
         
         return info;

@@ -5,7 +5,6 @@ import javax.annotation.Resource;
 import org.apache.lucene.index.IndexFileNames;
 import org.springframework.stereotype.Component;
 
-import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.IGeoUtil;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
@@ -54,13 +53,13 @@ public class GeoSearchConfig {
         this.geoConverter = geoConverter;
     }
     
-    public void setFieldNameFilterConverter(IFieldNameFilterConverter fieldNameFilterConverter) {
-        geoConverter.setFieldNameFilterConverter(fieldNameFilterConverter);
-    }
-    
     @Resource(type = IGeoUtil.class)
     public void setGeoUtil(IGeoUtil geoUtil) {
         this.geoUtil = geoUtil;
+    }
+    
+    public void addFieldBitMask(String fieldName, byte bitMask) {
+        this.geoConverter.addFieldBitMask(fieldName, bitMask);
     }
     
     public IGeoUtil getGeoUtil() {

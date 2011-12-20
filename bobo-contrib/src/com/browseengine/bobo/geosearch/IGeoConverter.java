@@ -12,8 +12,9 @@ import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
  */
     public interface IGeoConverter {
         LatitudeLongitudeDocId toLongitudeLatitudeDocId(GeoRecord geoRecord);
-        GeoRecord toGeoRecord(String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId);
+        GeoRecord toGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
+                String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId);
         GeoRecord toGeoRecord(byte filterByte, LatitudeLongitudeDocId longitudeLatitudeDocId);
-        void setFieldNameFilterConverter(IFieldNameFilterConverter fieldNameFilterConverter);
-        IFieldNameFilterConverter getFieldNameFilterConverter();
+        IFieldNameFilterConverter makeFieldNameFilterConverter();
+        void addFieldBitMask(String fieldName, byte bitMask);
     }

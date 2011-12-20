@@ -36,7 +36,7 @@ public class GeoUtil implements IGeoUtil {
         GeoConverter gc = new GeoConverter();
         ArrayList<GeoRecord> grl = new ArrayList<GeoRecord>();
         while (lldidIter.hasNext()) {
-            grl.add(gc.toGeoRecord(null, lldidIter.next()));
+            grl.add(gc.toGeoRecord(null, null, lldidIter.next()));
         }
         return grl.iterator();
     }
