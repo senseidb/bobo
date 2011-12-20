@@ -17,3 +17,5 @@ bobo-browse/MANIFEST.MF
 TAGS
 *~
 cscope.*
+bobo-contrib/target/
+
