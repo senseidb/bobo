@@ -14,6 +14,8 @@ particularly for large indexes
 - add refinement step from the paper, for narrowing the boundaries on  
 dense hits sorted by distance
 - fix merge out-of-order condition
-
+- provide cleaner geo index merge and deletion support.  Either via 
+lucene 4.x flexible indexing(when released) or a patch to lucene 3.x
+that provides the appropriate extension points
 
 
