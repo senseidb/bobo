@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
+import com.browseengine.bobo.geosearch.bo.CartesianCoordinate;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
@@ -214,4 +215,47 @@ public class GeoConverter implements IGeoConverter {
         return new GeoRecord(hob, lob, filterByte);
     }
 
+    //This constant is calculated as the 1 - e^2 where 
+    //e^2 = (a^2 - b^2) / a^2 with a = major-axis of the earth and
+    //b = minor axis of the earth.  Calculated with values from WGS84
+    //Geodetic datum.
+    static final double ONE_MINUS_ECCENTRICITY_OF_EARTH = 0.99330562;
+    static final double EARTH_RADIUS_METERS = 6378137.0;
+    static final int EARTH_RADIUS_INTEGER_UNITS = 2140000000;
+    
+    /**
+     * Returns the cartesian coordinates for a given latitude and longitude.  This method
+     * scales the results so that the 
+     */
+    @Override
+    public CartesianCoordinate toCartesianCoordinate(double latitude, double longitude) {
+        double latRadians = degreesToRadians(latitude);
+        double longRadians =  degreesToRadians(longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
+        
+        return new CartesianCoordinate(x, y, z);
+    }
+
+    private double degreesToRadians(double degrees)
+    {
+      return (degrees * (Math.PI / 180));
+    }
+    
+    private int getXFromRadians(double latRadians, double longRadians)
+    {
+      return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
+    }
+
+    private int getYFromRadians(double latRadians, double longRadians)
+    {
+      return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
+    }
+
+    private static int getZFromRadians(double latRadians)
+    {
+      return (int) (EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
+    }
+    
 }
