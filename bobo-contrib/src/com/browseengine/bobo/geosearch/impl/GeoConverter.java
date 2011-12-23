@@ -266,41 +266,44 @@ public class GeoConverter implements IGeoConverter {
         int z = coordinate.z;
         
         long highOrderBits = 0;
-        int highOrderPosition = LONGLENGTH - 1;
+        int highOrderPosition = LONGLENGTH - 2;
         
         //first divide on the sign bit
         if (x < 0) {
-            x = -x;
+            x = x + Integer.MIN_VALUE;
+        } else {
             highOrderBits += (ONE_AS_LONG << highOrderPosition);
         }
         highOrderPosition--;
         
         if (y < 0) {
-            y = -y;
+            y = y + Integer.MIN_VALUE;
+        } else {
             highOrderBits += (ONE_AS_LONG << highOrderPosition);
-        } 
+        }
         highOrderPosition--;
         
         if (z < 0) {
-            z = -z;
+            z = z + Integer.MIN_VALUE;
+        } else {
             highOrderBits += (ONE_AS_LONG << highOrderPosition);
-        } 
+        }
         highOrderPosition--;
 
         //now interlace the rest
-        int xPos = INTLENGTH - 1;
-        int yPos = INTLENGTH - 1;
-        int zPos = INTLENGTH - 1;
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
         
-        highOrderBits = interlaceToLong(x, INTLENGTH - 1, highOrderBits, highOrderPosition, 3);
-        xPos -= highOrderBits / 3;
-        highOrderBits = interlaceToLong(y, INTLENGTH - 1, highOrderBits, highOrderPosition--, 3);
-        yPos -= highOrderBits / 3;
-        highOrderBits = interlaceToLong(z, INTLENGTH - 1, highOrderBits, highOrderPosition--, 3);
-        zPos -= highOrderBits / 3;
+        highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 3);
+        xPos -= (highOrderPosition + 3) / 3;
+        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
+        yPos -= (highOrderPosition + 3) / 3;
+        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
+        zPos -= (highOrderPosition + 3) / 3;
         
         int lowOrderBits = 0;
-        int lowOrderPosition = INTLENGTH - 1;
+        int lowOrderPosition = INTLENGTH - 2;
         lowOrderBits = interlaceToInteger(x, xPos, lowOrderBits, lowOrderPosition, 3);
         lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, lowOrderPosition--, 3);
         lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, lowOrderPosition--, 3);
