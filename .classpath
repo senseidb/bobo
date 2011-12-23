@@ -7,11 +7,6 @@
 	<classpathentry kind="src" path="bobo-browse/src"/>
 	<classpathentry kind="src" path="bobo-service/src"/>
 	<classpathentry kind="src" path="test/src"/>
-	<classpathentry excluding="src/" kind="src" path="bobo-bench"/>
-	<classpathentry excluding="src/" kind="src" path="bobo-browse"/>
-	<classpathentry excluding="src/" kind="src" path="bobo-perf"/>
-	<classpathentry excluding="src/" kind="src" path="bobo-service"/>
-	<classpathentry excluding="src/" kind="src" path="bobo-solr"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-cli.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-collections.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/commons-digester.jar"/>
@@ -33,21 +28,12 @@
 	<classpathentry exported="true" kind="lib" path="lib/solr/solr-core.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/solr/solr-solrj.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/master/ant.jar"/>
+	<classpathentry kind="lib" path="lib/master/zoie-2.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/solr/commons-codec.jar"/>
 	<classpathentry kind="lib" path="lib/solr/slf4j-api.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/master/kamikaze.jar"/>
 	<classpathentry kind="lib" path="lib/master/protobuf-java.jar"/>
 	<classpathentry kind="lib" path="lib/master/lucene-core.jar"/>
-	<classpathentry kind="lib" path="lib/master/zoie-core-3.1.0.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/cglib-nodep-2.2.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/commons-io-1.4.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/hamcrest-library-1.1.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/jmock-2.5.1.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/jmock-junit4-2.5.1.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/jmock-legacy-2.5.1.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/lucene-core-3.5-LUCENE-3627.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/objenesis-1.0.jar"/>
-	<classpathentry kind="lib" path="bobo-contrib/lib/spring-test-3.0.5.RELEASE.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
