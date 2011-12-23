@@ -14,6 +14,7 @@ import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinate;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 
 /**
  * This is the GeoSearch POJO-in, POJO-out converter that handles bit
@@ -214,7 +215,7 @@ public class GeoConverter implements IGeoConverter {
 
         return new GeoRecord(hob, lob, filterByte);
     }
-
+    
     //This constant is calculated as the 1 - e^2 where 
     //e^2 = (a^2 - b^2) / a^2 with a = major-axis of the earth and
     //b = minor axis of the earth.  Calculated with values from WGS84
@@ -257,5 +258,75 @@ public class GeoConverter implements IGeoConverter {
     {
       return (int) (EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
     }
+
+    @Override
+    public IDGeoRecord toIDGeoRecord(CartesianCoordinate coordinate, byte[] id) {
+        int x = coordinate.x;
+        int y = coordinate.y;
+        int z = coordinate.z;
+        
+        long highOrderBits = 0;
+        int highOrderPosition = LONGLENGTH - 1;
+        
+        //first divide on the sign bit
+        if (x < 0) {
+            x = -x;
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        
+        if (y < 0) {
+            y = -y;
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        } 
+        highOrderPosition--;
+        
+        if (z < 0) {
+            z = -z;
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        } 
+        highOrderPosition--;
+
+        //now interlace the rest
+        int xPos = INTLENGTH - 1;
+        int yPos = INTLENGTH - 1;
+        int zPos = INTLENGTH - 1;
+        
+        highOrderBits = interlaceToLong(x, INTLENGTH - 1, highOrderBits, highOrderPosition, 3);
+        xPos -= highOrderBits / 3;
+        highOrderBits = interlaceToLong(y, INTLENGTH - 1, highOrderBits, highOrderPosition--, 3);
+        yPos -= highOrderBits / 3;
+        highOrderBits = interlaceToLong(z, INTLENGTH - 1, highOrderBits, highOrderPosition--, 3);
+        zPos -= highOrderBits / 3;
+        
+        int lowOrderBits = 0;
+        int lowOrderPosition = INTLENGTH - 1;
+        lowOrderBits = interlaceToInteger(x, xPos, lowOrderBits, lowOrderPosition, 3);
+        lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, lowOrderPosition--, 3);
+        lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, lowOrderPosition--, 3);
+
+        return new IDGeoRecord(highOrderBits, lowOrderBits, id);
+    }
     
+    private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
+            int countOfValuesToInterlace) {
+        while (longBitPosition > -1 && inputBitPosition > -1) {
+            longValue += inputValue & (ONE_AS_INT << inputBitPosition); 
+            longBitPosition -= countOfValuesToInterlace;
+            inputBitPosition--;
+        }
+        
+        return longValue;
+    }
+    
+    private int interlaceToInteger(int inputValue, int inputBitPosition, 
+            int integerValue, int integerBitPosition, int countOfValuesToInterlace) {
+        while (integerBitPosition > -1 && inputBitPosition > -1) {
+            integerValue += inputValue & (ONE_AS_INT << inputBitPosition); 
+            integerBitPosition -= countOfValuesToInterlace;
+            inputBitPosition--;
+        }
+        
+        return integerValue;
+    }
 }

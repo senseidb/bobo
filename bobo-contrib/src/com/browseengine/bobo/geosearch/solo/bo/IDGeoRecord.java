@@ -17,6 +17,11 @@ public class IDGeoRecord {
         new GeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
     
     public IDGeoRecord(long highOrder, int lowOrder, byte[] id) {
+        if (highOrder < 0L || lowOrder < 0) {
+            throw new RuntimeException("GeoRecord(" + highOrder + ", " + lowOrder 
+                    + ", " + id + "): only supports positive highOrder and lowOrder");
+        }
+        
         this.highOrder = highOrder;
         this.lowOrder = lowOrder;
         this.id = id;

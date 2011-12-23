@@ -83,4 +83,12 @@ public class GeoConverterTest {
         assertEquals("Unequal Y coordinate", expectedY, coord.y);
         assertEquals("Unequal Z coordinate", expectedZ, coord.z);
     }
+    
+//    @Test
+//    public void testToIDGeoRecord_XCoord_LargeDelta() {
+//        int z = 0;
+//        int y = 0;
+//        
+//        TreeSet<E>
+//    }
 }
