@@ -389,22 +389,14 @@ public class BoboIndexReader extends FilterIndexReader
     }
   }
   
-  private void loadFacetHandlers(WorkArea workArea, Set<String> toBeRemoved)
+  private void loadFacetHandlers(WorkArea workArea, Set<String> toBeRemoved) throws IOException
   {
     Set<String> loaded = new HashSet<String>();
     Set<String> visited = new HashSet<String>();
 
     for(String name : _facetHandlerMap.keySet())
     {
-      try
-      {
-        loadFacetHandler(name, loaded, visited, workArea);
-      }
-      catch (Exception ioe)
-      {
-        toBeRemoved.add(name);
-        logger.error("facet load failed: " + name + ": " + ioe.getMessage(), ioe);
-      }
+      loadFacetHandler(name, loaded, visited, workArea);
     }
 
     for(String name : toBeRemoved)

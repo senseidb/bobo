@@ -211,20 +211,19 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
         continue;
       }
       RuntimeFacetHandlerFactory<FacetHandlerInitializerParam,?> factory = (RuntimeFacetHandlerFactory<FacetHandlerInitializerParam, ?>) _runtimeFacetHandlerFactoryMap.get(facetName);
-      FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
-      if(data != null)
-      {
-        RuntimeFacetHandler<?> facetHandler =  factory.get(data);
-        _runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
+      
         try
         {
+
+          FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
+          RuntimeFacetHandler<?> facetHandler =  factory.get(data);
+          _runtimeFacetHandlers.add(facetHandler); // add to a list so we close them after search
           this.setFacetHandler(facetHandler);
         }
         catch (IOException e)
         {
-          logger.error("error trying to set FacetHandler : " + facetHandler+":"+e.getMessage(),e);
+          logger.error("error trying to set FacetHandler : " + facetName+":"+e.getMessage(),e);
         }
-      }
     }
     // done initialize all RuntimeFacetHandlers with data supplied by user at run-time.
 
