@@ -1,11 +1,14 @@
 package com.browseengine.bobo.geosearch.index.impl;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexOutput;
+import org.apache.lucene.store.RAMDirectory;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
@@ -24,6 +27,7 @@ import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
@@ -57,6 +61,8 @@ public class GeoIndexerTest {
     IGeoConverter mockConverter;
     IFieldNameFilterConverter mockFieldNameFilterConverter;
     
+    GeoIndexer geoIndexerNoMocks;
+    
     @Before
     public void setUp() {
         directory = context.mock(Directory.class);
@@ -69,6 +75,8 @@ public class GeoIndexerTest {
         mockFieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
         
         geoIndexer = new GeoIndexer(config);
+        
+        geoIndexerNoMocks = new GeoIndexer(new GeoSearchConfig());
     }
     
     @After
@@ -119,13 +127,13 @@ public class GeoIndexerTest {
             final GeoCoordinate geoCoordinate = new GeoCoordinate(latitude, longitude);
             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
             
-            index(docId, field);
+            indexWithMocks(docId, field);
         }
         
         doFlushAndTest(docsToAdd, locationFieldDocs);
     }
     
-    private void index(int docId, GeoCoordinateField field) {
+    private void indexWithMocks(int docId, GeoCoordinateField field) {
         // because of a mockFieldNameFilterConverter, there are no registered fields.  we always use the default filterByte.
         final byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
 
@@ -148,7 +156,6 @@ public class GeoIndexerTest {
         });
         
         geoIndexer.index(docId, field);
-
     }
 
     @Test
@@ -167,7 +174,7 @@ public class GeoIndexerTest {
             
             GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-            index(docId, field);
+            indexWithMocks(docId, field);
         }
         
         doFlushAndTest(docsToAdd, locationFieldDocs);
@@ -175,11 +182,10 @@ public class GeoIndexerTest {
     
     @Test
     public void testIndexAndFlush_multipleThreads() throws InterruptedException, IOException {
-        final int docsToAddPerThread = 10;
-        final int locationFieldDocsPerThread = 5;
-        final int numThreads = 10;
+        Directory ramDirectory = new RAMDirectory();
         
-        addIgnoreFieldNameConverterExpectation();
+        final int docsToAddPerThread = 10;
+        final int numThreads = 10;
         
         final CountDownLatch latch = new CountDownLatch(numThreads);
         for (int i=0; i < numThreads; i++) {
@@ -190,11 +196,11 @@ public class GeoIndexerTest {
                         for (int i=0; i<docsToAddPerThread; i++) {
                             float lattitide = (float)Math.random();
                             float longitude = (float)Math.random();
-                            String fieldName = i < locationFieldDocsPerThread ? locationField : unmappedLocation;
+                            String fieldName = unmappedLocation;
                             
                             GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
                             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-                            index(i, field);
+                            geoIndexerNoMocks.index(i, field);
                         }
                     } finally {
                         latch.countDown();
@@ -207,10 +213,25 @@ public class GeoIndexerTest {
         }
         
         latch.await(500, TimeUnit.MILLISECONDS);
+        assertEquals("not all threads compeleted", 0, latch.getCount());
         
-        doFlushAndTest(docsToAddPerThread * numThreads, locationFieldDocsPerThread * numThreads);
+        geoIndexerNoMocks.flush(ramDirectory, segmentName);
+        
+        readAndVerifyGeoIndex(ramDirectory, segmentName, 
+                docsToAddPerThread * numThreads);
     }
     
+    private void readAndVerifyGeoIndex(Directory directory, String segmentName,
+            int totalDocs) throws IOException {
+        String geoFileName = config.getGeoFileName(segmentName);
+        
+        BTree<GeoRecord> segmentBTree = 
+            new GeoSegmentReader(directory, geoFileName, -1, 500);
+        
+        assertEquals("Incorrect number of documents in geo index", totalDocs, 
+                segmentBTree.getArrayLength());
+    }
+
     /**
      * WARNING TO FUTURE DEVELOPERS:  This test will fail if docsToAdd is > 127.  The issue is that
      * writeVInt in IndexOutput is final and cannot be mocked correctly.  It looks to me like JMock
@@ -297,7 +318,7 @@ public class GeoIndexerTest {
             
             GeoCoordinate geoCoordinate = new GeoCoordinate(lattitide, longitude);
             GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
-            index(docId, field);
+            indexWithMocks(docId, field);
         }
         
         geoIndexer.abort();
