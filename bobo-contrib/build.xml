@@ -4,7 +4,7 @@
   <property name="src.dir" value="src" />
   <property name="lucene-patch.src.dir" value="lucene-patch" />
   <property name="target.dir" value="target" />
-  <property name="revision" value="0.1" />
+  <property name="revision" value="0.2" />
   <property name="git.revision" value="123" />
   <property name="jar.name" value="bobo-contrib" />
   <property name="lucene-patch.jar.name" value="lucene-patch" />
