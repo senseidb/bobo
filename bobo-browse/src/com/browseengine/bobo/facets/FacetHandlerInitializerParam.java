@@ -4,6 +4,7 @@
 package com.browseengine.bobo.facets;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +15,81 @@ import java.util.Set;
  */
 public abstract class FacetHandlerInitializerParam implements Serializable
 {
+  public static final FacetHandlerInitializerParam EMPTY_PARAM = new FacetHandlerInitializerParam()
+  {
+    @Override
+    public List<String> getStringParam(String name)
+    {
+      return null;
+    }
+
+    @Override
+    public int[] getIntParam(String name)
+    {
+      return null;
+    }
+
+    @Override
+    public boolean[] getBooleanParam(String name)
+    {
+      return null;
+    }
+
+    @Override
+    public long[] getLongParam(String name)
+    {
+      return null;
+    }
+
+    @Override
+    public byte[] getByteArrayParam(String name)
+    {
+      return null;
+    }
+
+    @Override
+    public double[] getDoubleParam(String name)
+    {
+      return null;
+    }
+
+    @Override
+    public Set<String> getBooleanParamNames()
+    {
+      return Collections.EMPTY_SET;
+    }
+
+    @Override
+    public Set<String> getStringParamNames()
+    {
+      return Collections.EMPTY_SET;
+    }
+
+    @Override
+    public Set<String> getIntParamNames()
+    {
+      return Collections.EMPTY_SET;
+    }
+
+    @Override
+    public Set<String> getByteArrayParamNames()
+    {
+      return Collections.EMPTY_SET;
+    }
+
+    @Override
+    public Set<String> getLongParamNames()
+    {
+      return Collections.EMPTY_SET;
+    }
+
+    @Override
+    public Set<String> getDoubleParamNames()
+    {
+      return Collections.EMPTY_SET;
+    }
+  };
+
   /**
    * 
    */
