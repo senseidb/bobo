@@ -298,16 +298,16 @@ public class GeoConverter implements IGeoConverter {
         
         highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 3);
         xPos -= (highOrderPosition / 3) + 1;
-        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
+        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 3);
         yPos -= (highOrderPosition / 3) + 1;
-        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
+        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 3);
         zPos -= (highOrderPosition / 3) + 1;
         
         int lowOrderBits = 0;
         int lowOrderPosition = INTLENGTH - 2;
         lowOrderBits = interlaceToInteger(x, xPos, lowOrderBits, lowOrderPosition, 3);
-        lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, lowOrderPosition--, 3);
-        lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, lowOrderPosition--, 3);
+        lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, --lowOrderPosition, 3);
+        lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, --lowOrderPosition, 3);
 
         return new IDGeoRecord(highOrderBits, lowOrderBits, id);
     }
@@ -315,7 +315,9 @@ public class GeoConverter implements IGeoConverter {
     private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
             int interlaceInterval) {
         while (longBitPosition > -1 && inputBitPosition > -1) {
-            longValue += inputValue & (ONE_AS_INT << inputBitPosition); 
+            if ((inputValue & (ONE_AS_INT << inputBitPosition)) != 0) {
+                longValue += ONE_AS_LONG << longBitPosition;
+            }
             longBitPosition -= interlaceInterval;
             inputBitPosition--;
         }
@@ -326,13 +328,15 @@ public class GeoConverter implements IGeoConverter {
     private int interlaceToInteger(int inputValue, int inputBitPosition, 
             int integerValue, int integerBitPosition, int interlaceInterval) {
         while (integerBitPosition > -1 && inputBitPosition > -1) {
-            integerValue += inputValue & (ONE_AS_INT << inputBitPosition); 
+            if ((inputValue & (ONE_AS_INT << inputBitPosition)) != 0) {
+                integerValue += ONE_AS_INT << integerBitPosition;
+            }
             integerBitPosition -= interlaceInterval;
             inputBitPosition--;
         }
         
         return integerValue;
-    }
+    }   
 
     @Override
     public CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord) {
@@ -351,16 +355,16 @@ public class GeoConverter implements IGeoConverter {
         //uninterlace high order bits
         x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, highOrderPosition, dimensions);
         xPos -= (highOrderPosition / dimensions) + 1;
-        y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, highOrderPosition--, dimensions);
+        y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, --highOrderPosition, dimensions);
         yPos -= (highOrderPosition / dimensions) + 1;
-        z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, highOrderPosition--, dimensions);
+        z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, --highOrderPosition, dimensions);
         zPos -= (highOrderPosition / dimensions) + 1;
         
         //uninterlace low order bits
         int lowOrderPosition = INTLENGTH - 2;
         x = unInterlaceFromInt(x, xPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
-        y = unInterlaceFromInt(y, yPos, geoRecord.lowOrder, lowOrderPosition--, dimensions);
-        z = unInterlaceFromInt(z, zPos, geoRecord.lowOrder, lowOrderPosition--, dimensions);
+        y = unInterlaceFromInt(y, yPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        z = unInterlaceFromInt(z, zPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
         
         highOrderPosition = LONGLENGTH - 2;
         //uninterlace sign bit
@@ -370,12 +374,12 @@ public class GeoConverter implements IGeoConverter {
         highOrderPosition--;
         
         if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
-            y = y + Integer.MIN_VALUE;
+            y = y - Integer.MIN_VALUE;
         } 
         highOrderPosition--;
         
         if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
-            z = z + Integer.MIN_VALUE;
+            z = z - Integer.MIN_VALUE;
         } 
         highOrderPosition--;
 
@@ -385,7 +389,9 @@ public class GeoConverter implements IGeoConverter {
     private int unInterlaceFromLong(int outputValue, int outputBitPos, long longValue, int longBitPosition, 
             int interlaceInterval) {
         while (longBitPosition > -1 && outputBitPos > -1) {
-            outputValue += longValue & (ONE_AS_INT << longBitPosition); 
+            if ((longValue & (ONE_AS_LONG << longBitPosition)) != 0) {
+                outputValue += ONE_AS_INT << outputBitPos; 
+            }
             longBitPosition -= interlaceInterval;
             outputBitPos--;
         }
@@ -396,7 +402,9 @@ public class GeoConverter implements IGeoConverter {
     private int unInterlaceFromInt(int outputValue, int outputBitPos, int intValue, int intBitPosition, 
             int interlaceInterval) {
         while (intBitPosition > -1 && outputBitPos > -1) {
-            outputValue += intValue & (ONE_AS_INT << intBitPosition); 
+            if ((intValue & (ONE_AS_INT << intBitPosition)) != 0) {
+                outputValue += ONE_AS_INT << outputBitPos; 
+            } 
             intBitPosition -= interlaceInterval;
             outputBitPos--;
         }

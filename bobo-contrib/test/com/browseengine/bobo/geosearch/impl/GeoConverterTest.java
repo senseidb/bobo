@@ -263,7 +263,7 @@ public class GeoConverterTest {
     }
     
     @Test
-    public void testInterlaceThenUninterlace() {
+    public void testInterlaceThenUninterlace_LargeRange() {
         int totalCoordinates = 10000;
         int startX = Integer.MIN_VALUE;
         int deltaX = 2 * (Integer.MAX_VALUE / totalCoordinates);
@@ -274,6 +274,86 @@ public class GeoConverterTest {
         
         interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
                 startZ, deltaZ, totalCoordinates);
+    }
+    
+    @Test
+    public void testInterlaceThenUninterlace_SmallRange() {
+        int totalCoordinates = 100;
+        int startX = -50;
+        int deltaX = 1;
+        int startY = -50;
+        int deltaY = 1;
+        int startZ = -50;
+        int deltaZ = 1;
+        
+        interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                startZ, deltaZ, totalCoordinates);
+    }
+    
+    @Test
+    public void testInterlaceThenUninterlace_EveryPowerOfTwo_XOnly() {
+        int totalCoordinates = 1;
+        int startX = Integer.MIN_VALUE;
+        int deltaX = 0;
+        int startY = Integer.MIN_VALUE;
+        int deltaY = 0;
+        int startZ = Integer.MIN_VALUE;
+        int deltaZ = 0;
+        
+        for (int i=0; i < 31; i++) {
+            startX = 2^i;
+            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                    startZ, deltaZ, totalCoordinates);
+            
+            startX = 2^i + Integer.MIN_VALUE;
+            
+            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                    startZ, deltaZ, totalCoordinates);
+        }
+    }
+    
+    @Test
+    public void testInterlaceThenUninterlace_EveryPowerOfTwo_YOnly() {
+        int totalCoordinates = 1;
+        int startX = Integer.MIN_VALUE;
+        int deltaX = 0;
+        int startY = Integer.MIN_VALUE;
+        int deltaY = 0;
+        int startZ = Integer.MIN_VALUE;
+        int deltaZ = 0;
+        
+        for (int i=0; i < 31; i++) {
+            startY = 2^i;
+            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                    startZ, deltaZ, totalCoordinates);
+            
+            startY = 2^i + Integer.MIN_VALUE;
+            
+            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                    startZ, deltaZ, totalCoordinates);
+        }
+    }
+    
+    @Test
+    public void testInterlaceThenUninterlace_EveryPowerOfTwo_ZOnly() {
+        int totalCoordinates = 1;
+        int startX = Integer.MIN_VALUE;
+        int deltaX = 0;
+        int startY = Integer.MIN_VALUE;
+        int deltaY = 0;
+        int startZ = Integer.MIN_VALUE;
+        int deltaZ = 0;
+        
+        for (int i=0; i < 31; i++) {
+            startZ = 2^i;
+            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                    startZ, deltaZ, totalCoordinates);
+            
+            startZ = 2^i + Integer.MIN_VALUE;
+            
+            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                    startZ, deltaZ, totalCoordinates);
+        }
     }
     
     private void interlaceAndUninterlace(int startX, int deltaX, int startY, int deltaY, int startZ, int deltaZ,
@@ -293,9 +373,9 @@ public class GeoConverterTest {
             assertTrue("x should not change: expected=" + expectedCoordinate.x + "; actual=" + 
                     actualCoordinate.x, expectedCoordinate.x - actualCoordinate.x == 0);
             assertTrue("y should not change by more than 1: expected=" + expectedCoordinate.y + "; actual=" + 
-                    actualCoordinate.y, Math.abs(expectedCoordinate.y - actualCoordinate.y) < 1);
+                    actualCoordinate.y, Math.abs(expectedCoordinate.y - actualCoordinate.y) <= 1);
             assertTrue("z should not change by more than 1: expected=" + expectedCoordinate.z + "; actual=" + 
-                    actualCoordinate.z, Math.abs(expectedCoordinate.z - actualCoordinate.z) < 1);
+                    actualCoordinate.z, Math.abs(expectedCoordinate.z - actualCoordinate.z) <= 1);
         }
     }
 
