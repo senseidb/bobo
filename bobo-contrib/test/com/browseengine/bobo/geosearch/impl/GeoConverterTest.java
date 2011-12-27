@@ -260,4 +260,8 @@ public class GeoConverterTest {
             i++;
         }
     }
+    
+    public enum Dimension {
+        X, Y, Z;
+    }
 }

@@ -2,19 +2,17 @@ package com.browseengine.bobo.geosearch.solo.bo;
 
 import java.util.Arrays;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
-
 public class IDGeoRecord {
     public final long highOrder;
     public final int lowOrder;
     
     public final byte[] id;
     
-    public static final GeoRecord MIN_VALID_GEORECORD = 
-        new GeoRecord(0, 0, GeoRecord.DEFAULT_FILTER_BYTE);
+    public static final IDGeoRecord MIN_VALID_GEORECORD = 
+        new IDGeoRecord(0, 0, new byte[0]);
     
-    public static final GeoRecord MAX_VALID_GEORECORD = 
-        new GeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
+    public static final IDGeoRecord MAX_VALID_GEORECORD = 
+        new IDGeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, new byte[0]);
     
     public IDGeoRecord(long highOrder, int lowOrder, byte[] id) {
         if (highOrder < 0L || lowOrder < 0) {

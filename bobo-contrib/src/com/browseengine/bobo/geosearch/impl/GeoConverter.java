@@ -296,11 +296,11 @@ public class GeoConverter implements IGeoConverter {
         int zPos = INTLENGTH - 2;
         
         highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 3);
-        xPos -= (highOrderPosition + 3) / 3;
+        xPos -= (highOrderPosition / 3) + 1;
         highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
-        yPos -= (highOrderPosition + 3) / 3;
+        yPos -= (highOrderPosition / 3) + 1;
         highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
-        zPos -= (highOrderPosition + 3) / 3;
+        zPos -= (highOrderPosition / 3) + 1;
         
         int lowOrderBits = 0;
         int lowOrderPosition = INTLENGTH - 2;
@@ -312,10 +312,10 @@ public class GeoConverter implements IGeoConverter {
     }
     
     private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
-            int countOfValuesToInterlace) {
+            int interlaceInterval) {
         while (longBitPosition > -1 && inputBitPosition > -1) {
             longValue += inputValue & (ONE_AS_INT << inputBitPosition); 
-            longBitPosition -= countOfValuesToInterlace;
+            longBitPosition -= interlaceInterval;
             inputBitPosition--;
         }
         
@@ -323,10 +323,10 @@ public class GeoConverter implements IGeoConverter {
     }
     
     private int interlaceToInteger(int inputValue, int inputBitPosition, 
-            int integerValue, int integerBitPosition, int countOfValuesToInterlace) {
+            int integerValue, int integerBitPosition, int interlaceInterval) {
         while (integerBitPosition > -1 && inputBitPosition > -1) {
             integerValue += inputValue & (ONE_AS_INT << inputBitPosition); 
-            integerBitPosition -= countOfValuesToInterlace;
+            integerBitPosition -= interlaceInterval;
             inputBitPosition--;
         }
         
