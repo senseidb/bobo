@@ -1,6 +1,7 @@
 package com.browseengine.bobo.geosearch.impl;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -261,6 +262,43 @@ public class GeoConverterTest {
         }
     }
     
+    @Test
+    public void testInterlaceThenUninterlace() {
+        int totalCoordinates = 10000;
+        int startX = Integer.MIN_VALUE;
+        int deltaX = 2 * (Integer.MAX_VALUE / totalCoordinates);
+        int startY = Integer.MIN_VALUE;
+        int deltaY = 2 * (Integer.MAX_VALUE / totalCoordinates);
+        int startZ = Integer.MIN_VALUE;
+        int deltaZ = 2 * (Integer.MAX_VALUE / totalCoordinates);
+        
+        interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
+                startZ, deltaZ, totalCoordinates);
+    }
+    
+    private void interlaceAndUninterlace(int startX, int deltaX, int startY, int deltaY, int startZ, int deltaZ,
+            int totalCoordinates) {
+        for (int i = 0; i < totalCoordinates; i++) {
+            int x = startX + i * deltaX;
+            int y = startY + i * deltaY;
+            int z = startZ + i * deltaZ;
+            byte[] id = Integer.toString(i).getBytes();
+            
+            CartesianCoordinateUUID expectedCoordinate = new CartesianCoordinateUUID(x, y, z, id);
+            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(expectedCoordinate, id);
+            
+            CartesianCoordinateUUID actualCoordinate = geoConverter.toCartesianCoordinate(geoRecord);
+
+            assertEquals("UUID should not change", expectedCoordinate.uuid, actualCoordinate.uuid);
+            assertTrue("x should not change: expected=" + expectedCoordinate.x + "; actual=" + 
+                    actualCoordinate.x, expectedCoordinate.x - actualCoordinate.x == 0);
+            assertTrue("y should not change by more than 1: expected=" + expectedCoordinate.y + "; actual=" + 
+                    actualCoordinate.y, Math.abs(expectedCoordinate.y - actualCoordinate.y) < 1);
+            assertTrue("z should not change by more than 1: expected=" + expectedCoordinate.z + "; actual=" + 
+                    actualCoordinate.z, Math.abs(expectedCoordinate.z - actualCoordinate.z) < 1);
+        }
+    }
+
     public enum Dimension {
         X, Y, Z;
     }
