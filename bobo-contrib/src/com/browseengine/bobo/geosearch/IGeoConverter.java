@@ -3,7 +3,7 @@
  */
 package com.browseengine.bobo.geosearch;
 
-import com.browseengine.bobo.geosearch.bo.CartesianCoordinate;
+import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
@@ -20,6 +20,8 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         IFieldNameFilterConverter makeFieldNameFilterConverter();
         void addFieldBitMask(String fieldName, byte bitMask);
         
-        CartesianCoordinate toCartesianCoordinate(double latitude, double longitude);
-        IDGeoRecord toIDGeoRecord(CartesianCoordinate coordinate, byte[] id);
+        CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid);
+        IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate, byte[] id);
+        CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord);
+        
     }

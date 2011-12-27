@@ -9,7 +9,7 @@ import java.util.TreeSet;
 import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.IGeoConverter;
-import com.browseengine.bobo.geosearch.bo.CartesianCoordinate;
+import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
 
@@ -35,55 +35,55 @@ public class GeoConverterTest {
     public void testToCartesianCoordinates() {
         double latitude;
         double longitude;
-        CartesianCoordinate coord;
+        CartesianCoordinateUUID coord;
         
         latitude = 0;
         longitude = 0;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
         
         latitude = 0;
         longitude = 180;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, -GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
         
         latitude = 90;
         longitude = 0;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, 0, 0, 2125674026);
         
         latitude = -90;
         longitude = 0;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, 0, 0, -2125674026);
         
         latitude = 0;
         longitude = 90;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, 0, GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0);
         
         latitude = 0;
         longitude = -90;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, 0, -GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0);
         
         latitude = 86;
         longitude = 165;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, -144192300, 38636210, 2120495991);
         
         latitude = 52.65757030139;
         longitude = 1.7179215810;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, 1297492004, 38914868, 1689962941);
         
         latitude = -2.5;
         longitude = 96.25;
-        coord = geoConverter.toCartesianCoordinate(latitude, longitude);
+        coord = geoConverter.toCartesianCoordinate(latitude, longitude, new byte[0]);
         assertCoordinateMatches(coord, -232753371, 2125255864, -92720598);
     }
     
-    private void assertCoordinateMatches(CartesianCoordinate coord, int expectedX, int expectedY, 
+    private void assertCoordinateMatches(CartesianCoordinateUUID coord, int expectedX, int expectedY, 
             int expectedZ) {
         assertEquals("Unequal X coordinate", expectedX, coord.x);
         assertEquals("Unequal Y coordinate", expectedY, coord.y);
@@ -239,7 +239,7 @@ public class GeoConverterTest {
             int x = startX + i * deltaX;
             int y = startY + i * deltaY;
             int z = startZ + i * deltaZ;
-            CartesianCoordinate coordinate = new CartesianCoordinate(x, y, z);
+            CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(x, y, z, new byte[0]);
             
             byte[] id = Integer.toString(i).getBytes();
             IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(coordinate, id);

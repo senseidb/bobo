@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
-import com.browseengine.bobo.geosearch.bo.CartesianCoordinate;
+import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
@@ -22,6 +22,7 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
  * 
  * @author Shane Detsch
  * @author Ken McCracken
+ * @author Geoff Cooney
  * 
  */
 @Component
@@ -229,14 +230,14 @@ public class GeoConverter implements IGeoConverter {
      * scales the results so that the 
      */
     @Override
-    public CartesianCoordinate toCartesianCoordinate(double latitude, double longitude) {
+    public CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid) {
         double latRadians = degreesToRadians(latitude);
         double longRadians =  degreesToRadians(longitude);
         int x = getXFromRadians(latRadians, longRadians);
         int y = getYFromRadians(latRadians, longRadians);
         int z = getZFromRadians(latRadians);
         
-        return new CartesianCoordinate(x, y, z);
+        return new CartesianCoordinateUUID(x, y, z, uuid);
     }
 
     private double degreesToRadians(double degrees)
@@ -260,7 +261,7 @@ public class GeoConverter implements IGeoConverter {
     }
 
     @Override
-    public IDGeoRecord toIDGeoRecord(CartesianCoordinate coordinate, byte[] id) {
+    public IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate, byte[] id) {
         int x = coordinate.x;
         int y = coordinate.y;
         int z = coordinate.z;
@@ -331,5 +332,11 @@ public class GeoConverter implements IGeoConverter {
         }
         
         return integerValue;
+    }
+
+    @Override
+    public CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
