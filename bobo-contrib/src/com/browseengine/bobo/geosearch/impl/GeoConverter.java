@@ -336,7 +336,71 @@ public class GeoConverter implements IGeoConverter {
 
     @Override
     public CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord) {
-        // TODO Auto-generated method stub
-        return null;
+        int x = 0;
+        int y = 0;
+        int z = 0;
+        int dimensions = 3;
+        
+        int highOrderPosition = LONGLENGTH - 2 - dimensions;
+        
+        //now interlace the rest
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
+        
+        //uninterlace high order bits
+        x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, highOrderPosition, dimensions);
+        xPos -= (highOrderPosition / dimensions) + 1;
+        y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, highOrderPosition--, dimensions);
+        yPos -= (highOrderPosition / dimensions) + 1;
+        z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, highOrderPosition--, dimensions);
+        zPos -= (highOrderPosition / dimensions) + 1;
+        
+        //uninterlace low order bits
+        int lowOrderPosition = INTLENGTH - 2;
+        x = unInterlaceFromInt(x, xPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
+        y = unInterlaceFromInt(y, yPos, geoRecord.lowOrder, lowOrderPosition--, dimensions);
+        z = unInterlaceFromInt(z, zPos, geoRecord.lowOrder, lowOrderPosition--, dimensions);
+        
+        highOrderPosition = LONGLENGTH - 2;
+        //uninterlace sign bit
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            x = x - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            y = y + Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            z = z + Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+
+        return new CartesianCoordinateUUID(x, y, z, geoRecord.id);
+    }
+
+    private int unInterlaceFromLong(int outputValue, int outputBitPos, long longValue, int longBitPosition, 
+            int interlaceInterval) {
+        while (longBitPosition > -1 && outputBitPos > -1) {
+            outputValue += longValue & (ONE_AS_INT << longBitPosition); 
+            longBitPosition -= interlaceInterval;
+            outputBitPos--;
+        }
+        
+        return outputValue;
+    }
+    
+    private int unInterlaceFromInt(int outputValue, int outputBitPos, int intValue, int intBitPosition, 
+            int interlaceInterval) {
+        while (intBitPosition > -1 && outputBitPos > -1) {
+            outputValue += intValue & (ONE_AS_INT << intBitPosition); 
+            intBitPosition -= interlaceInterval;
+            outputBitPos--;
+        }
+        
+        return outputValue;
     }
 }
