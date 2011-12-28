@@ -20,6 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
@@ -43,17 +44,21 @@ public class GeoSegmentWriterTest {
     
     // can't use the spring bean, because herein we mock
     GeoSearchConfig config = new GeoSearchConfig();
+    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
     
     TreeSet<GeoRecord> treeSet;
     GeoSegmentInfo info;
 
     IFieldNameFilterConverter fieldNameFilterConverter;
     
+    @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
         directory = context.mock(Directory.class);
         mockOutput = context.mock(IndexOutput.class);
         fieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
+        
+        geoRecordSerializer = context.mock(IGeoRecordSerializer.class);
         
         config.setGeoFileExtension("gto");
         
@@ -160,11 +165,7 @@ public class GeoSegmentWriterTest {
                     
                     one(mockOutput).seek(with(any(Long.class)));
                     inSequence(outputSequence);
-                    one(mockOutput).writeLong(0);
-                    inSequence(outputSequence);
-                    one(mockOutput).writeInt(i);
-                    inSequence(outputSequence);
-                    one(mockOutput).writeByte(GeoRecord.DEFAULT_FILTER_BYTE);
+                    one(geoRecordSerializer).writeGeoRecord(with(mockOutput), with(any(GeoRecord.class)));
                     inSequence(outputSequence);
                 }
                 
@@ -174,7 +175,8 @@ public class GeoSegmentWriterTest {
         });
         
         String fileName = config.getGeoFileName(info.getSegmentName());
-        GeoSegmentWriter bTree = new GeoSegmentWriter(treeSet, directory, fileName, info);
+        GeoSegmentWriter<GeoRecord> bTree = new GeoSegmentWriter<GeoRecord>(treeSet, directory, 
+                fileName, info, geoRecordSerializer);
         bTree.close();
         context.assertIsSatisfied();
     }

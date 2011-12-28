@@ -10,7 +10,7 @@ package com.browseengine.bobo.geosearch.bo;
  * @author Ken McCracken
  *
  */
-public class GeoRecord {
+public class GeoRecord implements IGeoRecord {
     /**
      * This constant will be removed when we figure out how to make the filters real.
      * Until then, you should reference when calling this constructor, it will make 

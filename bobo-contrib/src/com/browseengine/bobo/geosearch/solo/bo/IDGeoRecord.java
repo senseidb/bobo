@@ -2,7 +2,9 @@ package com.browseengine.bobo.geosearch.solo.bo;
 
 import java.util.Arrays;
 
-public class IDGeoRecord {
+import com.browseengine.bobo.geosearch.bo.IGeoRecord;
+
+public class IDGeoRecord implements IGeoRecord {
     public final long highOrder;
     public final int lowOrder;
     

@@ -1,7 +1,6 @@
 package com.browseengine.bobo.geosearch.index.impl;
 
 import java.io.Closeable;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,8 +10,9 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexOutput;
 
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
+import com.browseengine.bobo.geosearch.bo.IGeoRecord;
 import com.browseengine.bobo.geosearch.impl.BTree;
 
 /**
@@ -21,10 +21,11 @@ import com.browseengine.bobo.geosearch.impl.BTree;
  * @author Shane Detsch
  * @author Geoff Cooney
  */
-public class GeoSegmentWriter extends BTree<GeoRecord> implements Closeable {
+public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements Closeable {
 
     public static final int BYTES_PER_RECORD = 13; 
     
+    IGeoRecordSerializer<G> geoRecordSerializer;
     IndexOutput indexOutput;
     GeoSegmentInfo geoSegmentInfo;
     int maxIndex;
@@ -32,29 +33,32 @@ public class GeoSegmentWriter extends BTree<GeoRecord> implements Closeable {
     int arrayLength;
     long treeDataStart;
     
-    public GeoSegmentWriter(Set<GeoRecord> tree, Directory directory, String fileName, 
-            GeoSegmentInfo geoSegmentInfo) throws IOException {
+    public GeoSegmentWriter(Set<G> tree, Directory directory, String fileName, 
+            GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) 
+    throws IOException {
         super(tree.size(), false);
         this.arrayLength = tree.size();
         this.geoSegmentInfo = geoSegmentInfo;
+        this.geoRecordSerializer = geoRecordSerializer;
         
         indexOutput = directory.createOutput(fileName);
         
         buildBTreeFromSet(tree);
     }
     
-    public GeoSegmentWriter(int treeSize, Iterator<GeoRecord> inputIterator, Directory directory, String fileName,
-            GeoSegmentInfo geoSegmentInfo) throws IOException {
+    public GeoSegmentWriter(int treeSize, Iterator<G> inputIterator, Directory directory, String fileName,
+            GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) throws IOException {
         super(treeSize, false);
         this.arrayLength = treeSize;
         this.geoSegmentInfo = geoSegmentInfo;
+        this.geoRecordSerializer = geoRecordSerializer;
         
         indexOutput = directory.createOutput(fileName);
         
         buildBTreeFromIterator(inputIterator);
     }
     
-    private void buildBTreeFromIterator(Iterator<GeoRecord> geoIter) throws IOException {
+    private void buildBTreeFromIterator(Iterator<G> geoIter) throws IOException {
         writeGeoInfo();
         
         int index = getLeftMostLeafIndex();
@@ -71,7 +75,7 @@ public class GeoSegmentWriter extends BTree<GeoRecord> implements Closeable {
         maxIndex = index;
     }
     
-    private void buildBTreeFromSet(Set<GeoRecord> geoSet) throws IOException {
+    private void buildBTreeFromSet(Set<G> geoSet) throws IOException {
         buildBTreeFromIterator(geoSet.iterator());
     }
     
@@ -91,21 +95,21 @@ public class GeoSegmentWriter extends BTree<GeoRecord> implements Closeable {
     }
 
     @Override
-    protected GeoRecord getValueAtIndex(int index) {
+    protected G getValueAtIndex(int index) {
         throw new UnsupportedOperationException("GeoRecordOutputBTree only supports write operations");
     }
 
     @Override
-    protected int compare(int index, GeoRecord value) {
+    protected int compare(int index, G value) {
         throw new UnsupportedOperationException("GeoRecordOutputBTree only supports write operations");
     }
     
     private static final int ZERO_BUFFER_SIZE = 4096;
 
     @Override
-    protected void setValueAtIndex(int index, GeoRecord value) throws IOException {
+    protected void setValueAtIndex(int index, G value) throws IOException {
         indexOutput.seek(getSeekPosForIndex(index));
-        writeRecord(value);
+        geoRecordSerializer.writeGeoRecord(indexOutput, value);
     }
     
     protected long getSeekPosForIndex(int index) {
@@ -136,12 +140,6 @@ public class GeoSegmentWriter extends BTree<GeoRecord> implements Closeable {
         }
     }
 
-    private void writeRecord(GeoRecord geoRecord) throws IOException {
-        indexOutput.writeLong(geoRecord.highOrder);
-        indexOutput.writeInt(geoRecord.lowOrder);
-        indexOutput.writeByte(geoRecord.filterByte);
-    }
-    
     private void writeGeoInfo() throws IOException {
         //write version
         indexOutput.writeVInt(geoSegmentInfo.getGeoVersion());

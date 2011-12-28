@@ -11,14 +11,15 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Test;
 
-
 import com.browseengine.bobo.geosearch.GeoVersion;
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
 
@@ -59,11 +60,12 @@ public class GeoSegmentReaderTest {
                 geoSegmentInfo.setSegmentName("01");
                 geoSegmentInfo.setGeoVersion(GeoVersion.CURRENT_VERSION);
                 
+                IGeoRecordSerializer<GeoRecord> geoRecordSerializer = new GeoRecordSerializer();
                 
                 RAMDirectory dir = new RAMDirectory();
                 String fileName = geoSegmentInfo.getSegmentName() + "." + geoConf.getGeoFileExtension();
-                GeoSegmentWriter geoOut =
-                    new GeoSegmentWriter(tree, dir, fileName, geoSegmentInfo);
+                GeoSegmentWriter<GeoRecord> geoOut = new GeoSegmentWriter<GeoRecord>(
+                        tree, dir, fileName, geoSegmentInfo, geoRecordSerializer);
                 assertTrue("Not a full binary tree. ", 
                         geoOut.getMaxIndex() < geoOut.getArrayLength());
                 geoOut.close();
