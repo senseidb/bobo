@@ -21,6 +21,7 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
@@ -37,9 +38,10 @@ import com.browseengine.bobo.geosearch.query.GeoQuery;
 @ContextConfiguration( { "/TEST-servlet.xml" }) 
 @IfProfileValue(name = "test-suite", values = { "unit", "functional", "all" }) 
 public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
-    
     @Before
     public void setUp() throws CorruptIndexException, LockObtainFailedException, IOException {
+        
+        
         buildGeoIndexWriter(); 
         try {
             addDocuments();
@@ -56,7 +58,8 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         
         String geoFileName = getGeoFileName();
         
-        GeoSegmentReader reader = new GeoSegmentReader(directory, geoFileName, maxDoc, 1024);
+        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+                geoFileName, maxDoc, 1024, geoRecordSerializer, geoComparator);
         assertEquals("Expected 2 locations per doc * 10 docs", 2 * maxDoc, reader.getArrayLength());
     }
     

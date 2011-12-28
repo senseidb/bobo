@@ -18,9 +18,10 @@ public class GeoRecordSerializer implements IGeoRecordSerializer<GeoRecord> {
     }
 
     @Override
-    public GeoRecord readGeoRecord(IndexInput input) {
-        // TODO Auto-generated method stub
-        return null;
+    public GeoRecord readGeoRecord(IndexInput indexInput) throws IOException {
+        return new GeoRecord(indexInput.readLong(),
+                indexInput.readInt(),
+                indexInput.readByte());
     }
     
 }

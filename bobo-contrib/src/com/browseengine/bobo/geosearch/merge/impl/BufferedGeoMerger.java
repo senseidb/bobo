@@ -3,6 +3,7 @@ package com.browseengine.bobo.geosearch.merge.impl;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.impl.BTree;
+import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
@@ -46,6 +48,8 @@ public class BufferedGeoMerger implements IGeoMerger {
     
     private final IGeoRecordSerializer<GeoRecord> geoRecordSerializer = 
         new GeoRecordSerializer(); 
+    
+    private final Comparator<GeoRecord> geoComparator = new GeoRecordComparator();
     
     @Override
     //TODO:  Handle more frequent checkAborts
@@ -179,7 +183,8 @@ public class BufferedGeoMerger implements IGeoMerger {
     
     protected BTree<GeoRecord> getInputBTree(Directory directory, String geoFileName, 
             int bufferSizePerGeoReader) throws IOException {
-        return new GeoSegmentReader(directory, geoFileName, -1, bufferSizePerGeoReader); 
+        return new GeoSegmentReader(directory, geoFileName, -1, bufferSizePerGeoReader,
+                geoRecordSerializer, geoComparator); 
     }
     
     private int calculateMergedSegmentSize(List<BitVector> deletedDocsList,

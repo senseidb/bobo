@@ -81,7 +81,8 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         String geoFileName = getMergedGeoFileName();
         assertTrue(directory.fileExists(geoFileName));
         
-        GeoSegmentReader reader = new GeoSegmentReader(directory, geoFileName, maxDocs, 1024);
+        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+                geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
         
         assertEquals(maxDocs * 2, reader.getArrayLength());
         

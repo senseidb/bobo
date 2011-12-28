@@ -3,22 +3,25 @@ package com.browseengine.bobo.geosearch.index.impl;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Comparator;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexInput;
 
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.IGeoRecord;
 import com.browseengine.bobo.geosearch.impl.BTree;
-import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
-public class GeoSegmentReader extends BTree<GeoRecord> implements Closeable{
+public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements Closeable{
     
     private static final Logger LOGGER = Logger.getLogger(GeoSegmentReader.class);
 
     IndexInput indexInput;
+    IGeoRecordSerializer<G> geoRecordSerializer;
+    Comparator<G> geoRecordComparator;
     int seekPositionOfIndexZero;
-    GeoUtil geoUtil;
     private final int maxDoc;
     
     /*
@@ -33,8 +36,9 @@ public class GeoSegmentReader extends BTree<GeoRecord> implements Closeable{
         indexOutput.writeInt(geoRecord.lowOrder);
         indexOutput.writeByte(geoRecord.filterByte);
      */
-    public GeoSegmentReader(Directory dir, String fileName, int maxDoc, int bufferSize) throws IOException {
-        this(0, maxDoc);
+    public GeoSegmentReader(Directory dir, String fileName, int maxDoc, int bufferSize,
+            IGeoRecordSerializer<G> geoRecordSerializer, Comparator<G> geoRecordComparator) throws IOException {
+        this(0, maxDoc, geoRecordSerializer, geoRecordComparator);
         try {
             this.indexInput = dir.openInput(fileName, bufferSize);
             init();
@@ -58,10 +62,13 @@ public class GeoSegmentReader extends BTree<GeoRecord> implements Closeable{
      * @param arrayLength
      * @param maxDoc
      */
-    protected GeoSegmentReader(int arrayLength, int maxDoc) {
+    protected GeoSegmentReader(int arrayLength, int maxDoc, 
+            IGeoRecordSerializer<G> geoRecordSerializer, Comparator<G> geoRecordComparator) {
         super(arrayLength, false);
         this.maxDoc = maxDoc;
-        this.geoUtil = new GeoUtil();
+        
+        this.geoRecordSerializer = geoRecordSerializer;
+        this.geoRecordComparator = geoRecordComparator;
     }
     
     public int getMaxDoc() {
@@ -75,13 +82,13 @@ public class GeoSegmentReader extends BTree<GeoRecord> implements Closeable{
 
     @Override
     protected int compareValuesAt(int leftIndex, int rightIndex) throws IOException {
-        return geoUtil.compare(getValueAtIndex(leftIndex),
+        return geoRecordComparator.compare(getValueAtIndex(leftIndex),
                                getValueAtIndex(rightIndex));
     }
 
     @Override
-    protected int compare(int index, GeoRecord value) throws IOException {
-        return geoUtil.compare(getValueAtIndex(index),
+    protected int compare(int index, G value) throws IOException {
+        return geoRecordComparator.compare(getValueAtIndex(index),
                                value);
     }
 
@@ -91,17 +98,16 @@ public class GeoSegmentReader extends BTree<GeoRecord> implements Closeable{
     }
 
     @Override
-    protected GeoRecord getValueAtIndex(int index) throws IOException {
+    protected G getValueAtIndex(int index) throws IOException {
         indexInput.seek(this.seekPositionOfIndexZero + 
                         GeoSegmentWriter.
                         BYTES_PER_RECORD*index);
-        return new GeoRecord(indexInput.readLong(),
-                             indexInput.readInt(),
-                             indexInput.readByte());
+        
+        return geoRecordSerializer.readGeoRecord(indexInput);
     }
 
     @Override
-    protected void setValueAtIndex(int index, GeoRecord value) {//throws IOException {
+    protected void setValueAtIndex(int index, G value) {//throws IOException {
         throw new UnsupportedOperationException(
                 "SetValueAtIndex is currently unsupported for class " +
                 "GeoRecordRandomAccessAsArray.java");

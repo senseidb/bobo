@@ -37,7 +37,8 @@ public class GeoSegmentReaderTest {
         Directory ramDir = new RAMDirectory();
         String fileName = "abc.geo";
         GeoSegmentReader geoSegmentReader = 
-            new GeoSegmentReader(ramDir, fileName, -1, 16*1024);
+            new GeoSegmentReader(ramDir, fileName, -1, 16*1024, 
+                    new GeoRecordSerializer(), new GeoRecordComparator());
         GeoRecord minValue = GeoRecord.MIN_VALID_GEORECORD;
         GeoRecord maxValue = GeoRecord.MAX_VALID_GEORECORD;
         Iterator<GeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
@@ -71,7 +72,8 @@ public class GeoSegmentReaderTest {
                 geoOut.close();
                 
                 GeoSegmentReader geoRand = 
-                    new GeoSegmentReader(dir, fileName, -1, 16*1024);
+                    new GeoSegmentReader(dir, fileName, -1, 16*1024,
+                            new GeoRecordSerializer(), new GeoRecordComparator());
                 test_IteratorFunctionality(geoRand);
                 test_CompleteTreeIsOrderedCorrectly(geoRand);
                 
