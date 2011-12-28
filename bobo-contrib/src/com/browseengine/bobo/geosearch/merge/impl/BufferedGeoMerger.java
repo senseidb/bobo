@@ -183,7 +183,7 @@ public class BufferedGeoMerger implements IGeoMerger {
     
     protected BTree<GeoRecord> getInputBTree(Directory directory, String geoFileName, 
             int bufferSizePerGeoReader) throws IOException {
-        return new GeoSegmentReader(directory, geoFileName, -1, bufferSizePerGeoReader,
+        return new GeoSegmentReader<GeoRecord>(directory, geoFileName, -1, bufferSizePerGeoReader,
                 geoRecordSerializer, geoComparator); 
     }
     

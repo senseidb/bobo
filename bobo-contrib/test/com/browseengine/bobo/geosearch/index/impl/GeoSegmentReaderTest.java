@@ -20,7 +20,6 @@ import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
-import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
 
 /*
@@ -32,12 +31,14 @@ import com.browseengine.bobo.geosearch.impl.GeoUtil;
  */
 public class GeoSegmentReaderTest {
 
+    GeoRecordComparator geoComparator = new GeoRecordComparator();
+    
     @Test
     public void test_fileNotFoundGivesZeroGeoRecords() throws Exception {
         Directory ramDir = new RAMDirectory();
         String fileName = "abc.geo";
-        GeoSegmentReader geoSegmentReader = 
-            new GeoSegmentReader(ramDir, fileName, -1, 16*1024, 
+        GeoSegmentReader<GeoRecord> geoSegmentReader = 
+            new GeoSegmentReader<GeoRecord>(ramDir, fileName, -1, 16*1024, 
                     new GeoRecordSerializer(), new GeoRecordComparator());
         GeoRecord minValue = GeoRecord.MIN_VALID_GEORECORD;
         GeoRecord maxValue = GeoRecord.MAX_VALID_GEORECORD;
@@ -71,8 +72,8 @@ public class GeoSegmentReaderTest {
                         geoOut.getMaxIndex() < geoOut.getArrayLength());
                 geoOut.close();
                 
-                GeoSegmentReader geoRand = 
-                    new GeoSegmentReader(dir, fileName, -1, 16*1024,
+                GeoSegmentReader<GeoRecord> geoRand = 
+                    new GeoSegmentReader<GeoRecord>(dir, fileName, -1, 16*1024,
                             new GeoRecordSerializer(), new GeoRecordComparator());
                 test_IteratorFunctionality(geoRand);
                 test_CompleteTreeIsOrderedCorrectly(geoRand);
@@ -83,7 +84,7 @@ public class GeoSegmentReaderTest {
         }
     }
     
-    public void test_CompleteTreeIsOrderedCorrectly(GeoSegmentReader grbt) throws IOException {
+    public void test_CompleteTreeIsOrderedCorrectly(GeoSegmentReader<GeoRecord> grbt) throws IOException {
         int len = grbt.getArrayLength();
         for(int index = 0; index < len; index++) {
             if(index > 0) {
@@ -105,14 +106,13 @@ public class GeoSegmentReaderTest {
         }
     }
     
-    public void test_IteratorFunctionality(GeoSegmentReader grbt) throws IOException {
+    public void test_IteratorFunctionality(GeoSegmentReader<GeoRecord> grbt) throws IOException {
         GeoConverter gc = new GeoConverter();
         ArrayList<LatitudeLongitudeDocId> lldida = getArrayListLLDID(2);
         GeoRecord minRecord, maxRecord;
         minRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(0));
         maxRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(1));
-        GeoUtil gu = new GeoUtil();
-        if(gu.compare(minRecord, maxRecord) == 1) {
+        if(geoComparator.compare(minRecord, maxRecord) == 1) {
             minRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(1));
             maxRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(0));
         }
@@ -124,10 +124,10 @@ public class GeoSegmentReaderTest {
             }
             next = gIt.next();
             if(current != null) {
-                assertTrue("The indexer is out of order.",gu.compare(current, next) != 1);
+                assertTrue("The indexer is out of order.",geoComparator.compare(current, next) != 1);
             }
-            assertTrue("Iterator is out of range ",gu.compare(next, minRecord) != -1 ||
-                    gu.compare(next, maxRecord) != 1);
+            assertTrue("Iterator is out of range ",geoComparator.compare(next, minRecord) != -1 ||
+                    geoComparator.compare(next, maxRecord) != 1);
         }
     }
     

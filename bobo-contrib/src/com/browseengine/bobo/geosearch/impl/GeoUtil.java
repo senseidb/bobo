@@ -13,25 +13,6 @@ import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 public class GeoUtil implements IGeoUtil {
 
     @Override
-    public int compare(GeoRecord geoRecordFirst, GeoRecord geoRecordSecond) {
-        long diff = geoRecordFirst.highOrder - geoRecordSecond.highOrder;
-        if(diff > 0) {
-            return 1;
-        }
-        if (diff < 0) {
-            return -1;
-        }
-        int idiff = geoRecordFirst.lowOrder - geoRecordSecond.lowOrder;
-        if(idiff > 0) {
-            return 1;
-        }
-        if (idiff < 0) {
-            return -1;
-        }
-        return 0;
-    }
-
-    @Override
     public Iterator<GeoRecord> getGeoRecordIterator(Iterator<LatitudeLongitudeDocId> lldidIter) {
         GeoConverter gc = new GeoConverter();
         ArrayList<GeoRecord> grl = new ArrayList<GeoRecord>();
