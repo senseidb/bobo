@@ -240,10 +240,10 @@ public class GeoConverterTest {
             int x = startX + i * deltaX;
             int y = startY + i * deltaY;
             int z = startZ + i * deltaZ;
-            CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(x, y, z, new byte[0]);
-            
             byte[] id = Integer.toString(i).getBytes();
-            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(coordinate, id);
+            CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(x, y, z, id);
+            
+            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(coordinate);
             
             assertEquals("Iteration " + i + ": Unexpected id", id, geoRecord.id);
             
@@ -365,7 +365,7 @@ public class GeoConverterTest {
             byte[] id = Integer.toString(i).getBytes();
             
             CartesianCoordinateUUID expectedCoordinate = new CartesianCoordinateUUID(x, y, z, id);
-            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(expectedCoordinate, id);
+            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(expectedCoordinate);
             
             CartesianCoordinateUUID actualCoordinate = geoConverter.toCartesianCoordinate(geoRecord);
 

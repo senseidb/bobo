@@ -21,7 +21,7 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         void addFieldBitMask(String fieldName, byte bitMask);
         
         CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid);
-        IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate, byte[] id);
+        IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate);
         CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord);
         
     }

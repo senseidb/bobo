@@ -261,7 +261,7 @@ public class GeoConverter implements IGeoConverter {
     }
 
     @Override
-    public IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate, byte[] id) {
+    public IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate) {
         int x = coordinate.x;
         int y = coordinate.y;
         int z = coordinate.z;
@@ -309,7 +309,7 @@ public class GeoConverter implements IGeoConverter {
         lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, --lowOrderPosition, 3);
         lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, --lowOrderPosition, 3);
 
-        return new IDGeoRecord(highOrderBits, lowOrderBits, id);
+        return new IDGeoRecord(highOrderBits, lowOrderBits, coordinate.uuid);
     }
     
     private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
