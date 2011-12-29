@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.Lock;
+import org.apache.lucene.store.LockObtainFailedException;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
@@ -30,19 +31,28 @@ import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordSerializer;
  * @author gcooney
  */
 public class GeoOnlyIndexer {
+    //TODO:  This should be moved to be part of the GeoSearchConfig
+    public static final int IDByteCount = 16;
+    
     GeoSearchConfig config;
     Directory directory;
     String indexName;
+    Lock lock;
     
     IDGeoRecordComparator geoComparator = new IDGeoRecordComparator();
-    IDGeoRecordSerializer geoRecordSerializer = new IDGeoRecordSerializer(); 
+    IDGeoRecordSerializer geoRecordSerializer = new IDGeoRecordSerializer(IDByteCount); 
     TreeSet<IDGeoRecord> inMemoryIndex =  new TreeSet<IDGeoRecord>(new IDGeoRecordComparator());
     List<IDGeoRecord> newRecords = new LinkedList<IDGeoRecord>();
 
-    public GeoOnlyIndexer(GeoSearchConfig config, Directory directory, String indexName) {
+    public GeoOnlyIndexer(GeoSearchConfig config, Directory directory, String indexName) throws IOException {
         this.config = config;
         this.directory = directory;
         this.indexName = indexName;
+        
+        lock = directory.makeLock(indexName);
+        if (!lock.obtain()) {
+            throw new LockObtainFailedException("Index locked for write: " + indexName);
+        }
     }
     
     public void index(byte[] uuid, GeoCoordinateField field) {
@@ -56,7 +66,6 @@ public class GeoOnlyIndexer {
     }
 
     public void flush() throws IOException {
-        Lock lock = directory.makeLock(indexName);
         try {
             loadCurrentIndex();
             

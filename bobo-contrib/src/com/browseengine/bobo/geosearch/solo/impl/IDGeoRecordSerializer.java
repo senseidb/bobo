@@ -15,8 +15,20 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
  */
 public class IDGeoRecordSerializer implements IGeoRecordSerializer<IDGeoRecord>{
 
+    private final int idByteCount;
+
+    public IDGeoRecordSerializer(int idByteCount) {
+        this.idByteCount = idByteCount;
+    }
+    
     @Override
     public void writeGeoRecord(IndexOutput output, IDGeoRecord record) throws IOException {
+        if (record.id.length != idByteCount) {
+            throw new IllegalArgumentException("Incorrect number of id bytes given.  " +
+                    "This is most likely a bug!  ExpectedBytes=" + idByteCount + 
+                    "; receivedBytes=" + record.id.length);
+        }
+        
         output.writeLong(record.highOrder);
         output.writeInt(record.lowOrder);
         output.writeBytes(record.id, record.id.length);
@@ -26,10 +38,7 @@ public class IDGeoRecordSerializer implements IGeoRecordSerializer<IDGeoRecord>{
     public IDGeoRecord readGeoRecord(IndexInput input) throws IOException {
         long highOrder = input.readLong();
         int lowOrder = input.readInt();
-        //FIXME:  Hardcoding 16 id bytes is dangerous.  Once we start storing the
-        //entry byte length in the tree, we should pass in that value to this function
-        //so we can infer how many bytes remain for the id
-        int countIdBytes = 16;
+        int countIdBytes = idByteCount;
         byte[] id = new byte[countIdBytes];
         input.readBytes(id, 0, countIdBytes, false);
         return new IDGeoRecord(highOrder, lowOrder, id);

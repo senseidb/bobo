@@ -3,40 +3,23 @@ package com.browseengine.bobo.geosearch.index.impl;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.UUID;
 
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
-import org.apache.lucene.store.RAMDirectory;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.annotation.IfProfileValue;
 
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
+import com.browseengine.bobo.geosearch.impl.IGeoRecordSerializerTezt;
 
 @IfProfileValue(name = "test-suite", values = { "unit", "all" })
-public class GeoRecordSerializerTest {
-    GeoRecordSerializer geoRecordSerializer;
+public class GeoRecordSerializerTest extends IGeoRecordSerializerTezt<GeoRecord> {
     
-    Directory directory;
-    String testFileName;
-    
-    @Before
-    public void setUp() {
-        testFileName = UUID.randomUUID().toString();
-        directory = new RAMDirectory(); 
-        
-        geoRecordSerializer = new GeoRecordSerializer();
-    }
-    
-    @After
-    public void tearDown() throws IOException {
-        if (directory.fileExists(testFileName)) {
-            directory.deleteFile(testFileName);
-        }
+    @Override
+    public IGeoRecordSerializer<GeoRecord> getGeoRecordSerializer() {
+        return new GeoRecordSerializer();
     }
     
     @Test
@@ -84,20 +67,5 @@ public class GeoRecordSerializerTest {
 
         input.close();
     }
-    
-    private void serializeAndDeserialize(GeoRecord expectedRecord) throws IOException {
-        String fileName = UUID.randomUUID().toString();
-        
-        IndexOutput output = directory.createOutput(fileName);
-        geoRecordSerializer.writeGeoRecord(output, expectedRecord);
-        output.close();
-        
-        IndexInput input = directory.openInput(fileName);
-        GeoRecord actualRecord = geoRecordSerializer.readGeoRecord(input);
-        input.close();
-        
-        assertEquals(expectedRecord, actualRecord);
-        
-        directory.deleteFile(fileName);
-    }
+
 }
