@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.lucene.store.Directory;
@@ -80,28 +81,43 @@ public class GeoOnlyIndexer {
     }
 
     private void flushInMemoryIndex() throws IOException {
-        String fileName = indexName + "." + config.getGeoFileExtension();
-        GeoSegmentWriter<IDGeoRecord> segmentWriter = new GeoSegmentWriter<IDGeoRecord>(
-                inMemoryIndex, directory, fileName, 
-                buildGeoSegmentInfo(indexName), geoRecordSerializer);
+        GeoSegmentWriter<IDGeoRecord> segmentWriter = getGeoSegmentWriter(inMemoryIndex);
         
         segmentWriter.close();
     }
+    
+    GeoSegmentWriter<IDGeoRecord> getGeoSegmentWriter(Set<IDGeoRecord> dataToFlush) throws IOException {
+        String fileName = indexName + "." + config.getGeoFileExtension();
+        
+        return new GeoSegmentWriter<IDGeoRecord>(
+                dataToFlush, directory, fileName, 
+                buildGeoSegmentInfo(indexName), geoRecordSerializer);
+    }
 
     private void loadCurrentIndex() throws IOException {
+        inMemoryIndex.clear();
+        
+        GeoSegmentReader<IDGeoRecord> currentIndex = getGeoSegmentReader();
+        try {
+            Iterator<IDGeoRecord> currentIndexIterator = 
+                currentIndex.getIterator(IDGeoRecord.MIN_VALID_GEORECORD, IDGeoRecord.MAX_VALID_GEORECORD);
+            
+            while (currentIndexIterator.hasNext()) {
+                IDGeoRecord geoRecord = currentIndexIterator.next();
+                inMemoryIndex.add(geoRecord);
+            }
+        } finally {
+            currentIndex.close();
+        }
+    }
+    
+    GeoSegmentReader<IDGeoRecord> getGeoSegmentReader() throws IOException {
         String fileName = indexName + "." + config.getGeoFileExtension();
-        GeoSegmentReader<IDGeoRecord> currentIndex = new GeoSegmentReader<IDGeoRecord>(
+        
+        return new GeoSegmentReader<IDGeoRecord>(
                 directory, fileName, -1, 
                 config.getBufferSizePerGeoSegmentReader(), geoRecordSerializer, 
                 geoComparator); 
-        
-        Iterator<IDGeoRecord> currentIndexIterator = 
-            currentIndex.getIterator(IDGeoRecord.MIN_VALID_GEORECORD, IDGeoRecord.MAX_VALID_GEORECORD);
-        
-        while (currentIndexIterator.hasNext()) {
-            IDGeoRecord geoRecord = currentIndexIterator.next();
-            inMemoryIndex.add(geoRecord);
-        }
     }
     
     private GeoSegmentInfo buildGeoSegmentInfo(String segmentName) throws IOException {

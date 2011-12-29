@@ -7,6 +7,7 @@ import java.io.IOException;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.junit.Test;
+import org.springframework.test.annotation.IfProfileValue;
 
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.IGeoRecordSerializerTezt;
@@ -17,6 +18,7 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
  * @author gcooney
  *
  */
+@IfProfileValue(name = "test-suite", values = { "unit", "all" })
 public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRecord> {
 
     @Override
