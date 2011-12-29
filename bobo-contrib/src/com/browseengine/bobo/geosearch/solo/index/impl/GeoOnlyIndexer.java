@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.Lock;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
@@ -55,13 +56,18 @@ public class GeoOnlyIndexer {
     }
 
     public void flush() throws IOException {
-        loadCurrentIndex();
-        
-        for (IDGeoRecord newRecord: newRecords) {
-            inMemoryIndex.add(newRecord);
+        Lock lock = directory.makeLock(indexName);
+        try {
+            loadCurrentIndex();
+            
+            for (IDGeoRecord newRecord: newRecords) {
+                inMemoryIndex.add(newRecord);
+            }
+            
+            flushInMemoryIndex();
+        } finally {
+            lock.release();
         }
-        
-        flushInMemoryIndex();
     }
 
     private void flushInMemoryIndex() throws IOException {
