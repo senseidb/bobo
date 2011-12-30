@@ -205,6 +205,15 @@ public class GeoOnlyIndexerTest {
         GeoOnlyIndexer indexer = new GeoOnlyIndexer(config, directory, indexName);
     }
     
+    @Test(expected = IllegalArgumentException.class)
+    public void index_baduuid() throws IOException {
+        String fieldName = "myField";
+        GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
+        GeoCoordinateField field = new GeoCoordinateField(fieldName, geoCoordinate);
+        
+        indexer.index(new byte[] {(byte)0}, field);
+    }
+    
     private double randomLongitude() {
         return Math.random() * 360.0 - 180.0;
     }

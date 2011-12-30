@@ -53,6 +53,12 @@ public class GeoOnlyIndexer {
     }
     
     public void index(byte[] uuid, GeoCoordinateField field) {
+        if (uuid.length != config.getBytesForId()) {
+            throw new IllegalArgumentException("invalid uuid length: " + uuid.length
+                    + ".  Expected uuid to be of length "
+                    + config.getBytesForId() + ".");
+        }
+        
         IGeoConverter converter = config.getGeoConverter();
         
         GeoCoordinate geoCoordinate = field.getGeoCoordinate();
