@@ -31,9 +31,6 @@ import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordSerializer;
  * @author gcooney
  */
 public class GeoOnlyIndexer {
-    //TODO:  This should be moved to be part of the GeoSearchConfig
-    public static final int ID_BYTE_COUNT = 16;
-    
     GeoSearchConfig config;
     Directory directory;
     String indexName;
@@ -127,7 +124,7 @@ public class GeoOnlyIndexer {
 
         info.setSegmentName(segmentName);
         
-        info.setBytesPerRecord(IDGeoRecordSerializer.INTERLACE_BYTES + ID_BYTE_COUNT);
+        info.setBytesPerRecord(IDGeoRecordSerializer.INTERLACE_BYTES + config.getBytesForId());
         
         //now write field -> filterByte mapping info
         IFieldNameFilterConverter fieldNameFilterConverter = converter.makeFieldNameFilterConverter();

@@ -30,6 +30,9 @@ public class GeoSearchConfig {
     private String[] pairedExtensionsForDelete 
         = new String[] {IndexFileNames.COMPOUND_FILE_EXTENSION};
     
+    public static final int DEFAULT_ID_BYTE_COUNT = 16;
+    private int bytesForId = DEFAULT_ID_BYTE_COUNT;
+    
     /**
      * Sets the extension for geo indices.
      * WARNING:  This should never be changed when reading an existing index as doing so may result in
@@ -96,5 +99,18 @@ public class GeoSearchConfig {
     public String[] getPairedExtensionsForDelete() {
         return pairedExtensionsForDelete;
     }
-
+    
+    /**
+     * The number of bytes reserved for the id field.  This is only used
+     * by GeoOnlySearch
+     * @param bytesForId
+     */
+    public void setBytesForId(int bytesForId) {
+        this.bytesForId = bytesForId;
+    }
+    
+    public int getBytesForId() {
+        return bytesForId;
+    }
+    
 }
