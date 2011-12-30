@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexInput;
 
+import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
@@ -22,6 +23,7 @@ public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements 
     IndexInput indexInput;
     IGeoRecordSerializer<G> geoRecordSerializer;
     Comparator<G> geoRecordComparator;
+    int geoVersion = GeoVersion.VERSION_0;
     int seekPositionOfIndexZero;
     int bytesPerRecord = GeoSegmentInfo.BYTES_PER_RECORD_V1;
     private final int maxDoc;
@@ -51,10 +53,13 @@ public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements 
     }
     
     protected void init() throws IOException {
-        indexInput.readVInt(); // Version Number Will be Supported Later
+        geoVersion = indexInput.readVInt(); // Version Number Will be Supported Later
         this.seekPositionOfIndexZero = indexInput.readInt();
         // ArrayLength is the number of 13 Byte GeoRecord (long, int, byte) triplets
         int arrayLength = indexInput.readVInt();
+        if (geoVersion > GeoVersion.VERSION_0) {
+            this.bytesPerRecord = indexInput.readVInt();
+        }
         this.init(arrayLength, nullCheckChecksValues);
     }
     

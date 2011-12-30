@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexOutput;
 
+import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
@@ -144,6 +145,9 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         long afterVersionFilePointer = indexOutput.getFilePointer();
         indexOutput.writeInt(0); //placeholder for tree position
         indexOutput.writeVInt(arrayLength);  //tree size
+        if (geoSegmentInfo.getGeoVersion() > GeoVersion.VERSION_0) {
+            indexOutput.writeVInt(geoSegmentInfo.getBytesPerRecord());
+        }
         
         //now write field -> filterByte mapping info
         IFieldNameFilterConverter filterConverter = geoSegmentInfo.getFieldNameFilterConverter();
