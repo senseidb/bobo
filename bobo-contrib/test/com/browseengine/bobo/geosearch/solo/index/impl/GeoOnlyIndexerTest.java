@@ -128,8 +128,8 @@ public class GeoOnlyIndexerTest {
             byte[] uuid = generateRandomUUIDAsBytes(idByteLength);
             GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
             
-            existingData.add(geoConverter.toIDGeoRecord(geoConverter.toCartesianCoordinate(
-                    geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid)));
+            existingData.add(geoConverter.toIDGeoRecord(
+                    geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid));
         }
         
         index_and_flush(countEntries, Collections.<IDGeoRecord>emptySet());

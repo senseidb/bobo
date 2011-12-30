@@ -14,7 +14,6 @@ import org.apache.lucene.store.LockObtainFailedException;
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
-import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
@@ -60,9 +59,8 @@ public class GeoOnlyIndexer {
         IGeoConverter converter = config.getGeoConverter();
         
         GeoCoordinate geoCoordinate = field.getGeoCoordinate();
-        CartesianCoordinateUUID cartesianCoordinate = converter.toCartesianCoordinate(
+        IDGeoRecord geoRecord = converter.toIDGeoRecord(
                 geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid);
-        IDGeoRecord geoRecord = converter.toIDGeoRecord(cartesianCoordinate);
         newRecords.add(geoRecord);
     }
 

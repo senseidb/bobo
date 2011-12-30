@@ -225,47 +225,38 @@ public class GeoConverter implements IGeoConverter {
     static final double EARTH_RADIUS_METERS = 6378137.0;
     static final int EARTH_RADIUS_INTEGER_UNITS = 2140000000;
     
-    /**
-     * Returns the cartesian coordinates for a given latitude and longitude.  This method
-     * scales the results so that the 
-     */
+    protected double degreesToRadians(double degrees)
+    {
+      return (degrees * (Math.PI / 180));
+    }
+    
+    protected int getXFromRadians(double latRadians, double longRadians)
+    {
+      return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
+    }
+
+    protected int getYFromRadians(double latRadians, double longRadians)
+    {
+      return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
+    }
+
+    protected int getZFromRadians(double latRadians)
+    {
+      return (int) (EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
+    }
+
     @Override
-    public CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid) {
+    public IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid) {
         double latRadians = degreesToRadians(latitude);
         double longRadians =  degreesToRadians(longitude);
         int x = getXFromRadians(latRadians, longRadians);
         int y = getYFromRadians(latRadians, longRadians);
         int z = getZFromRadians(latRadians);
         
-        return new CartesianCoordinateUUID(x, y, z, uuid);
-    }
-
-    private double degreesToRadians(double degrees)
-    {
-      return (degrees * (Math.PI / 180));
+        return toIDGeoRecord(x, y, z, uuid);
     }
     
-    private int getXFromRadians(double latRadians, double longRadians)
-    {
-      return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
-    }
-
-    private int getYFromRadians(double latRadians, double longRadians)
-    {
-      return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
-    }
-
-    private static int getZFromRadians(double latRadians)
-    {
-      return (int) (EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
-    }
-
-    @Override
-    public IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate) {
-        int x = coordinate.x;
-        int y = coordinate.y;
-        int z = coordinate.z;
-        
+    protected IDGeoRecord toIDGeoRecord(int x, int y, int z, byte[] uuid) { 
         long highOrderBits = 0;
         int highOrderPosition = LONGLENGTH - 2;
         
@@ -309,7 +300,7 @@ public class GeoConverter implements IGeoConverter {
         lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, --lowOrderPosition, 3);
         lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, --lowOrderPosition, 3);
 
-        return new IDGeoRecord(highOrderBits, lowOrderBits, coordinate.uuid);
+        return new IDGeoRecord(highOrderBits, lowOrderBits, uuid);
     }
     
     private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
