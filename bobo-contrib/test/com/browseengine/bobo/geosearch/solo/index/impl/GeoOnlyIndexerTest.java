@@ -120,7 +120,7 @@ public class GeoOnlyIndexerTest {
     @Test
     public void testIndex_and_flush_existingIndex() throws IOException {
         int countEntries = 50;
-        int idByteLength = GeoOnlyIndexer.IDByteCount;
+        int idByteLength = GeoOnlyIndexer.ID_BYTE_COUNT;
         
         
         Set<IDGeoRecord> existingData = new HashSet<IDGeoRecord>();
@@ -136,7 +136,7 @@ public class GeoOnlyIndexerTest {
     }
     
     private void index_and_flush(int countEntries, final Set<IDGeoRecord> existingData) throws IOException {
-        int idByteLength = GeoOnlyIndexer.IDByteCount;
+        int idByteLength = GeoOnlyIndexer.ID_BYTE_COUNT;
         String fieldName = "field1";
         
         for (int i = 0; i < countEntries; i++) {
@@ -169,7 +169,7 @@ public class GeoOnlyIndexerTest {
     
     @Test(expected = IOException.class)
     public void index_and_flush_error_on_read() throws IOException {
-        int idByteLength = GeoOnlyIndexer.IDByteCount;
+        int idByteLength = GeoOnlyIndexer.ID_BYTE_COUNT;
         String fieldName = "field1";
         
         for (int i = 0; i < 10; i++) {

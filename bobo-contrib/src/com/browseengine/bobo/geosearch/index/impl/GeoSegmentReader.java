@@ -11,6 +11,7 @@ import org.apache.lucene.store.IndexInput;
 
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.IGeoRecord;
 import com.browseengine.bobo.geosearch.impl.BTree;
 
@@ -22,6 +23,7 @@ public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements 
     IGeoRecordSerializer<G> geoRecordSerializer;
     Comparator<G> geoRecordComparator;
     int seekPositionOfIndexZero;
+    int bytesPerRecord = GeoSegmentInfo.BYTES_PER_RECORD_V1;
     private final int maxDoc;
     
     /*
@@ -100,10 +102,9 @@ public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements 
     @Override
     protected G getValueAtIndex(int index) throws IOException {
         indexInput.seek(this.seekPositionOfIndexZero + 
-                        GeoSegmentWriter.
-                        BYTES_PER_RECORD*index);
+                        bytesPerRecord*index);
         
-        return geoRecordSerializer.readGeoRecord(indexInput);
+        return geoRecordSerializer.readGeoRecord(indexInput, bytesPerRecord);
     }
 
     @Override

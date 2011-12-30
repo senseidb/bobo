@@ -23,41 +23,40 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
 
     @Override
     public IGeoRecordSerializer<IDGeoRecord> getGeoRecordSerializer() {
-        return new IDGeoRecordSerializer(1);
+        return new IDGeoRecordSerializer();
     }
 
     @Test
     public void testSerializeAndDeserialize() throws IOException {
+        int idByteCount = 1  + IDGeoRecordSerializer.INTERLACE_BYTES;
         IDGeoRecord geoRecord = new IDGeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, new byte[] {Byte.MAX_VALUE});
-        serializeAndDeserialize(geoRecord);
+        serializeAndDeserialize(geoRecord,  idByteCount);
         
         geoRecord = new IDGeoRecord(0, 0, new byte[] {(byte)0});
-        serializeAndDeserialize(geoRecord);
+        serializeAndDeserialize(geoRecord, idByteCount);
         
         geoRecord = new IDGeoRecord(0, Integer.MAX_VALUE, new byte[] {(byte)0});
-        serializeAndDeserialize(geoRecord);
+        serializeAndDeserialize(geoRecord, idByteCount);
         
         geoRecord = new IDGeoRecord(Long.MAX_VALUE, 0, new byte[] {(byte)(Byte.MAX_VALUE / 2)});
-        serializeAndDeserialize(geoRecord);
+        serializeAndDeserialize(geoRecord, idByteCount);
     }
     
     @Test
     public void testSerializeAndDeserialize_multiplebyteUUID() throws IOException {
-        int byteCount = 16;
-        geoRecordSerializer = new IDGeoRecordSerializer(byteCount);
-        byte[] id = new byte[byteCount];
-        for (int i = 0; i< byteCount; i++) {
+        int idbyteCount = 16 ;
+        byte[] id = new byte[idbyteCount];
+        for (int i = 0; i< idbyteCount; i++) {
             id[i] = (byte)i; 
         }
         
         IDGeoRecord geoRecord = new IDGeoRecord(Long.MAX_VALUE, 0, id);
-        serializeAndDeserialize(geoRecord);
+        serializeAndDeserialize(geoRecord, idbyteCount + IDGeoRecordSerializer.INTERLACE_BYTES);
     }
     
     @Test(expected=IllegalArgumentException.class)
     public void testSerializeAndDeserialize_tooManyBytes() throws IOException {
         int byteCount = 1;
-        geoRecordSerializer = new IDGeoRecordSerializer(byteCount);
         byte[] id = new byte[16];
         for (int i = 0; i< id.length; i++) {
             id[i] = (byte)i; 
@@ -67,7 +66,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
         
         IndexOutput output = directory.createOutput(testFileName);
         try {
-            geoRecordSerializer.writeGeoRecord(output, geoRecord);
+            geoRecordSerializer.writeGeoRecord(output, geoRecord, byteCount + IDGeoRecordSerializer.INTERLACE_BYTES);
         } finally {
             output.close();
         }
@@ -76,7 +75,6 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
     @Test(expected=IllegalArgumentException.class)
     public void testSerializeAndDeserialize_notEnoughManyBytes() throws IOException {
         int byteCount = 2;
-        geoRecordSerializer = new IDGeoRecordSerializer(byteCount);
         byte[] id = new byte[1];
         for (int i = 0; i< id.length; i++) {
             id[i] = (byte)i; 
@@ -86,7 +84,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
 
         IndexOutput output = directory.createOutput(testFileName);
         try {
-            geoRecordSerializer.writeGeoRecord(output, geoRecord);
+            geoRecordSerializer.writeGeoRecord(output, geoRecord, byteCount  + IDGeoRecordSerializer.INTERLACE_BYTES);
         } finally {
             output.close();
         }
@@ -94,6 +92,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
     
     @Test
     public void testSerializeAndDeserialize_multipleRecords() throws IOException {
+        int byteCount = 1 + IDGeoRecordSerializer.INTERLACE_BYTES;
         IndexOutput output = directory.createOutput(testFileName);
         
         for (long highIdx = 0; highIdx < 10; highIdx++) {
@@ -101,7 +100,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
                 for (byte byteIdx = 0; byteIdx < 10; byteIdx++) {
                     IDGeoRecord geoRecord = new IDGeoRecord(highIdx, lowIdx, new byte[] {byteIdx});
                     
-                    geoRecordSerializer.writeGeoRecord(output, geoRecord);
+                    geoRecordSerializer.writeGeoRecord(output, geoRecord, byteCount);
                 }
             }
         }
@@ -114,7 +113,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
             for (int lowIdx = 0; lowIdx < 10; lowIdx++) {
                 for (byte byteIdx = 0; byteIdx < 10; byteIdx++) {
                     IDGeoRecord expectedRecord = new IDGeoRecord(highIdx, lowIdx, new byte[] {byteIdx});
-                    IDGeoRecord actualRecord = geoRecordSerializer.readGeoRecord(input);
+                    IDGeoRecord actualRecord = geoRecordSerializer.readGeoRecord(input, byteCount);
                     assertEquals(expectedRecord, actualRecord);
                 }
             }

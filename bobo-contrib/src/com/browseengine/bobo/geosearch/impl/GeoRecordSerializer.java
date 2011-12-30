@@ -11,14 +11,15 @@ import com.browseengine.bobo.geosearch.bo.GeoRecord;
 public class GeoRecordSerializer implements IGeoRecordSerializer<GeoRecord> {
 
     @Override
-    public void writeGeoRecord(IndexOutput indexOutput, GeoRecord geoRecord) throws IOException {
+    public void writeGeoRecord(IndexOutput indexOutput, GeoRecord geoRecord, int recordByteCount) 
+            throws IOException {
         indexOutput.writeLong(geoRecord.highOrder);
         indexOutput.writeInt(geoRecord.lowOrder);
         indexOutput.writeByte(geoRecord.filterByte);
     }
 
     @Override
-    public GeoRecord readGeoRecord(IndexInput indexInput) throws IOException {
+    public GeoRecord readGeoRecord(IndexInput indexInput, int recordByteCount) throws IOException {
         return new GeoRecord(indexInput.readLong(),
                 indexInput.readInt(),
                 indexInput.readByte());

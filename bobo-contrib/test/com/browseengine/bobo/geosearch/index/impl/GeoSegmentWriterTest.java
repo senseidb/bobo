@@ -165,7 +165,7 @@ public class GeoSegmentWriterTest {
                     
                     one(mockOutput).seek(with(any(Long.class)));
                     inSequence(outputSequence);
-                    one(geoRecordSerializer).writeGeoRecord(with(mockOutput), with(any(GeoRecord.class)));
+                    one(geoRecordSerializer).writeGeoRecord(with(mockOutput), with(any(GeoRecord.class)), with(any(Integer.class)));
                     inSequence(outputSequence);
                 }
                 

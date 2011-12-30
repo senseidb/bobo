@@ -23,8 +23,6 @@ import com.browseengine.bobo.geosearch.impl.BTree;
  */
 public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements Closeable {
 
-    public static final int BYTES_PER_RECORD = 13; 
-    
     IGeoRecordSerializer<G> geoRecordSerializer;
     IndexOutput indexOutput;
     GeoSegmentInfo geoSegmentInfo;
@@ -109,11 +107,11 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
     @Override
     protected void setValueAtIndex(int index, G value) throws IOException {
         indexOutput.seek(getSeekPosForIndex(index));
-        geoRecordSerializer.writeGeoRecord(indexOutput, value);
+        geoRecordSerializer.writeGeoRecord(indexOutput, value, geoSegmentInfo.getBytesPerRecord());
     }
     
     protected long getSeekPosForIndex(int index) {
-        return treeDataStart + BYTES_PER_RECORD * index;
+        return treeDataStart + geoSegmentInfo.getBytesPerRecord() * index;
     }
     
     protected void ensureNotWritingPastEndOfFile(int leftMostLeafIndex) throws IOException {

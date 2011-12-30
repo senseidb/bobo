@@ -15,17 +15,14 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
  */
 public class IDGeoRecordSerializer implements IGeoRecordSerializer<IDGeoRecord>{
 
-    private final int idByteCount;
-
-    public IDGeoRecordSerializer(int idByteCount) {
-        this.idByteCount = idByteCount;
-    }
+    public static final int INTERLACE_BYTES = 12;
     
     @Override
-    public void writeGeoRecord(IndexOutput output, IDGeoRecord record) throws IOException {
-        if (record.id.length != idByteCount) {
+    public void writeGeoRecord(IndexOutput output, IDGeoRecord record, int recordByteCount) throws IOException {
+        if (record.id.length != recordByteCount - INTERLACE_BYTES) {
             throw new IllegalArgumentException("Incorrect number of id bytes given.  " +
-                    "This is most likely a bug!  ExpectedBytes=" + idByteCount + 
+                    "This is most likely a bug!  ExpectedBytes=" + 
+                    (recordByteCount - INTERLACE_BYTES)  + 
                     "; receivedBytes=" + record.id.length);
         }
         
@@ -35,10 +32,10 @@ public class IDGeoRecordSerializer implements IGeoRecordSerializer<IDGeoRecord>{
     }
 
     @Override
-    public IDGeoRecord readGeoRecord(IndexInput input) throws IOException {
+    public IDGeoRecord readGeoRecord(IndexInput input, int recordByteCount) throws IOException {
         long highOrder = input.readLong();
         int lowOrder = input.readInt();
-        int countIdBytes = idByteCount;
+        int countIdBytes = recordByteCount - INTERLACE_BYTES;
         byte[] id = new byte[countIdBytes];
         input.readBytes(id, 0, countIdBytes, false);
         return new IDGeoRecord(highOrder, lowOrder, id);

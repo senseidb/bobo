@@ -4,9 +4,12 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
 
 public class GeoSegmentInfo {
+    public static final int BYTES_PER_RECORD_V1 = 13;
+    
     private String segmentName;
     private IFieldNameFilterConverter fieldNameFilterConverter = new MappedFieldNameFilterConverter();
     private int geoVersion;
+    private int bytesPerRecord = BYTES_PER_RECORD_V1;
     
     public String getSegmentName() {
         return segmentName;
@@ -30,5 +33,13 @@ public class GeoSegmentInfo {
 
     public void setGeoVersion(int geoVersion) {
         this.geoVersion = geoVersion;
+    }
+    
+    public int getBytesPerRecord() {
+        return bytesPerRecord;
+    }
+    
+    public void setBytesPerRecord(int bytesPerRecord) {
+        this.bytesPerRecord = bytesPerRecord;
     }
 }

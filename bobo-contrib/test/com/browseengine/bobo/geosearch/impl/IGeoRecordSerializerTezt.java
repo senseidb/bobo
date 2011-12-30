@@ -45,15 +45,15 @@ public abstract class IGeoRecordSerializerTezt<T extends IGeoRecord> {
     
     public abstract IGeoRecordSerializer<T> getGeoRecordSerializer();
     
-    public void serializeAndDeserialize(T expectedRecord) throws IOException {
+    public void serializeAndDeserialize(T expectedRecord, int byteCount) throws IOException {
         String fileName = UUID.randomUUID().toString();
         
         IndexOutput output = directory.createOutput(fileName);
-        geoRecordSerializer.writeGeoRecord(output, expectedRecord);
+        geoRecordSerializer.writeGeoRecord(output, expectedRecord, byteCount);
         output.close();
         
         IndexInput input = directory.openInput(fileName);
-        T actualRecord = geoRecordSerializer.readGeoRecord(input);
+        T actualRecord = geoRecordSerializer.readGeoRecord(input, byteCount);
         input.close();
         
         assertEquals(expectedRecord, actualRecord);

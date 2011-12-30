@@ -13,6 +13,6 @@ import com.browseengine.bobo.geosearch.bo.IGeoRecord;
  *
  */
 public interface IGeoRecordSerializer<G extends IGeoRecord> {
-    public void writeGeoRecord(IndexOutput output, G record) throws IOException;
-    public G readGeoRecord(IndexInput input) throws IOException;
+    public void writeGeoRecord(IndexOutput output, G record, int recordByteCount) throws IOException;
+    public G readGeoRecord(IndexInput input, int recordByteCount) throws IOException;
 }
