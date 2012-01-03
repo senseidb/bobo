@@ -33,7 +33,7 @@ public class GeoConverterTest {
      * 
      */
     @Test
-    public void testToCartesianCoordinates() {
+    public void testToCartesianCoordinates_xyzMethods() {
         double latitude;
         double longitude;
         
@@ -99,6 +99,16 @@ public class GeoConverterTest {
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
         assertCoordinateMatches(x, y, z, -232753371, 2125255864, -92720598);
+    }
+    
+    @Test
+    public void testToCartesianCoordinates_latLong() {
+        double latitude = -2.5;
+        double longitude = 96.25;
+        byte[] uuid  = {(byte)0, (byte)1, (byte)2, (byte)3};
+        CartesianCoordinateUUID coordinate = geoConverter.toCartesianCoordinate(latitude, longitude, uuid);
+        assertEquals(uuid, coordinate.uuid);
+        assertCoordinateMatches(coordinate.x, coordinate.y, coordinate.z, -232753371, 2125255864, -92720598);
     }
     
     private void assertCoordinateMatches(int actualX, int actualY, int actualZ,
