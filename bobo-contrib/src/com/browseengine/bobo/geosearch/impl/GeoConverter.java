@@ -14,6 +14,7 @@ import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 
 /**
@@ -225,11 +226,6 @@ public class GeoConverter implements IGeoConverter {
     static final double EARTH_RADIUS_METERS = 6378137.0;
     static final int EARTH_RADIUS_INTEGER_UNITS = 2140000000;
     
-    protected double degreesToRadians(double degrees)
-    {
-      return (degrees * (Math.PI / 180));
-    }
-    
     protected int getXFromRadians(double latRadians, double longRadians)
     {
       return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
@@ -247,8 +243,8 @@ public class GeoConverter implements IGeoConverter {
 
     @Override
     public IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid) {
-        double latRadians = degreesToRadians(latitude);
-        double longRadians =  degreesToRadians(longitude);
+        double latRadians = Conversions.d2r(latitude);
+        double longRadians =  Conversions.d2r(longitude);
         int x = getXFromRadians(latRadians, longRadians);
         int y = getYFromRadians(latRadians, longRadians);
         int z = getZFromRadians(latRadians);
