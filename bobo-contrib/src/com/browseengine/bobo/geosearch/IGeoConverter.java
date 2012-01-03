@@ -22,5 +22,6 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         
         IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid);
         CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord);
+        CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid);
         
     }

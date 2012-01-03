@@ -242,6 +242,17 @@ public class GeoConverter implements IGeoConverter {
     }
 
     @Override
+    public CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid) {
+        double latRadians = Conversions.d2r(latitude);
+        double longRadians =  Conversions.d2r(longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
+        
+        return new CartesianCoordinateUUID(x, y, z, uuid);
+    }
+    
+    @Override
     public IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid) {
         double latRadians = Conversions.d2r(latitude);
         double longRadians =  Conversions.d2r(longitude);
