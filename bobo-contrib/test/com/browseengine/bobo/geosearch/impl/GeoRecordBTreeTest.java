@@ -12,14 +12,11 @@ import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
-import com.browseengine.bobo.geosearch.impl.GeoConverter;
-import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
 public class GeoRecordBTreeTest {
     
-
+    GeoRecordComparator geoComparator = new GeoRecordComparator();
+    
     @Test
     public void test_Test() throws IOException {
         for(int i = 0; i < 100; i++) {
@@ -40,8 +37,7 @@ public class GeoRecordBTreeTest {
         GeoRecord minRecord, maxRecord;
         minRecord = gc.toGeoRecord((byte)0, lldida.get(0));
         maxRecord = gc.toGeoRecord((byte)0, lldida.get(1));
-        GeoUtil gu = new GeoUtil();
-        if(gu.compare(minRecord, maxRecord) == 1) {
+        if(geoComparator.compare(minRecord, maxRecord) == 1) {
             minRecord = gc.toGeoRecord((byte)0, lldida.get(1));
             maxRecord = gc.toGeoRecord((byte)0, lldida.get(0));
         }
@@ -53,10 +49,10 @@ public class GeoRecordBTreeTest {
             }
             next = gIt.next();
             if(current != null) {
-                assertTrue("The indexer is out of order.",gu.compare(current, next) != 1);
+                assertTrue("The indexer is out of order.",geoComparator.compare(current, next) != 1);
             }
-            assertTrue("Iterator is out of range ",gu.compare(next, minRecord) != -1 ||
-                    gu.compare(next, maxRecord) != 1);
+            assertTrue("Iterator is out of range ",geoComparator.compare(next, minRecord) != -1 ||
+                    geoComparator.compare(next, maxRecord) != 1);
         }
     }
     

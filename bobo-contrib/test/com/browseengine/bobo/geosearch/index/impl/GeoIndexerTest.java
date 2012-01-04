@@ -3,6 +3,7 @@ package com.browseengine.bobo.geosearch.index.impl;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -24,11 +25,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
+import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 
@@ -51,6 +55,8 @@ public class GeoIndexerTest {
     GeoIndexer geoIndexer;
     
     GeoSearchConfig config = new GeoSearchConfig();
+    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
+    Comparator<GeoRecord> geoComparator;
     
     String locationField = "location1";
     byte locationFilterByte = (byte)1;
@@ -75,6 +81,8 @@ public class GeoIndexerTest {
         mockFieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
         
         geoIndexer = new GeoIndexer(config);
+        geoRecordSerializer = new GeoRecordSerializer();
+        geoComparator = new GeoRecordComparator();
         
         geoIndexerNoMocks = new GeoIndexer(new GeoSearchConfig());
     }
@@ -226,7 +234,8 @@ public class GeoIndexerTest {
         String geoFileName = config.getGeoFileName(segmentName);
         
         BTree<GeoRecord> segmentBTree = 
-            new GeoSegmentReader(directory, geoFileName, -1, 500);
+            new GeoSegmentReader<GeoRecord>(directory, geoFileName, -1, 500, 
+                    geoRecordSerializer, geoComparator);
         
         assertEquals("Incorrect number of documents in geo index", totalDocs, 
                 segmentBTree.getArrayLength());

@@ -11,9 +11,10 @@ import org.springframework.stereotype.Component;
 
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
-import com.browseengine.bobo.geosearch.bo.CartesianCoordinate;
+import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 
 /**
@@ -22,6 +23,7 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
  * 
  * @author Shane Detsch
  * @author Ken McCracken
+ * @author Geoff Cooney
  * 
  */
 @Component
@@ -224,47 +226,44 @@ public class GeoConverter implements IGeoConverter {
     static final double EARTH_RADIUS_METERS = 6378137.0;
     static final int EARTH_RADIUS_INTEGER_UNITS = 2140000000;
     
-    /**
-     * Returns the cartesian coordinates for a given latitude and longitude.  This method
-     * scales the results so that the 
-     */
-    @Override
-    public CartesianCoordinate toCartesianCoordinate(double latitude, double longitude) {
-        double latRadians = degreesToRadians(latitude);
-        double longRadians =  degreesToRadians(longitude);
-        int x = getXFromRadians(latRadians, longRadians);
-        int y = getYFromRadians(latRadians, longRadians);
-        int z = getZFromRadians(latRadians);
-        
-        return new CartesianCoordinate(x, y, z);
-    }
-
-    private double degreesToRadians(double degrees)
-    {
-      return (degrees * (Math.PI / 180));
-    }
-    
-    private int getXFromRadians(double latRadians, double longRadians)
+    protected int getXFromRadians(double latRadians, double longRadians)
     {
       return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
     }
 
-    private int getYFromRadians(double latRadians, double longRadians)
+    protected int getYFromRadians(double latRadians, double longRadians)
     {
       return (int) (EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
     }
 
-    private static int getZFromRadians(double latRadians)
+    protected int getZFromRadians(double latRadians)
     {
       return (int) (EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
     }
 
     @Override
-    public IDGeoRecord toIDGeoRecord(CartesianCoordinate coordinate, byte[] id) {
-        int x = coordinate.x;
-        int y = coordinate.y;
-        int z = coordinate.z;
+    public CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid) {
+        double latRadians = Conversions.d2r(latitude);
+        double longRadians =  Conversions.d2r(longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
         
+        return new CartesianCoordinateUUID(x, y, z, uuid);
+    }
+    
+    @Override
+    public IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid) {
+        double latRadians = Conversions.d2r(latitude);
+        double longRadians =  Conversions.d2r(longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
+        
+        return toIDGeoRecord(x, y, z, uuid);
+    }
+    
+    protected IDGeoRecord toIDGeoRecord(int x, int y, int z, byte[] uuid) { 
         long highOrderBits = 0;
         int highOrderPosition = LONGLENGTH - 2;
         
@@ -296,26 +295,28 @@ public class GeoConverter implements IGeoConverter {
         int zPos = INTLENGTH - 2;
         
         highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 3);
-        xPos -= (highOrderPosition + 3) / 3;
-        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
-        yPos -= (highOrderPosition + 3) / 3;
-        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, highOrderPosition--, 3);
-        zPos -= (highOrderPosition + 3) / 3;
+        xPos -= (highOrderPosition / 3) + 1;
+        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 3);
+        yPos -= (highOrderPosition / 3) + 1;
+        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 3);
+        zPos -= (highOrderPosition / 3) + 1;
         
         int lowOrderBits = 0;
         int lowOrderPosition = INTLENGTH - 2;
         lowOrderBits = interlaceToInteger(x, xPos, lowOrderBits, lowOrderPosition, 3);
-        lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, lowOrderPosition--, 3);
-        lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, lowOrderPosition--, 3);
+        lowOrderBits = interlaceToInteger(y, yPos, lowOrderBits, --lowOrderPosition, 3);
+        lowOrderBits = interlaceToInteger(z, zPos, lowOrderBits, --lowOrderPosition, 3);
 
-        return new IDGeoRecord(highOrderBits, lowOrderBits, id);
+        return new IDGeoRecord(highOrderBits, lowOrderBits, uuid);
     }
     
     private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
-            int countOfValuesToInterlace) {
+            int interlaceInterval) {
         while (longBitPosition > -1 && inputBitPosition > -1) {
-            longValue += inputValue & (ONE_AS_INT << inputBitPosition); 
-            longBitPosition -= countOfValuesToInterlace;
+            if ((inputValue & (ONE_AS_INT << inputBitPosition)) != 0) {
+                longValue += ONE_AS_LONG << longBitPosition;
+            }
+            longBitPosition -= interlaceInterval;
             inputBitPosition--;
         }
         
@@ -323,13 +324,89 @@ public class GeoConverter implements IGeoConverter {
     }
     
     private int interlaceToInteger(int inputValue, int inputBitPosition, 
-            int integerValue, int integerBitPosition, int countOfValuesToInterlace) {
+            int integerValue, int integerBitPosition, int interlaceInterval) {
         while (integerBitPosition > -1 && inputBitPosition > -1) {
-            integerValue += inputValue & (ONE_AS_INT << inputBitPosition); 
-            integerBitPosition -= countOfValuesToInterlace;
+            if ((inputValue & (ONE_AS_INT << inputBitPosition)) != 0) {
+                integerValue += ONE_AS_INT << integerBitPosition;
+            }
+            integerBitPosition -= interlaceInterval;
             inputBitPosition--;
         }
         
         return integerValue;
+    }   
+
+    @Override
+    public CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord) {
+        int x = 0;
+        int y = 0;
+        int z = 0;
+        int dimensions = 3;
+        
+        int highOrderPosition = LONGLENGTH - 2 - dimensions;
+        
+        //now interlace the rest
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
+        
+        //uninterlace high order bits
+        x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, highOrderPosition, dimensions);
+        xPos -= (highOrderPosition / dimensions) + 1;
+        y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        yPos -= (highOrderPosition / dimensions) + 1;
+        z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        zPos -= (highOrderPosition / dimensions) + 1;
+        
+        //uninterlace low order bits
+        int lowOrderPosition = INTLENGTH - 2;
+        x = unInterlaceFromInt(x, xPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
+        y = unInterlaceFromInt(y, yPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        z = unInterlaceFromInt(z, zPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        
+        highOrderPosition = LONGLENGTH - 2;
+        //uninterlace sign bit
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            x = x - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            y = y - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            z = z - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+
+        return new CartesianCoordinateUUID(x, y, z, geoRecord.id);
+    }
+
+    private int unInterlaceFromLong(int outputValue, int outputBitPos, long longValue, int longBitPosition, 
+            int interlaceInterval) {
+        while (longBitPosition > -1 && outputBitPos > -1) {
+            if ((longValue & (ONE_AS_LONG << longBitPosition)) != 0) {
+                outputValue += ONE_AS_INT << outputBitPos; 
+            }
+            longBitPosition -= interlaceInterval;
+            outputBitPos--;
+        }
+        
+        return outputValue;
+    }
+    
+    private int unInterlaceFromInt(int outputValue, int outputBitPos, int intValue, int intBitPosition, 
+            int interlaceInterval) {
+        while (intBitPosition > -1 && outputBitPos > -1) {
+            if ((intValue & (ONE_AS_INT << intBitPosition)) != 0) {
+                outputValue += ONE_AS_INT << outputBitPos; 
+            } 
+            intBitPosition -= interlaceInterval;
+            outputBitPos--;
+        }
+        
+        return outputValue;
     }
 }

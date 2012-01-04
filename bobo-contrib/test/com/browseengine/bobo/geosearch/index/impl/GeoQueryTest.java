@@ -22,6 +22,7 @@ import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
 import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
 import com.browseengine.bobo.geosearch.query.GeoScorer;
@@ -31,12 +32,13 @@ import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
 
 public class GeoQueryTest {
     private GeoIndexReader geoIndexReader;
-    List<GeoSegmentReader> geoSubReaders;
-    private static class MyGeoSegmentReader extends GeoSegmentReader {
+    List<GeoSegmentReader<GeoRecord>> geoSubReaders;
+    private static class MyGeoSegmentReader extends GeoSegmentReader<GeoRecord> {
         private final GeoRecordBTree tree;
         
         public MyGeoSegmentReader(GeoRecordBTree tree, int maxDoc) {
-            super(tree.getArrayLength(), maxDoc);
+            super(tree.getArrayLength(), maxDoc, new GeoRecordSerializer(), 
+                    new GeoRecordComparator());
             this.tree = tree;
         }
         
@@ -63,7 +65,7 @@ public class GeoQueryTest {
         TreeSet<GeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
         GeoRecordBTree geoRecordBTree = new GeoRecordBTree(treeSet); 
         MyGeoSegmentReader geoSegmentReader = new MyGeoSegmentReader(geoRecordBTree, indexedDocument.size());
-        geoSubReaders = new ArrayList<GeoSegmentReader>(); 
+        geoSubReaders = new ArrayList<GeoSegmentReader<GeoRecord>>(); 
         geoSubReaders.add(geoSegmentReader);
         GeoQuery geoQuery = new GeoQuery(gcord.getLongitude(), gcord.getLatitude(), rangeInMiles, null);
         GeoWeight geoWeight = (GeoWeight)geoQuery.createWeight(null);

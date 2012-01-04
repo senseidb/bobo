@@ -15,6 +15,7 @@ import com.browseengine.bobo.geosearch.IDeletedDocs;
 import com.browseengine.bobo.geosearch.IGeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.DocsSortedByDocId;
+import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoRecordAndLongitudeLatitudeDocId;
 import com.browseengine.bobo.geosearch.impl.DeletedDocs;
 import com.browseengine.bobo.geosearch.impl.GeoBlockOfHitsProvider;
@@ -38,7 +39,7 @@ public class GeoScorer extends Scorer {
     private final IGeoConverter geoConverter;
     private final IGeoBlockOfHitsProvider geoBlockOfHitsProvider;
     private final IComputeDistance computeDistance;
-    private final List<GeoSegmentReader> segmentsInOrder;
+    private final List<GeoSegmentReader<GeoRecord>> segmentsInOrder;
     private final double centroidLongitudeDegrees;
     private final double centroidLatitudeDegrees;
     private final float rangeInMiles;
@@ -53,7 +54,7 @@ public class GeoScorer extends Scorer {
     private int docid = DOCID_CURSOR_NONE_YET; 
     private int indexOfCurrentPartition = DOCID_CURSOR_NONE_YET;
     private int startDocidOfCurrentPartition;
-    private GeoSegmentReader currentSegment = null;
+    private GeoSegmentReader<GeoRecord> currentSegment = null;
     private DocsSortedByDocId currentBlockScoredDocs;
     
     private Entry<Integer, Collection<GeoRecordAndLongitudeLatitudeDocId>> currentDoc;
@@ -66,7 +67,7 @@ public class GeoScorer extends Scorer {
     }
     
     public GeoScorer(Weight                      weight,
-                     List<GeoSegmentReader>      segmentsInOrder, 
+                     List<GeoSegmentReader<GeoRecord>>      segmentsInOrder, 
                      IDeletedDocs                wholeIndexDeletedDocs, 
                      double                      centroidLongitudeDegrees,
                      double                      centroidLatitudeDegrees,

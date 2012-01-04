@@ -6,7 +6,6 @@ import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 public interface IGeoUtil {
-    int compare(GeoRecord geoRecordFirst, GeoRecord geoRecordSecond);
     Iterator<GeoRecord> getGeoRecordIterator(Iterator<LatitudeLongitudeDocId> lldidIter);
     TreeSet<GeoRecord> getBinaryTreeOrderedByBitMag(Iterator<GeoRecord> grIter);
     TreeSet<GeoRecord> getBinaryTreeOrderedByBitMag();

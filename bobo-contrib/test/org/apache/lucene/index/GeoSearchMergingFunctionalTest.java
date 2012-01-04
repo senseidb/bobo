@@ -22,7 +22,6 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.browseengine.bobo.geosearch.IGeoUtil;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
@@ -76,12 +75,11 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     private void verifySegment(int maxDocs) throws IOException {
-        IGeoUtil geoUtil = geoConfig.getGeoUtil();
-        
         String geoFileName = getMergedGeoFileName();
         assertTrue(directory.fileExists(geoFileName));
         
-        GeoSegmentReader reader = new GeoSegmentReader(directory, geoFileName, maxDocs, 1024);
+        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+                geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
         
         assertEquals(maxDocs * 2, reader.getArrayLength());
         
@@ -90,7 +88,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         while (geoIter.hasNext()) {
             GeoRecord currentRecord = geoIter.next();
             System.out.println(currentRecord);
-            assertTrue(geoUtil.compare(currentRecord, previousRecord) >= 0);
+            assertTrue(geoComparator.compare(currentRecord, previousRecord) >= 0);
             previousRecord = currentRecord;
         }
     }

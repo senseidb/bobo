@@ -4,15 +4,19 @@ package com.browseengine.bobo.geosearch.bo;
  * @author gcooney
  *
  */
-public class CartesianCoordinate {
+public class CartesianCoordinateUUID {
     public int x;
     public int y;
     public int z;
     
-    public CartesianCoordinate(int x, int y, int z) {
+    public byte[] uuid;
+    
+    public CartesianCoordinateUUID(int x, int y, int z, byte[] uuid) {
         this.x = x;
         this.y = y;
         this.z = z;
+        
+        this.uuid = uuid;
     }
     
     @Override
@@ -22,6 +26,7 @@ public class CartesianCoordinate {
         result = prime * result + x;
         result = prime * result + y;
         result = prime * result + z;
+        result = prime * result + uuid.hashCode();
         return result;
     }
 
@@ -33,18 +38,20 @@ public class CartesianCoordinate {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        CartesianCoordinate other = (CartesianCoordinate) obj;
+        CartesianCoordinateUUID other = (CartesianCoordinateUUID) obj;
         if (x != other.x)
             return false;
         if (y != other.y)
             return false;
         if (z != other.z)
             return false;
+        if (uuid != other.uuid)
+            return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "(x=" + x + ", y=" + y + ", z=" + z + ")";
+        return "[(x=" + x + ", y=" + y + ", z=" + z + "), uuid=" + uuid + "]";
     }
 }

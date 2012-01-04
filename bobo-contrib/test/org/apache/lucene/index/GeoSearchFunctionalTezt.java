@@ -11,9 +11,9 @@ import java.util.Vector;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.Fieldable;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.DataInput;
@@ -22,8 +22,11 @@ import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
+import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
+import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
@@ -44,6 +47,8 @@ public class GeoSearchFunctionalTezt {
     
     GeoSearchConfig geoConfig;
     MappedFieldNameFilterConverter fieldNameConverter;
+    GeoRecordComparator geoComparator;
+    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
     
     static final String TEXT_FIELD = "text";
     static final String TITLE_FIELD = "title";
@@ -95,6 +100,9 @@ public class GeoSearchFunctionalTezt {
     }
     
     void buildGeoIndexWriter() throws CorruptIndexException, LockObtainFailedException, IOException {
+        geoComparator = new GeoRecordComparator();
+        geoRecordSerializer = new GeoRecordSerializer();
+        
         directory = new RAMDirectory();
         
         config = new IndexWriterConfig(Version.LUCENE_33, 
@@ -194,7 +202,8 @@ public class GeoSearchFunctionalTezt {
         int countImageLocationFiltered = 0;
         int countLocationFiltered = 0;
         
-        GeoSegmentReader reader = new GeoSegmentReader(directory, geoFileName, maxDocs, 1024);
+        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+                geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
         Iterator<GeoRecord> geoIter = reader.getIterator(GeoRecord.MIN_VALID_GEORECORD, GeoRecord.MAX_VALID_GEORECORD);
         while (geoIter.hasNext()) {
             GeoRecord geoRecord = geoIter.next();

@@ -9,10 +9,10 @@ import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
-import com.browseengine.bobo.geosearch.impl.GeoConverter;
-import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
 public class UserCaseTest {
+    
+    GeoRecordComparator geoComparator = new GeoRecordComparator();
     
     @Test
     public void useCase_Test() throws Exception{
@@ -28,7 +28,7 @@ public class UserCaseTest {
             maxLldidRange = getRandomLongitudeLatitudeDocId(false);
             // Make sure minRange is <= maxRange
             while 
-                (gu.compare( 
+                (geoComparator.compare( 
                     gc.toGeoRecord(filterByte, minLldidRange), 
                     gc.toGeoRecord(filterByte, maxLldidRange))
                    == 1 
@@ -87,12 +87,11 @@ public class UserCaseTest {
     public void test_IfDocumentsAreInRangeAndInOrderOfBitInterlacedMag(Iterator <GeoRecord> inRangeInOrderByBitInterMag) {
         if(inRangeInOrderByBitInterMag.hasNext()) {    
             GeoRecord next = inRangeInOrderByBitInterMag.next(), current = null;
-            GeoUtil gu = new GeoUtil();
             while(inRangeInOrderByBitInterMag.hasNext()) {
                     current = next;
                     next = inRangeInOrderByBitInterMag.next();
                     assertTrue("The records are out of order by magnitude of their bit interlace representation. ",
-                            gu.compare(current, next) != 1);
+                            geoComparator.compare(current, next) != 1);
             }
         }
     }
