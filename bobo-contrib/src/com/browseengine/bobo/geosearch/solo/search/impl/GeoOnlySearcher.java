@@ -50,9 +50,15 @@ public class GeoOnlySearcher {
                 geoRecordSerializer, geoComparator);
         
         Iterator<IDGeoRecord> hitIterator = segmentReader.getIterator(minRecord, maxRecord);
-
         CartesianCoordinateUUID minCoordinate = geoConverter.toCartesianCoordinate(minRecord);
         CartesianCoordinateUUID maxCoordinate = geoConverter.toCartesianCoordinate(maxRecord);
+        
+        return collectHits(query, hitIterator, minCoordinate, maxCoordinate, start, count);
+    }
+
+    private GeoOnlyHits collectHits(GeoQuery query, Iterator<IDGeoRecord> hitIterator, 
+            CartesianCoordinateUUID minCoordinate, CartesianCoordinateUUID maxCoordinate,
+            int start, int count) {
         CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(
             query.getCentroidLatitude(), query.getCentroidLongitude(), new byte[0]);
         
@@ -86,7 +92,7 @@ public class GeoOnlySearcher {
         
         return new GeoOnlyHits(totalHits, hits);
     }
-
+    
     private IDGeoRecord buildMinRecord(GeoQuery query){
         double minLattitude = query.getCentroidLatitude() 
             - Conversions.mi2km(query.getRangeInMiles());
