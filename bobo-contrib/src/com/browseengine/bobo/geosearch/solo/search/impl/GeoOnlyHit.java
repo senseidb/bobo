@@ -1,5 +1,10 @@
 package com.browseengine.bobo.geosearch.solo.search.impl;
 
+/**
+ * 
+ * @author gcooney
+ *
+ */
 public class GeoOnlyHit {
 
     public double score;

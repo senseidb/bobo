@@ -86,7 +86,7 @@ public class GeoOnlySearcher {
         }
         
         GeoOnlyHit[] hits = new GeoOnlyHit[count];
-        for (int i = 0; i < count; i++) {
+        for (int i = count; i >= 0; i--) {
             hits[i] = hitQueue.pop();
         }
         
