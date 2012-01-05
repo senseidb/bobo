@@ -255,9 +255,8 @@ public class BrowseResult implements Serializable{
    * @param time search time
    * @see #getTime()
 	 */
-	public BrowseResult setTime(long time){
+	public void setTime(long time){
 		this.time=time;
-    return this;
 	}
 	
 	/**
