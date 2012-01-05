@@ -19,10 +19,11 @@ public class MultiDocIdComparator extends DocComparator {
 		return 0;
 	}
 
-	public void setScorer(Scorer scorer){
+	public MultiDocIdComparator setScorer(Scorer scorer){
 	  for (DocComparator comparator : _comparators){
 	    comparator.setScorer(scorer);
 	  }
+    return this;
 	}
 	
 	@Override

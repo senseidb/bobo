@@ -13,8 +13,9 @@ public abstract class DocComparatorSource {
 	
     boolean _reverse = false;
 	
-	public void setReverse(boolean reverse){
+	public DocComparatorSource setReverse(boolean reverse){
 		_reverse = reverse;
+    return this;
 	}
 	
 	public final boolean isReverse(){

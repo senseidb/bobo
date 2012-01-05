@@ -14,7 +14,7 @@ public class BrowseRequestBuilder {
 		clear();
 	}
 	
-	public void addSelection(String name,String val,boolean isNot){
+	public BrowseRequestBuilder addSelection(String name, String val, boolean isNot){
 		BrowseSelection sel = _req.getSelection(name);
 		if (sel==null){
 			sel = new BrowseSelection(name);
@@ -26,59 +26,70 @@ public class BrowseRequestBuilder {
 			sel.addValue(val);
 		}
 		_req.addSelection(sel);
+    return this;
 	}
 	
-	public void clearSelection(String name){
+	public BrowseRequestBuilder clearSelection(String name){
 		_req.removeSelection(name);
+    return this;
 	}
 	
-	public void applyFacetSpec(String name,int minHitCount,int maxCount,boolean expand,FacetSortSpec orderBy){
+	public BrowseRequestBuilder applyFacetSpec(String name, int minHitCount, int maxCount, boolean expand, FacetSortSpec orderBy){
 		FacetSpec fspec = new FacetSpec();
 		fspec.setMinHitCount(minHitCount);
 		fspec.setMaxCount(maxCount);
 		fspec.setExpandSelection(expand);
 		fspec.setOrderBy(orderBy);
 		_req.setFacetSpec(name, fspec);
+    return this;
 	}
 	
-	public void applySort(SortField[] sorts){
+	public BrowseRequestBuilder applySort(SortField[] sorts){
 		if (sorts==null){
 			_req.clearSort();
 		}
 		else{
 			_req.setSort(sorts);
 		}
+    return this;
 	}
 	
-	public void clearFacetSpecs(){
+	public BrowseRequestBuilder clearFacetSpecs(){
 		_req.getFacetSpecs().clear();
+    return this;
 	}
-	public void clearFacetSpec(String name){
+	public BrowseRequestBuilder clearFacetSpec(String name){
 		_req.getFacetSpecs().remove(name);
+    return this;
 	}
 	
-	public void setOffset(int offset){
+	public BrowseRequestBuilder setOffset(int offset){
 		_req.setOffset(offset);
+    return this;
 	}
 	
-	public void setCount(int count){
+	public BrowseRequestBuilder setCount(int count){
 		_req.setCount(count);
+    return this;
 	}
 	
-	public void setQuery(String qString){
+	public BrowseRequestBuilder setQuery(String qString){
 		_qString = qString;
+    return this;
 	}
 	
-	public void clear(){
+	public BrowseRequestBuilder clear(){
 		_req = new BrowseRequest();
 		_req.setOffset(0);
 		_req.setCount(5);
 		_req.setFetchStoredFields(true);
 		_qString = null;
+    return this;
 	}
 	
-	public void clearSelections(){
+	public BrowseRequestBuilder clearSelections(){
 		_req.clearSelections();
+    return this;
 	}
 	
 	public BrowseRequest getRequest(){

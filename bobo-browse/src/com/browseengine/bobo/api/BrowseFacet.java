@@ -34,11 +34,13 @@ public class BrowseFacet implements Serializable {
 	
 	/**
 	 * Sets the facet value
-	 * @param value Facet value
-	 * @see #getValue()
+	 *
+   * @param value Facet value
+   * @see #getValue()
 	 */
-	public void setValue(String value){
+	public BrowseFacet setValue(String value){
 		_value=value;
+    return this;
 	}
 	
 	/**
@@ -52,11 +54,13 @@ public class BrowseFacet implements Serializable {
 	
 	/**
 	 * Sets the hit count
-	 * @param hitcount Hit count
-	 * @deprecated use {@link #setFacetValueHitCount(int)}
+	 *
+   * @param hitcount Hit count
+   * @deprecated use {@link #setFacetValueHitCount(int)}
 	 */
-	public void setHitCount(int hitcount){
+	public BrowseFacet setHitCount(int hitcount){
 		_hitcount=hitcount;
+    return this;
 	}
 	
 	/**
@@ -70,11 +74,13 @@ public class BrowseFacet implements Serializable {
 	
 	/**
 	 * Sets the hit count
-	 * @param hitcount Hit count
-	 * @see #getHitCount()
+	 *
+   * @param hitcount Hit count
+   * @see #getHitCount()
 	 */
-	public void setFacetValueHitCount(int hitcount){
+	public BrowseFacet setFacetValueHitCount(int hitcount){
 		_hitcount=hitcount;
+    return this;
 	}
 	
 	@Override

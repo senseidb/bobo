@@ -65,9 +65,10 @@ public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializer
     return _doubleMap.keySet();
   }
 
-  public void putBooleanParam(String key, boolean[] value)
+  public DefaultFacetHandlerInitializerParam putBooleanParam(String key, boolean[] value)
   {
     _boolMap.put(key, value);
+    return this;
   }
 
   public boolean[] getBooleanParam(String name)
@@ -75,9 +76,10 @@ public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializer
     return _boolMap.get(name);
   }
 
-  public void putByteArrayParam(String key, byte[] value)
+  public DefaultFacetHandlerInitializerParam putByteArrayParam(String key, byte[] value)
   {
     _byteMap.put(key, value);
+    return this;
   }
 
   public byte[] getByteArrayParam(String name)
@@ -85,9 +87,10 @@ public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializer
     return _byteMap.get(name);
   }
 
-  public void putIntParam(String key, int[] value)
+  public DefaultFacetHandlerInitializerParam putIntParam(String key, int[] value)
   {
     _intMap.put(key, value);
+    return this;
   }
 
   public int[] getIntParam(String name)
@@ -95,9 +98,10 @@ public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializer
     return _intMap.get(name);
   }
 
-  public void putLongParam(String key, long[] value)
+  public DefaultFacetHandlerInitializerParam putLongParam(String key, long[] value)
   {
     _longMap.put(key, value);
+    return this;
   }
 
   public long[] getLongParam(String name)
@@ -105,9 +109,10 @@ public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializer
     return _longMap.get(name);
   }
 
-  public void putStringParam(String key, List<String> value)
+  public DefaultFacetHandlerInitializerParam putStringParam(String key, List<String> value)
   {
     _stringMap.put(key, value);
+    return this;
   }
 
   public List<String> getStringParam(String name)
@@ -115,9 +120,10 @@ public class DefaultFacetHandlerInitializerParam extends FacetHandlerInitializer
     return _stringMap.get(name);
   }
 
-  public void putDoubleParam(String key, double[] value)
+  public DefaultFacetHandlerInitializerParam putDoubleParam(String key, double[] value)
   {
     _doubleMap.put(key, value);
+    return this;
   }
 
   public double[] getDoubleParam(String name)

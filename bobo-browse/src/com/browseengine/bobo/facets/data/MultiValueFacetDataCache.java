@@ -47,10 +47,11 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     _nestedArray = new BigNestedIntArray();
   }
   
-  public void setMaxItems(int maxItems)
+  public MultiValueFacetDataCache<T> setMaxItems(int maxItems)
   {
     _maxItems = Math.min(maxItems, BigNestedIntArray.MAX_ITEMS);
     _nestedArray.setMaxItems(_maxItems);
+    return this;
   }
   
   @Override
