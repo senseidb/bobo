@@ -63,12 +63,14 @@ public abstract class FacetHandler<D>
 		_termCountSize = TermCountSize.large;
 	}
 	
-	public void setTermCountSize(String termCountSize){
+	public FacetHandler<D> setTermCountSize(String termCountSize){
 		setTermCountSize(TermCountSize.valueOf(termCountSize.toLowerCase()));
+    return this;
 	}
 	
-	public void setTermCountSize(TermCountSize termCountSize){
+	public FacetHandler<D> setTermCountSize(TermCountSize termCountSize){
 		_termCountSize = termCountSize;
+    return this;
 	}
 	
 	public TermCountSize getTermCountSize(){
