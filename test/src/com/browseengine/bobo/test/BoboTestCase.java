@@ -1776,7 +1776,7 @@ public class BoboTestCase extends TestCase {
 	public void testQueryWithScore() throws Exception{
 		BrowseRequest br=new BrowseRequest();
 		br.setShowExplanation(false);	// default
-		  QueryParser parser=new QueryParser(Version.LUCENE_29,"color",new StandardAnalyzer(Version.LUCENE_29));
+		  QueryParser parser=new QueryParser(Version.LUCENE_CURRENT,"color",new StandardAnalyzer(Version.LUCENE_CURRENT));
 		  br.setQuery(parser.parse("color:red OR shape:square"));
 	      br.setCount(10);
 	      br.setOffset(0);
@@ -1819,7 +1819,7 @@ public class BoboTestCase extends TestCase {
   public void testBrowseWithQuery(){
 		try{
 		  BrowseRequest br=new BrowseRequest();
-		  QueryParser parser=new QueryParser(Version.LUCENE_29,"shape",new StandardAnalyzer(Version.LUCENE_29));
+		  QueryParser parser=new QueryParser(Version.LUCENE_CURRENT,"shape",new StandardAnalyzer(Version.LUCENE_CURRENT));
 		  br.setQuery(parser.parse("square OR circle"));
 	      br.setCount(10);
 	      br.setOffset(0);
@@ -2548,7 +2548,7 @@ public class BoboTestCase extends TestCase {
 		Directory idxDir = new RAMDirectory();
 		Document[] docs = buildData();
 		
-		IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_29),MaxFieldLength.UNLIMITED);
+		IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
 		writer.addDocument(docs[0]);
 		writer.optimize();
 		writer.commit();
@@ -2564,7 +2564,7 @@ public class BoboTestCase extends TestCase {
 			assertSame(boboReader,reader);
 			
 			Directory tmpDir = new RAMDirectory();
-			IndexWriter subWriter = new IndexWriter(tmpDir,new StandardAnalyzer(Version.LUCENE_29),MaxFieldLength.UNLIMITED);
+			IndexWriter subWriter = new IndexWriter(tmpDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
 			subWriter.addDocument(doc);
 			subWriter.optimize();
 			subWriter.close();
@@ -2594,7 +2594,7 @@ public class BoboTestCase extends TestCase {
     /* Underlying time facet for DynamicTimeRangeFacetHandler */
     facetHandlers.add(new RangeFacetHandler("timeinmillis", new PredefinedTermListFactory(Long.class, DynamicTimeRangeFacetHandler.NUMBER_FORMAT),null));
     Directory idxDir = new RAMDirectory();
-    IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_29),MaxFieldLength.UNLIMITED);
+    IndexWriter writer = new IndexWriter(idxDir,new StandardAnalyzer(Version.LUCENE_CURRENT),MaxFieldLength.UNLIMITED);
 	  
 	  long now = System.currentTimeMillis();
 	  DecimalFormat df = new DecimalFormat(DynamicTimeRangeFacetHandler.NUMBER_FORMAT);

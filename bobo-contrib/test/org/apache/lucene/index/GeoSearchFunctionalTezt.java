@@ -105,8 +105,8 @@ public class GeoSearchFunctionalTezt {
         
         directory = new RAMDirectory();
         
-        config = new IndexWriterConfig(Version.LUCENE_33, 
-                new StandardAnalyzer(Version.LUCENE_33));
+        config = new IndexWriterConfig(Version.LUCENE_CURRENT, 
+                new StandardAnalyzer(Version.LUCENE_CURRENT));
         
         config.setMergePolicy(new MergeOnOptimizeOnly());
         

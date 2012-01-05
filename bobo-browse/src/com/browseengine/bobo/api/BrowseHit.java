@@ -108,7 +108,6 @@ public class BrowseHit
 	private Map<String,Object[]> _rawFieldValues;
 	private transient Comparable<?> _comparable;
 	private Document _storedFields;
-  private byte[] _storedValue;
     private String _groupValue;
     private Object _rawGroupValue;
     private int _groupHitsCount;
@@ -246,16 +245,6 @@ public class BrowseHit
 		return _storedFields;
 	}
 	
-  public void setStoredValue(byte[] value)
-  {
-    _storedValue = value;
-  }
-
-  public byte[] getStoredValue()
-  {
-    return _storedValue;
-  }
-
 	public String toString(Map<String, String[]> map)
 	  {
 	    StringBuilder buffer = new StringBuilder();
