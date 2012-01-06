@@ -160,7 +160,7 @@ public abstract class FacetHandler<D>
 	 * @throws IOException 
 	 * @throws IOException
 	 */
-	public final RandomAccessFilter buildFilter(BrowseSelection sel) throws IOException
+	public RandomAccessFilter buildFilter(BrowseSelection sel) throws IOException
 	{
       String[] selections = sel.getValues();
       String[] notSelections = sel.getNotValues();
