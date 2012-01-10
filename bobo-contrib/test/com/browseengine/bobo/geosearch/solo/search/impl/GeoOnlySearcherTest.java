@@ -24,9 +24,7 @@ import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
-import com.browseengine.bobo.geosearch.score.IComputeDistance;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
-import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 
 /**
@@ -48,8 +46,6 @@ public class GeoOnlySearcherTest {
     private GeoSegmentReader<IDGeoRecord> mockGeoSegmentReader;
     private IGeoConverter geoConverter;
     
-    private IComputeDistance computeDistance;
-    
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws IOException {
@@ -60,7 +56,6 @@ public class GeoOnlySearcherTest {
         mockGeoSegmentReader = context.mock(GeoSegmentReader.class);
 
         geoConverter = new GeoConverter();
-        computeDistance =  new HaversineComputeDistance();
         
         searcher = new GeoOnlySearcher(config, directory, indexName) {
             @Override
@@ -118,7 +113,6 @@ public class GeoOnlySearcherTest {
             assertNotNull("Expected hit at index " + index + " is null", expectedHit);
             assertNotNull("Hit at index " + index + " is null", actualHit);
             assertEquals("Hit at index " + index + " has wrong id", new String(expectedHit.id), new String(actualHit.uuid));
-            //TODO:  validate score?
             index++;
         }
     }
@@ -154,7 +148,6 @@ public class GeoOnlySearcherTest {
 //        
 //        return hits.iterator();
 //    }
-    
     
     private IDGeoRecord buildMinRecord(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
