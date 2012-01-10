@@ -39,7 +39,7 @@ public class Conversions {
     private static final double DEG_TO_RAD = Math.PI/180.;
     static final double EARTH_RADIUS_METERS = 6378137.0;
     public static final int EARTH_RADIUS_INTEGER_UNITS = 2140000000;
-    static final double EARTH_RADIUS_METERS_TO_INTEGER_UNITS = EARTH_RADIUS_METERS / EARTH_RADIUS_INTEGER_UNITS;
+    static final double EARTH_RADIUS_METERS_TO_INTEGER_UNITS =  EARTH_RADIUS_INTEGER_UNITS / EARTH_RADIUS_METERS;
     
     public static double d2r(double deg) {
         return deg*DEG_TO_RAD;
