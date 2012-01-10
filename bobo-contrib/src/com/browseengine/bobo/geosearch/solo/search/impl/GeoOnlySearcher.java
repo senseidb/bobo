@@ -87,12 +87,12 @@ public class GeoOnlySearcher {
             }
         }
         
-        for (int i = 0; i < start; i++) {
-            hitQueue.pop();
+        int inRangeHits =  count;
+        if (inRangeHits > hitQueue.size() - start) {
+            inRangeHits = Math.max(0, hitQueue.size() - start);
         }
-        
-        GeoOnlyHit[] hits = new GeoOnlyHit[hitQueue.size()];
-        for (int i = 0; hitQueue.size() > 0; i++) {
+        GeoOnlyHit[] hits = new GeoOnlyHit[inRangeHits];
+        for (int i = inRangeHits - 1; i >= 0; i--) {
             hits[i] = hitQueue.pop();
         }
         

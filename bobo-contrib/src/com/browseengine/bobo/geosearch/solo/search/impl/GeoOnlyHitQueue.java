@@ -15,7 +15,7 @@ public class GeoOnlyHitQueue extends PriorityQueue<GeoOnlyHit> {
     
     @Override
     protected boolean lessThan(GeoOnlyHit hitA, GeoOnlyHit hitB) {
-        return hitA.score < hitB.score;
+        return hitA.score > hitB.score;
     }
 
 }

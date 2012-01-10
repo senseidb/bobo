@@ -89,31 +89,180 @@ public class GeoOnlySearcherTest {
         searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
     }
     
+    @Test
+    public void testSearch_top10_20inRange() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 20;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_start10_20inRange() throws IOException {
+        final int start = 10; 
+        final int count = 10;
+        final int hitCount = 20;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_start30_20inRange() throws IOException {
+        final int start = 30; 
+        final int count = 10;
+        final int hitCount = 20;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top25_1000inRange() throws IOException {
+        final int start = 0; 
+        final int count = 25;
+        final int hitCount = 1000;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_start15_20inRange() throws IOException {
+        final int start = 15; 
+        final int count = 10;
+        final int hitCount = 20;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_90long() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 10;
+        final double centroidLat = 0;
+        final double centroidLong = 90;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_90long45lat() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 10;
+        final double centroidLat = 45;
+        final double centroidLong = 90;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_180long() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 10;
+        final double centroidLat = 0;
+        final double centroidLong = 180;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_90lat() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 10;
+        final double centroidLat = 0;
+        final double centroidLong = 90;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_allmisses() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 0;
+        final int missCount = 1000;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, missCount, 
+                start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_10justmisses() throws IOException {
+        final int start = 0; 
+        final int count = 20;
+        final int hitCount = 10;
+        final int missCount = 10;
+        final double centroidLat = 0;
+        final double centroidLong = 0;
+        final float rangeInMiles = 10f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, missCount, 
+                start, count);
+    }
+    
     private void searchAndVerify_allHitsInRange(double centroidLat, double centroidLong, 
             Float rangeInMiles, int hitCount, int start, int count) throws IOException {
-        final GeoQuery query = new GeoQuery(centroidLat, centroidLong, rangeInMiles, null);
+        int missCount = 0;
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, missCount, start, count);
+    }
+    
+    private void searchAndVerify_allHitsInRange(double centroidLat, double centroidLong, 
+            Float rangeInMiles, int hitCount, int missCount, int start, int count) throws IOException {
+        final GeoQuery query = new GeoQuery(centroidLong, centroidLat, rangeInMiles, null);
         
         final IDGeoRecord maxRecord = buildMaxRecord(centroidLong, centroidLat, rangeInMiles, GeoOnlySearcher.EMPTY_UUID); 
         final IDGeoRecord minRecord = buildMinRecord(centroidLong, centroidLat, rangeInMiles, GeoOnlySearcher.EMPTY_UUID);
         final List<IDGeoRecord> expectedHits = buildHitSet(centroidLong, centroidLat, rangeInMiles, hitCount);
+        final List<IDGeoRecord> expectedMisses = buildJustMissSet(centroidLong, centroidLat, rangeInMiles, missCount);
+        final List<IDGeoRecord> treeHits = new ArrayList<IDGeoRecord>(expectedHits);
+        treeHits.addAll(expectedMisses);
         context.checking(new Expectations() {
             {
                 one(mockGeoSegmentReader).getIterator(minRecord, maxRecord);
-                will(returnValue(expectedHits.iterator()));
+                will(returnValue(treeHits.iterator()));
             }
         });
         
+        Iterator<IDGeoRecord> hitIter = expectedHits.iterator();
+        for (int i = 0; i < start && hitIter.hasNext() ; i++){
+            hitIter.next();
+        }
+        
         GeoOnlyHits hits = searcher.search(query, start, count);
         assertEquals(hitCount, hits.totalHits());
-        assertEquals(count, hits.getHits().size());
-        int index = 0;
-        for (Iterator<IDGeoRecord> hitIter = expectedHits.iterator(); hitIter.hasNext();) {
+        int expectedResultsCount = Math.min(Math.max(0, hitCount - start), count);
+        assertEquals(expectedResultsCount, hits.getHits().size());
+        for (int index = 0; index < count && hitIter.hasNext(); index++) {
             IDGeoRecord expectedHit = hitIter.next();
             GeoOnlyHit actualHit = hits.getHits().get(index);
             assertNotNull("Expected hit at index " + index + " is null", expectedHit);
             assertNotNull("Hit at index " + index + " is null", actualHit);
             assertEquals("Hit at index " + index + " has wrong id", new String(expectedHit.id), new String(actualHit.uuid));
-            index++;
         }
     }
     
@@ -122,32 +271,38 @@ public class GeoOnlySearcherTest {
         List<IDGeoRecord> hits = new ArrayList<IDGeoRecord>();
         
         for (int i = 0; i < hitCount; i++) {
-            IDGeoRecord geoRecord = buildMaxRecord(centroidLong, centroidLat, 
-                    (rangeInMiles * i) / hitCount, new byte[] {(byte)(i + "a".getBytes()[0])});
+            IDGeoRecord geoRecord;
+            if (i % 2 == 0) {
+                geoRecord = buildMaxRecord(centroidLong, centroidLat, 
+                        (rangeInMiles * i) / hitCount, new byte[] {(byte)(i + "a".getBytes()[0])});
+            } else {
+                geoRecord = buildMinRecord(centroidLong, centroidLat, 
+                        (rangeInMiles * i) / hitCount, new byte[] {(byte)(i + "a".getBytes()[0])});
+            }
             hits.add(geoRecord);
         }
         
         return hits;
     }
-
-//    private Iterator<IDGeoRecord> buildHitIterator(IDGeoRecord minRecord, IDGeoRecord maxRecord, 
-//            int hitCount) {
-//        Set<IDGeoRecord> hits = new HashSet<IDGeoRecord>();
-//        
-//        for (int i = 0; i < hitCount; i++) {
-//            double highOrderTotalDiff = (double)maxRecord.highOrder - (double)minRecord.highOrder;
-//            double lowOrderTotalDiff = (double)maxRecord.lowOrder - (double)minRecord.lowOrder;
-//            if (highOrderDiff = 0 && lowOrderDiff = )
-//            
-//            double highOrderDiff = (highOrderTotalDiff * i) / hitCount;
-//            double lowOrderDiff =  (lowOrderTotalDiff * i) / hitCount;
-//            
-//            IDGeoRecord geoRecord = new IDGeoRecord(minRecord.highOrder + highOrderDiff, 
-//                    minRecord.lowOrder + lowOrderDiff, minRecord.id);
-//        }
-//        
-//        return hits.iterator();
-//    }
+    
+    private List<IDGeoRecord> buildJustMissSet(double centroidLong, double centroidLat, float rangeInMiles, 
+            int missCount) {
+        List<IDGeoRecord> hits = new ArrayList<IDGeoRecord>();
+        
+        for (int i = 0; i < missCount; i++) {
+            IDGeoRecord geoRecord;
+            if (i % 2 == 0) {
+                geoRecord = buildMaxRecord(centroidLong, centroidLat, 
+                        rangeInMiles + (i + 1) / 5400.0f, new byte[] {(byte)(i + "a".getBytes()[0])});
+            } else {
+                geoRecord = buildMinRecord(centroidLong, centroidLat, 
+                        rangeInMiles + (i + 1) / 5400.0f, new byte[] {(byte)(i + "a".getBytes()[0])});
+            }
+            hits.add(geoRecord);
+        }
+        
+        return hits;
+    }
     
     private IDGeoRecord buildMinRecord(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
