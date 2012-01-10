@@ -1,6 +1,7 @@
 package com.browseengine.bobo.geosearch.solo.index.impl;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,6 +41,7 @@ public class GeoOnlyIndexer {
     IDGeoRecordSerializer geoRecordSerializer = new IDGeoRecordSerializer(); 
     TreeSet<IDGeoRecord> inMemoryIndex =  new TreeSet<IDGeoRecord>(new IDGeoRecordComparator());
     List<IDGeoRecord> newRecords = new LinkedList<IDGeoRecord>();
+    Set<byte[]> removedRecords = new HashSet<byte[]>();
 
     public GeoOnlyIndexer(GeoSearchConfig config, Directory directory, String indexName) throws IOException {
         this.config = config;
@@ -52,6 +54,11 @@ public class GeoOnlyIndexer {
         }
     }
     
+    /**
+     * Adds a record to the geo only index
+     * @param uuid
+     * @param field
+     */
     public void index(byte[] uuid, GeoCoordinateField field) {
         if (uuid.length != config.getBytesForId()) {
             throw new IllegalArgumentException("invalid uuid length: " + uuid.length
@@ -67,20 +74,38 @@ public class GeoOnlyIndexer {
         newRecords.add(geoRecord);
     }
 
+    /**
+     * Deletes all GeoRecords in the index that have a matching uuid.  Note that this 
+     * does not delete any records indexed but not yet flushed.  
+     * @param uuid
+     */
+    public void delete(byte[] uuid) {
+        removedRecords.add(uuid);
+    }
+    
+    /**
+     * Flushes any requested index updates to directory
+     * 
+     * @throws IOException
+     */
     public void flush() throws IOException {
-        try {
-            loadCurrentIndex();
-            
-            for (IDGeoRecord newRecord: newRecords) {
-                inMemoryIndex.add(newRecord);
-            }
-            
-            flushInMemoryIndex();
-        } finally {
-            lock.release();
+        loadCurrentIndex();
+        
+        for (IDGeoRecord newRecord: newRecords) {
+            inMemoryIndex.add(newRecord);
         }
+        
+        flushInMemoryIndex();
     }
 
+    /**
+     * Closes this geoIndexer and releases any locks held
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        lock.release();
+    }
+    
     private void flushInMemoryIndex() throws IOException {
         GeoSegmentWriter<IDGeoRecord> segmentWriter = getGeoSegmentWriter(inMemoryIndex);
         
@@ -105,7 +130,10 @@ public class GeoOnlyIndexer {
             
             while (currentIndexIterator.hasNext()) {
                 IDGeoRecord geoRecord = currentIndexIterator.next();
-                inMemoryIndex.add(geoRecord);
+                
+                if (!removedRecords.contains(geoRecord.id)) {
+                    inMemoryIndex.add(geoRecord);
+                }
             }
         } finally {
             currentIndex.close();
