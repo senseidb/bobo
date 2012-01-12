@@ -88,7 +88,7 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	  // takeComplement is only used to choose between TermListRandomAccessDocIdSet and innerDocSet
 	  int validFreqCount = _takeComplement ? (totalCount - freqCount) : freqCount;
 	  
-	  if ((validFreqCount<<1) < totalCount){
+	  if (_facetDataCacheBuilder.getName() != null && ((validFreqCount<<1) < totalCount)) {
 	    return new TermListRandomAccessDocIdSet(_facetDataCacheBuilder.getName(), innerDocSet, validVals, reader);
 	  }
 	  else{

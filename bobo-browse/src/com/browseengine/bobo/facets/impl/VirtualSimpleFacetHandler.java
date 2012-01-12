@@ -32,7 +32,7 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
                                    FacetDataFetcher facetDataFetcher,
                                    Set<String> dependsOn)
   {
-    super(name, indexFieldName, termListFactory, dependsOn);
+    super(name, null, termListFactory, dependsOn);
     _facetDataFetcher = facetDataFetcher;
   }
 
@@ -41,7 +41,7 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler
                                    FacetDataFetcher facetDataFetcher,
                                    Set<String> dependsOn)
   {
-    this(name, name, termListFactory, facetDataFetcher, dependsOn);
+    this(name, null, termListFactory, facetDataFetcher, dependsOn);
   }
 
   @Override

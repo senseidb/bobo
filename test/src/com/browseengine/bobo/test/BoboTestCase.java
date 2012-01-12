@@ -99,6 +99,8 @@ import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.MultiBoboBrowser;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
+import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.facets.data.FacetDataFetcher;
 import com.browseengine.bobo.facets.data.PredefinedTermListFactory;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.impl.BucketFacetHandler;
@@ -116,6 +118,7 @@ import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleGroupbyFacetHandler;
+import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.FacetBasedBoostScorerBuilder;
@@ -492,6 +495,22 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(multipathHandler);
 		
 		facetHandlers.add(new SimpleFacetHandler("number", numTermFactory));
+    facetHandlers.add(new VirtualSimpleFacetHandler("virtual", numTermFactory, new FacetDataFetcher()
+    {
+      public Object fetch(BoboIndexReader reader, int doc)
+      {
+        FacetDataCache sourceCache = (FacetDataCache)reader.getFacetData("number");
+        if (sourceCache == null)
+          return null;
+
+        return sourceCache.valArray.getRawValue(sourceCache.orderArray.get(doc));
+      }
+
+      public void cleanup(BoboIndexReader reader)
+      {
+        // do nothing here.
+      }
+    }, new HashSet<String>(Arrays.asList(new String[]{"number"}))));
 		facetHandlers.add(new SimpleFacetHandler("testStored"));
 		
 		
@@ -2875,4 +2894,23 @@ public class BoboTestCase extends TestCase {
 		test.testFacetRangeQuery();
 		test.tearDown();
 	}
+
+  public void testVirtual() throws Exception{
+    BrowseRequest br=new BrowseRequest();
+    br.setCount(10);
+    br.setOffset(0);
+
+    BrowseSelection sel=new BrowseSelection("virtual");
+    sel.addValue("10");
+    sel.addValue("11");
+    br.addSelection(sel); 
+    
+    FacetSpec spec = new FacetSpec();
+    spec.setOrderBy(FacetSortSpec.OrderValueAsc);
+    br.setFacetSpec("virtual", spec);
+    
+    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+    answer.put("virtual", Arrays.asList(new BrowseFacet[]{new BrowseFacet("0010", 1), new BrowseFacet("0011", 1)}));
+    doTest(br, 2, answer, new String[] {"1", "2"});
+  }
 }

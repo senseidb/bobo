@@ -1,5 +1,7 @@
 package com.browseengine.bobo.sort;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -89,7 +91,7 @@ public class SortCollectorImpl extends SortCollector {
   private final boolean _collectDocIdCache;
   private CombinedFacetAccessible _groupAccessible;
   private final List<FacetAccessible> _facetAccessibles;
-  private final Map<Integer, ScoreDoc> _currentValueDocMaps;
+  private final Int2ObjectOpenHashMap<ScoreDoc> _currentValueDocMaps;
   static class MyScoreDoc extends ScoreDoc {
     private static final long serialVersionUID = 1L;
 
@@ -152,7 +154,7 @@ public class SortCollectorImpl extends SortCollector {
     if (groupBy != null) {
       this.groupBy = boboBrowser.getFacetHandler(groupBy);
       if (groupBy != null && _count > 0) {
-        _currentValueDocMaps = new HashMap<Integer, ScoreDoc>(_count);
+        _currentValueDocMaps = new Int2ObjectOpenHashMap<ScoreDoc>(_count);
         _facetAccessibles = new LinkedList<FacetAccessible>();
         if (collectDocIdCache) {
           contextList = new LinkedList<CollectorContext>();
@@ -211,7 +213,7 @@ public class SortCollectorImpl extends SortCollector {
         _tmpScoreDoc.doc = doc;
         _tmpScoreDoc.score = score;
         if (!_queueFull || _currentComparator.compare(_bottom,_tmpScoreDoc) > 0) {
-          final Integer order = ((FacetDataCache)groupBy.getFacetData(_currentReader)).orderArray.get(doc);
+          final int order = ((FacetDataCache)groupBy.getFacetData(_currentReader)).orderArray.get(doc);
           ScoreDoc pre = _currentValueDocMaps.get(order);
           if (pre != null) {
             if ( _currentComparator.compare(pre, _tmpScoreDoc) > 0) {
