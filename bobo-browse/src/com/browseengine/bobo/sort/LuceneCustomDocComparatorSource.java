@@ -32,8 +32,9 @@ public class LuceneCustomDocComparatorSource extends DocComparatorSource {
 			}
 
 			@Override
-			public void setScorer(Scorer scorer) {
+			public DocComparator setScorer(Scorer scorer) {
 				_luceneComparator.setScorer(scorer);
+        return this;
 			}
 		};
 	}

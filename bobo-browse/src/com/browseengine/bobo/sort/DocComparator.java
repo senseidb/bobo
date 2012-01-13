@@ -8,7 +8,7 @@ public abstract class DocComparator{
   
   public abstract Comparable value(ScoreDoc doc);
   
-  public void setScorer(Scorer scorer){
-	  
+  public DocComparator setScorer(Scorer scorer){
+	  return this;
   }
 }

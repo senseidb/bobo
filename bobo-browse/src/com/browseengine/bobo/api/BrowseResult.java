@@ -102,8 +102,9 @@ public class BrowseResult implements Serializable{
    * Set the group accessible.
    * @param groupAccessible the group accessible.
    */
-  public void setGroupAccessible(FacetAccessible groupAccessible) {
+  public BrowseResult setGroupAccessible(FacetAccessible groupAccessible) {
     _groupAccessible = groupAccessible;
+    return this;
   }
 
   /**
@@ -118,8 +119,9 @@ public class BrowseResult implements Serializable{
    * Set the sort collector.
    * @param sortCollector the sort collector
    */
-  public void setSortCollector(SortCollector sortCollector) {
+  public BrowseResult setSortCollector(SortCollector sortCollector) {
     _sortCollector = sortCollector;
+    return this;
   }
 	
 	/**
@@ -142,11 +144,13 @@ public class BrowseResult implements Serializable{
 
 	/**
 	 * Sets the hit count
-	 * @param hits hit count
-	 * @see #getNumHits()
+	 *
+   * @param hits hit count
+   * @see #getNumHits()
 	 */
-	public void setNumHits(int hits) {
+	public BrowseResult setNumHits(int hits) {
 		numHits = hits;
+    return this;
 	}
 
 	/**
@@ -160,11 +164,13 @@ public class BrowseResult implements Serializable{
 
 	/**
 	 * Sets the group count
-	 * @param groups group count
-	 * @see #getNumGroups()
+	 *
+   * @param groups group count
+   * @see #getNumGroups()
 	 */
-	public void setNumGroups(int groups) {
+	public BrowseResult setNumGroups(int groups) {
 		numGroups = groups;
+    return this;
 	}
 
 	/**
@@ -178,11 +184,13 @@ public class BrowseResult implements Serializable{
 
 	/**
 	 * Sets the total number of docs in the index
-	 * @param docs total number of docs in the index
-	 * @see #getTotalDocs()
+	 *
+   * @param docs total number of docs in the index
+   * @see #getTotalDocs()
 	 */
-	public void setTotalDocs(int docs) {
+	public BrowseResult setTotalDocs(int docs) {
 		totalDocs = docs;
+    return this;
 	}
 	
 	/**
@@ -205,27 +213,31 @@ public class BrowseResult implements Serializable{
 	
 	/**
 	 * Add a container full of choices
-	 * @param facets container full of facets
-	 */
-	public void addFacets(String name,FacetAccessible facets){
+   * @param facets container full of facets
+   */
+	public BrowseResult addFacets(String name, FacetAccessible facets){
 		_facetMap.put(name,facets);
+    return this;
 	}	
 	
 	/**
 	 * Add all of the given FacetAccessible to this BrowseResult
-	 * @param facets map of facets to add to the result set
-	 */
-	public void addAll(Map<String,FacetAccessible> facets){
+   * @param facets map of facets to add to the result set
+   */
+	public BrowseResult addAll(Map<String, FacetAccessible> facets){
 		_facetMap.putAll(facets);
+    return this;
 	}
 	
 	/**
 	 * Sets the hits
-	 * @param hits hits
-	 * @see #getHits()
+	 *
+   * @param hits hits
+   * @see #getHits()
 	 */
-	public void setHits(BrowseHit[] hits){
+	public BrowseResult setHits(BrowseHit[] hits){
 		this.hits=hits;
+    return this;
 	}
 	
 	/**
@@ -239,8 +251,9 @@ public class BrowseResult implements Serializable{
 	
 	/**
 	 * Sets the search time in milliseconds
-	 * @param time search time
-	 * @see #getTime()
+	 *
+   * @param time search time
+   * @see #getTime()
 	 */
 	public void setTime(long time){
 		this.time=time;

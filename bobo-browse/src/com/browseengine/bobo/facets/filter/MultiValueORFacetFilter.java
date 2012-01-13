@@ -59,7 +59,7 @@ public class MultiValueORFacetFilter extends RandomAccessFilter
     return selectivity;
   }
   
-  private final static class MultiValueOrFacetDocIdSetIterator extends FacetOrDocIdSetIterator
+  public final static class MultiValueOrFacetDocIdSetIterator extends FacetOrDocIdSetIterator
   {
       private final BigNestedIntArray _nestedArray;
       public MultiValueOrFacetDocIdSetIterator(MultiValueFacetDataCache dataCache, OpenBitSet bs) 

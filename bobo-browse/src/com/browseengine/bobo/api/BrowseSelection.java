@@ -83,8 +83,9 @@ public class BrowseSelection implements Serializable{
 	 * @see #isStrict()
 	 * @deprecated use {@link #setSelectionOperation(ValueOperation)}
 	 */
-	public void setStrict(boolean strict) {
+	public BrowseSelection setStrict(boolean strict) {
 	  _selectionProperties.setProperty(PathFacetHandler.SEL_PROP_NAME_STRICT, String.valueOf(strict));
+    return this;
 	}
 	
 	/**
@@ -110,8 +111,9 @@ public class BrowseSelection implements Serializable{
 	 * @see #getDepth()
 	 * @deprecated use {@link #getSelectionProperties()}
 	 */
-	public void setDepth(int depth) {
+	public BrowseSelection setDepth(int depth) {
 	  _selectionProperties.setProperty(PathFacetHandler.SEL_PROP_NAME_DEPTH, String.valueOf(depth));
+    return this;
 	}
 	
 	/**
@@ -144,38 +146,42 @@ public class BrowseSelection implements Serializable{
 	 * @param vals selected values
 	 * @see #getValues()
 	 */
-	public void setValues(String[] vals){
+	public BrowseSelection setValues(String[] vals){
 		values.clear();
 		for (int i=0;i<vals.length;++i){
 			values.add(vals[i]);
 		}
+    return this;
 	}
 
 	/**
 	 * Add a select value
 	 * @param val select value
 	 */
-	public void addValue(String val){
+	public BrowseSelection addValue(String val){
 		values.add(val);
+    return this;
 	}
 	
 	/**
 	 * Add a select NOT value
 	 * @param val select NOT value
 	 */
-	public void addNotValue(String val){
+	public BrowseSelection addNotValue(String val){
 		notValues.add(val);
+    return this;
 	}
 	
 	/**
 	 * Sets the NOT values
-	 * @param notVals NOT values
-	 */
-	public void setNotValues(String[] notVals){
+   * @param notVals NOT values
+   */
+	public BrowseSelection setNotValues(String[] notVals){
 		notValues.clear();
 		for (int i=0;i<notVals.length;++i){
 			notValues.add(notVals[i]);
 		}
+    return this;
 	}
 	
 	/**
@@ -207,11 +213,13 @@ public class BrowseSelection implements Serializable{
 
 	/**
 	 * Sets value operation
-	 * @param selectionOperation value operation
-	 * @see #getSelectionOperation()
+	 *
+   * @param selectionOperation value operation
+   * @see #getSelectionOperation()
 	 */
-	public void setSelectionOperation(ValueOperation selectionOperation) {
+	public BrowseSelection setSelectionOperation(ValueOperation selectionOperation) {
 		this.selectionOperation = selectionOperation;
+    return this;
 	}
 
 	@Override

@@ -252,8 +252,9 @@ public abstract class SortCollector extends Collector {
 		return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring, fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
 	}
 	
-	public void setCollector(Collector collector){
+	public SortCollector setCollector(Collector collector){
 		_collector = collector;
+    return this;
 	}
 	
 	public Collector getCollector(){

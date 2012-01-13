@@ -696,14 +696,6 @@ public class BoboIndexReader extends FilterIndexReader
     return _runtimeFacetHandlerFactoryMap;
   }
 
-  public void rewrap(IndexReader in){
-    if(_subReaders != null)
-    {
-      throw new UnsupportedOperationException("this BoboIndexReader has subreaders");
-    }
-    super.in = in;
-  }
-
   @Override
   public Document document(int docid) throws IOException
   {
@@ -803,11 +795,12 @@ public class BoboIndexReader extends FilterIndexReader
   {
     super(in);
   }
+  
   public BoboIndexReader copy(IndexReader in)
   {
     if(_subReaders != null)
     {
-      throw new UnsupportedOperationException("this BoboIndexReader has subreaders");
+      throw new IllegalStateException("this BoboIndexReader has subreaders");
     }
     BoboIndexReader copy = new BoboIndexReader(in);
     copy._facetHandlerMap = this._facetHandlerMap;

@@ -96,8 +96,9 @@ public class BrowseRequest implements Serializable{
 		return _showExplanation;
 	}
 
-	public void setShowExplanation(boolean showExplanation) {
+	public BrowseRequest setShowExplanation(boolean showExplanation) {
 		_showExplanation = showExplanation;
+    return this;
 	}
 
 	public Set<String> getSelectionNames(){
@@ -108,9 +109,10 @@ public class BrowseRequest implements Serializable{
 		_selections.remove(name);
 	}
 	
-	public void setFacetSpecs(Map<String,FacetSpec> facetSpecMap)
+	public BrowseRequest setFacetSpecs(Map<String, FacetSpec> facetSpecMap)
 	{
 		_facetSpecMap = facetSpecMap;
+    return this;
 	}
 	
 	public Map<String,FacetSpec> getFacetSpecs()
@@ -130,10 +132,11 @@ public class BrowseRequest implements Serializable{
    * Sets the map between RuntimeFacetHandler names and their corresponding initialization data.
    * @param facetHandlerDataMap
    */
-  public void setFacetHandlerDataMap(
-      Map<String, FacetHandlerInitializerParam> facetHandlerDataMap)
+  public BrowseRequest setFacetHandlerDataMap(
+          Map<String, FacetHandlerInitializerParam> facetHandlerDataMap)
   {
     _facetHandlerDataMap = facetHandlerDataMap;
+    return this;
   }
 	
 	public int getSelectionCount()
@@ -143,10 +146,11 @@ public class BrowseRequest implements Serializable{
 	
 	/**
 	 * Set a default filter
-	 * @param filter
-	 */
-	public void setFilter(Filter filter){
+   * @param filter
+   */
+	public BrowseRequest setFilter(Filter filter){
 		_filter=filter;
+    return this;
 	}
 	
 	/**
@@ -156,8 +160,9 @@ public class BrowseRequest implements Serializable{
 		return _filter;
 	}
 	
-	public void clearSelections(){
+	public BrowseRequest clearSelections(){
 		_selections.clear();
+    return this;
 	}
 	
 	/**
@@ -186,50 +191,57 @@ public class BrowseRequest implements Serializable{
     _collectDocIdCache = false;
 	}
 	
-	public void clearSort(){
+	public BrowseRequest clearSort(){
 		_sortSpecs.clear();
+    return this;
 	}
 	
 	public boolean isFetchStoredFields(){
 		return _fetchStoredFields;
 	}
 	
-	public void setFetchStoredFields(boolean fetchStoredFields){
+	public BrowseRequest setFetchStoredFields(boolean fetchStoredFields){
 		_fetchStoredFields = fetchStoredFields;
+    return this;
 	}
-
+	
 	public String getGroupBy(){
 		return _groupBy;
 	}
 	
-	public void setGroupBy(String groupBy){
+	public BrowseRequest setGroupBy(String groupBy){
 		_groupBy = groupBy;
+    return this;
 	}
 
 	public int getMaxPerGroup(){
 		return _maxPerGroup;
 	}
 	
-	public void setMaxPerGroup(int maxPerGroup){
+	public BrowseRequest setMaxPerGroup(int maxPerGroup){
 		_maxPerGroup = maxPerGroup;
+    return this;
 	}
 
 	public boolean getCollectDocIdCache(){
 		return _collectDocIdCache;
 	}
 	
-	public void setCollectDocIdCache(boolean collectDocIdCache){
+	public BrowseRequest setCollectDocIdCache(boolean collectDocIdCache){
 		_collectDocIdCache = collectDocIdCache;
+    return this;
 	}
 	
 	/**
 	 * Sets a facet spec
-	 * @param name field name
-	 * @param facetSpec Facet spec
-	 * @see #getFacetSpec(String)
+	 *
+   * @param name field name
+   * @param facetSpec Facet spec
+   * @see #getFacetSpec(String)
 	 */
-	public void setFacetSpec(String name,FacetSpec facetSpec){
+	public BrowseRequest setFacetSpec(String name, FacetSpec facetSpec){
 		_facetSpecMap.put(name,facetSpec);
+    return this;
 	}
 	
 	/**
@@ -243,12 +255,13 @@ public class BrowseRequest implements Serializable{
 	}
 
 	/**
-	 * @param name is the name of the <b>RuntimeFacetHandler</b>.
-	 * @param data is the data Bobo is to use to initialize the corresponding RuntimeFacetHandler.
-	 */
-	public void setFacetHandlerData(String name, FacetHandlerInitializerParam data)
+   * @param name is the name of the <b>RuntimeFacetHandler</b>.
+   * @param data is the data Bobo is to use to initialize the corresponding RuntimeFacetHandler.
+   */
+	public BrowseRequest setFacetHandlerData(String name, FacetHandlerInitializerParam data)
 	{
 	  _facetHandlerDataMap.put(name, data);
+    return this;
 	}
 
 	/**
@@ -271,11 +284,13 @@ public class BrowseRequest implements Serializable{
 
 	/**
 	 * Sets the number of hits to return. Part of the paging parameters.
-	 * @param count number of hits to return.
-	 * @see #getCount()
+	 *
+   * @param count number of hits to return.
+   * @see #getCount()
 	 */
-	public void setCount(int count) {
+	public BrowseRequest setCount(int count) {
 		_count = count;
+    return this;
 	}
 
 	/**
@@ -289,20 +304,24 @@ public class BrowseRequest implements Serializable{
 
 	/**
 	 * Sets of the offset. Part of the paging parameters.
-	 * @param offset offset
-	 * @see #getOffset()
+	 *
+   * @param offset offset
+   * @see #getOffset()
 	 */
-	public void setOffset(int offset) {
+	public BrowseRequest setOffset(int offset) {
 		_offset = offset;
+    return this;
 	}
 
 	/**
 	 * Set the search query
-	 * @param query lucene search query
-	 * @see #getQuery()
+	 *
+   * @param query lucene search query
+   * @see #getQuery()
 	 */
-	public void setQuery(Query query){
+	public BrowseRequest setQuery(Query query){
 		_query=query;
+    return this;
 	}
 	
 	/**
@@ -316,17 +335,19 @@ public class BrowseRequest implements Serializable{
 	
 	/**
 	 * Adds a browse selection
-	 * @param sel selection
-	 * @see #getSelections()
+	 *
+   * @param sel selection
+   * @see #getSelections()
 	 */
-	public void addSelection(BrowseSelection sel){
+	public BrowseRequest addSelection(BrowseSelection sel){
 		String[] vals = sel.getValues();
 		if (vals==null || vals.length == 0)
 		{
 			String[] notVals = sel.getNotValues();
-			if (notVals==null || notVals.length == 0) return;		// skip adding useless selections
+			if (notVals==null || notVals.length == 0) return null;
 		}
 		_selections.put(sel.getFieldName(),sel);
+    return this;
 	}
 	
 	/**
@@ -351,18 +372,21 @@ public class BrowseRequest implements Serializable{
 		return _selections;
 	}
 	
-	public void putAllSelections(Map<String,BrowseSelection> map){
+	public BrowseRequest putAllSelections(Map<String, BrowseSelection> map){
 		_selections.putAll(map);
+    return this;
 	}
 	
 	/**
 	 * Add a sort spec
-	 * @param sortSpec sort spec
-	 * @see #getSort() 
+	 *
+   * @param sortSpec sort spec
+   * @see #getSort()
 	 * @see #setSort(SortField[])
 	 */
-	public void addSortField(SortField sortSpec){
+	public BrowseRequest addSortField(SortField sortSpec){
 		_sortSpecs.add(sortSpec);
+    return this;
 	}
 
 	/**
@@ -377,15 +401,17 @@ public class BrowseRequest implements Serializable{
 	
 	/**
 	 * Sets the sort criteria
-	 * @param sorts sort criteria
-	 * @see #addSortField(SortField)
+	 *
+   * @param sorts sort criteria
+   * @see #addSortField(SortField)
 	 * @see #getSort()
 	 */
-	public void setSort(SortField[] sorts){
+	public BrowseRequest setSort(SortField[] sorts){
 		_sortSpecs.clear();
 		for (int i=0;i<sorts.length;++i){
 			_sortSpecs.add(sorts[i]);
 		}
+    return this;
 	}
 
 	@Override
