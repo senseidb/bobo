@@ -17,7 +17,7 @@ import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler.SimpleFacetCountCollector;
 import com.browseengine.bobo.util.BigIntArray;
 
-public class FacetMergePerfTest {
+public class FacetMergePerf {
 	static int numVals = 100000;
 	static int numDocs = 5000000;
 	static int numSegs =10;

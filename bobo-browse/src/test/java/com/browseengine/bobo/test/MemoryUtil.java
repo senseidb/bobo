@@ -4,7 +4,7 @@ import java.util.Random;
 
 import com.browseengine.bobo.util.BigIntArray;
 
-public class MemoryTest
+public class MemoryUtil
 {
   
   static int max = 5000000;

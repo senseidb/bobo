@@ -5,7 +5,6 @@ package com.browseengine.bobo.test.section;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.HashMap;
 
 import junit.framework.TestCase;
 
@@ -15,7 +14,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriter.MaxFieldLength;
@@ -31,11 +29,9 @@ import org.apache.lucene.store.RAMDirectory;
 
 import com.browseengine.bobo.analysis.section.IntMetaDataTokenStream;
 import com.browseengine.bobo.analysis.section.SectionTokenStream;
-import com.browseengine.bobo.search.section.IntMetaDataCache;
 import com.browseengine.bobo.search.section.IntMetaDataQuery;
-import com.browseengine.bobo.search.section.MetaDataCache;
-import com.browseengine.bobo.search.section.MetaDataCacheProvider;
 import com.browseengine.bobo.search.section.SectionSearchQuery;
+import com.browseengine.bobo.util.test.IndexReaderWithMetaDataCache;
 
 /**
  *
@@ -48,24 +44,7 @@ public class TestSectionSearch extends TestCase
   private IndexWriter writer;
   private IndexSearcher searcher;
   private IndexSearcher searcherWithCache;
-  
-  private class IndexReaderWithMetaDataCache extends FilterIndexReader implements MetaDataCacheProvider
-  {
-    private HashMap<Term,MetaDataCache> map = new HashMap<Term,MetaDataCache>();
-    
-    public IndexReaderWithMetaDataCache(IndexReader in) throws Exception
-    {
-      super(in);
-      
-      map.put(intMetaTerm, new IntMetaDataCache(intMetaTerm, in));
-    }
 
-    public MetaDataCache get(Term term)
-    {
-      return map.get(term);
-    }
-  }
-  
   //@Override
   protected void setUp() throws Exception {
     directory = new RAMDirectory();

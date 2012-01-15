@@ -14,7 +14,7 @@ import org.apache.lucene.index.Payload;
 /**
  * TokenStream for the section meta data. This returns a single token with a payload.
  */
-public class IntMetaDataTokenStream extends TokenStream
+public final class IntMetaDataTokenStream extends TokenStream
 {
   private final String _tokenText;
   private final TermAttribute _termAttribute;

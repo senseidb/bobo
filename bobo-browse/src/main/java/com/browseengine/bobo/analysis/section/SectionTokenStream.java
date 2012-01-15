@@ -14,7 +14,7 @@ import org.apache.lucene.index.Payload;
  * This class augments a token stream by attaching a section id as payloads.
  *
  */
-public class SectionTokenStream extends TokenFilter
+public final class SectionTokenStream extends TokenFilter
 {
   private Payload _payload;
   private PayloadAttribute _payloadAtt;

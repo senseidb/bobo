@@ -190,7 +190,7 @@ public class BoboTestCase extends TestCase {
 	  return f;
 	}
 	
-	static class MetaTokenStream extends TokenStream {
+	static final class MetaTokenStream extends TokenStream {
         private boolean returnToken = false;
 
         private PayloadAttribute payloadAttr;

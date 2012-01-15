@@ -43,7 +43,7 @@ import com.browseengine.bobo.facets.impl.DefaultFacetCountCollector;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
 
-public class LucenePerfTest
+public class LucenePerf
 {
   public static String[] words = { "manager", "university", "in", "business",
       "management", "a", "development", "consultant", "director", "10",
