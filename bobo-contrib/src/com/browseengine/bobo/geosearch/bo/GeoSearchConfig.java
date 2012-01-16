@@ -51,12 +51,10 @@ public class GeoSearchConfig {
         return geoConverter;
     }
     
-    @Resource(type = IGeoConverter.class)
     public void setGeoConverter(IGeoConverter geoConverter) {
         this.geoConverter = geoConverter;
     }
     
-    @Resource(type = IGeoUtil.class)
     public void setGeoUtil(IGeoUtil geoUtil) {
         this.geoUtil = geoUtil;
     }
@@ -74,7 +72,6 @@ public class GeoSearchConfig {
         return geoMerger;
     }
 
-    @Resource(type = IGeoMerger.class)
     public void setGeoMerger(IGeoMerger geoMerger) {
         this.geoMerger = geoMerger;
     }
