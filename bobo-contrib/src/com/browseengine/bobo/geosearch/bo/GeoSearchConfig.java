@@ -1,7 +1,5 @@
 package com.browseengine.bobo.geosearch.bo;
 
-import javax.annotation.Resource;
-
 import org.apache.lucene.index.IndexFileNames;
 import org.springframework.stereotype.Component;
 
