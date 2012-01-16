@@ -24,6 +24,7 @@ import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordSerializer;
  */
 public class GeoOnlySearcher {
     
+    public static final byte[] EMPTY_UUID = new byte[0];
     GeoSearchConfig config;
     Directory directory;
     String indexName;
@@ -41,26 +42,31 @@ public class GeoOnlySearcher {
     }
     
     public GeoOnlyHits search(GeoQuery query, int start, int count) throws IOException {
-        IDGeoRecord minRecord = buildMinRecord(query);
-        IDGeoRecord maxRecord = buildMaxRecord(query);
-        
-        String fileName = indexName + "." + config.getGeoFileExtension();
-        GeoSegmentReader<IDGeoRecord> segmentReader = new GeoSegmentReader<IDGeoRecord>(
-                directory, fileName, Integer.MAX_VALUE, config.getBufferSizePerGeoSegmentReader(), 
-                geoRecordSerializer, geoComparator);
-        
+        CartesianCoordinateUUID minCoordinate = buildMinCoordinate(query);
+        CartesianCoordinateUUID maxCoordinate = buildMaxCoordinate(query);
+
+        GeoSegmentReader<IDGeoRecord> segmentReader = getGeoSegmentReader();
+
+        IDGeoRecord minRecord = geoConverter.toIDGeoRecord(minCoordinate);
+        IDGeoRecord maxRecord = geoConverter.toIDGeoRecord(maxCoordinate);
         Iterator<IDGeoRecord> hitIterator = segmentReader.getIterator(minRecord, maxRecord);
-        CartesianCoordinateUUID minCoordinate = geoConverter.toCartesianCoordinate(minRecord);
-        CartesianCoordinateUUID maxCoordinate = geoConverter.toCartesianCoordinate(maxRecord);
         
         return collectHits(query, hitIterator, minCoordinate, maxCoordinate, start, count);
     }
 
+    GeoSegmentReader<IDGeoRecord> getGeoSegmentReader() throws IOException {
+        String fileName = indexName + "." + config.getGeoFileExtension();
+        GeoSegmentReader<IDGeoRecord> segmentReader = new GeoSegmentReader<IDGeoRecord>(
+                directory, fileName, Integer.MAX_VALUE, config.getBufferSizePerGeoSegmentReader(), 
+                geoRecordSerializer, geoComparator);
+        return segmentReader;
+    }
+    
     private GeoOnlyHits collectHits(GeoQuery query, Iterator<IDGeoRecord> hitIterator, 
             CartesianCoordinateUUID minCoordinate, CartesianCoordinateUUID maxCoordinate,
             int start, int count) {
         CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(
-            query.getCentroidLatitude(), query.getCentroidLongitude(), new byte[0]);
+            query.getCentroidLatitude(), query.getCentroidLongitude(), EMPTY_UUID);
         
         int totalHits = 0;
         GeoOnlyHitQueue hitQueue = new GeoOnlyHitQueue(start+count);
@@ -81,31 +87,55 @@ public class GeoOnlySearcher {
             }
         }
         
-        for (int i = 0; i < start; i++) {
-            hitQueue.pop();
+        int inRangeHits =  count;
+        if (inRangeHits > hitQueue.size() - start) {
+            inRangeHits = Math.max(0, hitQueue.size() - start);
         }
-        
-        GeoOnlyHit[] hits = new GeoOnlyHit[count];
-        for (int i = count; i >= 0; i--) {
+        GeoOnlyHit[] hits = new GeoOnlyHit[inRangeHits];
+        for (int i = inRangeHits - 1; i >= 0; i--) {
             hits[i] = hitQueue.pop();
         }
         
         return new GeoOnlyHits(totalHits, hits);
     }
     
-    private IDGeoRecord buildMinRecord(GeoQuery query){
-        double minLattitude = query.getCentroidLatitude() 
-            - Conversions.mi2km(query.getRangeInMiles());
-        double minLongitude = query.getCentroidLongitude() 
-            - Conversions.mi2km(query.getRangeInMiles());
-        return geoConverter.toIDGeoRecord(minLattitude, minLongitude, new byte[0]);
+    private CartesianCoordinateUUID buildMinCoordinate(GeoQuery query) {
+        double rangeInkm = Conversions.mi2km(query.getRangeInMiles());
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
+        CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(query.getCentroidLatitude(), query.getCentroidLongitude(), EMPTY_UUID);
+        
+        int minX = calculateMinimumCoordinate(centroidCoordinate.x, rangeInUnits);
+        int minY = calculateMinimumCoordinate(centroidCoordinate.y, rangeInUnits);
+        int minZ = calculateMinimumCoordinate(centroidCoordinate.z, rangeInUnits);
+        return new CartesianCoordinateUUID(minX, minY, minZ, EMPTY_UUID);
     }
     
-    private IDGeoRecord buildMaxRecord(GeoQuery query){
-        double maxLattitude = query.getCentroidLatitude() 
-            + Conversions.mi2km(query.getRangeInMiles());
-        double maxLongitude = query.getCentroidLongitude() 
-            + Conversions.mi2km(query.getRangeInMiles());
-        return geoConverter.toIDGeoRecord(maxLattitude, maxLongitude, new byte[0]);
+    private CartesianCoordinateUUID buildMaxCoordinate(GeoQuery query){
+        double rangeInkm = Conversions.mi2km(query.getRangeInMiles());
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
+        CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(query.getCentroidLatitude(), query.getCentroidLongitude(), EMPTY_UUID);
+        
+        int maxX = calculateMaximumCoordinate(centroidCoordinate.x, rangeInUnits);
+        int maxY = calculateMaximumCoordinate(centroidCoordinate.y, rangeInUnits);
+        int maxZ = calculateMaximumCoordinate(centroidCoordinate.z, rangeInUnits);
+        return new CartesianCoordinateUUID(maxX, maxY, maxZ, EMPTY_UUID);
+    }
+    
+    private int calculateMinimumCoordinate(int originalPoint, int delta) {
+        if (originalPoint > 0 || 
+                originalPoint > Integer.MIN_VALUE + delta) {
+            return originalPoint - delta;
+        } else {
+            return Integer.MIN_VALUE;
+        }
+    }
+    
+    private int calculateMaximumCoordinate(int originalPoint, int delta) {
+        if (originalPoint < 0 || 
+                originalPoint < Integer.MAX_VALUE - delta) {
+            return originalPoint + delta;
+        } else {
+            return Integer.MIN_VALUE;
+        }
     }
 }

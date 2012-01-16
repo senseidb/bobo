@@ -54,6 +54,4 @@ public class HaversineComputeDistance implements IComputeDistance {
         
         return Conversions.r2d(lonBoundaryRadians);
     }
-
-    
 }

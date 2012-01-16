@@ -37,7 +37,10 @@ package com.browseengine.bobo.geosearch.score.impl;
  */
 public class Conversions {
     private static final double DEG_TO_RAD = Math.PI/180.;
-
+    static final double EARTH_RADIUS_METERS = 6378137.0;
+    public static final int EARTH_RADIUS_INTEGER_UNITS = 2140000000;
+    static final double EARTH_RADIUS_METERS_TO_INTEGER_UNITS =  EARTH_RADIUS_INTEGER_UNITS / EARTH_RADIUS_METERS;
+    
     public static double d2r(double deg) {
         return deg*DEG_TO_RAD;
     }
@@ -56,5 +59,13 @@ public class Conversions {
     
     public static float km2mi(float km) {
         return km/MILES_TO_KM;
+    }
+    
+    public static int radiusMetersToIntegerUnits(double meters) {
+        return (int)(meters * EARTH_RADIUS_METERS_TO_INTEGER_UNITS); 
+    }
+    
+    public static double radiusIntegerUnitsToMeters(int integerUnits) {
+        return integerUnits / EARTH_RADIUS_METERS_TO_INTEGER_UNITS;
     }
 }

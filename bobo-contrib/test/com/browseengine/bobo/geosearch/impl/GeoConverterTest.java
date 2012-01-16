@@ -42,14 +42,14 @@ public class GeoConverterTest {
         int x = geoConverter.getXFromRadians(latitude, longitude);
         int y = geoConverter.getYFromRadians(latitude, longitude);
         int z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
+        assertCoordinateMatches(x, y, z, Conversions.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
         
         latitude = Conversions.d2r(0);
         longitude = Conversions.d2r(180);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, -GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
+        assertCoordinateMatches(x, y, z, -Conversions.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
         
         latitude = Conversions.d2r(90);
         longitude = Conversions.d2r(0);
@@ -70,14 +70,14 @@ public class GeoConverterTest {
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, 0, GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0);
+        assertCoordinateMatches(x, y, z, 0, Conversions.EARTH_RADIUS_INTEGER_UNITS, 0);
         
         latitude = Conversions.d2r(0);
         longitude = Conversions.d2r(-90);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, 0, -GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0);
+        assertCoordinateMatches(x, y, z, 0, -Conversions.EARTH_RADIUS_INTEGER_UNITS, 0);
         
         latitude = Conversions.d2r(86);
         longitude = Conversions.d2r(165);

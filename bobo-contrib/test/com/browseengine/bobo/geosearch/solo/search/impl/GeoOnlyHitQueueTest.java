@@ -47,12 +47,12 @@ public class GeoOnlyHitQueueTest {
         }
         
         GeoOnlyHit lastHit = hitQueue.pop();
-        assertEquals(Math.max(0, hitSize - queueSize), lastHit.score, 0.0000001);
+        assertEquals(Math.min(hitSize - 1, queueSize - 1), lastHit.score, 0.0000001);
         
         GeoOnlyHit currentHit = hitQueue.pop();
         int hitCount = 1;
         while (currentHit != null) {
-            assertTrue("Hits should be in ascending order", lastHit.score < currentHit.score);
+            assertTrue("Hits should be in descending order", lastHit.score > currentHit.score);
             hitCount++;
             
             lastHit = currentHit;
