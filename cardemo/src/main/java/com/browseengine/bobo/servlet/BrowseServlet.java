@@ -54,9 +54,7 @@ import com.browseengine.bobo.server.protocol.BoboHttpRequestParam;
 import com.browseengine.bobo.server.protocol.BrowseJSONSerializer;
 import com.browseengine.bobo.service.BrowseService;
 import com.browseengine.bobo.service.BrowseServiceFactory;
-import com.browseengine.bobo.service.util.XStreamDispenser;
 import com.browseengine.solr.BoboRequestBuilder;
-import com.thoughtworks.xstream.XStream;
 
 public class BrowseServlet
 	extends HttpServlet{
@@ -149,10 +147,9 @@ public class BrowseServlet
 	}
 
 	protected BrowseService getServiceInstance(ServletConfig config) throws ServletException{
-		String indexDir=System.getProperty("index.directory");
-		if (indexDir==null || indexDir.length()==0){
-		  indexDir = getInitParameter("index.directory");
-		}
+	  
+		String indexDir=config.getServletContext().getInitParameter("index.dir");
+		
 		if (null == indexDir || indexDir.length() == 0)
 			throw new ServletException("No index directory configured");
 	
@@ -180,8 +177,6 @@ public class BrowseServlet
 			res.setCharacterEncoding("UTF-8");
 			Writer writer=res.getWriter();
 			
-			String outputFormat=req.getParameter("output");
-			if ("json".equals(outputFormat)){
 				try{
 				  String val=BrowseJSONSerializer.serialize(result);
 				  writer.write(val);
@@ -189,14 +184,6 @@ public class BrowseServlet
 				catch(JSONException je){
 					throw new IOException(je.getMessage());
 				}
-			}
-			else{
-				XStream xstream=XStreamDispenser.getXMLXStream();
-				writer.write(xstream.toXML(result));
-			}
-			
-			
-			
 		} catch (BrowseException e) {
 			throw new ServletException(e.getMessage(),e);
 		}

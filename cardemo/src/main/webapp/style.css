@@ -1,0 +1,98 @@
+	
+	.tag1{
+		font-family: Arial;
+		font-size:12px;
+	}
+		
+	.tag2{
+		font-family: Arial;
+		font-size:14px;
+	}
+		
+	.tag3{
+		font-family: Arial;
+		font-size:16px;
+	}
+	.tag4{
+		font-family: Arial;
+		font-size:18px;
+	}
+	.tag5{
+		font-family: Arial;
+		font-size:20px;
+	}
+	.tag6{
+		font-family: Arial;
+		font-size:22px;
+	}
+	.tag7{
+		font-family: Arial;
+		font-size:24px;
+	}
+	.tag8{
+		font-family: Arial;
+		font-size:26px;
+	}
+	.tag9{
+		font-family: Arial;
+		font-size:28px;
+	}
+	.tag10{
+		font-family: Arial;
+		font-size:30px;
+	}
+
+	
+.BREADCRUMB{
+	font-weight:normal;
+	color:blue;
+}
+
+.ROWHEAD{
+	background-color:#AAAAEF;
+}
+
+.LINKSELECTED { 
+    font-weight:bold;
+    color:blue;
+    font-size:15px;
+}
+
+.hitstat{
+	font-family: Arial;
+	color:#8888ef;
+}
+
+.scroll{
+	font-size:12px;
+	color:black;
+}
+
+.sortable{
+	color:black;
+	text-decoration: underline;
+}
+
+#resultset a{
+	text-decoration: underline;
+	color:blue;
+}
+
+body {
+	font-family: Arial;
+}
+
+.SELECTELEM{
+	text-align:left;
+	font-size:12px;
+}
+
+.SELECTELEM LI{
+	
+	list-style-type: none;
+}
+
+
+.text{
+	font-size:12px;
+}

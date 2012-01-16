@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE web-app PUBLIC '-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN' 'http://java.sun.com/dtd/web-app_2_3.dtd'>
+
+<web-app>
+
+  <context-param>
+	<param-name>index.dir</param-name>
+	<param-value>../cardata/cartag</param-value>
+  </context-param>
+ 
+  <!-- ******************************************************************* -->
+  <!-- * Servlets definition * -->
+  <!-- ******************************************************************* -->
+    
+  <servlet>
+ 
+  	<servlet-name>Cardemo</servlet-name>
+  	<servlet-class>com.browseengine.bobo.servlet.BrowseServlet</servlet-class>
+  	<init-param>
+    	<param-name>debug</param-name>
+    	<param-value>true</param-value>
+  	</init-param>
+  	<load-on-startup>2</load-on-startup>
+  </servlet>
+ 
+  <!-- ******************************************************************* -->
+  <!-- * Servlets mapping * -->
+  <!-- ******************************************************************* -->
+  
+  <servlet-mapping>
+  	<servlet-name>Cardemo</servlet-name>
+  	<url-pattern>/browse/*</url-pattern>
+  </servlet-mapping>
+</web-app>
