@@ -26,9 +26,9 @@ function isNumeric(sText){
 function format(val,count){
 	var parts=val.split("|");
 	
-	for (var i=0;i<parts.length;++i){
-		parts[i]=Number(parts[i]);
-	}
+	//for (var i=0;i<parts.length;++i){
+//		parts[i]=Number(parts[i]);
+	//}
 	
 	if (parts.length==2){
 		if (parts[0]==parts[1]){
@@ -40,10 +40,10 @@ function format(val,count){
 	}
 	else{
 		if (parts[0]==null || parts[0].length==0){
-			return "< "+parts[1]+" ("+count+")";
+			return parts[1]+" ("+count+")";
 		}
 		else{
-			return "> "+parts[0]+" ("+count+")";
+			return parts[0]+" ("+count+")";
 		}
 	}
 }
