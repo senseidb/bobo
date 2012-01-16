@@ -121,53 +121,60 @@ public class BrowseHit
 	  return _termFreqMap;
 	}
 	
-	public void setTermFreqMap(Map<String,TermFrequencyVector> termFreqMap){
+	public BrowseHit setTermFreqMap(Map<String, TermFrequencyVector> termFreqMap){
 	  _termFreqMap = termFreqMap;
+    return this;
 	}
 
     public String getGroupValue() {
       return _groupValue;
     }
 
-    public void setGroupValue(String group) {
+    public BrowseHit setGroupValue(String group) {
       _groupValue = group;
+      return this;
     }
 
     public Object getRawGroupValue() {
       return _rawGroupValue;
     }
 
-    public void setRawGroupValue(Object group) {
+    public BrowseHit setRawGroupValue(Object group) {
       _rawGroupValue = group;
+      return this;
     }
 
     public int getGroupHitsCount() {
       return _groupHitsCount;
     }
 
-  public void setGroupHitsCount(int count) {
+  public BrowseHit setGroupHitsCount(int count) {
     _groupHitsCount = count;
+    return this;
   }
 
   public BrowseHit[] getGroupHits() {
     return _groupHits;
   }
 
-  public void setGroupHits(BrowseHit[] hits) {
+  public BrowseHit setGroupHits(BrowseHit[] hits) {
     _groupHits = hits;
+    return this;
   }
 	
 	public Explanation getExplanation() {
 		return _explanation;
 	}
 
-	public void setExplanation(Explanation explanation) {
+	public BrowseHit setExplanation(Explanation explanation) {
 		_explanation = explanation;
+    return this;
 	}
 
-	public void setComparable(Comparable<?> comparable)
+	public BrowseHit setComparable(Comparable<?> comparable)
 	{
 	  _comparable = comparable;
+    return this;
 	}
 	
 	public Comparable<?> getComparable()
@@ -186,11 +193,13 @@ public class BrowseHit
 	
 	/**
 	 * Sets the internal document id
-	 * @param docid document id
-	 * @see #getDocid()
+	 *
+   * @param docid document id
+   * @see #getDocid()
 	 */
-	public void setDocid(int docid) {
+	public BrowseHit setDocid(int docid) {
 		this.docid = docid;
+    return this;
 	}
 	
 	/**
@@ -204,11 +213,13 @@ public class BrowseHit
 	
 	/**
 	 * Sets the raw field value map
-	 * @param rawFieldValues raw field value map
-	 * @see #getRawFieldValues()
+	 *
+   * @param rawFieldValues raw field value map
+   * @see #getRawFieldValues()
 	 */
-	public void setRawFieldValues(Map<String,Object[]> rawFieldValues) {
+	public BrowseHit setRawFieldValues(Map<String, Object[]> rawFieldValues) {
 		_rawFieldValues = rawFieldValues;
+    return this;
 	}
 	
 	/**
@@ -222,33 +233,39 @@ public class BrowseHit
 	
 	/**
 	 * Sets the field value map
-	 * @param fieldValues field value map
-	 * @see #getFieldValues()
+	 *
+   * @param fieldValues field value map
+   * @see #getFieldValues()
 	 */
-	public void setFieldValues(Map<String,String[]> fieldValues) {
+	public BrowseHit setFieldValues(Map<String, String[]> fieldValues) {
 		_fieldValues = fieldValues;
+    return this;
 	}
 	
 	/**
 	 * Sets the score
-	 * @param score score
-	 * @see #getScore()
+	 *
+   * @param score score
+   * @see #getScore()
 	 */
-	public void setScore(float score) {
+	public BrowseHit setScore(float score) {
 		this.score = score;
+    return this;
 	}
 	
-	public void setStoredFields(Document doc){
+	public BrowseHit setStoredFields(Document doc){
 		_storedFields = doc;
+    return this;
 	}
 	
 	public Document getStoredFields(){
 		return _storedFields;
 	}
 	
-  public void setStoredValue(byte[] value)
+  public BrowseHit setStoredValue(byte[] value)
   {
     _storedValue = value;
+    return this;
   }
 
   public byte[] getStoredValue()

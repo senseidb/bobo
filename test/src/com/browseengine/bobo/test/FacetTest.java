@@ -48,31 +48,29 @@ public class FacetTest {
 		br.setOffset(0);
 		br.setCount(0);
 
-        BrowseSelection geoSel=new BrowseSelection("geo_region");
-        geoSel.addValue("5227");
-        BrowseSelection industrySel=new BrowseSelection("industry_norm");
-        industrySel.addValue("1");
+    BrowseSelection geoSel=new BrowseSelection("geo_region").addValue("5227");
+    BrowseSelection industrySel=new BrowseSelection("industry_norm").addValue("1");
+
+    //br.addSelection(geoSel);
+    br.addSelection(industrySel);
 		
-        //br.addSelection(geoSel);
-        br.addSelection(industrySel);
-		
-		FacetSpec regionSpec=new FacetSpec();
-		regionSpec.setExpandSelection(true);
-		regionSpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
-		regionSpec.setMaxCount(5);
-		
-        FacetSpec industrySpec=new FacetSpec();
-        industrySpec.setExpandSelection(true);
-        industrySpec.setOrderBy(FacetSortSpec.OrderHitsDesc);
-        industrySpec.setMaxCount(5);
+		FacetSpec regionSpec = new FacetSpec()
+            .setExpandSelection(true)
+            .setOrderBy(FacetSortSpec.OrderHitsDesc)
+            .setMaxCount(5);
+
+    FacetSpec industrySpec=new FacetSpec()
+      .setExpandSelection(true)
+      .setOrderBy(FacetSortSpec.OrderHitsDesc)
+      .setMaxCount(5);
         
 
-        FacetSpec numEndorserSpec=new FacetSpec();
-        numEndorserSpec.setExpandSelection(true);
+    FacetSpec numEndorserSpec=new FacetSpec()
+        .setExpandSelection(true);
     
-		br.setFacetSpec("industry_norm", industrySpec);
-        br.setFacetSpec("geo_region", regionSpec);
-        br.setFacetSpec("num_endorsers_norm", numEndorserSpec);
+		br.setFacetSpec("industry_norm", industrySpec)
+      .setFacetSpec("geo_region", regionSpec)
+      .setFacetSpec("num_endorsers_norm", numEndorserSpec);
 
 		long start=System.currentTimeMillis();
 		BrowseResult res=browser.browse(br);

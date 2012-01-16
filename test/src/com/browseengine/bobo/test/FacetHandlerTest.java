@@ -173,7 +173,7 @@ public class FacetHandlerTest extends TestCase {
 		
 		List<FacetHandler<?>> list = new LinkedList<FacetHandler<?>>();
 		HashSet<String> s1 = new HashSet<String>();
-		s1.add("C");
+		s1.add("E");
 		NoopFacetHandler h1 = new NoopFacetHandler("A",s1);
 		list.add(h1);
 		
@@ -246,10 +246,6 @@ public class FacetHandlerTest extends TestCase {
 			{
 			  fail("incorrect number of left over facets: "+expected);
 			}
-		}
-		else
-		{
-			fail("some facets should not have been loaded.");
 		}
 		
 		boboReader.close();
