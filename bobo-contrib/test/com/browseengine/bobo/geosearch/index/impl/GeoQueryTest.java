@@ -147,7 +147,7 @@ public class GeoQueryTest {
     
     private Directory buildEmptyDirectory() throws IOException {
         RAMDirectory directory = new RAMDirectory();
-        Version version = Version.LUCENE_33;
+        Version version = Version.LUCENE_CURRENT;
         Analyzer analyzer =  new StandardAnalyzer(version);
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(version, analyzer);
         IndexWriter writer = new IndexWriter(directory, indexWriterConfig);

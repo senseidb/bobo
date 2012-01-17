@@ -48,7 +48,7 @@ public class GeoDocConsumerTest {
     final int docID = 10; 
     Document document;
     
-    Version matchVersion = Version.LUCENE_33;
+    Version matchVersion = Version.LUCENE_CURRENT;
     Analyzer analyzer = new StandardAnalyzer(matchVersion);
     Directory directory;
     IndexWriter writer;

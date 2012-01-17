@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.Lock;
 import org.apache.lucene.store.LockFactory;
 import org.apache.lucene.store.LockObtainFailedException;
@@ -40,6 +41,8 @@ public class GeoOnlyIndexerTest {
     Mockery context = new Mockery() {{ 
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
+    
+    int idByteLength = GeoSearchConfig.DEFAULT_ID_BYTE_COUNT;
     
     GeoOnlyIndexer indexer;
     private GeoSearchConfig config;
@@ -114,7 +117,7 @@ public class GeoOnlyIndexerTest {
     public void testIndex_and_flush_emptyIndex() throws IOException {
         int countEntries = 50;
         
-        index_and_flush(countEntries, Collections.<IDGeoRecord>emptySet());
+        index_and_flush(countEntries, false, Collections.<IDGeoRecord>emptySet());
     }
     
     @Test
@@ -132,10 +135,18 @@ public class GeoOnlyIndexerTest {
                     geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid));
         }
         
-        index_and_flush(countEntries, Collections.<IDGeoRecord>emptySet());
+        createIndexFileDummyData();
+        
+        index_and_flush(countEntries, true, existingData);
     }
     
-    private void index_and_flush(int countEntries, final Set<IDGeoRecord> existingData) throws IOException {
+    private void createIndexFileDummyData() throws IOException {
+        IndexOutput output = directory.createOutput(indexName + ".geo");
+        output.writeString("dummyData");
+        output.flush();
+    }
+    
+    private void index_and_flush(int countEntries, final boolean fileExists, final Set<IDGeoRecord> existingData) throws IOException {
         int idByteLength = GeoSearchConfig.DEFAULT_ID_BYTE_COUNT;
         String fieldName = "field1";
         
@@ -147,6 +158,155 @@ public class GeoOnlyIndexerTest {
             indexer.index(uuid, field);
         }
 
+        context.checking(new Expectations() {
+            { 
+                if (fileExists) {
+                    one(mockGeoSegmentReader).getIterator(with(IDGeoRecord.MIN_VALID_GEORECORD), with(IDGeoRecord.MAX_VALID_GEORECORD));
+                    will(returnValue(existingData.iterator()));
+                    
+                    one(mockGeoSegmentReader).close();
+                }
+                
+                one(mockGeoSegmentWriter).close();
+                
+                one(mockLock).release();
+            }
+        });
+        
+        indexer.flush();
+        
+        indexer.close();
+        
+        context.assertIsSatisfied();
+        
+        assertEquals(countEntries + existingData.size(), lastDataFlushed.size());
+    }
+    
+    @Test
+    public void test_delete_and_flush_emptyIndex() throws IOException {
+        int countEntries = 10;
+        
+        Set<byte[]> toDelete = new HashSet<byte[]>();
+        for (int i = 0; i < countEntries; i++) {
+            byte[] uuid = generateRandomUUIDAsBytes(idByteLength);
+            toDelete.add(uuid);
+        }
+        delete_and_flush(toDelete, false, Collections.<IDGeoRecord>emptySet(), 0);
+    }
+    
+    @Test
+    public void test_delete_and_flush_existingIndex() throws IOException {
+        int countToDelete = 10;
+        
+        createIndexFileDummyData();
+        
+        Set<IDGeoRecord> existingData = new HashSet<IDGeoRecord>();
+        Set<byte[]> toDelete = new HashSet<byte[]>();
+        for (int i = 0; i < 50; i++) {
+            byte[] uuid = generateRandomUUIDAsBytes(idByteLength);
+            GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
+            
+            existingData.add(geoConverter.toIDGeoRecord(
+                    geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid));
+            
+            if (i < countToDelete) {
+                toDelete.add(uuid);
+            }
+        }
+        
+        delete_and_flush(toDelete, true, existingData, 40);
+    }
+    
+    @Test
+    public void test_delete_and_flush_multipleRecords() throws IOException {
+        int countToDelete = 5;
+        
+        createIndexFileDummyData();
+        
+        Set<IDGeoRecord> existingData = new HashSet<IDGeoRecord>();
+        Set<byte[]> toDelete = new HashSet<byte[]>();
+        for (int i = 0; i < 10; i++) {
+            byte[] uuid = generateRandomUUIDAsBytes(idByteLength);
+            
+            for (int j = 0; j < i + 1; j++) {
+                GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
+                existingData.add(geoConverter.toIDGeoRecord(
+                        geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid));
+            }
+            
+            if (i < countToDelete) {
+                toDelete.add(uuid);
+            }
+        }
+        
+        delete_and_flush(toDelete, true, existingData, 40);
+    }
+    
+    private void delete_and_flush(Set<byte[]> toDelete, final boolean fileExists, 
+            final Set<IDGeoRecord> existingData,
+            int expectedIndexSize) throws IOException {
+        for (byte[] uuid: toDelete) {
+            indexer.delete(uuid);
+        }
+
+        context.checking(new Expectations() {
+            { 
+                if (fileExists) {
+                    one(mockGeoSegmentReader).getIterator(with(IDGeoRecord.MIN_VALID_GEORECORD), with(IDGeoRecord.MAX_VALID_GEORECORD));
+                    will(returnValue(existingData.iterator()));
+                    
+                    one(mockGeoSegmentReader).close();
+                }
+                
+                one(mockGeoSegmentWriter).close();
+                
+                one(mockLock).release();
+            }
+        });
+        
+        indexer.flush();
+        
+        indexer.close();
+        
+        context.assertIsSatisfied();
+        
+        assertEquals(expectedIndexSize, lastDataFlushed.size());
+    }
+    
+    @Test
+    public void test_index_delete_and_flush() throws IOException {
+        final Set<IDGeoRecord> existingData = new HashSet<IDGeoRecord>();
+        Set<byte[]> toDelete = new HashSet<byte[]>();
+        Set<byte[]> toIndex = new HashSet<byte[]>();
+        for (int i = 0; i < 10; i++) {
+            byte[] uuid = generateRandomUUIDAsBytes(idByteLength);
+            
+            for (int j = 0; j < i + 1; j++) {
+                GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
+                existingData.add(geoConverter.toIDGeoRecord(
+                        geoCoordinate.getLatitude(), geoCoordinate.getLongitude(), uuid));
+            }
+            
+            if (i < 5) {
+                toDelete.add(uuid);
+            }
+            
+            toIndex.add(uuid);
+        }
+        
+        for (byte[] uuid: toDelete) {
+            indexer.delete(uuid);
+        }
+        
+        for (byte[] uuid: toIndex) {
+            GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
+            GeoCoordinateField field = new GeoCoordinateField("fieldname", geoCoordinate);
+            
+            indexer.index(uuid, field);
+        }
+
+        createIndexFileDummyData();
+        
         context.checking(new Expectations() {
             { 
                 one(mockGeoSegmentReader).getIterator(with(IDGeoRecord.MIN_VALID_GEORECORD), with(IDGeoRecord.MAX_VALID_GEORECORD));
@@ -162,14 +322,15 @@ public class GeoOnlyIndexerTest {
         
         indexer.flush();
         
+        indexer.close();
+        
         context.assertIsSatisfied();
         
-        assertEquals(countEntries + existingData.size(), lastDataFlushed.size());
+        assertEquals(50, lastDataFlushed.size());
     }
     
     @Test(expected = IOException.class)
     public void index_and_flush_error_on_read() throws IOException {
-        int idByteLength = GeoSearchConfig.DEFAULT_ID_BYTE_COUNT;
         String fieldName = "field1";
         
         for (int i = 0; i < 10; i++) {
@@ -179,6 +340,8 @@ public class GeoOnlyIndexerTest {
             
             indexer.index(uuid, field);
         }
+        
+        createIndexFileDummyData();
 
         context.checking(new Expectations() {
             { 
@@ -186,7 +349,6 @@ public class GeoOnlyIndexerTest {
                 will(throwException(new IOException()));
                 
                 one(mockGeoSegmentReader).close();
-                one(mockLock).release();
             }
         });
         

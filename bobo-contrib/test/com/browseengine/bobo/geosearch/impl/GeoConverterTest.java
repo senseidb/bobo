@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
 
@@ -32,73 +33,82 @@ public class GeoConverterTest {
      * 
      */
     @Test
-    public void testToCartesianCoordinates() {
+    public void testToCartesianCoordinates_xyzMethods() {
         double latitude;
         double longitude;
-        CartesianCoordinateUUID coord;
         
-        latitude = geoConverter.degreesToRadians(0);
-        longitude = geoConverter.degreesToRadians(0);
+        latitude = Conversions.d2r(0);
+        longitude = Conversions.d2r(0);
         int x = geoConverter.getXFromRadians(latitude, longitude);
         int y = geoConverter.getYFromRadians(latitude, longitude);
         int z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
+        assertCoordinateMatches(x, y, z, Conversions.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
         
-        latitude = geoConverter.degreesToRadians(0);
-        longitude = geoConverter.degreesToRadians(180);
+        latitude = Conversions.d2r(0);
+        longitude = Conversions.d2r(180);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, -GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
+        assertCoordinateMatches(x, y, z, -Conversions.EARTH_RADIUS_INTEGER_UNITS, 0, 0);
         
-        latitude = geoConverter.degreesToRadians(90);
-        longitude = geoConverter.degreesToRadians(0);
+        latitude = Conversions.d2r(90);
+        longitude = Conversions.d2r(0);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
         assertCoordinateMatches(x, y, z, 0, 0, 2125674026);
         
-        latitude = geoConverter.degreesToRadians(-90);
-        longitude = geoConverter.degreesToRadians(0);
+        latitude = Conversions.d2r(-90);
+        longitude = Conversions.d2r(0);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
         assertCoordinateMatches(x, y, z, 0, 0, -2125674026);
         
-        latitude = geoConverter.degreesToRadians(0);
-        longitude = geoConverter.degreesToRadians(90);
+        latitude = Conversions.d2r(0);
+        longitude = Conversions.d2r(90);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, 0, GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0);
+        assertCoordinateMatches(x, y, z, 0, Conversions.EARTH_RADIUS_INTEGER_UNITS, 0);
         
-        latitude = geoConverter.degreesToRadians(0);
-        longitude = geoConverter.degreesToRadians(-90);
+        latitude = Conversions.d2r(0);
+        longitude = Conversions.d2r(-90);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
-        assertCoordinateMatches(x, y, z, 0, -GeoConverter.EARTH_RADIUS_INTEGER_UNITS, 0);
+        assertCoordinateMatches(x, y, z, 0, -Conversions.EARTH_RADIUS_INTEGER_UNITS, 0);
         
-        latitude = geoConverter.degreesToRadians(86);
-        longitude = geoConverter.degreesToRadians(165);
+        latitude = Conversions.d2r(86);
+        longitude = Conversions.d2r(165);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
         assertCoordinateMatches(x, y, z, -144192300, 38636210, 2120495991);
         
-        latitude = geoConverter.degreesToRadians(52.65757030139);
-        longitude = geoConverter.degreesToRadians(1.7179215810);
+        latitude = Conversions.d2r(52.65757030139);
+        longitude = Conversions.d2r(1.7179215810);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
         assertCoordinateMatches(x, y , z, 1297492004, 38914868, 1689962941);
         
-        latitude = geoConverter.degreesToRadians(-2.5);
-        longitude = geoConverter.degreesToRadians(96.25);
+        latitude = Conversions.d2r(-2.5);
+        longitude = Conversions.d2r(96.25);
         x = geoConverter.getXFromRadians(latitude, longitude);
         y = geoConverter.getYFromRadians(latitude, longitude);
         z = geoConverter.getZFromRadians(latitude);
         assertCoordinateMatches(x, y, z, -232753371, 2125255864, -92720598);
+    }
+    
+    @Test
+    public void testToCartesianCoordinates_latLong() {
+        double latitude = -2.5;
+        double longitude = 96.25;
+        byte[] uuid  = {(byte)0, (byte)1, (byte)2, (byte)3};
+        CartesianCoordinateUUID coordinate = geoConverter.toCartesianCoordinate(latitude, longitude, uuid);
+        assertEquals(uuid, coordinate.uuid);
+        assertCoordinateMatches(coordinate.x, coordinate.y, coordinate.z, -232753371, 2125255864, -92720598);
     }
     
     private void assertCoordinateMatches(int actualX, int actualY, int actualZ,

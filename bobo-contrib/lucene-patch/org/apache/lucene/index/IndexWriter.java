@@ -933,7 +933,7 @@ public class IndexWriter implements Closeable, TwoPhaseCommit {
   @Deprecated
   public IndexWriter(Directory d, Analyzer a, boolean create, MaxFieldLength mfl)
        throws CorruptIndexException, LockObtainFailedException, IOException {
-    this(d, new IndexWriterConfig(Version.LUCENE_31, a).setOpenMode(
+    this(d, new IndexWriterConfig(Version.LUCENE_CURRENT, a).setOpenMode(
         create ? OpenMode.CREATE : OpenMode.APPEND));
     setMaxFieldLength(mfl.getLimit());
   }
@@ -960,7 +960,7 @@ public class IndexWriter implements Closeable, TwoPhaseCommit {
   @Deprecated
   public IndexWriter(Directory d, Analyzer a, MaxFieldLength mfl)
     throws CorruptIndexException, LockObtainFailedException, IOException {
-    this(d, new IndexWriterConfig(Version.LUCENE_31, a));
+    this(d, new IndexWriterConfig(Version.LUCENE_CURRENT, a));
     setMaxFieldLength(mfl.getLimit());
   }
 
@@ -986,7 +986,7 @@ public class IndexWriter implements Closeable, TwoPhaseCommit {
   @Deprecated
   public IndexWriter(Directory d, Analyzer a, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl)
     throws CorruptIndexException, LockObtainFailedException, IOException {
-    this(d, new IndexWriterConfig(Version.LUCENE_31, a).setIndexDeletionPolicy(deletionPolicy));
+    this(d, new IndexWriterConfig(Version.LUCENE_CURRENT, a).setIndexDeletionPolicy(deletionPolicy));
     setMaxFieldLength(mfl.getLimit());
   }
 
@@ -1018,7 +1018,7 @@ public class IndexWriter implements Closeable, TwoPhaseCommit {
   @Deprecated
   public IndexWriter(Directory d, Analyzer a, boolean create, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl)
        throws CorruptIndexException, LockObtainFailedException, IOException {
-    this(d, new IndexWriterConfig(Version.LUCENE_31, a).setOpenMode(
+    this(d, new IndexWriterConfig(Version.LUCENE_CURRENT, a).setOpenMode(
         create ? OpenMode.CREATE : OpenMode.APPEND).setIndexDeletionPolicy(deletionPolicy));
     setMaxFieldLength(mfl.getLimit());
   }
@@ -1059,7 +1059,7 @@ public class IndexWriter implements Closeable, TwoPhaseCommit {
   @Deprecated
   public IndexWriter(Directory d, Analyzer a, IndexDeletionPolicy deletionPolicy, MaxFieldLength mfl, IndexCommit commit)
        throws CorruptIndexException, LockObtainFailedException, IOException {
-    this(d, new IndexWriterConfig(Version.LUCENE_31, a)
+    this(d, new IndexWriterConfig(Version.LUCENE_CURRENT, a)
         .setOpenMode(OpenMode.APPEND).setIndexDeletionPolicy(deletionPolicy).setIndexCommit(commit));
     setMaxFieldLength(mfl.getLimit());
   }
