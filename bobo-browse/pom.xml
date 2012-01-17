@@ -4,14 +4,13 @@
 	<parent>
             <groupId>com.browseengine.bobo</groupId>
             <artifactId>bobo-parent</artifactId>
-             <version>3.0.0</version>
+             <version>3.0.1-SNAPSHOT</version>
             <relativePath>../bobo-parent/pom.xml</relativePath>
     </parent>
 
 	<artifactId>bobo-browse</artifactId>
 	<packaging>jar</packaging>
 	<name>bobo browse</name>
-	<version>3.0.0</version>
 	
 	<description>Bobo is a Faceted Search implementation written purely in Java, an extension of Apache Lucene</description>
 	<url>http://javasoze.github.com/bobo</url>

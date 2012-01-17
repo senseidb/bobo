@@ -1,7 +1,8 @@
 package com.browseengine.bobo.api;
 
 import java.io.Serializable;
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * specifies how facets are to be returned for a browse
@@ -40,7 +41,7 @@ public class FacetSpec implements Serializable {
 	private boolean expandSelection;
 	private int minCount;
 	private ComparatorFactory _comparatorFactory;
-
+	private Map<String, String> properties;
 	/**
 	 * Constructor.
 	 *
@@ -50,6 +51,7 @@ public class FacetSpec implements Serializable {
 		minCount=1;
 		expandSelection = false;
 		_comparatorFactory = null;
+		properties = new HashMap<String, String>();
 	}				
 	
 	public FacetSpec setCustomComparatorFactory(ComparatorFactory comparatorFactory){
@@ -150,4 +152,21 @@ public class FacetSpec implements Serializable {
 		this.expandSelection = expandSelection;
     return this;
 	}
+
+  /**
+   * Gets  custom properties for the facet search. For example AttributeFacetHandler uses this to perform custom facet filtering
+   */
+  public Map<String, String> getProperties() {
+    return properties;
+  }
+
+  /**
+   * Sets  custom properties for the facet search. For example AttributeFacetHandler uses this to perform custom facet filtering
+   * @param properties
+   */
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
+  }
+	
+	
 }
