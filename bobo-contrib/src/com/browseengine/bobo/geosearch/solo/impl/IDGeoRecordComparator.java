@@ -27,7 +27,22 @@ public class IDGeoRecordComparator implements Comparator<IDGeoRecord> {
         if (idiff < 0) {
             return -1;
         }
+        
+        for (int i = 0; i < idGeoRecord1.id.length && i < idGeoRecord2.id.length; i++) {
+            if (idGeoRecord1.id[i] > idGeoRecord2.id[i]) {
+                return 1;
+            } else if (idGeoRecord1.id[i] < idGeoRecord2.id[i]) {
+                return -1;
+            }
+        }
+
+        if (idGeoRecord1.id.length > idGeoRecord2.id.length) {
+            return 1;
+        } else if (idGeoRecord1.id.length < idGeoRecord2.id.length) {
+            return -1;
+        }
+        
         return 0;
     }
-    
+ 
 }
