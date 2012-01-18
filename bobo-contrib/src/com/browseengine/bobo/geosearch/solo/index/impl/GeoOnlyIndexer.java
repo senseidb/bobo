@@ -123,20 +123,23 @@ public class GeoOnlyIndexer {
     private void loadCurrentIndex() throws IOException {
         inMemoryIndex.clear();
         
-        GeoSegmentReader<IDGeoRecord> currentIndex = getGeoSegmentReader();
-        try {
-            Iterator<IDGeoRecord> currentIndexIterator = 
-                currentIndex.getIterator(IDGeoRecord.MIN_VALID_GEORECORD, IDGeoRecord.MAX_VALID_GEORECORD);
-            
-            while (currentIndexIterator.hasNext()) {
-                IDGeoRecord geoRecord = currentIndexIterator.next();
+        String fileName = indexName + "." + config.getGeoFileExtension();
+        if (directory.fileExists(fileName)) {
+            GeoSegmentReader<IDGeoRecord> currentIndex = getGeoSegmentReader();
+            try {
+                Iterator<IDGeoRecord> currentIndexIterator = 
+                    currentIndex.getIterator(IDGeoRecord.MIN_VALID_GEORECORD, IDGeoRecord.MAX_VALID_GEORECORD);
                 
-                if (!removedRecords.contains(geoRecord.id)) {
-                    inMemoryIndex.add(geoRecord);
+                while (currentIndexIterator.hasNext()) {
+                    IDGeoRecord geoRecord = currentIndexIterator.next();
+                    
+                    if (!removedRecords.contains(geoRecord.id)) {
+                        inMemoryIndex.add(geoRecord);
+                    }
                 }
+            } finally {
+                currentIndex.close();
             }
-        } finally {
-            currentIndex.close();
         }
     }
     

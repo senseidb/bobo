@@ -53,6 +53,8 @@ public class IDGeoRecord implements IGeoRecord {
             return false;
         if (lowOrder != other.lowOrder)
             return false;
+        if (!Arrays.equals(id, other.id))
+            return false;
         return true;
     }
     
