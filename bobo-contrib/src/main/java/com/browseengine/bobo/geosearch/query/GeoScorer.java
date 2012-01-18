@@ -149,7 +149,7 @@ public class GeoScorer extends Scorer {
      */
     @Override
     public int advance(int target) throws IOException {
-        assert (NO_MORE_DOCS == docid || target >= docid) && docid >= 0;
+        assert (NO_MORE_DOCS == docid || DOCID_CURSOR_NONE_YET == docid || target >= docid);
         
         fillBlockContainingAndSeekTo(target);
 
