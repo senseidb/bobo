@@ -5,7 +5,6 @@ package com.browseengine.bobo.util;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.BitVector;
@@ -635,7 +634,36 @@ public final class BigNestedIntArray
     }
     return false;
   }
-
+  /**
+   * @param id - documentID
+   * @param startValueId - inclusive
+   * @param endValueId - exclusive
+   * @return
+   */
+  public final boolean containsValueInRange(int id, int startValueId, int endValueId)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) return false;
+    
+    final int val = page[id & SLOTID_MASK];
+    if (val >= 0)
+    {
+      return val >= startValueId && val < endValueId;
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+      int end = idx + (val & COUNT_MASK);
+      while(idx < end)          
+      {
+        
+        if(page[idx] >= startValueId && page[idx] < endValueId) return true;  
+        idx++;
+      }
+    }
+    return false;
+  }
+  
   public final boolean contains(int id, OpenBitSet values)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];
