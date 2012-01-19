@@ -1,6 +1,7 @@
 package com.browseengine.bobo.geosearch.solo.index.impl;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -133,7 +134,7 @@ public class GeoOnlyIndexer {
                 while (currentIndexIterator.hasNext()) {
                     IDGeoRecord geoRecord = currentIndexIterator.next();
                     
-                    if (!removedRecords.contains(geoRecord.id)) {
+                    if (!isDeleted(geoRecord.id)) {
                         inMemoryIndex.add(geoRecord);
                     }
                 }
@@ -141,6 +142,16 @@ public class GeoOnlyIndexer {
                 currentIndex.close();
             }
         }
+    }
+    
+    private boolean isDeleted(byte[] uuid) {
+        for (byte[] deletedUUID : removedRecords) {
+            if (Arrays.equals(uuid, deletedUUID)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     GeoSegmentReader<IDGeoRecord> getGeoSegmentReader() throws IOException {

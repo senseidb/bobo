@@ -3,6 +3,7 @@ package com.browseengine.bobo.geosearch.solo.index.impl;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -246,7 +247,7 @@ public class GeoOnlyIndexerTest {
             final Set<IDGeoRecord> existingData,
             int expectedIndexSize) throws IOException {
         for (byte[] uuid: toDelete) {
-            indexer.delete(uuid);
+            indexer.delete(Arrays.copyOf(uuid, uuid.length));
         }
 
         context.checking(new Expectations() {
@@ -295,14 +296,14 @@ public class GeoOnlyIndexerTest {
         }
         
         for (byte[] uuid: toDelete) {
-            indexer.delete(uuid);
+            indexer.delete(Arrays.copyOf(uuid, uuid.length));
         }
         
         for (byte[] uuid: toIndex) {
             GeoCoordinate geoCoordinate = new GeoCoordinate(randomLattitude(), randomLongitude());
             GeoCoordinateField field = new GeoCoordinateField("fieldname", geoCoordinate);
             
-            indexer.index(uuid, field);
+            indexer.index(Arrays.copyOf(uuid, uuid.length), field);
         }
 
         createIndexFileDummyData();
