@@ -115,14 +115,14 @@ public class GeoOnlyIndexerTest {
     }
     
     @Test
-    public void testIndex_and_flush_emptyIndex() throws IOException {
+    public void testIndex_and_flush_emptyIndex() throws IOException, IndexTooLargeException {
         int countEntries = 50;
         
         index_and_flush(countEntries, false, Collections.<IDGeoRecord>emptySet());
     }
     
     @Test
-    public void testIndex_and_flush_existingIndex() throws IOException {
+    public void testIndex_and_flush_existingIndex() throws IOException, IndexTooLargeException {
         int countEntries = 50;
         int idByteLength = GeoSearchConfig.DEFAULT_ID_BYTE_COUNT;
         
@@ -141,13 +141,29 @@ public class GeoOnlyIndexerTest {
         index_and_flush(countEntries, true, existingData);
     }
     
+    @Test
+    public void testIndex_and_flush_maxEntries() throws IOException, IndexTooLargeException {
+        int maxEntries = 100;
+        config.setMaxIndexSize(maxEntries);
+        
+        index_and_flush(maxEntries, false, Collections.<IDGeoRecord>emptySet());
+    }
+    
+    @Test(expected = IndexTooLargeException.class)
+    public void testIndex_and_flush_tooManyEntries() throws IOException, IndexTooLargeException {
+        int maxEntries = 100;
+        config.setMaxIndexSize(maxEntries);
+        
+        index_and_flush(maxEntries + 1, false, Collections.<IDGeoRecord>emptySet());
+    }
+    
     private void createIndexFileDummyData() throws IOException {
         IndexOutput output = directory.createOutput(indexName + ".geo");
         output.writeString("dummyData");
         output.flush();
     }
     
-    private void index_and_flush(int countEntries, final boolean fileExists, final Set<IDGeoRecord> existingData) throws IOException {
+    private void index_and_flush(final int countEntries, final boolean fileExists, final Set<IDGeoRecord> existingData) throws IOException, IndexTooLargeException {
         int idByteLength = GeoSearchConfig.DEFAULT_ID_BYTE_COUNT;
         String fieldName = "field1";
         
@@ -168,15 +184,19 @@ public class GeoOnlyIndexerTest {
                     one(mockGeoSegmentReader).close();
                 }
                 
-                one(mockGeoSegmentWriter).close();
+                if ((countEntries + existingData.size()) <= config.getMaxIndexSize()) {
+                    one(mockGeoSegmentWriter).close();
+                }
                 
                 one(mockLock).release();
             }
         });
         
-        indexer.flush();
-        
-        indexer.close();
+        try {
+            indexer.flush();
+        } finally {
+            indexer.close();
+        }
         
         context.assertIsSatisfied();
         
@@ -184,7 +204,7 @@ public class GeoOnlyIndexerTest {
     }
     
     @Test
-    public void test_delete_and_flush_emptyIndex() throws IOException {
+    public void test_delete_and_flush_emptyIndex() throws IOException, IndexTooLargeException {
         int countEntries = 10;
         
         Set<byte[]> toDelete = new HashSet<byte[]>();
@@ -196,7 +216,7 @@ public class GeoOnlyIndexerTest {
     }
     
     @Test
-    public void test_delete_and_flush_existingIndex() throws IOException {
+    public void test_delete_and_flush_existingIndex() throws IOException, IndexTooLargeException {
         int countToDelete = 10;
         
         createIndexFileDummyData();
@@ -219,7 +239,7 @@ public class GeoOnlyIndexerTest {
     }
     
     @Test
-    public void test_delete_and_flush_multipleRecords() throws IOException {
+    public void test_delete_and_flush_multipleRecords() throws IOException, IndexTooLargeException {
         int countToDelete = 5;
         
         createIndexFileDummyData();
@@ -245,7 +265,7 @@ public class GeoOnlyIndexerTest {
     
     private void delete_and_flush(Set<byte[]> toDelete, final boolean fileExists, 
             final Set<IDGeoRecord> existingData,
-            int expectedIndexSize) throws IOException {
+            int expectedIndexSize) throws IOException, IndexTooLargeException {
         for (byte[] uuid: toDelete) {
             indexer.delete(Arrays.copyOf(uuid, uuid.length));
         }
@@ -275,7 +295,23 @@ public class GeoOnlyIndexerTest {
     }
     
     @Test
-    public void test_index_delete_and_flush() throws IOException {
+    public void test_index_delete_and_flush_maxEntries() throws IOException, IndexTooLargeException {
+        config.setMaxIndexSize(50);
+        doTest_index_delete_and_flush();
+    }
+    
+    @Test(expected = IndexTooLargeException.class)
+    public void test_index_delete_and_flush_tooManyEntries() throws IOException, IndexTooLargeException {
+        config.setMaxIndexSize(49);
+        doTest_index_delete_and_flush();
+    }
+    
+    @Test
+    public void test_index_delete_and_flush() throws IOException, IndexTooLargeException {
+        doTest_index_delete_and_flush();
+    }
+    
+    private void doTest_index_delete_and_flush() throws IOException, IndexTooLargeException {
         final Set<IDGeoRecord> existingData = new HashSet<IDGeoRecord>();
         Set<byte[]> toDelete = new HashSet<byte[]>();
         Set<byte[]> toIndex = new HashSet<byte[]>();
@@ -315,15 +351,19 @@ public class GeoOnlyIndexerTest {
                 
                 one(mockGeoSegmentReader).close();
                 
-                one(mockGeoSegmentWriter).close();
+                if (50 <= config.getMaxIndexSize()) {
+                    one(mockGeoSegmentWriter).close();
+                }
                 
                 one(mockLock).release();
             }
         });
         
-        indexer.flush();
-        
-        indexer.close();
+        try {
+            indexer.flush();
+        } finally {
+            indexer.close();
+        }
         
         context.assertIsSatisfied();
         
@@ -331,7 +371,7 @@ public class GeoOnlyIndexerTest {
     }
     
     @Test(expected = IOException.class)
-    public void index_and_flush_error_on_read() throws IOException {
+    public void index_and_flush_error_on_read() throws IOException, IndexTooLargeException {
         String fieldName = "field1";
         
         for (int i = 0; i < 10; i++) {
