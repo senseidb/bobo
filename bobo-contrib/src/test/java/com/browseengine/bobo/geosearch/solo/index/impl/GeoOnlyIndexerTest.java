@@ -31,6 +31,7 @@ import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
+import com.browseengine.bobo.geosearch.solo.bo.IndexTooLargeException;
 
 /**
  * 

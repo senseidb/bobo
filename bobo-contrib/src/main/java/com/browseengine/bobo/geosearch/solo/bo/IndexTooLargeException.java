@@ -1,4 +1,4 @@
-package com.browseengine.bobo.geosearch.solo.index.impl;
+package com.browseengine.bobo.geosearch.solo.bo;
 
 public class IndexTooLargeException extends Exception {
     private static final long serialVersionUID = 1L;
