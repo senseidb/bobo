@@ -28,7 +28,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
     _index = -1;
     if (!zeroBased)
       _index++;
-    facet = -1;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
   }
 
@@ -39,7 +39,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
    */
   public String getFacet()
   {
-    if (facet == -1) return null;
+    if (facet == TermDoubleList.VALUE_MISSING) return null;
     return _valList.format(facet);
   }
 
@@ -128,7 +128,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
         return _valList.format(facet);
       }
     }
-    facet = -1;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
     return null;
   }
@@ -147,7 +147,7 @@ public class DefaultDoubleFacetIterator extends DoubleFacetIterator
         return facet;
       }
     }
-    facet = -1;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
     return facet;
   }

@@ -35,7 +35,7 @@ public class ReverseDocComparatorSource extends DocComparatorSource {
 			
 		}
 		
-		private static class ReverseComparable implements Comparable,Serializable{
+		public static class ReverseComparable implements Comparable,Serializable{
 			/**
 			 * 
 			 */
@@ -49,7 +49,7 @@ public class ReverseDocComparatorSource extends DocComparatorSource {
 			
 			public int compareTo(Object o) {
 				if (o instanceof ReverseComparable){
-					Comparable inner = ((ReverseComparable)o)._inner;
+					Comparable inner = ((ReverseComparable)o)._inner;						
 					return -_inner.compareTo(inner);
 				}
 				else{

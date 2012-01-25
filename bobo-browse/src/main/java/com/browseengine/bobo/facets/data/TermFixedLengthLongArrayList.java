@@ -2,7 +2,6 @@ package com.browseengine.bobo.facets.data;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 
-import java.lang.StringBuilder;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,8 +47,8 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
     for (int i=0; i<width; ++i)
     {
       r[i] = Long.parseLong(a[i]);
-      if (r[i] < 0)
-        throw new RuntimeException("We only support non-negative numbers: " + s);
+      //if (r[i] < 0)
+       // throw new RuntimeException("We only support non-negative numbers: " + s);
     }
 
     return r;
@@ -73,8 +72,8 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
         break;
     }
 
-    if (cmp<=0)
-      throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers: " + o);
+    //if (cmp<=0)
+    //  throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers: " + o);
 
     for(i=0; i<width; ++i)
     {

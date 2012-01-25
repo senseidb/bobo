@@ -3,8 +3,8 @@ package com.browseengine.bobo.facets.impl;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.IntFacetIterator;
+import com.browseengine.bobo.facets.data.TermIntList;
 
 public class CombinedIntFacetIterator extends IntFacetIterator
 {
@@ -20,7 +20,7 @@ public class CombinedIntFacetIterator extends IntFacetIterator
     public IntIteratorNode(IntFacetIterator iterator)
     {
       _iterator = iterator;
-      _curFacet = -1;
+      _curFacet = TermIntList.VALUE_MISSING;
       _curFacetCount = 0;
     }
 
@@ -28,12 +28,12 @@ public class CombinedIntFacetIterator extends IntFacetIterator
     {
       if(minHits > 0)
         minHits = 1;
-      if( (_curFacet = _iterator.nextInt(minHits)) != -1)
+      if( (_curFacet = _iterator.nextInt(minHits)) != TermIntList.VALUE_MISSING)
       {
         _curFacetCount = _iterator.count;
         return true;
       }
-      _curFacet = -1;
+      _curFacet = TermIntList.VALUE_MISSING;
       _curFacetCount = 0;
       return false;
     }
@@ -66,7 +66,7 @@ public class CombinedIntFacetIterator extends IntFacetIterator
       if(node.fetch(1))
         _queue.add(node);
     }
-    facet = -1;
+    facet = TermIntList.VALUE_MISSING;
     count = 0;
   }
 
@@ -78,7 +78,7 @@ public class CombinedIntFacetIterator extends IntFacetIterator
       if(node.fetch(minHits))
         _queue.add(node);
     }
-    facet = -1;
+    facet = TermIntList.VALUE_MISSING;
     count = 0;
   }
 
@@ -86,7 +86,7 @@ public class CombinedIntFacetIterator extends IntFacetIterator
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
   public String getFacet() {
-    if (facet == -1) return null;
+    if (facet == TermIntList.VALUE_MISSING) return null;
     return format(facet);
   }
   public String format(int val)
@@ -111,16 +111,16 @@ public class CombinedIntFacetIterator extends IntFacetIterator
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    IntIteratorNode node = (IntIteratorNode) _queue.top();
+    IntIteratorNode node = _queue.top();
 
     facet = node._curFacet;
-    int next = -1;
+    int next = TermIntList.VALUE_MISSING;
     count = 0;
     while(hasNext())
     {
-      node = (IntIteratorNode) _queue.top();
+      node = _queue.top();
       next = node._curFacet;
-      if( (next != -1) && (next!=facet) )
+      if( (next != TermIntList.VALUE_MISSING) && (next!=facet) )
       {
         return format(facet);
       }
@@ -142,33 +142,33 @@ public class CombinedIntFacetIterator extends IntFacetIterator
     int qsize = _queue.size();
     if(qsize == 0)
     {
-      facet = -1;
+      facet = TermIntList.VALUE_MISSING;
       count = 0;
       return null;
     }
 
-    IntIteratorNode node = (IntIteratorNode) _queue.top();    
+    IntIteratorNode node = _queue.top();    
     facet = node._curFacet;
     count = node._curFacetCount;
     while(true)
     {
       if(node.fetch(minHits))
       {
-        node = (IntIteratorNode)_queue.updateTop();
+        node = _queue.updateTop();
       }
       else
       {
         _queue.pop();
         if(--qsize > 0)
         {
-          node = (IntIteratorNode)_queue.top();
+          node = _queue.top();
         }
         else
         {
           // we reached the end. check if this facet obeys the minHits
           if(count < minHits)
           {
-            facet = -1;
+            facet = TermIntList.VALUE_MISSING;
             count = 0;
             return null;
           }
@@ -371,16 +371,16 @@ public class CombinedIntFacetIterator extends IntFacetIterator
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    IntIteratorNode node = (IntIteratorNode) _queue.top();
+    IntIteratorNode node = _queue.top();
 
     facet = node._curFacet;
-    int next = -1;
+    int next = TermIntList.VALUE_MISSING;
     count = 0;
     while(hasNext())
     {
-      node = (IntIteratorNode) _queue.top();
+      node = _queue.top();
       next = node._curFacet;
-      if( (next != -1) && (next!=facet) )
+      if( (next != TermIntList.VALUE_MISSING) && (next!=facet) )
       {
         return facet;
       }
@@ -390,7 +390,7 @@ public class CombinedIntFacetIterator extends IntFacetIterator
       else
         _queue.pop();
     }
-    return -1;
+    return TermIntList.VALUE_MISSING;
   }
 
   @Override
@@ -399,33 +399,33 @@ public class CombinedIntFacetIterator extends IntFacetIterator
     int qsize = _queue.size();
     if(qsize == 0)
     {
-      facet = -1;
+      facet = TermIntList.VALUE_MISSING;
       count = 0;
-      return -1;
+      return TermIntList.VALUE_MISSING;
     }
 
-    IntIteratorNode node = (IntIteratorNode) _queue.top();    
+    IntIteratorNode node = _queue.top();    
     facet = node._curFacet;
     count = node._curFacetCount;
     while(true)
     {
       if(node.fetch(minHits))
       {
-        node = (IntIteratorNode)_queue.updateTop();
+        node = _queue.updateTop();
       }
       else
       {
         _queue.pop();
         if(--qsize > 0)
         {
-          node = (IntIteratorNode)_queue.top();
+          node = _queue.top();
         }
         else
         {
           // we reached the end. check if this facet obeys the minHits
           if(count < minHits)
           {
-            facet = -1;
+            facet = TermIntList.VALUE_MISSING;
             count = 0;
           }
           break;

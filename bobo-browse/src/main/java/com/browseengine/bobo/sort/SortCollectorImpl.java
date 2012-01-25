@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.TermFreqVector;
 import org.apache.lucene.search.ScoreDoc;
@@ -31,14 +29,16 @@ import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
+import com.browseengine.bobo.facets.CombinedFacetAccessible;
+import com.browseengine.bobo.facets.FacetCountCollector;
+import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.facets.impl.GroupByFacetCountCollector;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
-import com.browseengine.bobo.facets.CombinedFacetAccessible;
-import com.browseengine.bobo.facets.FacetCountCollector;
-import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.sort.ReverseDocComparatorSource.ReverseDocComparator.ReverseComparable;
 import com.browseengine.bobo.util.ListMerger;
+import com.browseengine.bobo.util.StringArrayComparator;
 
 
 public class SortCollectorImpl extends SortCollector {
@@ -47,6 +47,7 @@ public class SortCollectorImpl extends SortCollector {
     public int compare(MyScoreDoc o1, MyScoreDoc o2) {
       Comparable s1 = o1.getValue();
       Comparable s2 = o2.getValue();
+     
       int r;
       if (s1 == null) {
         if (s2 == null) {
@@ -59,12 +60,22 @@ public class SortCollectorImpl extends SortCollector {
       }
       else{
         int v = s1.compareTo(s2);
+        if (s1 instanceof String && s2 instanceof String && ((String) s1).startsWith("-") && ((String) s2).startsWith("-")) {
+          v *= -1;
+        } else  if (s1 instanceof ReverseComparable && s2 instanceof ReverseComparable && ((ReverseComparable) s1)._inner.toString().startsWith("-") && ((ReverseComparable) s2)._inner.toString().startsWith("-")) {
+          v *= -1;
+        } else if (s1 instanceof StringArrayComparator) {
+          
+        }  else if (s1.toString().contains("-") && s2.toString().contains("-")){
+          throw new IllegalArgumentException();
+        }
         if (v==0){
           r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
         } else {
           r = v;
         }
       }
+   
       return r;
     }
   };

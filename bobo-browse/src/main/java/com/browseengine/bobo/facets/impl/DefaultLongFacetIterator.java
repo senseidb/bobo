@@ -4,8 +4,9 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.NoSuchElementException;
-import com.browseengine.bobo.facets.data.TermLongList;
+
 import com.browseengine.bobo.api.LongFacetIterator;
+import com.browseengine.bobo.facets.data.TermLongList;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -30,7 +31,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
     _index = -1;
     if (!zeroBased)
       _index++;
-    facet = -1;
+    facet = TermLongList.VALUE_MISSING;
     count = 0;
   }
 
@@ -41,7 +42,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
    */
   public String getFacet()
   {
-    if (facet == -1) return null;
+    if (facet == TermLongList.VALUE_MISSING) return null;
     return _valList.format(facet);
   }
 
@@ -130,7 +131,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
         return _valList.format(facet);
       }
     }
-    facet = -1;
+    facet = TermLongList.VALUE_MISSING;
     count = 0;
     return null;
   }
@@ -149,7 +150,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
         return facet;
       }
     }
-    facet = -1;
+    facet = TermLongList.VALUE_MISSING;
     count = 0;
     return facet;
   }

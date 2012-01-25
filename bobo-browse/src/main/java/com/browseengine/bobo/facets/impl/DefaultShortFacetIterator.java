@@ -31,7 +31,7 @@ public class DefaultShortFacetIterator extends ShortFacetIterator
     _index = -1;
     if (!zeroBased)
       _index++;
-    facet = -1;
+    facet = TermShortList.VALUE_MISSING;
     count = 0;
   }
 
@@ -42,7 +42,7 @@ public class DefaultShortFacetIterator extends ShortFacetIterator
    */
   public String getFacet()
   {
-    if (facet == -1) return null;
+    if (facet == TermShortList.VALUE_MISSING) return null;
     return _valList.format(facet);
   }
 
@@ -131,7 +131,7 @@ public class DefaultShortFacetIterator extends ShortFacetIterator
         return _valList.format(facet);
       }
     }
-    facet = -1;
+    facet = TermShortList.VALUE_MISSING;
     count = 0;
     return null;
   }
@@ -150,7 +150,7 @@ public class DefaultShortFacetIterator extends ShortFacetIterator
         return facet;
       }
     }
-    facet = -1;
+    facet = TermShortList.VALUE_MISSING;
     count = 0;
     return facet;
   }

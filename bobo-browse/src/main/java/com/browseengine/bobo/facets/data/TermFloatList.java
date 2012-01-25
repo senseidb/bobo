@@ -10,7 +10,7 @@ public class TermFloatList extends TermNumberList<Float>
 {
 
   private float[] _elements = null;
-
+  public static final float VALUE_MISSING = Float.MIN_VALUE;
   private static float parse(String s)
   {
     if (s == null || s.length() == 0)
@@ -64,7 +64,7 @@ public class TermFloatList extends TermNumberList<Float>
     if (index < _elements.length)
       return _elements[index];
     else
-      return -1;
+      return VALUE_MISSING;
   }
 
   @Override
@@ -85,6 +85,20 @@ public class TermFloatList extends TermNumberList<Float>
   {
     ((FloatArrayList) _innerList).trim();
     _elements = ((FloatArrayList) _innerList).elements();
+    int negativeIndexCheck =  1;
+    //reverse negative elements, because string order and numeric orders are completely opposite
+    if (_elements.length > negativeIndexCheck && _elements[negativeIndexCheck] < 0) {
+      int endPosition = indexOfWithType((short) 0);
+      if (endPosition < 0) {
+        endPosition = -1 *endPosition - 1;
+      }
+      float tmp;
+      for (int i = 0;  i < (endPosition - negativeIndexCheck) / 2; i++) {
+         tmp = _elements[i + negativeIndexCheck];
+         _elements[i + negativeIndexCheck] = _elements[endPosition -i -1];
+         _elements[endPosition -i -1] = tmp;
+      }
+    }
   }
 
   @Override

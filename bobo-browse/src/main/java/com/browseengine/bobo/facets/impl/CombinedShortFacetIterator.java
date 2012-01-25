@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.ShortFacetIterator;
+import com.browseengine.bobo.facets.data.TermShortList;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -26,7 +27,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     public ShortIteratorNode(ShortFacetIterator iterator)
     {
       _iterator = iterator;
-      _curFacet = -1;
+      _curFacet = TermShortList.VALUE_MISSING;
       _curFacetCount = 0;
     }
 
@@ -34,12 +35,12 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     {
       if(minHits > 0)
         minHits = 1;
-      if( (_curFacet = _iterator.nextShort(minHits)) != -1)
+      if( (_curFacet = _iterator.nextShort(minHits)) != TermShortList.VALUE_MISSING)
       {
         _curFacetCount = _iterator.count;
         return true;
       }
-      _curFacet = -1;
+      _curFacet = TermShortList.VALUE_MISSING;
       _curFacetCount = 0;
       return false;
     }
@@ -72,7 +73,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
       if(node.fetch(1))
         _queue.add(node);
     }
-    facet = -1;
+    facet = TermShortList.VALUE_MISSING;
     count = 0;
   }
 
@@ -84,7 +85,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
       if(node.fetch(minHits))
         _queue.add(node);
     }
-    facet = -1;
+    facet = TermShortList.VALUE_MISSING;
     count = 0;
   }
 
@@ -117,16 +118,16 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    ShortIteratorNode node = (ShortIteratorNode) _queue.top();
+    ShortIteratorNode node = _queue.top();
 
     facet = node._curFacet;
-    int next = -1;
+    int next = TermShortList.VALUE_MISSING;
     count = 0;
     while(hasNext())
     {
-      node = (ShortIteratorNode) _queue.top();
+      node = _queue.top();
       next = node._curFacet;
-      if( (next != -1) && (next!=facet) )
+      if( (next != TermShortList.VALUE_MISSING) && (next!=facet) )
       {
         return format(facet);
       }
@@ -148,33 +149,33 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     int qsize = _queue.size();
     if(qsize == 0)
     {
-      facet = -1;
+      facet = TermShortList.VALUE_MISSING;
       count = 0;
       return null;
     }
 
-    ShortIteratorNode node = (ShortIteratorNode) _queue.top();    
+    ShortIteratorNode node = _queue.top();    
     facet = node._curFacet;
     count = node._curFacetCount;
     while(true)
     {
       if(node.fetch(minHits))
       {
-        node = (ShortIteratorNode)_queue.updateTop();
+        node = _queue.updateTop();
       }
       else
       {
         _queue.pop();
         if(--qsize > 0)
         {
-          node = (ShortIteratorNode)_queue.top();
+          node = _queue.top();
         }
         else
         {
           // we reached the end. check if this facet obeys the minHits
           if(count < minHits)
           {
-            facet = -1;
+            facet = TermShortList.VALUE_MISSING;
             count = 0;
             return null;
           }
@@ -377,14 +378,14 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     if(!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    ShortIteratorNode node = (ShortIteratorNode) _queue.top();
+    ShortIteratorNode node = _queue.top();
 
     facet = node._curFacet;
-    int next = -1;
+    int next = TermShortList.VALUE_MISSING;
     count = 0;
     while(hasNext())
     {
-      node = (ShortIteratorNode) _queue.top();
+      node = _queue.top();
       next = node._curFacet;
       if( (next != -1) && (next!=facet) )
       {
@@ -396,7 +397,7 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
       else
         _queue.pop();
     }
-    return -1;
+    return TermShortList.VALUE_MISSING;
   }
 
   /* (non-Javadoc)
@@ -408,33 +409,33 @@ public class CombinedShortFacetIterator extends ShortFacetIterator
     int qsize = _queue.size();
     if(qsize == 0)
     {
-      facet = -1;
+      facet = TermShortList.VALUE_MISSING;
       count = 0;
-      return -1;
+      return TermShortList.VALUE_MISSING;
     }
 
-    ShortIteratorNode node = (ShortIteratorNode) _queue.top();    
+    ShortIteratorNode node = _queue.top();    
     facet = node._curFacet;
     count = node._curFacetCount;
     while(true)
     {
       if(node.fetch(minHits))
       {
-        node = (ShortIteratorNode)_queue.updateTop();
+        node = _queue.updateTop();
       }
       else
       {
         _queue.pop();
         if(--qsize > 0)
         {
-          node = (ShortIteratorNode)_queue.top();
+          node = _queue.top();
         }
         else
         {
           // we reached the end. check if this facet obeys the minHits
           if(count < minHits)
           {
-            facet = -1;
+            facet = TermShortList.VALUE_MISSING;
             count = 0;
           }
           break;

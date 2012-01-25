@@ -31,7 +31,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
     _index = -1;
     if (!zeroBased)
       _index++;
-    facet = -1;
+    facet = TermFloatList.VALUE_MISSING;
     count = 0;
   }
 
@@ -42,7 +42,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
    */
   public String getFacet()
   {
-    if (facet == -1) return null;
+    if (facet == TermFloatList.VALUE_MISSING) return null;
     return _valList.format(facet);
   }
 
@@ -133,7 +133,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
         return _valList.format(facet);
       }
     }
-    facet = -1;
+    facet = TermFloatList.VALUE_MISSING;
     count = 0;
     return null;
   }
@@ -154,7 +154,7 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
         return facet;
       }
     }
-    facet = -1;
+    facet = TermFloatList.VALUE_MISSING;
     count = 0;
     return facet;
   }

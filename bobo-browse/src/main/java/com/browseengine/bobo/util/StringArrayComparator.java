@@ -24,6 +24,9 @@ public class StringArrayComparator implements Comparable<StringArrayComparator> 
 				return 1;
 			}
 			int compVal = vals[i].compareTo(o[i]);
+			if (vals[i].startsWith("-") && o[i].startsWith("-") ) {
+			  compVal *= -1;
+			}
 			if (compVal!=0) return compVal;
 		}
 		if (vals.length == o.length) return 0;

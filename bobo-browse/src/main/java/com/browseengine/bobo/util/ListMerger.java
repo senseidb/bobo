@@ -3,7 +3,6 @@ package com.browseengine.bobo.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,8 +15,8 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.api.MappedFacetAccessible;
 import com.browseengine.bobo.facets.impl.FacetHitcountComparatorFactory;
 
 /**
@@ -162,8 +161,12 @@ public class ListMerger
   
   public static final Comparator<BrowseFacet> FACET_VAL_COMPARATOR = new Comparator<BrowseFacet>(){
 
-	public int compare(BrowseFacet o1, BrowseFacet o2) {
-		return o1.getValue().compareTo(o2.getValue());
+	public int compare(BrowseFacet o1, BrowseFacet o2) {		
+	  int ret = o1.getValue().compareTo(o2.getValue());
+	  if (o1.getValue().startsWith("-") && o2.getValue().startsWith("-")) {
+	    ret *=-1;
+	  }
+	  return ret;
 	}
 	  
   };

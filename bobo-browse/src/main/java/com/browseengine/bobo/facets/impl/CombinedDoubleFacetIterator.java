@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.DoubleFacetIterator;
+import com.browseengine.bobo.facets.data.TermDoubleList;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -23,7 +24,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
     public DoubleIteratorNode(DoubleFacetIterator iterator)
     {
       _iterator = iterator;
-      _curFacet = -1;
+      _curFacet = TermDoubleList.VALUE_MISSING;
       _curFacetCount = 0;
     }
 
@@ -31,12 +32,12 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
     {
       if (minHits > 0)
         minHits = 1;
-      if ((_curFacet = _iterator.nextDouble(minHits)) != -1)
+      if ((_curFacet = _iterator.nextDouble(minHits)) != TermDoubleList.VALUE_MISSING)
       {
         _curFacetCount = _iterator.count;
         return true;
       }
-      _curFacet = -1;
+      _curFacet = TermDoubleList.VALUE_MISSING;
       _curFacetCount = 0;
       return false;
     }
@@ -72,7 +73,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
       if (node.fetch(1))
         _queue.add(node);
     }
-    facet = -1;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
   }
 
@@ -87,7 +88,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
       if (node.fetch(minHits))
         _queue.add(node);
     }
-    facet = -1;
+    facet = TermDoubleList.VALUE_MISSING;
     count = 0;
   }
 
@@ -98,7 +99,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
    */
   public String getFacet()
   {
-    if (facet == -1) return null;
+    if (facet == TermDoubleList.VALUE_MISSING) return null;
     return format(facet);
   }
 
@@ -132,16 +133,16 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
     if (!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    DoubleIteratorNode node = (DoubleIteratorNode) _queue.top();
+    DoubleIteratorNode node = _queue.top();
 
     facet = node._curFacet;
-    double next = -1;
+    double next = TermDoubleList.VALUE_MISSING;
     count = 0;
     while (hasNext())
     {
-      node = (DoubleIteratorNode) _queue.top();
+      node = _queue.top();
       next = node._curFacet;
-      if ((next != -1) && (next != facet))
+      if ((next != TermDoubleList.VALUE_MISSING) && (next != facet))
       {
         return format(facet);
       }
@@ -167,31 +168,31 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
     int qsize = _queue.size();
     if (qsize == 0)
     {
-      facet = -1;
+      facet = TermDoubleList.VALUE_MISSING;
       count = 0;
       return null;
     }
 
-    DoubleIteratorNode node = (DoubleIteratorNode) _queue.top();
+    DoubleIteratorNode node = _queue.top();
     facet = node._curFacet;
     count = node._curFacetCount;
     while (true)
     {
       if (node.fetch(minHits))
       {
-        node = (DoubleIteratorNode) _queue.updateTop();
+        node = _queue.updateTop();
       } else
       {
         _queue.pop();
         if (--qsize > 0)
         {
-          node = (DoubleIteratorNode) _queue.top();
+          node = _queue.top();
         } else
         {
           // we reached the end. check if this facet obeys the minHits
           if (count < minHits)
           {
-            facet = -1;
+            facet = TermDoubleList.VALUE_MISSING;
             count = 0;
             return null;
           }
@@ -397,16 +398,16 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
     if (!hasNext())
       throw new NoSuchElementException("No more facets in this iteration");
 
-    DoubleIteratorNode node = (DoubleIteratorNode) _queue.top();
+    DoubleIteratorNode node = _queue.top();
 
     facet = node._curFacet;
-    double next = -1;
+    double next = TermDoubleList.VALUE_MISSING;
     count = 0;
     while (hasNext())
     {
-      node = (DoubleIteratorNode) _queue.top();
+      node = _queue.top();
       next = node._curFacet;
-      if ((next != -1) && (next != facet))
+      if ((next != TermDoubleList.VALUE_MISSING) && (next != facet))
       {
         return facet;
       }
@@ -416,7 +417,7 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
       else
         _queue.pop();
     }
-    return -1;
+    return TermDoubleList.VALUE_MISSING;
   }
 
   @Override
@@ -425,31 +426,31 @@ public class CombinedDoubleFacetIterator extends DoubleFacetIterator
     int qsize = _queue.size();
     if (qsize == 0)
     {
-      facet = -1;
+      facet = TermDoubleList.VALUE_MISSING;
       count = 0;
-      return -1;
+      return TermDoubleList.VALUE_MISSING;
     }
 
-    DoubleIteratorNode node = (DoubleIteratorNode) _queue.top();
+    DoubleIteratorNode node = _queue.top();
     facet = node._curFacet;
     count = node._curFacetCount;
     while (true)
     {
       if (node.fetch(minHits))
       {
-        node = (DoubleIteratorNode) _queue.updateTop();
+        node = _queue.updateTop();
       } else
       {
         _queue.pop();
         if (--qsize > 0)
         {
-          node = (DoubleIteratorNode) _queue.top();
+          node = _queue.top();
         } else
         {
           // we reached the end. check if this facet obeys the minHits
           if (count < minHits)
           {
-            facet = -1;
+            facet = TermDoubleList.VALUE_MISSING;
             count = 0;
           }
           break;

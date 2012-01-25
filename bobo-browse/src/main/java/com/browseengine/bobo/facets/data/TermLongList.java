@@ -14,12 +14,12 @@ public class TermLongList extends TermNumberList<Long>
   protected long[] _elements = null;
   private long sanity = -1;
   private boolean withDummy = true;
-
+  public static final long VALUE_MISSING = Long.MIN_VALUE;  
   protected long parse(String s)
   {
     if (s == null || s.length() == 0)
     {
-      return 0L;
+      return 0;
     } else
     {
       return Long.parseLong(s);
@@ -46,8 +46,6 @@ public class TermLongList extends TermNumberList<Long>
   {
     if (_innerList.size() == 0 && o!=null) withDummy = false; // the first value added is not null
     long item = parse(o);
-    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
-    if (_innerList.size() > 0 || !withDummy) sanity = item;
     return ((LongArrayList) _innerList).add(item);
   }
 
@@ -68,9 +66,14 @@ public class TermLongList extends TermNumberList<Long>
   public String get(int index)
   {
     DecimalFormat formatter = _formatter.get();
+    long val = _elements[index];
+    if (withDummy && index == 0) {
+      val = 0L;
+    }
     if (formatter == null)
-      return String.valueOf(_elements[index]);
-    return formatter.format(_elements[index]);
+      return String.valueOf(val);
+    
+    return formatter.format(val);
   }
 
   public long getPrimitiveValue(int index)
@@ -78,7 +81,7 @@ public class TermLongList extends TermNumberList<Long>
     if (index < _elements.length)
       return _elements[index];
     else
-      return -1;
+      return VALUE_MISSING;
   }
 
   @Override
@@ -145,6 +148,20 @@ public class TermLongList extends TermNumberList<Long>
   {
     ((LongArrayList) _innerList).trim();
     _elements = ((LongArrayList) _innerList).elements();
+    int negativeIndexCheck = withDummy ? 1 : 0;
+    //reverse negative elements, because string order and numeric orders are completely opposite
+    if (_elements.length > negativeIndexCheck && _elements[negativeIndexCheck] < 0) {
+      int endPosition = indexOfWithType(0L);
+      if (endPosition < 0) {
+        endPosition = -1 *endPosition - 1;
+      }
+      long tmp;
+      for (int i = 0;  i < (endPosition - negativeIndexCheck) / 2; i++) {
+         tmp = _elements[i + negativeIndexCheck];
+         _elements[i + negativeIndexCheck] = _elements[endPosition -i -1];
+         _elements[endPosition -i -1] = tmp;
+      }
+    }
   }
 
   @Override
@@ -181,4 +198,9 @@ public class TermLongList extends TermNumberList<Long>
     else
       return Arrays.binarySearch(_elements, val) >= 0;
   }
+  
+  public long[] getElements() {
+    return _elements;
+  }
+  
 }

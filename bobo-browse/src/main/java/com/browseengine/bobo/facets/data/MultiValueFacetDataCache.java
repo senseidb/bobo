@@ -13,7 +13,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.index.TermDocs;
 import org.apache.lucene.index.TermEnum;
 import org.apache.lucene.index.TermPositions;
-import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.util.OpenBitSet;
 
@@ -24,9 +23,9 @@ import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
 import com.browseengine.bobo.util.BigIntBuffer;
 import com.browseengine.bobo.util.BigNestedIntArray;
-import com.browseengine.bobo.util.StringArrayComparator;
 import com.browseengine.bobo.util.BigNestedIntArray.BufferedLoader;
 import com.browseengine.bobo.util.BigNestedIntArray.Loader;
+import com.browseengine.bobo.util.StringArrayComparator;
 
 /**
  * @author ymatsuda
@@ -86,7 +85,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
     OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
-
+    int negativeValueCount = getNegativeValueCount(reader, fieldName.intern()); 
     int t = 0; // current term number
     list.add(null);
     minIDList.add(-1);
@@ -118,6 +117,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
             int df = 0;
             int minID = -1;
             int maxID = -1;
+            int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
             if(tdoc.next())
             {
               df++;
@@ -129,7 +129,8 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
               {
                 df++;
                 docid = tdoc.doc();
-                if(!loader.add(docid, t)) logOverflow(fieldName);
+               
+                if(!loader.add(docid, valId)) logOverflow(fieldName);
                 bitset.fastSet(docid);
               }
               maxID = docid;
@@ -200,7 +201,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
         this.maxIDs[0] = doc;
       }
     }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
+    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();   
   }
 
   /**
@@ -215,7 +216,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
   {
     int maxdoc = reader.maxDoc();
     Loader loader = new AllocOnlyLoader(_maxItems, sizeTerm, reader);
-    
+    int negativeValueCount = getNegativeValueCount(reader, fieldName.intern()); 
     try
     {
       _nestedArray.load(maxdoc + 1, loader);
@@ -275,11 +276,12 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
               if (!_nestedArray.addData(docid, t)) logOverflow(fieldName);
               minID = docid;
               bitset.fastSet(docid);
+              int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
               while(tdoc.next())
               {
                 df++;
                 docid = tdoc.doc();
-                if(!_nestedArray.addData(docid, t)) logOverflow(fieldName);
+                if(!_nestedArray.addData(docid, valId)) logOverflow(fieldName);
                 bitset.fastSet(docid);
               }
               maxID = docid;
@@ -338,6 +340,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
       }
     }
     this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
+    
   }
   
   private void logOverflow(String fieldName)

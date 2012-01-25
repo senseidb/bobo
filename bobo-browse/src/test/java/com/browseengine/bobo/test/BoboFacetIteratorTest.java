@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 import junit.framework.TestCase;
+
+import org.apache.log4j.Logger;
 
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.IntFacetIterator;
@@ -62,21 +62,7 @@ public class BoboFacetIteratorTest extends TestCase
     assertEquals("Should skip index 0 which is used for dummy null", 1, tsl1.indexOf(""));
   }
 
-  public void testTermIntListAddWrongOrder()
-  {
-    TermIntList tsl1 = new TermIntList("000");
-    tsl1.add(null);
-    tsl1.add("1");
-    try
-    {
-      tsl1.add("0");
-    } catch(Exception e)
-    {
-      assertTrue("There should be an exception and the message contains ascending order", e.getMessage().contains("ascending order"));
-      return;
-    }
-    fail("There should be an exception and the message contains ascending order");
-  }
+  
   
   public void testTermIntListAddCorrectOrder()
   {

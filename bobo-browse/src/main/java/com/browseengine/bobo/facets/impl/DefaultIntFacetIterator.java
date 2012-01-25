@@ -23,7 +23,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
     _index = -1;
     if(!zeroBased)
       _index++;
-    facet = -1;
+    facet = TermIntList.VALUE_MISSING;
     count = 0;
   }
 
@@ -102,7 +102,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
         return _valList.format(facet);
       }
     }
-    facet = -1;
+    facet = TermIntList.VALUE_MISSING;
     count = 0;
     return null;    
   }
@@ -120,7 +120,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
         return facet;
       }
     }
-    facet = -1;
+    facet = TermIntList.VALUE_MISSING;
     count = 0;
     return facet;    
   }

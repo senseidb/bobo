@@ -10,7 +10,7 @@ public class TermDoubleList extends TermNumberList<Double>
 {
 
   private double[] _elements = null;
-
+  public static final double VALUE_MISSING = Double.MIN_VALUE;
   private static double parse(String s)
   {
     if (s == null || s.length() == 0)
@@ -64,7 +64,7 @@ public class TermDoubleList extends TermNumberList<Double>
     if (index < _elements.length)
       return _elements[index];
     else
-      return -1;
+      return VALUE_MISSING;
   }
 
   @Override
@@ -85,7 +85,22 @@ public class TermDoubleList extends TermNumberList<Double>
   {
     ((DoubleArrayList) _innerList).trim();
     _elements = ((DoubleArrayList) _innerList).elements();
+    int negativeIndexCheck =  1;
+    //reverse negative elements, because string order and numeric orders are completely opposite
+    if (_elements.length > negativeIndexCheck && _elements[negativeIndexCheck] < 0) {
+      int endPosition = indexOfWithType((short) 0);
+      if (endPosition < 0) {
+        endPosition = -1 *endPosition - 1;
+      }
+      double tmp;
+      for (int i = 0;  i < (endPosition - negativeIndexCheck) / 2; i++) {
+         tmp = _elements[i + negativeIndexCheck];
+         _elements[i + negativeIndexCheck] = _elements[endPosition -i -1];
+         _elements[endPosition -i -1] = tmp;
+      }
+    }
   }
+  
 
   @Override
   protected Object parseString(String o)
