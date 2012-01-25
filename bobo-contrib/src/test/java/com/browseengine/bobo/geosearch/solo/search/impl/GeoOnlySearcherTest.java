@@ -132,7 +132,7 @@ public class GeoOnlySearcherTest {
         final int hitCount = 1000;
         final double centroidLat = 0;
         final double centroidLong = 0;
-        final float rangeInMiles = 10f;
+        final float rangeInMiles = 20f;
      
         searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
     }
@@ -174,24 +174,36 @@ public class GeoOnlySearcherTest {
     }
     
     @Test
-    public void testSearch_top10_180long() throws IOException {
+    public void testSearch_top10_180long_range100() throws IOException {
         final int start = 0; 
         final int count = 10;
         final int hitCount = 10;
         final double centroidLat = 0;
         final double centroidLong = 180;
-        final float rangeInMiles = 10f;
+        final float rangeInMiles = 100f;
      
         searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
     }
     
     @Test
-    public void testSearch_top10_90lat() throws IOException {
+    public void testSearch_top10_90lat_range100() throws IOException {
         final int start = 0; 
         final int count = 10;
         final int hitCount = 10;
-        final double centroidLat = 0;
-        final double centroidLong = 90;
+        final double centroidLat = 90;
+        final double centroidLong = 0;
+        final float rangeInMiles = 100f;
+     
+        searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
+    }
+    
+    @Test
+    public void testSearch_top10_neg90lat_range100() throws IOException {
+        final int start = 0; 
+        final int count = 10;
+        final int hitCount = 10;
+        final double centroidLat = -90;
+        final double centroidLong = 0;
         final float rangeInMiles = 10f;
      
         searchAndVerify_allHitsInRange(centroidLat, centroidLong, rangeInMiles, hitCount, start, count);
@@ -266,18 +278,46 @@ public class GeoOnlySearcherTest {
         }
     }
     
+    private IDGeoRecord buildMinRecord(double centroidLong, double centroidLat, Float rangeInMiles, byte[] uuid) {
+        CartesianCoordinateUUID coordinate = buildMinCoordinate(centroidLong, centroidLat, rangeInMiles, uuid);
+        
+        return geoConverter.toIDGeoRecord(coordinate);
+    }
+
+    private IDGeoRecord buildMaxRecord(double centroidLong, double centroidLat, Float rangeInMiles, byte[] uuid) {
+        CartesianCoordinateUUID coordinate = buildMaxCoordinate(centroidLong, centroidLat, rangeInMiles, uuid);
+        
+        return geoConverter.toIDGeoRecord(coordinate);
+    }
+
     private List<IDGeoRecord> buildHitSet(double centroidLong, double centroidLat, float rangeInMiles, 
             int hitCount) {
         List<IDGeoRecord> hits = new ArrayList<IDGeoRecord>();
         
+        CartesianCoordinateUUID centroidCoordinate = buildMaxCoordinate(centroidLong, centroidLat, 0, new byte[0]);
+        int deltax = calculateMaxDelta(centroidCoordinate.x, rangeInMiles); 
+        int deltay = calculateMaxDelta(centroidCoordinate.y, rangeInMiles);
+        int deltaz = calculateMaxDelta(centroidCoordinate.z, rangeInMiles);
+        
         for (int i = 0; i < hitCount; i++) {
             IDGeoRecord geoRecord;
+            byte[] uuid = new byte[] {(byte)(i + "a".getBytes()[0])};
             if (i % 2 == 0) {
-                geoRecord = buildMaxRecord(centroidLong, centroidLat, 
-                        (rangeInMiles * i) / hitCount, new byte[] {(byte)(i + "a".getBytes()[0])});
+                CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(
+                        centroidCoordinate.x + ((deltax * i) / hitCount), 
+                        centroidCoordinate.y + ((deltay * i) / hitCount), 
+                        centroidCoordinate.z + ((deltaz * i) / hitCount),
+                        uuid); 
+                
+                geoRecord = geoConverter.toIDGeoRecord(coordinate); 
             } else {
-                geoRecord = buildMinRecord(centroidLong, centroidLat, 
-                        (rangeInMiles * i) / hitCount, new byte[] {(byte)(i + "a".getBytes()[0])});
+                CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(
+                        centroidCoordinate.x - ((deltax * i) / hitCount), 
+                        centroidCoordinate.y - ((deltay * i) / hitCount), 
+                        centroidCoordinate.z - ((deltaz * i) / hitCount),
+                        uuid);
+                
+                geoRecord = geoConverter.toIDGeoRecord(coordinate);
             }
             hits.add(geoRecord);
         }
@@ -289,22 +329,46 @@ public class GeoOnlySearcherTest {
             int missCount) {
         List<IDGeoRecord> hits = new ArrayList<IDGeoRecord>();
         
+        CartesianCoordinateUUID centroidCoordinate = buildMaxCoordinate(centroidLong, centroidLat, 0, new byte[0]);
+        int deltax = calculateMaxDelta(centroidCoordinate.x, rangeInMiles); 
+        int deltay = calculateMaxDelta(centroidCoordinate.y, rangeInMiles);
+        int deltaz = calculateMaxDelta(centroidCoordinate.z, rangeInMiles);
+        
         for (int i = 0; i < missCount; i++) {
             IDGeoRecord geoRecord;
+            byte[] uuid = new byte[] {(byte)(i + "a".getBytes()[0])};
             if (i % 2 == 0) {
-                geoRecord = buildMaxRecord(centroidLong, centroidLat, 
-                        rangeInMiles + (i + 1) / 5400.0f, new byte[] {(byte)(i + "a".getBytes()[0])});
+                CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(
+                        centroidCoordinate.x + deltax + (i + 1) * 2, 
+                        centroidCoordinate.y + deltay + (i + 1) * 2, 
+                        centroidCoordinate.z + deltaz + (i + 1) * 2,
+                        uuid);
+                
+                geoRecord = geoConverter.toIDGeoRecord(coordinate);
             } else {
-                geoRecord = buildMinRecord(centroidLong, centroidLat, 
-                        rangeInMiles + (i + 1) / 5400.0f, new byte[] {(byte)(i + "a".getBytes()[0])});
+                CartesianCoordinateUUID coordinate = new CartesianCoordinateUUID(
+                        centroidCoordinate.x - deltax - (i + 1) * 2, 
+                        centroidCoordinate.y - deltay - (i + 1) * 2, 
+                        centroidCoordinate.z - deltaz - (i + 1) * 2,
+                        uuid);
+                
+                geoRecord = geoConverter.toIDGeoRecord(coordinate);
             }
             hits.add(geoRecord);
         }
         
         return hits;
     }
+
+    private int calculateMaxDelta(int originalPoint, float rangeInMiles) {
+        float rangeInKm = Conversions.mi2km(rangeInMiles);
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInKm * 1000);
+        int max = calculateMaximumCoordinate(originalPoint, rangeInUnits);
+        int min = calculateMinimumCoordinate(originalPoint, rangeInUnits);
+        return Math.min(max - originalPoint, originalPoint - min);
+    }
     
-    private IDGeoRecord buildMinRecord(double centroidLong, double centroidLat, float rangeInMiles, 
+    private CartesianCoordinateUUID buildMinCoordinate(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
         double rangeInkm = Conversions.mi2km(rangeInMiles);
         int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
@@ -317,10 +381,10 @@ public class GeoOnlySearcherTest {
         CartesianCoordinateUUID minCoordinate = 
             new CartesianCoordinateUUID(minX, minY, minZ, uuid);
         
-        return geoConverter.toIDGeoRecord(minCoordinate);
+        return minCoordinate;
     }
     
-    private IDGeoRecord buildMaxRecord(double centroidLong, double centroidLat, float rangeInMiles, 
+    private CartesianCoordinateUUID buildMaxCoordinate(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
         double rangeInkm = Conversions.mi2km(rangeInMiles);
         int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
@@ -333,7 +397,7 @@ public class GeoOnlySearcherTest {
         CartesianCoordinateUUID maxCoordinate = 
             new CartesianCoordinateUUID(maxX, maxY, maxZ, uuid);
         
-        return geoConverter.toIDGeoRecord(maxCoordinate);
+        return maxCoordinate;
     }
     
     private int calculateMinimumCoordinate(int originalPoint, int delta) {
@@ -350,7 +414,7 @@ public class GeoOnlySearcherTest {
                 originalPoint < Integer.MAX_VALUE - delta) {
             return originalPoint + delta;
         } else {
-            return Integer.MIN_VALUE;
+            return Integer.MAX_VALUE;
         }
     }
     
