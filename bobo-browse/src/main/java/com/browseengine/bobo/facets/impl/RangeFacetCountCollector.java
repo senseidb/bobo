@@ -9,8 +9,8 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermStringList;
@@ -22,16 +22,16 @@ import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 public class RangeFacetCountCollector implements FacetCountCollector
 {
   private final FacetSpec _ospec;
-  private int[] _count;
+  protected int[] _count;
   private int _countlength;
   private final BigSegmentedArray _array;
-  private FacetDataCache _dataCache;
+  protected FacetDataCache _dataCache;
   private final String _name;
   private final TermStringList _predefinedRanges;
   private int[][] _predefinedRangeIndexes;
   private int _docBase;
   
-  protected RangeFacetCountCollector(String name,FacetDataCache dataCache,int docBase,FacetSpec ospec,List<String> predefinedRanges)
+  public RangeFacetCountCollector(String name,FacetDataCache dataCache,int docBase,FacetSpec ospec,List<String> predefinedRanges)
   {
     _name = name;
     _dataCache = dataCache;
@@ -111,7 +111,7 @@ public class RangeFacetCountCollector implements FacetCountCollector
       return facet; 
   }
   
-  public final void collect(int docid) {
+  public void collect(int docid) {
       _count[_array.get(docid)]++;
   }
   
@@ -168,44 +168,10 @@ public class RangeFacetCountCollector implements FacetCountCollector
       }
       
       RangeFacet[] result=new RangeFacet[list.size()];
-      result=(RangeFacet[])list.toArray(result);
+      result=list.toArray(result);
       return foldChoices(result,max);
   }
-  /*
-  private List<BrowseFacet> buildDynamicRanges()
-  {
-      final TreeSet<BrowseFacet> facetSet=new TreeSet<BrowseFacet>(new Comparator<BrowseFacet>(){
-          public int compare(BrowseFacet ch1, BrowseFacet ch2) {
-            return ch1.getValue().compareTo(ch2.getValue());
-          }
-          
-      });
-      int minCount=_ospec.getMinHitCount();
-      for (int i=0;i<_countlength;++i){
-          if (_count[i] >= minCount){
-              String val=_dataCache.valArray.get(i);
-              facetSet.add(new BrowseFacet(val,_count[i]));
-          }
-      }
-      
-      if (_ospec.getMaxCount()<=0){
-          _ospec.setMaxCount(5);
-      }
-      int maxCount=_ospec.getMaxCount();
-      
-      
-      BrowseFacet[] facets=new BrowseFacet[facetSet.size()];
-      facets=(BrowseFacet[])facetSet.toArray(facets);
-      
-      if (facetSet.size() < maxCount){        
-          convertFacets(facets);
-      }
-      else{
-          facets=foldChoices(facets,maxCount);
-      }
-      
-      return Arrays.asList(facets);
-  }*/
+ 
 
   public List<BrowseFacet> getFacets() {
     if (_ospec!=null){

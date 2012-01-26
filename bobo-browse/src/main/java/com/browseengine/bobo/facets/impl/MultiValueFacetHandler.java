@@ -14,9 +14,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Explanation;
 
 import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -24,13 +24,15 @@ import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
+import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.MultiValueFacetFilter;
 import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
-import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
+import com.browseengine.bobo.facets.range.MultiDataCacheBuilder;
+import com.browseengine.bobo.facets.range.SimpleDataCacheBuilder;
 import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
@@ -41,11 +43,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 {
   private static Logger logger = Logger.getLogger(MultiValueFacetHandler.class);
 
-  @Override
-  public DocComparatorSource getDocComparatorSource() 
-  {
-    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(this);
-  }
+ 
 
   private final TermListFactory _termListFactory;
   private final String _indexFieldName;
@@ -108,7 +106,14 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   {
     this(name, name, null, null, depends);
   }
-
+  @Override
+  public DocComparatorSource getDocComparatorSource() 
+  {
+    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(getName()));
+  }
+  
+  
+  
   public void setMaxItems(int maxItems)
   {
     _maxItems = Math.min(maxItems,BigNestedIntArray.MAX_ITEMS);
@@ -223,19 +228,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     {
       MultiValueORFacetFilter f = new MultiValueORFacetFilter(this,vals,false);			// catch the "not" case later
       if (!isNot) {
-	      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
-	
-	  		@Override
-	  		public FacetDataCache build(BoboIndexReader reader) {
-	  			return  getFacetData(reader);
-	  		}
-	
-	  		@Override
-	  		public String getName() {
-	  			return _name;
-	  		}
-	      	
-	      }, f, vals, false);
+	      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName()), f, vals, false);
 	      return af;
       }
       else{
@@ -264,11 +257,11 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 		return new MultiValueDocScorer(dataCache,scoringFunctionFactory,boostList);
   }
 
-  private static final class MultiValueDocScorer extends BoboDocScorer{
+  public static final class MultiValueDocScorer extends BoboDocScorer{
 		private final MultiValueFacetDataCache _dataCache;
 		private final BigNestedIntArray _array;
 		
-		MultiValueDocScorer(MultiValueFacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
+		public MultiValueDocScorer(MultiValueFacetDataCache dataCache,FacetTermScoringFunctionFactory scoreFunctionFactory,float[] boostList){
 			super(scoreFunctionFactory.getFacetTermScoringFunction(dataCache.valArray.size(), dataCache._nestedArray.size()),boostList);
 			_dataCache = dataCache;
 			_array = _dataCache._nestedArray;
