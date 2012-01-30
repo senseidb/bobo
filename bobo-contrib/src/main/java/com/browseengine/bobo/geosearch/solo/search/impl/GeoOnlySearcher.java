@@ -135,7 +135,7 @@ public class GeoOnlySearcher {
                 originalPoint < Integer.MAX_VALUE - delta) {
             return originalPoint + delta;
         } else {
-            return Integer.MIN_VALUE;
+            return Integer.MAX_VALUE;
         }
     }
 }
