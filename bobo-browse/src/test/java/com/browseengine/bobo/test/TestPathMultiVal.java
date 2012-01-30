@@ -91,6 +91,6 @@ public class TestPathMultiVal extends TestCase {
 		System.out.println(facets);
 		assertEquals(1,facets.size());
 		BrowseFacet facet = facets.get(0);
-		assertEquals(1,facet.getFacetValueHitCount());
+		assertEquals(2,facet.getFacetValueHitCount());
 	}
 }

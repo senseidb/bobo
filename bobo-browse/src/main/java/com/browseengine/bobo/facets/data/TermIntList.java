@@ -14,7 +14,7 @@ public class TermIntList extends TermNumberList<Integer>
   private int[] _elements = null;
   private int sanity = -1;
   private boolean withDummy = true;
-
+  public static final int VALUE_MISSING = Integer.MIN_VALUE;
   private static int parse(String s)
   {
     if (s == null || s.length() == 0)
@@ -46,8 +46,7 @@ public class TermIntList extends TermNumberList<Integer>
   {
     if (_innerList.size() == 0 && o!=null) withDummy = false; // the first value added is not null
     int item = parse(o);
-    if (sanity >= item) throw new RuntimeException("Values need to be added in ascending order and we only support non-negative numbers. Previous value: " + sanity + " adding value: " + item);
-    if (_innerList.size() > 0 || !withDummy) sanity = item;
+  
     return ((IntArrayList) _innerList).add(item);
   }
 
@@ -78,7 +77,7 @@ public class TermIntList extends TermNumberList<Integer>
     if (index < _elements.length)
       return _elements[index];
     else
-      return -1;
+      return TermIntList.VALUE_MISSING;
   }
 
   @Override
@@ -190,6 +189,20 @@ public class TermIntList extends TermNumberList<Integer>
   {
     ((IntArrayList) _innerList).trim();
     _elements = ((IntArrayList) _innerList).elements();
+    int negativeIndexCheck = withDummy ? 1 : 0;
+    //reverse negative elements, because string order and numeric orders are completely opposite
+    if (_elements.length > negativeIndexCheck && _elements[negativeIndexCheck] < 0) {
+      int endPosition = indexOfWithType(0);
+      if (endPosition < 0) {
+        endPosition = -1 *endPosition - 1;
+      }
+      int tmp;
+      for (int i = 0;  i < (endPosition - negativeIndexCheck) / 2; i++) {
+         tmp = _elements[i + negativeIndexCheck];
+         _elements[i + negativeIndexCheck] = _elements[endPosition -i -1];
+         _elements[endPosition -i -1] = tmp;
+      }
+    }
   }
 
   @Override
@@ -226,4 +239,9 @@ public class TermIntList extends TermNumberList<Integer>
     else
       return Arrays.binarySearch(_elements, val) >= 0;
   }
+
+  public int[] getElements() {
+    return _elements;
+  }
+  
 }

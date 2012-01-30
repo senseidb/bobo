@@ -6,8 +6,8 @@ import java.util.Locale;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.FieldCache;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.FieldCache.StringIndex;
+import org.apache.lucene.search.ScoreDoc;
 
 public abstract class DocComparatorSource {
 	
@@ -79,8 +79,7 @@ public abstract class DocComparatorSource {
 				      return -1;
 				    } else if (values[doc2.doc] == null) {
 				      return 1;
-				    }
-
+				    }				   
 				    return _collator.compare(values[doc1.doc], values[doc2.doc]);
 				}
 
@@ -113,7 +112,8 @@ public abstract class DocComparatorSource {
 				    } else if (values[doc2.doc] == null) {
 				      return 1;
 				    }
-
+				    System.out.println("val1 = " + values[doc1.doc]);
+				    System.out.println("val2 = " + values[doc2.doc]);
 				    return values[doc1.doc].compareTo(values[doc2.doc]);
 				}
 

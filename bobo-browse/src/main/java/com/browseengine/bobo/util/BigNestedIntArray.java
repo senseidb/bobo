@@ -811,7 +811,40 @@ public final class BigNestedIntArray
     
     return DocIdSetIterator.NO_MORE_DOCS;
   }
-  
+ 
+  public final int findValuesInRange(int startIndex, int endIndex, int id, int maxID)
+  {
+    int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) page = MISSING_PAGE;
+
+    while(true)
+    {
+      int val = page[id & SLOTID_MASK];
+      if (val >= 0)
+      {
+        if(val >= startIndex && val <= endIndex) return id;
+      }
+      else if(val != MISSING)
+      {
+        int idx = - (val >> VALIDX_SHIFT);// signed shift, remember this is a negative number
+        int end = idx + (val & COUNT_MASK);
+        while(idx < end)          
+        {
+          val = page[idx++];
+          if(val >= startIndex && val <= endIndex) return id;  
+        }
+      }      
+      if(id >= maxID) break;
+      
+      if((++id & SLOTID_MASK) == 0)
+      {
+        page = _list[id >> PAGEID_SHIFT];
+        if(page == null) page = MISSING_PAGE;
+      }
+    }
+    
+    return DocIdSetIterator.NO_MORE_DOCS;
+  }
   public final int count(final int id, final int[] count)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];

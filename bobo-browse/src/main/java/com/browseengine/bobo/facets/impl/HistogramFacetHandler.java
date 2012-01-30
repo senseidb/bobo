@@ -13,13 +13,13 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.IntFacetIterator;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.api.IntFacetIterator;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.FacetDataNone;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermIntList;
 import com.browseengine.bobo.facets.data.TermLongList;
@@ -48,7 +48,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   @Override
   public FacetDataNone load(BoboIndexReader reader) throws IOException
   {
-    _dataFacetHandler = (FacetHandler<?>)reader.getFacetHandler(_dataHandlerName);
+    _dataFacetHandler = reader.getFacetHandler(_dataHandlerName);
     if(_dataFacetHandler instanceof RangeFacetHandler)
     {
       if(((RangeFacetHandler)_dataFacetHandler).hasPredefinedRanges())
@@ -345,7 +345,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         count = _count[++_idx];
         return (facet = _idx);
       }
-      return -1;
+      return TermIntList.VALUE_MISSING;
     }
     
     public int nextInt(int minHits)
@@ -358,7 +358,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
           return (facet = _idx);
         }
       }
-      return -1;    
+      return TermIntList.VALUE_MISSING;    
     }
 
     public boolean hasNext()

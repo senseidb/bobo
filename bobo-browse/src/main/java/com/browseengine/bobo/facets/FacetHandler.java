@@ -208,26 +208,22 @@ public abstract class FacetHandler<D>
 	
 	abstract public RandomAccessFilter buildRandomAccessFilter(String value,Properties selectionProperty) throws IOException;
 	
-	public RandomAccessFilter buildRandomAccessAndFilter(String[] vals,Properties prop) throws IOException
-	{
-	  ArrayList<RandomAccessFilter> filterList = new ArrayList<RandomAccessFilter>(vals.length);
-	  
-	  for (String val : vals)
-	  {
-	    RandomAccessFilter f = buildRandomAccessFilter(val, prop);
-	    if(f != null) 
-	    {
-	      filterList.add(f); 
-	    }
-	    else
-	    {
-	      // there is no hit in this AND filter because this value has no hit
-	      return null;
-	    }
-	  }
-	  if (filterList.size() == 0) return null;
-	  return new RandomAccessAndFilter(filterList);
-	}
+  public RandomAccessFilter buildRandomAccessAndFilter(String[] vals, Properties prop) throws IOException {
+    ArrayList<RandomAccessFilter> filterList = new ArrayList<RandomAccessFilter>(vals.length);
+
+    for (String val : vals) {
+      RandomAccessFilter f = buildRandomAccessFilter(val, prop);
+      if (f != null) {
+        filterList.add(f);
+      } else {
+        return EmptyFilter.getInstance();
+      }
+    }
+
+    if (filterList.size() == 1)
+      return filterList.get(0);
+    return new RandomAccessAndFilter(filterList);
+  }
 	
 	public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
     {

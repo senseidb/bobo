@@ -1,7 +1,6 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -17,15 +16,13 @@ import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
-import com.browseengine.bobo.facets.filter.EmptyFilter;
-import com.browseengine.bobo.facets.filter.FacetOrFilter;
+import com.browseengine.bobo.facets.filter.BitSetFilter;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
-import com.browseengine.bobo.facets.filter.FacetRangeOrFilter;
-import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
+import com.browseengine.bobo.facets.filter.FacetRangeFilter.FacetRangeValueConverter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessNotFilter;
-import com.browseengine.bobo.facets.filter.FacetRangeFilter.FacetRangeValueConverter;
-import com.browseengine.bobo.facets.impl.SimpleFacetHandler.SimpleBoboDocScorer;
+import com.browseengine.bobo.facets.range.SimpleDataCacheBuilder;
+import com.browseengine.bobo.facets.range.ValueConverterBitSetBuilder;
 import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
@@ -33,9 +30,9 @@ import com.browseengine.bobo.sort.DocComparatorSource;
 
 public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements FacetScoreable{
 	private static Logger logger = Logger.getLogger(RangeFacetHandler.class);
-	private final String _indexFieldName;
-	private final TermListFactory _termListFactory;
-	private final List<String> _predefinedRanges;
+	protected final String _indexFieldName;
+	protected final TermListFactory _termListFactory;
+	protected final List<String> _predefinedRanges;
 	
 	public RangeFacetHandler(String name,String indexFieldName,TermListFactory termListFactory,List<String> predefinedRanges)
 	{
@@ -47,12 +44,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
 	
 	
 	
-	@Override
-	public int getNumItems(BoboIndexReader reader, int id) {
-		FacetDataCache data = getFacetData(reader);
-		if (data==null) return 0;
-		return data.getNumItems(id);
-	}
+	
 
 	public RangeFacetHandler(String name,TermListFactory termListFactory,List<String> predefinedRanges)
     {
@@ -69,11 +61,18 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
         this(name,indexFieldName,null,predefinedRanges);
     }
 	
+	
 	@Override
 	public DocComparatorSource getDocComparatorSource() {
 		return new FacetDataCache.FacetDocComparatorSource(this);
 	}
 	
+	@Override
+  public int getNumItems(BoboIndexReader reader, int id) {
+    FacetDataCache data = getFacetData(reader);
+    if (data==null) return 0;
+    return data.getNumItems(id);
+  }
 	@Override
 	public String[] getFieldValues(BoboIndexReader reader,int id) {
 		FacetDataCache dataCache = getFacetData(reader);
@@ -92,43 +91,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
     return new String[0];
 	}
 
-	public static String[] getRangeStrings(String rangeString)
-	{
-
-      
-      int index2 = rangeString.indexOf(" TO ");
-      boolean incLower = true, incUpper = true;
-      
-      if(rangeString.trim().startsWith("("))
-        incLower = false;
-      
-      if(rangeString.trim().endsWith(")"))
-        incUpper = false;
-      
-      int index = -1, index3 = -1;
-      
-      if(incLower == true)
-        index=rangeString.indexOf('[');
-      else if(incLower == false)
-        index=rangeString.indexOf('(');
-      
-      if(incUpper == true)
-        index3=rangeString.indexOf(']');
-      else if(incUpper == false)
-        index3=rangeString.indexOf(')');
-      
-      String lower,upper;
-      try{
-        lower=rangeString.substring(index+1,index2).trim();
-        upper=rangeString.substring(index2+4,index3).trim();
-      
-        return new String[]{lower,upper, String.valueOf(incLower), String.valueOf(incUpper)};
-      }
-      catch(RuntimeException re){
-        logger.error("problem parsing range string: "+rangeString+":"+re.getMessage(),re);
-        throw re;
-      }
-	}
+	
 	
 	
 	
@@ -139,33 +102,14 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
   }
   
 	
-  @Override
-  public RandomAccessFilter buildRandomAccessAndFilter(String[] vals,Properties prop) throws IOException
-  {
-    ArrayList<RandomAccessFilter> filterList = new ArrayList<RandomAccessFilter>(vals.length);
-    
-    for (String val : vals){
-	  RandomAccessFilter f = buildRandomAccessFilter(val, prop);
-	  if(f != null) 
-	  {
-	    filterList.add(f); 
-	  }
-      else
-	  {
-	    return EmptyFilter.getInstance();
-	  }
-    }
-    
-    if (filterList.size() == 1) return filterList.get(0);
-    return new RandomAccessAndFilter(filterList);
-  }
+  
 
   @Override
   public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,Properties prop,boolean isNot) throws IOException
   {
     if (vals.length > 1)
     {
-      return new FacetRangeOrFilter(this,vals,isNot,FacetRangeValueConverter.instance);
+      return new BitSetFilter(new ValueConverterBitSetBuilder(FacetRangeValueConverter.instance, vals, isNot), new SimpleDataCacheBuilder(getName()));
     }
     else
     {
