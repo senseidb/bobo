@@ -30,6 +30,7 @@ public class GeoSearchConfig {
     
     public static final int DEFAULT_ID_BYTE_COUNT = 16;
     private int bytesForId = DEFAULT_ID_BYTE_COUNT;
+    private int maxIndexSize = Integer.MAX_VALUE;
     
     /**
      * Sets the extension for geo indices.
@@ -108,4 +109,16 @@ public class GeoSearchConfig {
         return bytesForId;
     }
     
+    /**
+     * The maximum size the index should be allowed to grow to.  Any attempts to
+     * flush an index larger than this will throw errors.  Applies only to the GeoOnlyIndex. 
+     * @param maxIndexSize
+     */
+    public void setMaxIndexSize(int maxIndexSize) {
+        this.maxIndexSize = maxIndexSize;
+    }
+    
+    public int getMaxIndexSize() {
+        return maxIndexSize;
+    }
 }

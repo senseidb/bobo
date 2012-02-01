@@ -23,6 +23,7 @@ import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
+import com.browseengine.bobo.geosearch.solo.bo.IndexTooLargeException;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordSerializer;
 
@@ -88,12 +89,18 @@ public class GeoOnlyIndexer {
      * Flushes any requested index updates to directory
      * 
      * @throws IOException
+     * @throws IndexTooLargeException If the size of the index is larger than the maximum size
      */
-    public void flush() throws IOException {
+    public void flush() throws IOException, IndexTooLargeException {
         loadCurrentIndex();
         
         for (IDGeoRecord newRecord: newRecords) {
             inMemoryIndex.add(newRecord);
+        }
+        
+        if (inMemoryIndex.size() > config.getMaxIndexSize()) {
+            throw new IndexTooLargeException(indexName, inMemoryIndex.size(),
+                    config.getMaxIndexSize());
         }
         
         flushInMemoryIndex();
