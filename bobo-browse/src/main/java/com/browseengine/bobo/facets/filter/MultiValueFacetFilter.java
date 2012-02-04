@@ -7,29 +7,31 @@ import org.apache.lucene.search.DocIdSetIterator;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.filter.FacetFilter.FacetDocIdSetIterator;
-import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
+import com.browseengine.bobo.facets.range.MultiDataCacheBuilder;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public class MultiValueFacetFilter extends RandomAccessFilter 
 {
     private static final long serialVersionUID = 1L;
     
-    private final MultiValueFacetHandler _facetHandler;
+   
     private final String _val;
+
+
+    private final MultiDataCacheBuilder multiDataCacheBuilder;
     
-    public MultiValueFacetFilter(MultiValueFacetHandler facetHandler,String val)
-    {
-        _facetHandler = facetHandler;
+    @SuppressWarnings("rawtypes")
+    public MultiValueFacetFilter(MultiDataCacheBuilder multiDataCacheBuilder, String val)  {
+        this.multiDataCacheBuilder = multiDataCacheBuilder;
         _val = val;
     }
     
     public double getFacetSelectivity(BoboIndexReader reader)
     {
       double selectivity = 0;
-      MultiValueFacetDataCache dataCache = _facetHandler.getFacetData(reader);
+      MultiValueFacetDataCache dataCache = multiDataCacheBuilder.build(reader);
       int idx = dataCache.valArray.indexOf(_val);
       if(idx<0)
       {
@@ -42,7 +44,7 @@ public class MultiValueFacetFilter extends RandomAccessFilter
     }
     
     
-    private final static class MultiValueFacetDocIdSetIterator extends FacetDocIdSetIterator
+    public final static class MultiValueFacetDocIdSetIterator extends FacetDocIdSetIterator
     {
         private final BigNestedIntArray _nestedArray;
 
@@ -70,9 +72,9 @@ public class MultiValueFacetFilter extends RandomAccessFilter
     }
 
     @Override
-    public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException {
-    	final MultiValueFacetDataCache dataCache = _facetHandler.getFacetData(reader);
-        final int index = dataCache.valArray.indexOf(_val);
+    public RandomAccessDocIdSet getRandomAccessDocIdSet(BoboIndexReader reader) throws IOException {    	
+      final MultiValueFacetDataCache dataCache = multiDataCacheBuilder.build(reader);  
+      final int index = dataCache.valArray.indexOf(_val);
         final BigNestedIntArray nestedArray = dataCache._nestedArray; 
         if(index < 0)
         {

@@ -71,6 +71,9 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
       if (q == null)
       {
         q = new MatchAllDocsQuery();
+      } else if (!(q instanceof MatchAllDocsQuery)) {
+        //MatchAllQuery is needed to filter out the deleted docids, that reside in ZoieSegmentReader and are not visible on Bobo level 
+        q = QueriesSupport.combineAnd(new MatchAllDocsQuery(), q);
       }
       w = createWeight(q);
     }

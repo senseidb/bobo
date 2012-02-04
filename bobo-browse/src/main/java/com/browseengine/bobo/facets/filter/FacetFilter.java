@@ -2,7 +2,6 @@ package com.browseengine.bobo.facets.filter;
 
 import java.io.IOException;
 
-import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
@@ -98,7 +97,7 @@ public class FacetFilter extends RandomAccessFilter
 		}
 	}
 
-	private static class FacetDataRandomAccessDocIdSet extends RandomAccessDocIdSet{
+	public static class FacetDataRandomAccessDocIdSet extends RandomAccessDocIdSet{
 
 		private final FacetDataCache _dataCache;
 	    private final BigSegmentedArray _orderArray;
