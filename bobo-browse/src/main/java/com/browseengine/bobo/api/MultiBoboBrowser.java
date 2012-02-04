@@ -68,12 +68,14 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     try
     {
       Query q = req.getQuery();
+      MatchAllDocsQuery matchAllDocsQuery = new MatchAllDocsQuery();
       if (q == null)
       {
-        q = new MatchAllDocsQuery();
+        q = matchAllDocsQuery;
       } else if (!(q instanceof MatchAllDocsQuery)) {
-        //MatchAllQuery is needed to filter out the deleted docids, that reside in ZoieSegmentReader and are not visible on Bobo level 
-        q = QueriesSupport.combineAnd(new MatchAllDocsQuery(), q);
+        //MatchAllQuery is needed to filter out the deleted docids, that reside in ZoieSegmentReader and are not visible on Bobo level         
+        matchAllDocsQuery.setBoost(0f);
+        q = QueriesSupport.combineAnd(matchAllDocsQuery, q);        
       }
       w = createWeight(q);
     }
