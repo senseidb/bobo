@@ -107,8 +107,8 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
 		      browsers[i].browse(req, weight, hc, facetColMap, (start + starts[i]));
 	      }
 	      finally
-	      {
-	    	  Set<Entry<String,FacetAccessible>> entries = facetColMap.entrySet();
+	      {	    	  
+	        Set<Entry<String,FacetAccessible>> entries = facetColMap.entrySet();
 	    	  for (Entry<String,FacetAccessible> entry : entries)
 	    	  {
 	    		  String name = entry.getKey();
@@ -127,6 +127,9 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     }
     finally
     {
+      if (req.getMapReduceWrapper() != null) {
+        req.getMapReduceWrapper().finalizePartition();
+      }
       Set<Entry<String,List<FacetAccessible>>> entries = mergedMap.entrySet();
   	  for (Entry<String,List<FacetAccessible>> entry : entries)
   	  {
@@ -175,6 +178,9 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors);
+    if (req.getMapReduceWrapper() != null) {
+      result.setMapReduceResult(req.getMapReduceWrapper().getResult());
+    }
     BrowseHit[] hits = null;
     try{
       hits = collector.topDocs();
