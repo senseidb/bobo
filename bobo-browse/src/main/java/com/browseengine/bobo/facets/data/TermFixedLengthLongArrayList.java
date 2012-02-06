@@ -296,7 +296,10 @@ public class TermFixedLengthLongArrayList extends TermValueList<long[]>
     else
       return binarySearch(val);
   }
-
+  @Override
+  public Comparable getComparableValue(int index) {    
+    return get(index);
+  }
   @Override
   public void seal()
   {

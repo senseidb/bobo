@@ -98,7 +98,9 @@ public abstract class TermValueList<T> implements List<String>{
 	public T getRawValue(int index){
 		return (T) _innerList.get(index);
 	}
-
+	public Comparable getComparableValue(int index){    
+	  return (Comparable) _innerList.get(index);
+  }
 	abstract public int indexOf(Object o);
 
   public int indexOfWithOffset(Object value, int offset)
