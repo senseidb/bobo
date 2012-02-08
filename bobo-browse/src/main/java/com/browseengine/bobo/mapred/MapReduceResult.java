@@ -1,10 +1,11 @@
 package com.browseengine.bobo.mapred;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapReduceResult implements Serializable {
-  protected List mapResults;
+  protected List mapResults = new ArrayList(200);
   protected Serializable reduceResult;
   public List getMapResults() {
     return mapResults;

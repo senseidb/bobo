@@ -284,7 +284,7 @@ public class BrowseResult implements Serializable{
 	}
 
 	public void setMapReduceResult(MapReduceResult mapReduceWrapper) {
-		this.mapReduceResult = mapReduceResult;
+		this.mapReduceResult = mapReduceWrapper;
 	}
 
 	public static String toString(Map<String,FacetAccessible> map) {
