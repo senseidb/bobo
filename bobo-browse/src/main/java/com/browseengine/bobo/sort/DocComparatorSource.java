@@ -111,9 +111,7 @@ public abstract class DocComparatorSource {
 				      return -1;
 				    } else if (values[doc2.doc] == null) {
 				      return 1;
-				    }
-				    System.out.println("val1 = " + values[doc1.doc]);
-				    System.out.println("val2 = " + values[doc2.doc]);
+				    }				   
 				    return values[doc1.doc].compareTo(values[doc2.doc]);
 				}
 

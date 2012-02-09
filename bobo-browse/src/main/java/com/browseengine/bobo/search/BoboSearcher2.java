@@ -23,6 +23,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
+import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 
 public class BoboSearcher2 extends IndexSearcher{
   protected List<FacetHitCollector> _facetCollectors;
@@ -264,26 +265,30 @@ public class BoboSearcher2 extends IndexSearcher{
   @Override
   public void search(Weight weight, Filter filter, Collector collector) throws IOException
   {
-    search(weight, filter, collector, 0);
+    search(weight, filter, collector, 0, null);
   }
 
-  public void search(Weight weight, Filter filter, Collector collector, int start) throws IOException
+  public void search(Weight weight, Filter filter, Collector collector, int start, BoboMapFunctionWrapper mapReduceWrapper) throws IOException
   {
     final FacetValidator validator = createFacetValidator();
     int target = 0;
-
+    
     if (filter == null)
     {
       for (int i = 0; i < _subReaders.length; i++) { // search each subreader
         int docStart = start + _docStarts[i];
       collector.setNextReader(_subReaders[i], docStart);
       validator.setNextReader(_subReaders[i], docStart);
-    
+      
       
       Scorer scorer = weight.scorer(_subReaders[i], true, true);
       if (scorer != null) {
-        collector.setScorer(scorer);
+        
+    	collector.setScorer(scorer);
         target = scorer.nextDoc();
+        if (target!=DocIdSetIterator.NO_MORE_DOCS && mapReduceWrapper != null) {
+        	mapReduceWrapper.mapFullIndexReader(_subReaders[i]);
+        }
         while(target!=DocIdSetIterator.NO_MORE_DOCS)
         {
           if(validator.validate(target))
@@ -318,33 +323,56 @@ public class BoboSearcher2 extends IndexSearcher{
         
         int doc = -1;
         target = filterDocIdIterator.nextDoc();
-        while(target < DocIdSetIterator.NO_MORE_DOCS)
-        {
-          if(doc < target)
-          {
+        if (mapReduceWrapper == null) {
+          while (target < DocIdSetIterator.NO_MORE_DOCS) {
+            if (doc < target) {
+              doc = scorer.advance(target);
+            }
+
+            if (doc == target) // permitted by filter
+            {
+              if (validator.validate(doc)) {
+                collector.collect(doc);
+
+                target = filterDocIdIterator.nextDoc();
+              } else {
+                // skip to the next possible docid
+                target = filterDocIdIterator.advance(validator._nextTarget);
+              }
+            } else // doc > target
+            {
+              if (doc == DocIdSetIterator.NO_MORE_DOCS)
+                break;
+              target = filterDocIdIterator.advance(doc);
+            }
+          }
+        } else {
+        //MapReduce wrapper is not null
+        while (target < DocIdSetIterator.NO_MORE_DOCS) {
+          if (doc < target) {
             doc = scorer.advance(target);
           }
 
-          if(doc == target) // permitted by filter
+          if (doc == target) // permitted by filter
           {
-            if(validator.validate(doc))
-            {
+            if (validator.validate(doc)) {
+              mapReduceWrapper.mapSingleDocument(doc, _subReaders[i]);
               collector.collect(doc);
 
               target = filterDocIdIterator.nextDoc();
-            }
-            else
-            {
+            } else {
               // skip to the next possible docid
               target = filterDocIdIterator.advance(validator._nextTarget);
             }
-          }
-          else // doc > target
+          } else // doc > target
           {
-            if(doc == DocIdSetIterator.NO_MORE_DOCS) break;
+            if (doc == DocIdSetIterator.NO_MORE_DOCS)
+              break;
             target = filterDocIdIterator.advance(doc);
           }
         }
+        mapReduceWrapper.finalizeSegment(_subReaders[i]);
+      }
       }
     }
 

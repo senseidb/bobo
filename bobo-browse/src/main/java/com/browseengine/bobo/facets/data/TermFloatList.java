@@ -133,4 +133,8 @@ public class TermFloatList extends TermNumberList<Float>
   {
     return Arrays.binarySearch(_elements, o);
   }
+  @Override
+  public double getDoubleValue(int index) {    
+    return _elements[index];
+  }
 }

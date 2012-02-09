@@ -52,7 +52,7 @@ public abstract class TermNumberList<T extends Number> extends TermValueList<T>
   }
 
   protected abstract Object parseString(String o);
-
+  public abstract double getDoubleValue(int index);
   @Override
   public String format(Object o)
   {

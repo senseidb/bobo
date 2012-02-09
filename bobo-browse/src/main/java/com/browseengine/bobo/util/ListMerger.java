@@ -164,7 +164,7 @@ public class ListMerger
 	public int compare(BrowseFacet o1, BrowseFacet o2) {		
 	  int ret = o1.getValue().compareTo(o2.getValue());
 	  if (o1.getValue().startsWith("-") && o2.getValue().startsWith("-")) {
-	    ret *=-1;
+	    ret =-ret;
 	  }
 	  return ret;
 	}

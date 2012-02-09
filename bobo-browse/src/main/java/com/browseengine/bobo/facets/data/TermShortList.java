@@ -196,5 +196,10 @@ public class TermShortList extends TermNumberList<Short>
   public short[] getElements() {
     return _elements;
   }
+
+  @Override
+  public double getDoubleValue(int index) {    
+    return _elements[index];
+  }
   
 }

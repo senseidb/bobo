@@ -243,5 +243,8 @@ public class TermIntList extends TermNumberList<Integer>
   public int[] getElements() {
     return _elements;
   }
-  
+  @Override
+  public double getDoubleValue(int index) {    
+    return _elements[index];
+  }
 }

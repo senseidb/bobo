@@ -202,5 +202,8 @@ public class TermLongList extends TermNumberList<Long>
   public long[] getElements() {
     return _elements;
   }
-  
+  @Override
+  public double getDoubleValue(int index) {    
+    return _elements[index];
+  }
 }

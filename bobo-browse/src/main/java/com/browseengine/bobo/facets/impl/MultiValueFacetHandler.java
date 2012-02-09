@@ -20,11 +20,9 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
-import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.data.TermListFactory;
 import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter;
-import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
 import com.browseengine.bobo.facets.filter.EmptyFilter;
 import com.browseengine.bobo.facets.filter.MultiValueFacetFilter;
 import com.browseengine.bobo.facets.filter.MultiValueORFacetFilter;
@@ -181,20 +179,8 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
-	MultiValueFacetFilter f= new MultiValueFacetFilter(this, value);
-    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new FacetDataCacheBuilder(){
-
-		@Override
-		public FacetDataCache build(BoboIndexReader reader) {
-			return  getFacetData(reader);
-		}
-
-		@Override
-		public String getName() {
-			return _name;
-		}
-    	
-    }, f, new String[]{value}, false);
+	MultiValueFacetFilter f= new MultiValueFacetFilter(new MultiDataCacheBuilder(getName()), value);
+    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName()), f, new String[]{value}, false);
     return af;
   }
 

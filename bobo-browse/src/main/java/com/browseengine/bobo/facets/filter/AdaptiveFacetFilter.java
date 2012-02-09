@@ -16,7 +16,6 @@ import org.apache.lucene.search.DocIdSetIterator;
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.kamikaze.docidset.impl.OrDocIdSet;
@@ -96,7 +95,7 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	  }
 	}
 
-	private static class TermListRandomAccessDocIdSet extends RandomAccessDocIdSet{
+	public static class TermListRandomAccessDocIdSet extends RandomAccessDocIdSet{
 
 		private final RandomAccessDocIdSet _innerSet;
 		private final ArrayList<String> _vals;
@@ -110,15 +109,17 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 			_reader = reader;
 		}
 		
-		private class TermDocIdSet extends DocIdSet{
+		public static class TermDocIdSet extends DocIdSet{
 			final Term term;
-			TermDocIdSet(String name,String val){
-				term = new Term(name,val);
+      private final IndexReader reader;
+			public TermDocIdSet(IndexReader reader, String name, String val){
+				this.reader = reader;
+        term = new Term(name,val);
 			}
 			
 			@Override
 			public DocIdSetIterator iterator() throws IOException {
-				final TermDocs td = _reader.termDocs(term);
+				final TermDocs td = reader.termDocs(term);
 				if (td==null){
 					return EmptyDocIdSet.getInstance().iterator();
 				}
@@ -169,13 +170,13 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 				return EmptyDocIdSet.getInstance().iterator();
 			}
 			if (_vals.size()==1){
-				return new TermDocIdSet(_name,_vals.get(0)).iterator();
+				return new TermDocIdSet(_reader, _name,_vals.get(0)).iterator();
 			}
 			else{
 				if (_vals.size()<OR_THRESHOLD){
 					ArrayList<DocIdSet> docSetList = new ArrayList<DocIdSet>(_vals.size());
 					for (String val : _vals){
-						docSetList.add(new TermDocIdSet(_name,val));
+						docSetList.add(new TermDocIdSet(_reader, _name,val));
 					}
 					return new OrDocIdSet(docSetList).iterator();
 				}

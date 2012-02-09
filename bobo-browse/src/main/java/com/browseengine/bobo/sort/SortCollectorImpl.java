@@ -60,15 +60,6 @@ public class SortCollectorImpl extends SortCollector {
       }
       else{
         int v = s1.compareTo(s2);
-        if (s1 instanceof String && s2 instanceof String && ((String) s1).startsWith("-") && ((String) s2).startsWith("-")) {
-          v *= -1;
-        } else  if (s1 instanceof ReverseComparable && s2 instanceof ReverseComparable && ((ReverseComparable) s1)._inner.toString().startsWith("-") && ((ReverseComparable) s2)._inner.toString().startsWith("-")) {
-          v *= -1;
-        } else if (s1 instanceof StringArrayComparator) {
-          
-        }  else if (s1.toString().contains("-") && s2.toString().contains("-")){
-          throw new IllegalArgumentException();
-        }
         if (v==0){
           r = o1.doc + o1.queue.base - o2.doc - o2.queue.base;
         } else {

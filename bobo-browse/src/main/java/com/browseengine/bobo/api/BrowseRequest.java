@@ -37,6 +37,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
+import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 
 /**
  * Browse Request.
@@ -83,6 +84,7 @@ public class BrowseRequest implements Serializable{
 	private int _maxPerGroup;
 	private boolean _collectDocIdCache;
 	private Set<String> _termVectorsToFetch;
+	private BoboMapFunctionWrapper mapReduceWrapper;
 	
 	public Set<String> getTermVectorsToFetch(){
 	  return _termVectorsToFetch;
@@ -376,7 +378,16 @@ public class BrowseRequest implements Serializable{
 		_selections.putAll(map);
     return this;
 	}
-	
+		
+	public BoboMapFunctionWrapper getMapReduceWrapper() {
+		return mapReduceWrapper;
+	}
+
+	public BrowseRequest setMapReduceWrapper(BoboMapFunctionWrapper mapReduceWrapper) {
+		this.mapReduceWrapper = mapReduceWrapper;
+		return this;
+	}
+
 	/**
 	 * Add a sort spec
 	 *

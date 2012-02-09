@@ -242,11 +242,11 @@ public class FacetDataCache<T> implements Serializable {
       final FacetDataCache dataCache = _facetHandler.getFacetData(boboReader);
       final BigSegmentedArray orderArray = dataCache.orderArray;
       return new DocComparator() {
-
+        
         @Override
         public Comparable value(ScoreDoc doc) {
           int index = orderArray.get(doc.doc);
-          return dataCache.valArray.get(index);
+          return dataCache.valArray.getComparableValue(index);          
         }
 
         @Override

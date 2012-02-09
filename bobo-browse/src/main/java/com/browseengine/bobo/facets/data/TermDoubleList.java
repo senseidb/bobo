@@ -134,4 +134,8 @@ public class TermDoubleList extends TermNumberList<Double>
   {
     return Arrays.binarySearch(_elements, val);
   }
+  @Override
+  public double getDoubleValue(int index) {    
+    return _elements[index];
+  }
 }

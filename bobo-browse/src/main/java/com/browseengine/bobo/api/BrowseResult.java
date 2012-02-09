@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import com.browseengine.bobo.mapred.MapReduceResult;
+import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 import com.browseengine.bobo.sort.SortCollector;
 
 
@@ -72,6 +74,7 @@ public class BrowseResult implements Serializable{
 	private Map<String,FacetAccessible> _facetMap;
 	private BrowseHit[] hits;
 	private long time;
+	private MapReduceResult mapReduceResult;
 	private static BrowseHit[] NO_HITS=new BrowseHit[0];
 		
 	/**
@@ -276,6 +279,14 @@ public class BrowseResult implements Serializable{
 		return _facetMap;
 	}
     
+	public MapReduceResult getMapReduceResult() {
+		return mapReduceResult;
+	}
+
+	public void setMapReduceResult(MapReduceResult mapReduceWrapper) {
+		this.mapReduceResult = mapReduceWrapper;
+	}
+
 	public static String toString(Map<String,FacetAccessible> map) {
 		StringBuilder buffer=new StringBuilder();
 		Set<Entry<String,FacetAccessible>> entries = map.entrySet();

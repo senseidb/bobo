@@ -352,7 +352,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
           }
           weight = createWeight(q);
         }
-        search(weight, finalFilter, collector, start);
+        search(weight, finalFilter, collector, start, req.getMapReduceWrapper());
       }
       finally
       {
