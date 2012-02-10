@@ -43,7 +43,7 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         indexOutput = directory.createOutput(fileName);
         try {
             buildBTreeFromSet(tree);
-        } finally {
+        } catch (IOException e) {
             close();
         }
     }
@@ -59,7 +59,7 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         
         try {
             buildBTreeFromIterator(inputIterator);
-        } finally {
+        } catch (IOException e) {
             close();
         }
     }
