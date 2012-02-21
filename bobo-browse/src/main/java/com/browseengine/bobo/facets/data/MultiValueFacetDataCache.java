@@ -37,8 +37,8 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
   private static Logger logger = Logger.getLogger(MultiValueFacetDataCache.class);
  
   public final BigNestedIntArray _nestedArray;
-  private int _maxItems = BigNestedIntArray.MAX_ITEMS;
-  private boolean _overflow = false;
+  protected int _maxItems = BigNestedIntArray.MAX_ITEMS;
+  protected boolean _overflow = false;
   
   public MultiValueFacetDataCache()
   {
@@ -343,7 +343,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     
   }
   
-  private void logOverflow(String fieldName)
+  protected void logOverflow(String fieldName)
   {
     if (!_overflow)
     {
@@ -352,7 +352,7 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     }
   }
 
-  private BufferedLoader getBufferedLoader(int maxdoc, WorkArea workArea)
+  protected BufferedLoader getBufferedLoader(int maxdoc, WorkArea workArea)
   {
     if(workArea == null)
     {

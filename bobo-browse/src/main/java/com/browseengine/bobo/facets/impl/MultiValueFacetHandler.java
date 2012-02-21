@@ -43,11 +43,11 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
 
  
 
-  private final TermListFactory _termListFactory;
-  private final String _indexFieldName;
+  protected final TermListFactory _termListFactory;
+  protected final String _indexFieldName;
 
-  private int _maxItems = BigNestedIntArray.MAX_ITEMS;
-  private Term _sizePayloadTerm;
+  protected int _maxItems = BigNestedIntArray.MAX_ITEMS;
+  protected Term _sizePayloadTerm;
   protected Set<String> _depends;
   
   public MultiValueFacetHandler(String name, 

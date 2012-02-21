@@ -114,6 +114,7 @@ import com.browseengine.bobo.facets.impl.GeoFacetHandler;
 import com.browseengine.bobo.facets.impl.GeoSimpleFacetHandler;
 import com.browseengine.bobo.facets.impl.HistogramFacetHandler;
 import com.browseengine.bobo.facets.impl.MultiValueFacetHandler;
+import com.browseengine.bobo.facets.impl.MultiValueWithWeightFacetHandler;
 import com.browseengine.bobo.facets.impl.PathFacetHandler;
 import com.browseengine.bobo.facets.impl.RangeFacetHandler;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
@@ -245,6 +246,8 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("char","k"));
 		d1.add(buildMetaField("multinum","001"));
 		d1.add(buildMetaField("multinum","003"));
+		d1.add(buildMetaField("multiwithweight","cool:200"));
+		d1.add(buildMetaField("multiwithweight","good:100"));
 		d1.add(buildMetaField("compactnum","001"));
 		d1.add(buildMetaField("compactnum","003"));
 		d1.add(buildMetaField("numendorsers","000003"));
@@ -280,6 +283,8 @@ public class BoboTestCase extends TestCase {
 		d2.add(buildMetaField("char","i"));
 		d2.add(buildMetaField("multinum","002"));
 		d2.add(buildMetaField("multinum","004"));
+		d2.add(buildMetaField("multiwithweight","cool:300"));
+		d2.add(buildMetaField("multiwithweight","good:200"));
 		d2.add(buildMetaField("compactnum","002"));
 		d2.add(buildMetaField("compactnum","004"));
 		d2.add(buildMetaField("numendorsers","000010"));
@@ -307,6 +312,7 @@ public class BoboTestCase extends TestCase {
 		d3.add(buildMetaField("char","j"));
 		d3.add(buildMetaField("multinum","007"));
 		d3.add(buildMetaField("multinum","012"));
+		d3.add(buildMetaField("multiwithweight","cool:200"));
 		d3.add(buildMetaField("compactnum","007"));
 		d3.add(buildMetaField("compactnum","012"));
 		d3.add(buildMetaField("numendorsers","000015"));
@@ -520,6 +526,7 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new SimpleFacetHandler("char", (TermListFactory)null));
 		facetHandlers.add(new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm));
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
+		facetHandlers.add(new MultiValueWithWeightFacetHandler("multiwithweight"));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new SimpleFacetHandler("storenum", new PredefinedTermListFactory(Long.class, null)));
 		/* New FacetHandler for geographic locations. Depends on two RangeFacetHandlers on latitude and longitude */
@@ -1932,6 +1939,26 @@ public class BoboTestCase extends TestCase {
 	    doTest(br,2,answer,new String[]{"1","7"});
 	}
 	
+  public void testBrowseMultiValWithWeight()
+  {
+    BrowseRequest br=new BrowseRequest();
+    br.setCount(10);
+    br.setOffset(0);
+    BrowseSelection sel=new BrowseSelection("multiwithweight");
+    sel.addValue("cool");
+    br.addSelection(sel);
+    
+
+    FacetSpec ospec=new FacetSpec();
+    br.setFacetSpec("multiwithweight", ospec);
+    br.setSort(new SortField[]{new SortField("multiwithweight",SortField.CUSTOM,true)});
+    HashMap<String,List<BrowseFacet>> answer=new HashMap<String,List<BrowseFacet>>();
+
+    answer.put("multiwithweight", Arrays.asList(new BrowseFacet[]{new BrowseFacet("cool",3),new BrowseFacet("good",2)}));
+      
+    doTest(br,3,answer,new String[]{"1","2","3"});
+  }
+
 	public void testBrowseMultiVal(){
 		BrowseRequest br=new BrowseRequest();
 		br.setCount(10);
