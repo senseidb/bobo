@@ -41,8 +41,11 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         this.geoRecordSerializer = geoRecordSerializer;
         
         indexOutput = directory.createOutput(fileName);
-        
-        buildBTreeFromSet(tree);
+        try {
+            buildBTreeFromSet(tree);
+        } catch (IOException e) {
+            close();
+        }
     }
     
     public GeoSegmentWriter(int treeSize, Iterator<G> inputIterator, Directory directory, String fileName,
@@ -54,7 +57,11 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         
         indexOutput = directory.createOutput(fileName);
         
-        buildBTreeFromIterator(inputIterator);
+        try {
+            buildBTreeFromIterator(inputIterator);
+        } catch (IOException e) {
+            close();
+        }
     }
     
     private void buildBTreeFromIterator(Iterator<G> geoIter) throws IOException {

@@ -1,8 +1,13 @@
 bobo-browse/build/
+bobo-browse/src/main/resources/
+bobo-browse/target/
 bobo-gwt/build/
 bobo-service/build/
 bobo-solr/build/
+bobo-solr/target/
+bobo-solr/src/main/resources/
 build-test/
+cardemo/target/
 dist/
 ivy/
 doc
