@@ -390,7 +390,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
     }
   }
   
-  public SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,Set<String> termVectorsToFetch,boolean forceScoring,String groupBy, int maxPerGroup, boolean collectDocIdCache){
+  public SortCollector getSortCollector(SortField[] sort,Query q,int offset,int count,boolean fetchStoredFields,Set<String> termVectorsToFetch,boolean forceScoring,String[] groupBy, int maxPerGroup, boolean collectDocIdCache){
 	  return SortCollector.buildSortCollector(this,q,sort, offset, count, forceScoring,fetchStoredFields, termVectorsToFetch,groupBy, maxPerGroup, collectDocIdCache);
   }
 
@@ -443,7 +443,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
     result.setHits(hits);
     result.setNumHits(collector.getTotalHits());
     result.setNumGroups(collector.getTotalGroups());
-    result.setGroupAccessible(collector.getGroupAccessible());
+    result.setGroupAccessibles(collector.getGroupAccessibles());
     result.setSortCollector(collector);
     result.setTotalDocs(_reader.numDocs());
     result.addAll(facetCollectors);

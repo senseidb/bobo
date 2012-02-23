@@ -208,7 +208,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     result.setHits(hits);
     result.setNumHits(collector.getTotalHits());
     result.setNumGroups(collector.getTotalGroups());
-    result.setGroupAccessible(collector.getGroupAccessible());
+    result.setGroupAccessibles(collector.getGroupAccessibles());
     result.setSortCollector(collector);
     result.setTotalDocs(numDocs());
     result.addAll(facetCollectors);
@@ -344,7 +344,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
   }
 
   public SortCollector getSortCollector(SortField[] sort, Query q,int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
-		boolean forceScoring, String groupBy, int maxPerGroup, boolean collectDocIdCache) {
+		boolean forceScoring, String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
 	if (_subBrowsers.length==1){
 		return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchStoredFields, termVectorsToFetch,forceScoring, groupBy, maxPerGroup, collectDocIdCache);
 	}
