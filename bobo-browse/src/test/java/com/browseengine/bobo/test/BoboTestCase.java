@@ -246,8 +246,8 @@ public class BoboTestCase extends TestCase {
 		d1.add(buildMetaField("char","k"));
 		d1.add(buildMetaField("multinum","001"));
 		d1.add(buildMetaField("multinum","003"));
-		d1.add(buildMetaField("multiwithweight","cool:200"));
-		d1.add(buildMetaField("multiwithweight","good:100"));
+		d1.add(buildMetaField("multiwithweight","cool\u0000200"));
+		d1.add(buildMetaField("multiwithweight","good\u0000100"));
 		d1.add(buildMetaField("compactnum","001"));
 		d1.add(buildMetaField("compactnum","003"));
 		d1.add(buildMetaField("numendorsers","000003"));
@@ -283,8 +283,8 @@ public class BoboTestCase extends TestCase {
 		d2.add(buildMetaField("char","i"));
 		d2.add(buildMetaField("multinum","002"));
 		d2.add(buildMetaField("multinum","004"));
-		d2.add(buildMetaField("multiwithweight","cool:300"));
-		d2.add(buildMetaField("multiwithweight","good:200"));
+		d2.add(buildMetaField("multiwithweight","cool\u0000300"));
+		d2.add(buildMetaField("multiwithweight","good\u0000200"));
 		d2.add(buildMetaField("compactnum","002"));
 		d2.add(buildMetaField("compactnum","004"));
 		d2.add(buildMetaField("numendorsers","000010"));
@@ -312,7 +312,7 @@ public class BoboTestCase extends TestCase {
 		d3.add(buildMetaField("char","j"));
 		d3.add(buildMetaField("multinum","007"));
 		d3.add(buildMetaField("multinum","012"));
-		d3.add(buildMetaField("multiwithweight","cool:200"));
+		d3.add(buildMetaField("multiwithweight","cool\u0000200"));
 		d3.add(buildMetaField("compactnum","007"));
 		d3.add(buildMetaField("compactnum","012"));
 		d3.add(buildMetaField("numendorsers","000015"));

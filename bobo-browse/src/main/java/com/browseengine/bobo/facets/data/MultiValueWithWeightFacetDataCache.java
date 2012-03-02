@@ -95,11 +95,11 @@ public class MultiValueWithWeightFacetDataCache<T> extends MultiValueFacetDataCa
           if (val != null)
           {
             int weight = 0;
-            String[] split = val.split(":");
+            String[] split = val.split("\u0000");
             if (split.length > 1)
             {
               val = split[0];
-              weight = Integer.parseInt(split[1]);
+              weight = Integer.parseInt(split[split.length-1]);
             }
             if (pre == null || !val.equals(pre))
             {
@@ -134,7 +134,7 @@ public class MultiValueWithWeightFacetDataCache<T> extends MultiValueFacetDataCa
               {
                 df++;
                 docid = tdoc.doc();
-               
+                
                 if(!loader.add(docid, valId)) logOverflow(fieldName);
                 else weightLoader.add(docid, weight);
 
