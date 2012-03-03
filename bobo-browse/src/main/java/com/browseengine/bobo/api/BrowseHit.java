@@ -108,10 +108,12 @@ public class BrowseHit
 	private Map<String,Object[]> _rawFieldValues;
 	private transient Comparable<?> _comparable;
 	private Document _storedFields;
-    private String _groupValue;
-    private Object _rawGroupValue;
-    private int _groupHitsCount;
-    private BrowseHit[] _groupHits;
+  private int _groupPosition; // the position of the _groupField inside groupBy request.
+  private String _groupField;
+  private String _groupValue;
+  private Object _rawGroupValue;
+  private int _groupHitsCount;
+  private BrowseHit[] _groupHits;
 	private Explanation _explanation;
 	
 	private Map<String,TermFrequencyVector> _termFreqMap = new HashMap<String,TermFrequencyVector>();
@@ -124,6 +126,24 @@ public class BrowseHit
 	  _termFreqMap = termFreqMap;
     return this;
 	}
+
+    public int getGroupPosition() {
+      return _groupPosition;
+    }
+
+    public BrowseHit setGroupPosition(int pos) {
+      _groupPosition = pos;
+      return this;
+    }
+
+    public String getGroupField() {
+      return _groupField;
+    }
+
+    public BrowseHit setGroupField(String field) {
+      _groupField = field;
+      return this;
+    }
 
     public String getGroupValue() {
       return _groupValue;
