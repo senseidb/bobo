@@ -153,7 +153,7 @@ public class SortCollectorImpl extends SortCollector {
     _doScoring = doScoring;
     _tmpScoreDoc = new MyScoreDoc();
     _termVectorsToFetch = termVectorsToFetch;
-    _collectDocIdCache = collectDocIdCache;
+    _collectDocIdCache = collectDocIdCache || (groupBy != null && (groupBy.length == 1 && maxPerGroup > 1 || groupBy.length > 1));
     if (groupBy != null && groupBy.length != 0) {
       List<FacetHandler<?>> groupByList = new ArrayList<FacetHandler<?>>(groupBy.length);
       for(String field : groupBy) {
@@ -175,7 +175,7 @@ public class SortCollectorImpl extends SortCollector {
         for (int i=0; i<groupByMulti.length; ++i) {
           _facetAccessibleLists[i] = new LinkedList<FacetAccessible>();
         }
-        if (collectDocIdCache) {
+        if (_collectDocIdCache) {
           contextList = new LinkedList<CollectorContext>();
           docidarraylist = new LinkedList<int[]>();
           if (doScoring)
