@@ -147,6 +147,22 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 		return facet;
 	}
 
+  public int getFacetHitsCount(Object value) 
+  {
+    int[] range = FacetRangeFilter.parse(_latDataCache, (String)value);
+
+    if(range != null)
+    {
+      int sum = 0;
+      for(int i = range[0]; i <= range[1]; ++i)
+      {
+        sum += _latCount[i];
+      }
+      return sum;
+    }
+    return 0;
+  }
+
 	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.api.FacetAccessible#getFacets()
 	 */

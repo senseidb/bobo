@@ -94,6 +94,11 @@ public class PathFacetCountCollector implements FacetCountCollector
 	{
 	  return null;	
 	}
+
+  public int getFacetHitsCount(Object value) 
+  {
+    return 0;
+  }
 	
 	private void ensureCapacity(int minCapacity) {
 		int oldCapacity = _stringData.length;

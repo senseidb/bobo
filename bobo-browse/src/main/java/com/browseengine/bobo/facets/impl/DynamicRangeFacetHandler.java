@@ -136,6 +136,13 @@ public abstract class DynamicRangeFacetHandler extends RuntimeFacetHandler<Facet
     }
 
     @Override
+    public int getFacetHitsCount(Object value) 
+    {
+      String rangeString = buildRangeString((String)value);
+      return super.getFacetHitsCount(rangeString);
+    }
+
+    @Override
     public List<BrowseFacet> getFacets()
     {
       List<BrowseFacet> list = super.getFacets();      

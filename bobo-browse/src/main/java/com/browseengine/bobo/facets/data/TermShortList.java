@@ -85,11 +85,19 @@ public class TermShortList extends TermNumberList<Short>
     if (withDummy)
     {
       if (o==null) return -1;
-      short val = parse(String.valueOf(o));
+      short val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Short)o;
       return Arrays.binarySearch(_elements, 1, _elements.length, val);
     } else
     {
-      short val = parse(String.valueOf(o));
+      short val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Short)o;
       return Arrays.binarySearch(_elements, val);
     }
   }

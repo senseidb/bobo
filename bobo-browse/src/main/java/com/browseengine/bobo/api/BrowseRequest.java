@@ -80,7 +80,8 @@ public class BrowseRequest implements Serializable{
 	private boolean _fetchStoredFields;
 	private Filter _filter;
 	private boolean _showExplanation;
-	private String _groupBy;
+	private String _groupBy;  // TODO: Leave here for backward compatible reason, will remove it later.
+	private String[] _groupByMulti;
 	private int _maxPerGroup;
 	private boolean _collectDocIdCache;
 	private Set<String> _termVectorsToFetch;
@@ -189,6 +190,7 @@ public class BrowseRequest implements Serializable{
 		_filter = null;
 		_fetchStoredFields = false;
 		_groupBy = null;
+    _groupByMulti = null;
     _maxPerGroup = 0;
     _collectDocIdCache = false;
 	}
@@ -207,12 +209,18 @@ public class BrowseRequest implements Serializable{
     return this;
 	}
 	
-	public String getGroupBy(){
-		return _groupBy;
+	public String[] getGroupBy(){
+    if (_groupByMulti == null && _groupBy != null)
+      _groupByMulti = new String[]{_groupBy};
+
+		return _groupByMulti;
 	}
 	
-	public BrowseRequest setGroupBy(String groupBy){
-		_groupBy = groupBy;
+	public BrowseRequest setGroupBy(String[] groupBy){
+		_groupByMulti = groupBy;
+    if (_groupByMulti != null && _groupByMulti.length != 0)
+      _groupBy = _groupByMulti[0];
+
     return this;
 	}
 

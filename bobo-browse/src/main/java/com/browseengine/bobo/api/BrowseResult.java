@@ -68,7 +68,7 @@ public class BrowseResult implements Serializable{
 	private int numHits;
 	private int numGroups;
 	private int totalDocs;
-	private FacetAccessible _groupAccessible;
+	private FacetAccessible[] _groupAccessibles;
     transient private SortCollector _sortCollector;
   //private int totalGroups;
 	private Map<String,FacetAccessible> _facetMap;
@@ -83,7 +83,7 @@ public class BrowseResult implements Serializable{
 	public BrowseResult() {
 		super();
 		_facetMap=new HashMap<String,FacetAccessible>();
-    _groupAccessible = null;
+    _groupAccessibles = null;
     _sortCollector = null;
 		numHits=0;
 		numGroups=0;
@@ -97,16 +97,16 @@ public class BrowseResult implements Serializable{
    * Get the group accessible.
    * @return the group accessible.
    */
-  public FacetAccessible getGroupAccessible() {
-    return _groupAccessible;
+  public FacetAccessible[] getGroupAccessibles() {
+    return _groupAccessibles;
   }
 
   /**
    * Set the group accessible.
    * @param groupAccessible the group accessible.
    */
-  public BrowseResult setGroupAccessible(FacetAccessible groupAccessible) {
-    _groupAccessible = groupAccessible;
+  public BrowseResult setGroupAccessibles(FacetAccessible[] groupAccessibles) {
+    _groupAccessibles = groupAccessibles;
     return this;
   }
 
@@ -315,8 +315,14 @@ public class BrowseResult implements Serializable{
 	
 	public void close()
 	{
-    if (_groupAccessible != null)
-      _groupAccessible.close();
+    if (_groupAccessibles != null)
+    {
+      for(FacetAccessible accessible : _groupAccessibles)
+      {
+        if (accessible != null)
+          accessible.close();
+      }
+    }
     if (_sortCollector != null)
       _sortCollector.close();
 	  if (_facetMap == null) return;

@@ -129,6 +129,22 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     return facet; 
   }
 
+  public int getFacetHitsCount(Object value)
+  {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector for " + _name + " was already closed");
+    }
+    int index=_dataCache.valArray.indexOf(value);
+    if (index >= 0)
+    {
+      return _count[index];
+    }
+    else{
+      return 0;  
+    }
+  }
+
   public int[] getCountDistribution()
   {
     return _count;

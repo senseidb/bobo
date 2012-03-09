@@ -74,6 +74,45 @@ public class CombinedFacetAccessible implements FacetAccessible
     return new BrowseFacet(foundValue,sum);
   }
 
+  public int getCappedFacetCount(Object value, int cap) 
+  {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector was already closed");
+    }
+    int sum=0;
+    if (_list!=null)
+    {
+      for (FacetAccessible facetAccessor : _list)
+      {
+        if (facetAccessor instanceof CombinedFacetAccessible)
+          sum += ((CombinedFacetAccessible)facetAccessor).getCappedFacetCount(value, cap-sum);
+        else
+          sum += facetAccessor.getFacetHitsCount(value);
+        if (sum >= cap)
+          return cap;
+      }
+    }
+    return sum;
+  }
+
+  public int getFacetHitsCount(Object value) 
+  {
+    if (_closed)
+    {
+      throw new IllegalStateException("This instance of count collector was already closed");
+    }
+    int sum=0;
+    if (_list!=null)
+    {
+      for (FacetAccessible facetAccessor : _list)
+      {
+        sum += facetAccessor.getFacetHitsCount(value);
+      }
+    }
+    return sum;
+  }
+
   public List<BrowseFacet> getFacets() 
   {
     if (_closed)

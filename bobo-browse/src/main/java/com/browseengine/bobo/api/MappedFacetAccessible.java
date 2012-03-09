@@ -30,6 +30,14 @@ public class MappedFacetAccessible implements FacetAccessible, Serializable {
 		return _facetMap.get(value);
 	}
 
+  public int getFacetHitsCount(Object value)
+  {
+    BrowseFacet facet = _facetMap.get(value);
+    if (facet != null)
+      return facet.getHitCount();
+    return 0;
+  }
+
 	public List<BrowseFacet> getFacets() {
 		return Arrays.asList(_facets);
 	}

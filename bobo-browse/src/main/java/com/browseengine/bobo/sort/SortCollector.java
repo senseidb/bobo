@@ -103,7 +103,8 @@ public abstract class SortCollector extends Collector {
     }
   }
 
-  public FacetHandler<?> groupBy;
+  public FacetHandler<?> groupBy = null; // Point to the first element of groupByMulti to avoid array lookups.
+  public FacetHandler<?>[] groupByMulti = null;
 
   public LinkedList<CollectorContext> contextList;
   public LinkedList<int[]> docidarraylist;
@@ -125,7 +126,7 @@ public abstract class SortCollector extends Collector {
 
 	abstract public int getTotalHits();
 	abstract public int getTotalGroups();
-	abstract public FacetAccessible getGroupAccessible();
+	abstract public FacetAccessible[] getGroupAccessibles();
 	
 	private static DocComparatorSource getNonFacetComparatorSource(SortField sf){
 		String fieldname = sf.getField();
@@ -217,7 +218,7 @@ public abstract class SortCollector extends Collector {
 			return sort;
 		}
 	}
-	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, Set<String> termVectorsToFetch,String groupBy, int maxPerGroup, boolean collectDocIdCache){
+	public static SortCollector buildSortCollector(Browsable browser,Query q,SortField[] sort,int offset,int count,boolean forceScoring,boolean fetchStoredFields, Set<String> termVectorsToFetch,String[] groupBy, int maxPerGroup, boolean collectDocIdCache){
 		boolean doScoring=forceScoring;
 		if (sort == null || sort.length==0){	
 			if (q!=null && !(q instanceof MatchAllDocsQuery)){

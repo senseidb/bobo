@@ -103,6 +103,18 @@ public class BucketFacetCountCollector implements FacetCountCollector
       return new BrowseFacet(bucketValue,counts[index]);
   }
   
+  public int getFacetHitsCount(Object value) 
+  {
+    int index = _bucketValues.indexOf(value);
+    if (index<0){
+      return 0;
+    }
+    
+    int[] counts = getCollapsedCounts();
+  
+    return counts[index];
+  }
+
   public final void collect(int docid) {
 	  _subCollector.collect(docid);
   }
