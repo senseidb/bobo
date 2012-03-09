@@ -70,7 +70,11 @@ public class TermFloatList extends TermNumberList<Float>
   @Override
   public int indexOf(Object o)
   {
-    float val = parse((String) o);
+    float val;
+    if (o instanceof String)
+      val = parse((String) o);
+    else
+      val = (Float)o;
     float[] elements = ((FloatArrayList) _innerList).elements();
     return Arrays.binarySearch(elements, val);
   }

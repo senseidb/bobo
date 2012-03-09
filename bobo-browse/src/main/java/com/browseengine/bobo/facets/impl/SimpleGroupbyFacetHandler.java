@@ -248,13 +248,34 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         startIdx += index * segLen;
       }
 
-      int count = _count[startIdx];
+      int count = 0;
       for (int i = startIdx;i<startIdx+segLen;++i){
         count+=_count[i];
       }
 
       BrowseFacet f = new BrowseFacet(buf.toString(),count);
       return f;
+    }
+
+    public int getFacetHitsCount(Object value) 
+    {
+      String[] vals = ((String)value).split(_sep);
+      if (vals.length == 0) return 0;
+      int startIdx = 0;
+      int segLen = _countlength;
+
+      for (int i=0; i<vals.length; ++i)
+      {
+        int index = _subcollectors[i]._dataCache.valArray.indexOf(vals[i]);
+        segLen /= _subcollectors[i]._countlength;
+        startIdx += index * segLen;
+      }
+
+      int count = 0;
+      for (int i=startIdx; i<startIdx+segLen; ++i)
+        count += _count[i];
+
+      return count;
     }
 
     private final String getFacetString(int idx){

@@ -86,11 +86,19 @@ public class TermIntList extends TermNumberList<Integer>
     if (withDummy)
     {
       if (o==null) return -1;
-      int val = parse(String.valueOf(o));
+      int val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Integer)o;
       return Arrays.binarySearch(_elements, 1, _elements.length, val);
     } else
     {
-      int val = parse(String.valueOf(o));
+      int val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Integer)o;
       return Arrays.binarySearch(_elements, val);
     }
   }

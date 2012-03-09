@@ -44,8 +44,13 @@ public class TermCharList extends TermValueList<Character> {
   }
 
   @Override
-	public int indexOf(Object o) {
-		char val=parse((String)o);
+	public int indexOf(Object o)
+  {
+    char val;
+    if (o instanceof String)
+      val = parse((String)o);
+    else
+      val = (Character)o;
 		char[] elements=((CharArrayList)_innerList).elements();
 		return Arrays.binarySearch(elements, val);
 	}

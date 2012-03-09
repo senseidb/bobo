@@ -178,6 +178,22 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       }
       return null; 
     }
+
+    public int getFacetHitsCount(Object value) 
+    {
+      if(!_isAggregated) aggregate();
+      
+      int idx;
+      if (value instanceof String)
+        idx = Integer.parseInt((String)value);
+      else
+        idx = ((Number)value).intValue();
+      if(idx >= 0 && idx < _count.length)
+      {
+        return _count[idx];
+      }
+      return 0; 
+    }
     
     public final void collect(int docid)
     {

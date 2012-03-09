@@ -111,6 +111,20 @@ public class RangeFacetCountCollector implements FacetCountCollector
       return facet; 
   }
   
+  public int getFacetHitsCount(Object value) 
+  {
+    int[] range = FacetRangeFilter.parse(_dataCache, (String)value);
+    int sum=0;
+    if (range != null)
+    {
+      for (int i=range[0]; i<=range[1]; ++i)
+      {
+          sum += _count[i];
+      }
+    }
+    return sum; 
+  }
+
   public void collect(int docid) {
       _count[_array.get(docid)]++;
   }

@@ -90,11 +90,19 @@ public class TermLongList extends TermNumberList<Long>
     if (withDummy)
     {
       if (o==null) return -1;
-      long val = parse(String.valueOf(o));
+      long val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Long)o;
       return Arrays.binarySearch(_elements, 1, _elements.length, val);
     } else
     {
-      long val = parse(String.valueOf(o));
+      long val;
+      if (o instanceof String)
+        val = parse((String) o);
+      else
+        val = (Long)o;
       return Arrays.binarySearch(_elements, val);
     }
   }

@@ -204,6 +204,26 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		}
 	}
 
+  public int getFacetHitsCount(Object value) 
+  {
+    if(_predefinedRanges != null)
+    {
+      int index = 0;
+      if((index = _predefinedRanges.indexOf(value)) != -1)
+      {
+        return _count[index];
+      }
+      else
+      {
+        throw new IllegalArgumentException("The value argument is not one of the user-specified ranges");        
+      }
+    }
+    else
+    {
+      throw new IllegalArgumentException("There are no user-specified ranges for this Facet Count Collector object");
+    }
+  }
+
 	/**
 	 * @return A list containing BrowseFacet objects for each of the user-specified ranges
 	 */

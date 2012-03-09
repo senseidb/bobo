@@ -416,8 +416,14 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
 	  {
 	    if(!_aggregated) aggregateCounts();
 	    return super.getFacet(value);  
-	  }
-	  
+    }
+
+    @Override
+    public int getFacetHitsCount(Object value) 
+    {
+	    if(!_aggregated) aggregateCounts();
+	    return super.getFacetHitsCount(value);  
+    }
       @Override
       public int[] getCountDistribution()
       {
