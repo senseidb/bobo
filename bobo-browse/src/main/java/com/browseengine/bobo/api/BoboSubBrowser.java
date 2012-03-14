@@ -531,7 +531,11 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
         handler.close();
       }
     }
-    if(_reader != null) _reader.clearRuntimeFacetData();
+    if(_reader != null)
+    {
+      _reader.clearRuntimeFacetData();
+      _reader.clearRuntimeFacetHandler();
+    }
     super.close();
   }
 }
