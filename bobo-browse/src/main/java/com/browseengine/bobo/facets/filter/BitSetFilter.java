@@ -77,7 +77,7 @@ public class BitSetFilter extends RandomAccessFilter {
       int index = openBitSet.nextSetBit(0);
       while (index >= 0) {
         accumFreq += frequencies[index];
-        index = openBitSet.nextSetBit(index);
+        index = openBitSet.nextSetBit(index + 1);
       }
       int total = reader.maxDoc();
       selectivity = (double) accumFreq / (double) total;
