@@ -64,6 +64,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.facets.RuntimeFacetHandlerFactory;
 
 /**
@@ -92,6 +93,11 @@ public class BoboIndexReader extends FilterIndexReader
   private final ThreadLocal<Map<String,Object>> _runtimeFacetDataMap = new ThreadLocal<Map<String,Object>>()
   {
     protected Map<String,Object> initialValue() { return new HashMap<String,Object>(); }
+  };
+  
+  private final ThreadLocal<Map<String,RuntimeFacetHandler<?>>> _runtimeFacetHandlerMap = new ThreadLocal<Map<String,RuntimeFacetHandler<?>>>()
+  {
+    protected Map<String,RuntimeFacetHandler<?>> initialValue() { return new HashMap<String,RuntimeFacetHandler<?>>(); }
   };
   
   /**
@@ -322,6 +328,31 @@ public class BoboIndexReader extends FilterIndexReader
     _runtimeFacetDataMap.set(null);
   }
 
+  public RuntimeFacetHandler<?> getRuntimeFacetHandler(String name)
+  {
+    Map<String,RuntimeFacetHandler<?>> map = _runtimeFacetHandlerMap.get();
+    if(map == null) return null;
+
+    return map.get(name);
+  }
+
+  public void putRuntimeFacetHandler(String name,RuntimeFacetHandler<?> data)
+  {
+    Map<String,RuntimeFacetHandler<?>> map = _runtimeFacetHandlerMap.get();
+    if(map == null)
+    {
+      map = new HashMap<String,RuntimeFacetHandler<?>>();
+      _runtimeFacetHandlerMap.set(map);
+    }
+    map.put(name, data);
+  }
+
+  public void clearRuntimeFacetHandler()
+  {
+    _runtimeFacetHandlerMap.set(null);
+  }
+  
+  
   @Override
   protected void doClose() throws IOException
   {
@@ -667,7 +698,10 @@ public class BoboIndexReader extends FilterIndexReader
    */
   public FacetHandler<?> getFacetHandler(String fieldname)
   {
-    return _facetHandlerMap.get(fieldname);
+    FacetHandler<?> f = _facetHandlerMap.get(fieldname);
+    if(f == null)
+      f = getRuntimeFacetHandler(fieldname);
+    return f;
   }
   
   

@@ -49,12 +49,14 @@ public abstract class RuntimeFacetHandler<D> extends FacetHandler<D>
   public void loadFacetData(BoboIndexReader reader, BoboIndexReader.WorkArea workArea) throws IOException
   {
     reader.putRuntimeFacetData(_name, load(reader, workArea));
+    reader.putRuntimeFacetHandler(_name, this);
   }
   
   @Override
   public void loadFacetData(BoboIndexReader reader) throws IOException
   {
     reader.putRuntimeFacetData(_name, load(reader));
+    reader.putRuntimeFacetHandler(_name, this);
   }
 
   public void close()
