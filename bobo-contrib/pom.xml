@@ -13,19 +13,57 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-   <parent>
-           <groupId>com.browseengine.bobo</groupId>
-           <artifactId>bobo-parent</artifactId>
-            <version>3.0.3-SNAPSHOT</version>
-           <relativePath>../bobo-parent/pom.xml</relativePath>
-   </parent>  
+  <parent>
+    <groupId>com.browseengine.bobo</groupId>
+    <artifactId>bobo-parent</artifactId>
+     <version>3.0.4-SNAPSHOT</version>
+    <relativePath>../bobo-parent/pom.xml</relativePath>
+  </parent>  
   <artifactId>bobo-contrib</artifactId>
-  <version>3.0.1</version>
+  <version>3.0.4-SNAPSHOT</version>
   <name>bobo contrib</name>
   
   <description>Bobo is a Faceted Search implementation written purely in Java, an extension of Apache Lucene</description>
   <url>http://javasoze.github.com/bobo</url>
     
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+    </plugins>
+  </build>
   <dependencies>
   	<dependency>
   		<groupId>org.jmock</groupId>

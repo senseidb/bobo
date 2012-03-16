@@ -18,7 +18,7 @@
   <parent>
     <groupId>com.browseengine.bobo</groupId>
     <artifactId>bobo-parent</artifactId>
-    <version>3.0.3-SNAPSHOT</version>
+    <version>3.0.4-SNAPSHOT</version>
     <relativePath>bobo-parent/pom.xml</relativePath>
   </parent>
 
@@ -57,6 +57,30 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
         <configuration>
