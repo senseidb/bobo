@@ -74,10 +74,10 @@ public class BitSetFilter extends RandomAccessFilter {
       int[] frequencies = dataCache.freqs;
       double selectivity = 0;
       int accumFreq = 0;
-      int index = openBitSet.nextSetBit(-1);
+      int index = openBitSet.nextSetBit(0);
       while (index >= 0) {
         accumFreq += frequencies[index];
-        index = openBitSet.nextSetBit(index);
+        index = openBitSet.nextSetBit(index + 1);
       }
       int total = reader.maxDoc();
       selectivity = (double) accumFreq / (double) total;
