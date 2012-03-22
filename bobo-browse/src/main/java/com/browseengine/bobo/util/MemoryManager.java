@@ -103,48 +103,49 @@ public class MemoryManager<T> implements MemoryManagerAdminMBean
    */
   public T get(int reqsize)
   {
-    long t0 = System.currentTimeMillis();
-    int size = reqsize;
-    for(int i = 0; i<sizetable.length; i++)
-    {
-      if (sizetable[i] >= reqsize)
-      {
-        size = sizetable[i];
-        break;
-      }
-    }
-    ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(size);
-    if (queue==null)
-    {
-      queue =  new ConcurrentLinkedQueue<WeakReference<T>>();
-      _sizeMap.putIfAbsent(size, queue);
-      queue = _sizeMap.get(size);
-    }
-    while(true)
-    {
-      WeakReference<T> ref = (WeakReference<T>) queue.poll();
-      if(ref != null)
-      {
-        T buf = ref.get();
-        if(buf != null)
-        {
-          _hits.incrementAndGet();
-          return buf;
-        }
-      }
-      else
-      {
-        T ret = _initializer.newInstance(size);
-        _miss.incrementAndGet();
-        long hit = _hits.get();
-        if (hit > Long.MAX_VALUE/2)
-        {
-          _hits.set(0);
-          _miss.set(0);
-        }
-        return ret;
-      }
-    }
+    return _initializer.newInstance(reqsize);
+    //long t0 = System.currentTimeMillis();
+    //int size = reqsize;
+    //for(int i = 0; i<sizetable.length; i++)
+    //{
+      //if (sizetable[i] >= reqsize)
+      //{
+        //size = sizetable[i];
+        //break;
+      //}
+    //}
+    //ConcurrentLinkedQueue<WeakReference<T>> queue = _sizeMap.get(size);
+    //if (queue==null)
+    //{
+      //queue =  new ConcurrentLinkedQueue<WeakReference<T>>();
+      //_sizeMap.putIfAbsent(size, queue);
+      //queue = _sizeMap.get(size);
+    //}
+    //while(true)
+    //{
+      //WeakReference<T> ref = (WeakReference<T>) queue.poll();
+      //if(ref != null)
+      //{
+        //T buf = ref.get();
+        //if(buf != null)
+        //{
+          //_hits.incrementAndGet();
+          //return buf;
+        //}
+      //}
+      //else
+      //{
+        //T ret = _initializer.newInstance(size);
+        //_miss.incrementAndGet();
+        //long hit = _hits.get();
+        //if (hit > Long.MAX_VALUE/2)
+        //{
+          //_hits.set(0);
+          //_miss.set(0);
+        //}
+        //return ret;
+      //}
+    //}
   }
 
   /**
@@ -153,24 +154,24 @@ public class MemoryManager<T> implements MemoryManagerAdminMBean
    */
   public void release(T buf)
   {
-    if (_releaseQueueSize.get()>8000)
-    {
-      log.info("release queue full");
-      synchronized(MemoryManager.this)
-      {
-        MemoryManager.this.notifyAll();
-      }
-      return;
-    }
-    if(buf != null)
-    {
-      _releaseQueue.offer(buf);
-      _releaseQueueSize.incrementAndGet();
-      synchronized(MemoryManager.this)
-      {
-        MemoryManager.this.notifyAll();
-      }
-    }
+    //if (_releaseQueueSize.get()>8000)
+    //{
+      //log.info("release queue full");
+      //synchronized(MemoryManager.this)
+      //{
+        //MemoryManager.this.notifyAll();
+      //}
+      //return;
+    //}
+    //if(buf != null)
+    //{
+      //_releaseQueue.offer(buf);
+      //_releaseQueueSize.incrementAndGet();
+      //synchronized(MemoryManager.this)
+      //{
+        //MemoryManager.this.notifyAll();
+      //}
+    //}
   }
 
   public static interface Initializer<E>
