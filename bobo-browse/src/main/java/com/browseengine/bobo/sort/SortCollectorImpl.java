@@ -83,7 +83,7 @@ public class SortCollectorImpl extends SortCollector {
   private DocIDPriorityQueue _currentQueue;
   private BoboIndexReader _currentReader=null;
   private FacetCountCollector _facetCountCollector;
-  private FacetCountCollector[] _facetCountCollectorMulti;
+  private FacetCountCollector[] _facetCountCollectorMulti=null;
 
   private final boolean _doScoring;
   private Scorer _scorer;
@@ -153,7 +153,7 @@ public class SortCollectorImpl extends SortCollector {
     _doScoring = doScoring;
     _tmpScoreDoc = new MyScoreDoc();
     _termVectorsToFetch = termVectorsToFetch;
-    _collectDocIdCache = collectDocIdCache || (groupBy != null && (groupBy.length == 1 && maxPerGroup > 1 || groupBy.length > 1));
+    _collectDocIdCache = collectDocIdCache || groupBy != null;
     if (groupBy != null && groupBy.length != 0) {
       List<FacetHandler<?>> groupByList = new ArrayList<FacetHandler<?>>(groupBy.length);
       for(String field : groupBy) {
@@ -164,16 +164,19 @@ public class SortCollectorImpl extends SortCollector {
       if (groupByList.size() > 0) {
         this.groupByMulti = groupByList.toArray(new FacetHandler<?>[0]);
         this.groupBy = groupByMulti[0];
-        _facetCountCollectorMulti = new FacetCountCollector[groupByList.size()];
       }
       if (this.groupBy != null && _count > 0) {
-        if (groupByMulti.length == 1)
+        if (groupByMulti.length == 1) {
           _currentValueDocMaps = new Int2ObjectOpenHashMap<ScoreDoc>(_count);
-        else
+          _facetAccessibleLists = null;
+        }
+        else {
           _currentValueDocMaps = null;
-        _facetAccessibleLists = new List[groupByMulti.length];
-        for (int i=0; i<groupByMulti.length; ++i) {
-          _facetAccessibleLists[i] = new LinkedList<FacetAccessible>();
+          _facetCountCollectorMulti = new FacetCountCollector[groupByList.size()];
+          _facetAccessibleLists = new List[groupByMulti.length];
+          for (int i=0; i<groupByMulti.length; ++i) {
+            _facetAccessibleLists[i] = new LinkedList<FacetAccessible>();
+          }
         }
         if (_collectDocIdCache) {
           contextList = new LinkedList<CollectorContext>();
@@ -203,7 +206,7 @@ public class SortCollectorImpl extends SortCollector {
     ++_totalHits;
 
     if (groupBy != null) {
-      if (_facetCountCollectorMulti.length > 1) {
+      if (_facetCountCollectorMulti != null) {
         for(int i=0; i<_facetCountCollectorMulti.length; ++i) {
           if (_facetCountCollectorMulti[i] != null)
             _facetCountCollectorMulti[i].collect(doc);
@@ -233,8 +236,8 @@ public class SortCollectorImpl extends SortCollector {
         return;
       }
       else {
-        if (_facetCountCollector != null)
-          _facetCountCollector.collect(doc);
+        //if (_facetCountCollector != null)
+          //_facetCountCollector.collect(doc);
 
         if (_count > 0) {
           final float score = (_doScoring ? _scorer.score() : 0.0f);
@@ -333,15 +336,17 @@ public class SortCollectorImpl extends SortCollector {
     _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
     if (groupBy != null) {
-      for (int i=0; i<groupByMulti.length; ++i) {
-        _facetCountCollectorMulti[i] = groupByMulti[i].getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
-      }
-      if (_facetCountCollector != null)
-        collectTotalGroups();
-      _facetCountCollector = _facetCountCollectorMulti[0];
-      if (_facetAccessibleLists != null) {
-        for(int i=0; i<groupByMulti.length; ++i) {
-          _facetAccessibleLists[i].add(_facetCountCollectorMulti[i]);
+      if (_facetCountCollectorMulti != null) {
+        for (int i=0; i<groupByMulti.length; ++i) {
+          _facetCountCollectorMulti[i] = groupByMulti[i].getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
+        }
+        //if (_facetCountCollector != null)
+          //collectTotalGroups();
+        _facetCountCollector = _facetCountCollectorMulti[0];
+        if (_facetAccessibleLists != null) {
+          for(int i=0; i<groupByMulti.length; ++i) {
+            _facetAccessibleLists[i].add(_facetCountCollectorMulti[i]);
+          }
         }
       }
       if (_currentValueDocMaps != null)
@@ -373,7 +378,7 @@ public class SortCollectorImpl extends SortCollector {
 
   @Override
   public int getTotalGroups(){
-    return _totalGroups;
+    return _totalHits;
   }
 
   @Override
@@ -405,14 +410,16 @@ public class SortCollectorImpl extends SortCollector {
 
         Object rawGroupValue = null;
 
-        if (_facetCountCollector != null)
-        {
-          collectTotalGroups();
-          _facetCountCollector = null;
+        //if (_facetCountCollector != null)
+        //{
+          //collectTotalGroups();
+          //_facetCountCollector = null;
+        //}
+        if (_facetAccessibleLists != null) {
+          _groupAccessibles = new CombinedFacetAccessible[_facetAccessibleLists.length];
+          for (int i=0; i<_facetAccessibleLists.length; ++i)
+            _groupAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), _facetAccessibleLists[i]);
         }
-        _groupAccessibles = new CombinedFacetAccessible[_facetAccessibleLists.length];
-        for (int i=0; i<_facetAccessibleLists.length; ++i)
-          _groupAccessibles[i] = new CombinedFacetAccessible(new FacetSpec(), _facetAccessibleLists[i]);
         resList = new ArrayList<MyScoreDoc>(_count);
         Iterator<MyScoreDoc> mergedIter = ListMerger.mergeLists(iterList, MERGE_COMPATATOR);
         Set<Object> groupSet = new HashSet<Object>(_offset+_count);
@@ -503,7 +510,10 @@ public class SortCollectorImpl extends SortCollector {
       if (groupBy != null) {
         hit.setGroupValue(hit.getField(groupBy.getName()));
         hit.setRawGroupValue(hit.getRawField(groupBy.getName()));
-        if (hit.getGroupValue() != null && groupAccessibles != null && groupAccessibles.length > 0) {
+        if (groupAccessibles != null &&
+            hit.getGroupValue() != null &&
+            groupAccessibles != null &&
+            groupAccessibles.length > 0) {
           BrowseFacet facet = groupAccessibles[0].getFacet(hit.getGroupValue());
           hit.setGroupHitsCount(facet.getFacetValueHitCount());
         }
