@@ -18,7 +18,12 @@ public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerPar
    * @return the facet name of the RuntimeFacetHandler it creates.
    */
   String getName();
-  
+
+  /**
+   * @return if this facet support empty params or not.
+   */
+  boolean isEmptyParamsSupported();
+
   /**
    * @param params the data used to initialize the RuntimeFacetHandler.
    * @return a new instance of 
