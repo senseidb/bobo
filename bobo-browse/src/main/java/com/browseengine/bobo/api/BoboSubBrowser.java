@@ -218,7 +218,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
           FacetHandlerInitializerParam data = req.getFacethandlerData(facetName);
           if (data == null)
             data = FacetHandlerInitializerParam.EMPTY_PARAM;
-          if (data != FacetHandlerInitializerParam.EMPTY_PARAM || factory.isLoadLazily())
+          if (data != FacetHandlerInitializerParam.EMPTY_PARAM || !factory.isLoadLazily())
           {
             RuntimeFacetHandler<?> facetHandler =  factory.get(data);
             if (facetHandler != null)
