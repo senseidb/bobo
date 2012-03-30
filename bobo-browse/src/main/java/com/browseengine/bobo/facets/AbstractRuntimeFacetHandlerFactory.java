@@ -8,7 +8,7 @@ public abstract class AbstractRuntimeFacetHandlerFactory<P extends FacetHandlerI
    * false.
    */
   @Override
-  public boolean isEmptyParamsSupported()
+  public boolean isLoadLazily()
   {
     return false;
   }

@@ -22,7 +22,7 @@ public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerPar
   /**
    * @return if this facet support empty params or not.
    */
-  boolean isEmptyParamsSupported();
+  boolean isLoadLazily();
 
   /**
    * @param params the data used to initialize the RuntimeFacetHandler.
