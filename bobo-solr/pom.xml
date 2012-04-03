@@ -1,0 +1,128 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+            <groupId>com.browseengine.bobo</groupId>
+            <artifactId>bobo-parent</artifactId>
+             <version>3.0.5-SNAPSHOT</version>
+            <relativePath>../bobo-parent/pom.xml</relativePath>
+    </parent>
+
+	<artifactId>bobo-solr</artifactId>
+	<packaging>jar</packaging>
+	<name>bobo solr</name>
+	<description>bobo solr plugin</description>
+	<url>http://javasoze.github.com/bobo</url>
+
+	<!-- Set the compiler to java6 -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+			                <groupId>pl.project13.maven</groupId>
+			                <artifactId>git-commit-id-plugin</artifactId>
+			                <version>1.9</version>
+			                <executions>
+			                    <execution>
+			                        <goals>
+			                            <goal>revision</goal>
+			                         </goals>
+			                    </execution>
+			                </executions>
+			                <configuration>
+			                    <prefix>git</prefix>
+			                    <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
+			                    <verbose>true</verbose>
+			                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+			                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+			                    <generateGitPropertiesFilename>src/main/resources/git.properties</generateGitPropertiesFilename>
+			                </configuration>
+			            </plugin>
+			
+
+		</plugins>
+	</build>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>bobo-browse</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-core</artifactId>
+			<version>3.5.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-solrj</artifactId>
+			<version>3.5.0</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<name>sonatype nexus snapshots repository</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

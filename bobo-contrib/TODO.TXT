@@ -1,5 +1,5 @@
 bobo-contrib todo
-- resolve lucene 3.0.x/3.3 difference between bobo and bobo-contrib.
+- resolve lucene 3.0.x/"3.5 + LUCENE-3627" difference between bobo and bobo-contrib.
 - figure out how to make ivy work for dependent libraries.
 
 btree-bitwise-interlace-geosearch todo
@@ -14,5 +14,8 @@ particularly for large indexes
 - add refinement step from the paper, for narrowing the boundaries on  
 dense hits sorted by distance
 - fix merge out-of-order condition
+- provide cleaner geo index merge and deletion support.  Either via 
+lucene 4.x flexible indexing(when released) or a patch to lucene 3.x
+that provides the appropriate extension points
 
 
