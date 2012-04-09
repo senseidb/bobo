@@ -118,9 +118,9 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>fastutil</groupId>
+			<groupId>it.unimi.dsi</groupId>
 			<artifactId>fastutil</artifactId>
-			<version>5.0.5</version>
+			<version>6.4.3</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
