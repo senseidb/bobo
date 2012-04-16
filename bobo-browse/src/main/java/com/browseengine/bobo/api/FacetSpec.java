@@ -164,9 +164,23 @@ public class FacetSpec implements Serializable {
    * Sets  custom properties for the facet search. For example AttributeFacetHandler uses this to perform custom facet filtering
    * @param properties
    */
-  public void setProperties(Map<String, String> properties) {
+  public FacetSpec setProperties(Map<String, String> properties) {
     this.properties = properties;
+    return this;
   }
-	
-	
+
+  @Override
+  public FacetSpec clone() {
+    Map<String, String> properties = getProperties();
+    Map<String, String> clonedProperties = new HashMap<String, String>(properties.size());
+    clonedProperties.putAll(properties);
+
+    return new FacetSpec()
+      .setCustomComparatorFactory(getCustomComparatorFactory())
+      .setExpandSelection(isExpandSelection())
+      .setMaxCount(getMaxCount())
+      .setMinHitCount(getMinHitCount())
+      .setOrderBy(getOrderBy())
+      .setProperties(clonedProperties);
+  }
 }
