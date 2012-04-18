@@ -79,18 +79,17 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
       }
       w = createWeight(q);
     }
-    catch (IOException ioe)
+    catch (Exception ioe)
     {
       throw new BrowseException(ioe.getMessage(), ioe);
-    } catch(RuntimeException e)
-    {
-      w = null;
     }
+    
     browse(req, w, collector, facetMap, start);
   }
   
   public void browse(BrowseRequest req, Weight weight, final Collector hc, Map<String, FacetAccessible> facetMap, int start) throws BrowseException
   {
+   
     Browsable[] browsers = getSubBrowsers();
     // index empty
     if (browsers==null || browsers.length ==0 ) return;
@@ -187,6 +186,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
     }
     catch (IOException e){
       logger.error(e.getMessage(), e);
+      result.addError(e.getMessage());
       hits = new BrowseHit[0];
     }
     
@@ -201,6 +201,7 @@ public class MultiBoboBrowser extends MultiSearcher implements Browsable,Closeab
 				hit.setExplanation(expl);
 			} catch (IOException e) {
 				logger.error(e.getMessage(),e);
+				result.addError(e.getMessage());
 			}
     	}
     }
