@@ -61,7 +61,14 @@ public class TermStringList extends TermValueList<String> {
 	  if (withDummy)
 	  {
 	    if (o == null) return -1;
-	    if (o.equals("") && "".equals(_innerList.get(1))) return 1; 
+	   
+	    if (o.equals("")) {
+        if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
+          return 1;
+        } else if (_innerList.size()  < 2) {
+          return -1;
+        }        
+      }  
 	    return Collections.binarySearch(((ArrayList<String>)_innerList), (String)o);
 	  } else
 	  {
@@ -80,7 +87,9 @@ public class TermStringList extends TermValueList<String> {
     if (withDummy)
     {
       if (val == null) return false;
-      if (val.equals("")) return  "".equals(_innerList.get(1)); 
+      if (val.equals("")) {       
+          return  _innerList.size() > 1 && "".equals(_innerList.get(1)); 
+      }
       return Collections.binarySearch(((ArrayList<String>)_innerList), val)>=0;
     } else
     {
@@ -94,7 +103,13 @@ public class TermStringList extends TermValueList<String> {
     if (withDummy)
     {
       if (o == null) return -1;
-      if (o.equals("") && "".equals(_innerList.get(1))) return 1; 
+      if (o.equals("")) {
+        if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
+          return 1;
+        } else if (_innerList.size() < 2) {
+          return -1;
+        }        
+      }  
       return Collections.binarySearch(((ArrayList<String>)_innerList), (String)o);
     } else
     {
