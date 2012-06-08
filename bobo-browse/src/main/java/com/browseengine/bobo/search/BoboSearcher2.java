@@ -106,7 +106,15 @@ public class BoboSearcher2 extends IndexSearcher{
       }
       _countCollectors = collectorList.toArray(new FacetCountCollector[collectorList.size()]);
     }
-
+  public FacetCountCollector[] getCountCollectors() {
+    List<FacetCountCollector> collectors = new ArrayList<FacetCountCollector>();
+    collectors.addAll(Arrays.asList(_countCollectors));
+    for (FacetHitCollector facetHitCollector : _collectors) {
+      collectors.addAll(facetHitCollector._collectAllCollectorList);
+      collectors.addAll(facetHitCollector._countCollectorList);
+    }
+    return collectors.toArray(new FacetCountCollector[collectors.size()]);
+  }
   }
   
   private final static class DefaultFacetValidator extends FacetValidator{
@@ -286,9 +294,6 @@ public class BoboSearcher2 extends IndexSearcher{
         
     	collector.setScorer(scorer);
         target = scorer.nextDoc();
-        if (target!=DocIdSetIterator.NO_MORE_DOCS && mapReduceWrapper != null) {
-        	mapReduceWrapper.mapFullIndexReader(_subReaders[i]);
-        }
         while(target!=DocIdSetIterator.NO_MORE_DOCS)
         {
           if(validator.validate(target))
@@ -302,6 +307,9 @@ public class BoboSearcher2 extends IndexSearcher{
             target = scorer.advance(target);
           }
         }
+      }
+      if (mapReduceWrapper != null) {
+        mapReduceWrapper.mapFullIndexReader(_subReaders[i], validator.getCountCollectors());
       }
       }
       return;
@@ -371,7 +379,7 @@ public class BoboSearcher2 extends IndexSearcher{
             target = filterDocIdIterator.advance(doc);
           }
         }
-        mapReduceWrapper.finalizeSegment(_subReaders[i]);
+        mapReduceWrapper.finalizeSegment(_subReaders[i], validator.getCountCollectors());
       }
       }
     }

@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Keeps the map reduce results 
+ *
+ */
 public class MapReduceResult implements Serializable {
   protected List mapResults = new ArrayList(200);
   protected Serializable reduceResult;
