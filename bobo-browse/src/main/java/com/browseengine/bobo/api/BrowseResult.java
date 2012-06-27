@@ -77,7 +77,7 @@ public class BrowseResult implements Serializable{
 	private BrowseHit[] hits;
 	private long time;
 	private MapReduceResult mapReduceResult;
-  private List<String> errors = new ArrayList<String>(1);
+  private List<String> errors;
 	private static BrowseHit[] NO_HITS=new BrowseHit[0];
 		
 	/**
