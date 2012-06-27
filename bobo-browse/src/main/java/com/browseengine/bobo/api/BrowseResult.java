@@ -337,10 +337,16 @@ public class BrowseResult implements Serializable{
 	}
 
   public void addError(String message) {
-   errors .add(message);
+    if (errors == null)
+      errors = new ArrayList<String>(1);
+
+    errors.add(message);
   }
 
   public List<String> getBoboErrors() {
+    if (errors == null)
+      errors = new ArrayList<String>(1);
+
     return errors;
   }
 }
