@@ -109,7 +109,7 @@ public class RangeFacetHandler extends FacetHandler<FacetDataCache> implements F
   {
     if (vals.length > 1)
     {
-      return new BitSetFilter(new ValueConverterBitSetBuilder(FacetRangeValueConverter.instance, vals, isNot), new SimpleDataCacheBuilder(getName()));
+      return new BitSetFilter(new ValueConverterBitSetBuilder(FacetRangeValueConverter.instance, vals, isNot), new SimpleDataCacheBuilder(getName(), _indexFieldName));
     }
     else
     {

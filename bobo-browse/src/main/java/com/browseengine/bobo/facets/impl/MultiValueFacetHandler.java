@@ -107,7 +107,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   @Override
   public DocComparatorSource getDocComparatorSource() 
   {
-    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(getName()));
+    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(getName(), _indexFieldName));
   }
   
   
@@ -179,8 +179,8 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
-	MultiValueFacetFilter f= new MultiValueFacetFilter(new MultiDataCacheBuilder(getName()), value);
-    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName()), f, new String[]{value}, false);
+	MultiValueFacetFilter f= new MultiValueFacetFilter(new MultiDataCacheBuilder(getName(), _indexFieldName), value);
+    AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName(), _indexFieldName), f, new String[]{value}, false);
     return af;
   }
 
@@ -214,7 +214,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     {
       MultiValueORFacetFilter f = new MultiValueORFacetFilter(this,vals,false);			// catch the "not" case later
       if (!isNot) {
-	      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName()), f, vals, false);
+	      AdaptiveFacetFilter af = new AdaptiveFacetFilter(new SimpleDataCacheBuilder(getName(), _indexFieldName), f, vals, false);
 	      return af;
       }
       else{
