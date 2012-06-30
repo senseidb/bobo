@@ -526,6 +526,7 @@ public class BoboTestCase extends TestCase {
 		facetHandlers.add(new SimpleFacetHandler("char", (TermListFactory)null));
 		facetHandlers.add(new MultiValueFacetHandler("tag", (String)null, (TermListFactory)null, tagSizePayloadTerm));
 		facetHandlers.add(new MultiValueFacetHandler("multinum", new PredefinedTermListFactory(Integer.class, "000")));
+		facetHandlers.add(new MultiValueFacetHandler("diffname","multinum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new MultiValueWithWeightFacetHandler("multiwithweight"));
 		facetHandlers.add(new CompactMultiValueFacetHandler("compactnum", new PredefinedTermListFactory(Integer.class, "000")));
 		facetHandlers.add(new SimpleFacetHandler("storenum", new PredefinedTermListFactory(Long.class, null)));
@@ -1958,6 +1959,19 @@ public class BoboTestCase extends TestCase {
       
     doTest(br,3,answer,new String[]{"1","2","3"});
   }
+  
+  public void testMultiWithDiffName(){
+		BrowseRequest br=new BrowseRequest();
+		br.setCount(10);
+		br.setOffset(0);
+		
+		BrowseSelection sel=new BrowseSelection("diffname");
+    sel.addValue("001");
+    
+    br.addSelection(sel);
+    
+    doTest(br,3,null,new String[]{"1","5","6"});
+	}
 
 	public void testBrowseMultiVal(){
 		BrowseRequest br=new BrowseRequest();
