@@ -329,19 +329,6 @@ public class GeoConverter implements IGeoConverter {
         return longValue;
     }
     
-    private long interlaceToLong2(int inputValue, int inputBitPosition, long longValue, int longBitPosition, 
-            int interlaceInterval) {
-        while (longBitPosition > -1 && inputBitPosition > -1) {
-            if ((inputValue & (ONE_AS_LONG << inputBitPosition)) != 0) {
-                longValue += ONE_AS_LONG << longBitPosition;
-            }
-            longBitPosition -= interlaceInterval;
-            inputBitPosition--;
-        }
-        
-        return longValue;
-    }
-    
     private int interlaceToInteger(int inputValue, int inputBitPosition, 
             int integerValue, int integerBitPosition, int interlaceInterval) {
         while (integerBitPosition > -1 && inputBitPosition > -1) {
@@ -468,21 +455,21 @@ public class GeoConverter implements IGeoConverter {
         int zPos = INTLENGTH - 2;
         int docIdPos = INTLENGTH - 2;
         
-        highOrderBits = interlaceToLong2(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 4);
+        highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 4);
         xPos -= (highOrderPosition / 4) + 1;
-        highOrderBits = interlaceToLong2(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
         yPos -= (highOrderPosition / 4) + 1;
-        highOrderBits = interlaceToLong2(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
         zPos -= (highOrderPosition / 4) + 1;
-        highOrderBits = interlaceToLong2(docid, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        highOrderBits = interlaceToLong(docid, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
         docIdPos -= (highOrderPosition / 4) + 1;
         
         long lowOrderBits = 0;
         int lowOrderPosition = LONGLENGTH - 2;
-        lowOrderBits = interlaceToLong2(x, xPos, lowOrderBits, lowOrderPosition, 4);
-        lowOrderBits = interlaceToLong2(y, yPos, lowOrderBits, --lowOrderPosition, 4);
-        lowOrderBits = interlaceToLong2(z, zPos, lowOrderBits, --lowOrderPosition, 4);
-        lowOrderBits = interlaceToLong2(docid, docIdPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(x, xPos, lowOrderBits, lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(y, yPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(z, zPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(docid, docIdPos, lowOrderBits, --lowOrderPosition, 4);
         
         return new CartesianGeoRecord(highOrderBits, lowOrderBits, filterByte);
     }
