@@ -3,15 +3,18 @@
  */
 package com.browseengine.bobo.geosearch.impl;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.springframework.stereotype.Component;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
@@ -326,6 +329,19 @@ public class GeoConverter implements IGeoConverter {
         return longValue;
     }
     
+    private long interlaceToLong(int inputValue, int inputBitPosition, long longValue, long longBitPosition, 
+            int interlaceInterval) {
+        while (longBitPosition > -1 && inputBitPosition > -1) {
+            if ((inputValue & (ONE_AS_LONG << inputBitPosition)) != 0) {
+                longValue += ONE_AS_LONG << longBitPosition;
+            }
+            longBitPosition -= interlaceInterval;
+            inputBitPosition--;
+        }
+        
+        return longValue;
+    }
+    
     private int interlaceToInteger(int inputValue, int inputBitPosition, 
             int integerValue, int integerBitPosition, int interlaceInterval) {
         while (integerBitPosition > -1 && inputBitPosition > -1) {
@@ -411,5 +427,116 @@ public class GeoConverter implements IGeoConverter {
         }
         
         return outputValue;
+    }
+    
+    CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
+        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
+    }
+    
+    CartesianGeoRecord toCartesianGeoRecord(int x, int y, int z, int docid, byte filterByte) {
+        long highOrderBits = 0;
+        long highOrderPosition = LONGLENGTH - 2;
+        
+        //first divide on the sign bit
+        if (x < 0) {
+            x = x + Integer.MIN_VALUE;
+        } else {
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        
+        if (y < 0) {
+            y = y + Integer.MIN_VALUE;
+        } else {
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        
+        if (z < 0) {
+            z = z + Integer.MIN_VALUE;
+        } else {
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        // docid always positive
+        highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        highOrderPosition--;
+        
+        //now interlace the rest
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
+        int docIdPos = INTLENGTH - 2;
+        
+        highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 4);
+        xPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        yPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        zPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(docid, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        docIdPos -= (highOrderPosition / 4) + 1;
+        
+        long lowOrderBits = 0;
+        long lowOrderPosition = LONGLENGTH - 2;
+        lowOrderBits = interlaceToLong(x, xPos, lowOrderBits, lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(y, yPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(z, zPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(docid, docIdPos, lowOrderBits, --lowOrderPosition, 4);
+        
+        return new CartesianGeoRecord(highOrderBits, lowOrderBits, filterByte);
+    }
+    
+    public CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord) {
+        int x = 0;
+        int y = 0;
+        int z = 0;
+        int docid = 0;
+        int dimensions = 4;
+        
+        int highOrderPosition = LONGLENGTH - 2 - dimensions;
+        
+        //now interlace the rest
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
+        int docidPos = INTLENGTH - 2;
+        
+        //uninterlace high order bits
+        x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, highOrderPosition, dimensions);
+        xPos -= (highOrderPosition / dimensions) + 1;
+        y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        yPos -= (highOrderPosition / dimensions) + 1;
+        z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        zPos -= (highOrderPosition / dimensions) + 1;
+        docid = unInterlaceFromLong(docid, docidPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        docidPos -= (highOrderPosition / dimensions) + 1;
+        
+        //uninterlace low order bits
+        int lowOrderPosition = LONGLENGTH - 2;
+        x = unInterlaceFromLong(x, xPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
+        y = unInterlaceFromLong(y, yPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        z = unInterlaceFromLong(z, zPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        
+        highOrderPosition = LONGLENGTH - 2;
+        //uninterlace sign bit
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            x = x - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            y = y - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            z = z - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        // docid is always positive
+        highOrderPosition--;
+
+        return new CartesianCoordinateDocId(x, y, z, docid);
     }
 }
