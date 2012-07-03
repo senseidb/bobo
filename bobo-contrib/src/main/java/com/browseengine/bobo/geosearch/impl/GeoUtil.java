@@ -66,8 +66,6 @@ public class GeoUtil implements IGeoUtil {
         && MINIMUM_LATITUDE_INCLUSIVE <= latitude
         && latitude <= MAXIMUM_LATITUDE_INCLUSIVE;
     }
-    
-
 }
 
 

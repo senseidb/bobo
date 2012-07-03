@@ -1,18 +1,8 @@
-/**
- * 
- */
 package com.browseengine.bobo.geosearch.bo;
 
 import com.browseengine.bobo.geosearch.GeoRecordUtil;
 
-/**
- * Inlinable POJO representing a bit interlace record.
- * 
- * @author Shane Detsch
- * @author Ken McCracken
- *
- */
-public class GeoRecord implements IGeoRecord {
+public class CartesianGeoRecord implements IGeoRecord {
     /**
      * This constant will be removed when we figure out how to make the filters real.
      * Until then, you should reference when calling this constructor, it will make 
@@ -21,7 +11,7 @@ public class GeoRecord implements IGeoRecord {
     public static final byte DEFAULT_FILTER_BYTE = (byte)0;
     
     public final long highOrder;
-    public final int lowOrder;
+    public  final long lowOrder;
     public final byte filterByte;
     
     public static final GeoRecord MIN_VALID_GEORECORD = 
@@ -30,7 +20,7 @@ public class GeoRecord implements IGeoRecord {
     public static final GeoRecord MAX_VALID_GEORECORD = 
         new GeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
     
-    public GeoRecord(long highOrder, int lowOrder, byte filterByte) {
+    public CartesianGeoRecord(long highOrder, long lowOrder, byte filterByte) {
         if (highOrder < 0L || lowOrder < 0) {
             throw new RuntimeException("GeoRecord(" + highOrder + ", " + lowOrder 
                     + ", " + filterByte + "): only supports positive highOrder and lowOrder");
@@ -46,7 +36,7 @@ public class GeoRecord implements IGeoRecord {
         int result = 1;
         result = prime * result + filterByte;
         result = prime * result + (int) (highOrder ^ (highOrder >>> 32));
-        result = prime * result + lowOrder;
+        result = prime * result + (int) (lowOrder ^ lowOrder >>> 32);
         return result;
     }
 
@@ -83,12 +73,7 @@ public class GeoRecord implements IGeoRecord {
             lpad(lowOrder) + ", filterByte=" + filterByte + "]";
     }
     
-    public static String lpad(int val) {
-        return GeoRecordUtil.lpad(GeoRecordUtil.MAX_DIGITS_INT, val);
-    }
-    
     public static String lpad(long val) {
         return GeoRecordUtil.lpad(GeoRecordUtil.MAX_DIGITS_LONG, val);
     }
-    
 }
