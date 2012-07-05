@@ -5,6 +5,7 @@ import static junit.framework.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.TreeSet;
 
 import org.junit.Test;
@@ -387,21 +388,39 @@ public class GeoConverterTest {
     @Test
     public void testCartesianGeoRecord() {
         
-        double latitude = Conversions.d2r(52.65757030139);
-        double longitude = Conversions.d2r(1.7179215810);
-        int x = geoConverter.getXFromRadians(latitude, longitude);
-        int y = geoConverter.getYFromRadians(latitude, longitude);
-        int z = geoConverter.getZFromRadians(latitude);
-        int docid = 1321 + x;
-        //int docid = 1321 + x;
-
-        CartesianCoordinateDocId ccd = new CartesianCoordinateDocId(x, y, z, docid);
-        CartesianGeoRecord cgr = geoConverter.toCartesianGeoRecord(ccd);
-        CartesianCoordinateDocId ccdconv = geoConverter.toCartesianCoordinateDocId(cgr);
-        assertTrue(ccd.x == ccdconv.x);
-        assertTrue(ccd.y == ccdconv.y);
-        assertTrue(Math.abs(ccd.z - ccdconv.z) <= 1);
-        assertTrue(ccd.docid == ccdconv.docid);
+        int x,y,z,docid;
+        CartesianCoordinateDocId ccd = null;
+        CartesianGeoRecord cgr = null;
+        CartesianGeoRecord cgrconv = null;
+        CartesianCoordinateDocId ccdconv = null;
+        Random random = new Random(31);
+        for(int i = 0; i < 20; i++) {
+            docid = random.nextInt(Integer.MAX_VALUE);
+            x = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                x*=-1;
+            }
+            y = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                y*=-1;
+            }
+            z = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                z*=-1;
+            }
+             ccd = new CartesianCoordinateDocId(x, y, z, docid);
+             cgr = geoConverter.toCartesianGeoRecord(ccd);
+             ccdconv = geoConverter.toCartesianCoordinateDocId(cgr);
+             cgrconv = geoConverter.toCartesianGeoRecord(ccdconv);
+            
+            assertTrue(ccd.x == ccdconv.x);
+            assertTrue(ccd.y == ccdconv.y);
+            assertTrue(Math.abs(ccd.z - ccdconv.z) <= 1);
+            assertTrue(ccd.docid == ccdconv.docid);
+            
+            assertTrue(cgr.highOrder == cgrconv.highOrder);
+            assertTrue(cgr.lowOrder == cgrconv.lowOrder);
+        }
         
     }
     
