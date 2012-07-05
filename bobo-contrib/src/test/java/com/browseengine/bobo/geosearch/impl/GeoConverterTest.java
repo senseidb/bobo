@@ -21,6 +21,7 @@ import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
  * 
  * 
  * @author gcooney
+ * @author shandets
  *
  */
 public class GeoConverterTest {
