@@ -5,11 +5,14 @@ import static junit.framework.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 import java.util.TreeSet;
 
 import org.junit.Test;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
@@ -380,6 +383,45 @@ public class GeoConverterTest {
             interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
                     startZ, deltaZ, totalCoordinates);
         }
+    }
+    
+    @Test
+    public void testCartesianGeoRecord() {
+        
+        int x,y,z,docid;
+        CartesianCoordinateDocId ccd = null;
+        CartesianGeoRecord cgr = null;
+        CartesianGeoRecord cgrconv = null;
+        CartesianCoordinateDocId ccdconv = null;
+        Random random = new Random(31);
+        for(int i = 0; i < 20; i++) {
+            docid = random.nextInt(Integer.MAX_VALUE);
+            x = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                x*=-1;
+            }
+            y = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                y*=-1;
+            }
+            z = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                z*=-1;
+            }
+             ccd = new CartesianCoordinateDocId(x, y, z, docid);
+             cgr = geoConverter.toCartesianGeoRecord(ccd);
+             ccdconv = geoConverter.toCartesianCoordinateDocId(cgr);
+             cgrconv = geoConverter.toCartesianGeoRecord(ccdconv);
+            
+            assertTrue(ccd.x == ccdconv.x);
+            assertTrue(ccd.y == ccdconv.y);
+            assertTrue(Math.abs(ccd.z - ccdconv.z) <= 1);
+            assertTrue(ccd.docid == ccdconv.docid);
+            
+            assertTrue(cgr.highOrder == cgrconv.highOrder);
+            assertTrue(cgr.lowOrder == cgrconv.lowOrder);
+        }
+        
     }
     
     private void interlaceAndUninterlace(int startX, int deltaX, int startY, int deltaY, int startZ, int deltaZ,
