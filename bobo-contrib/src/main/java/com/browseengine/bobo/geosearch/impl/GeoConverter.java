@@ -420,6 +420,18 @@ public class GeoConverter implements IGeoConverter {
         return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
     }
     
+    /**
+     * Bitinterlaces docid, x, y, z into long high and low order bits with the lose of a sign 
+     * bit on docid which does not exist anyways and the least significant bit on z which is 
+     * sub meter precision. 
+     * @param x
+     * @param y
+     * @param z
+     * @param docid
+     * @param filterByte
+     * @return
+     */
+    
     CartesianGeoRecord toCartesianGeoRecord(int x, int y, int z, int docid, byte filterByte) {
         long highOrderBits = 0;
         int highOrderPosition = LONGLENGTH - 2;
@@ -445,9 +457,7 @@ public class GeoConverter implements IGeoConverter {
             highOrderBits += (ONE_AS_LONG << highOrderPosition);
         }
         highOrderPosition--;
-        // docid always positive
-        highOrderBits += (ONE_AS_LONG << highOrderPosition);
-        highOrderPosition--;
+        
         
         //now interlace the rest
         int xPos = INTLENGTH - 2;
@@ -455,21 +465,22 @@ public class GeoConverter implements IGeoConverter {
         int zPos = INTLENGTH - 2;
         int docIdPos = INTLENGTH - 2;
         
-        highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, highOrderPosition, 4);
+        highOrderBits = interlaceToLong(docid, INTLENGTH - 2, highOrderBits, highOrderPosition, 4);
+        docIdPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
         xPos -= (highOrderPosition / 4) + 1;
         highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
         yPos -= (highOrderPosition / 4) + 1;
         highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
         zPos -= (highOrderPosition / 4) + 1;
-        highOrderBits = interlaceToLong(docid, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
-        docIdPos -= (highOrderPosition / 4) + 1;
+        
         
         long lowOrderBits = 0;
         int lowOrderPosition = LONGLENGTH - 2;
-        lowOrderBits = interlaceToLong(x, xPos, lowOrderBits, lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(docid, docIdPos, lowOrderBits, lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(x, xPos, lowOrderBits, --lowOrderPosition, 4);
         lowOrderBits = interlaceToLong(y, yPos, lowOrderBits, --lowOrderPosition, 4);
         lowOrderBits = interlaceToLong(z, zPos, lowOrderBits, --lowOrderPosition, 4);
-        lowOrderBits = interlaceToLong(docid, docIdPos, lowOrderBits, --lowOrderPosition, 4);
         
         return new CartesianGeoRecord(highOrderBits, lowOrderBits, filterByte);
     }
@@ -481,7 +492,7 @@ public class GeoConverter implements IGeoConverter {
         int docid = 0;
         int dimensions = 4;
         
-        int highOrderPosition = LONGLENGTH - 2 - dimensions;
+        int highOrderPosition = LONGLENGTH - 2 - dimensions + 1;
         
         //now interlace the rest
         int xPos = INTLENGTH - 2;
@@ -490,20 +501,22 @@ public class GeoConverter implements IGeoConverter {
         int docidPos = INTLENGTH - 2;
         
         //uninterlace high order bits
-        x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, highOrderPosition, dimensions);
+        docid = unInterlaceFromLong(docid, docidPos, geoRecord.highOrder, highOrderPosition, dimensions);
+        docidPos -= (highOrderPosition / dimensions) + 1;
+        x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, --highOrderPosition, dimensions);
         xPos -= (highOrderPosition / dimensions) + 1;
         y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, --highOrderPosition, dimensions);
         yPos -= (highOrderPosition / dimensions) + 1;
         z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, --highOrderPosition, dimensions);
         zPos -= (highOrderPosition / dimensions) + 1;
-        docid = unInterlaceFromLong(docid, docidPos, geoRecord.highOrder, --highOrderPosition, dimensions);
-        docidPos -= (highOrderPosition / dimensions) + 1;
         
         //uninterlace low order bits
         int lowOrderPosition = LONGLENGTH - 2;
-        x = unInterlaceFromLong(x, xPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
+        docid = unInterlaceFromLong(docid, docidPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
+        x = unInterlaceFromLong(x, xPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
         y = unInterlaceFromLong(y, yPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
         z = unInterlaceFromLong(z, zPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        
         
         highOrderPosition = LONGLENGTH - 2;
         //uninterlace sign bit
@@ -520,8 +533,6 @@ public class GeoConverter implements IGeoConverter {
         if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
             z = z - Integer.MIN_VALUE;
         } 
-        highOrderPosition--;
-        // docid is always positive
         highOrderPosition--;
 
         return new CartesianCoordinateDocId(x, y, z, docid);

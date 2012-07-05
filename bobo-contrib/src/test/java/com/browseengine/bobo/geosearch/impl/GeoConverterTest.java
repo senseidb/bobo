@@ -9,7 +9,9 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
@@ -380,6 +382,27 @@ public class GeoConverterTest {
             interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
                     startZ, deltaZ, totalCoordinates);
         }
+    }
+    
+    @Test
+    public void testCartesianGeoRecord() {
+        
+        double latitude = Conversions.d2r(52.65757030139);
+        double longitude = Conversions.d2r(1.7179215810);
+        int x = geoConverter.getXFromRadians(latitude, longitude);
+        int y = geoConverter.getYFromRadians(latitude, longitude);
+        int z = geoConverter.getZFromRadians(latitude);
+        int docid = 1321 + x;
+        //int docid = 1321 + x;
+
+        CartesianCoordinateDocId ccd = new CartesianCoordinateDocId(x, y, z, docid);
+        CartesianGeoRecord cgr = geoConverter.toCartesianGeoRecord(ccd);
+        CartesianCoordinateDocId ccdconv = geoConverter.toCartesianCoordinateDocId(cgr);
+        assertTrue(ccd.x == ccdconv.x);
+        assertTrue(ccd.y == ccdconv.y);
+        assertTrue(Math.abs(ccd.z - ccdconv.z) <= 1);
+        assertTrue(ccd.docid == ccdconv.docid);
+        
     }
     
     private void interlaceAndUninterlace(int startX, int deltaX, int startY, int deltaY, int startZ, int deltaZ,
