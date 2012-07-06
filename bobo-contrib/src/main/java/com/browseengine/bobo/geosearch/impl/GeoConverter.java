@@ -14,6 +14,8 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
+import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 
@@ -53,25 +55,35 @@ public class GeoConverter implements IGeoConverter {
     }
     
     
+    /**
+     * {@inheritDoc}
+     */
+    public CartesianGeoRecord toCartesianGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
+            String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
+        byte filterByte = fieldNameFilterConverter == null ? 
+                GeoRecord.DEFAULT_FILTER_BYTE : 
+                fieldNameFilterConverter.getFilterValue(new String[] {fieldName});
+        
+        return toCartesianGeoRecord(longitudeLatitudeDocId, filterByte);
+    }
     
-   
     //This constant is calculated as the 1 - e^2 where 
     //e^2 = (a^2 - b^2) / a^2 with a = major-axis of the earth and
     //b = minor axis of the earth.  Calculated with values from WGS84
     //Geodetic datum.
     static final double ONE_MINUS_ECCENTRICITY_OF_EARTH = 0.99330562;
     
-    public int getXFromRadians(double latRadians, double longRadians)
+    protected int getXFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
     }
 
-    public int getYFromRadians(double latRadians, double longRadians)
+    protected int getYFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
     }
 
-    public int getZFromRadians(double latRadians)
+    protected int getZFromRadians(double latRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
     }
@@ -251,10 +263,21 @@ public class GeoConverter implements IGeoConverter {
     }
     
     @Override
-    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord, byte filterByte) {
-        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, filterByte);
+    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
+        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
     }
 
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte) {
+        double latRadians = Conversions.d2r(latLongDocID.latitude);
+        double longRadians =  Conversions.d2r(latLongDocID.longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
+        
+        return toCartesianGeoRecord(x, y, z, latLongDocID.docid, filterByte);
+    }
+    
     /**
      * Bitinterlaces docid, x, y, z into long high and low order bits with the lose of a sign 
      * bit on docid which does not exist anyways and the least significant bit on z which is 
@@ -371,5 +394,10 @@ public class GeoConverter implements IGeoConverter {
         highOrderPosition--;
 
         return new CartesianCoordinateDocId(x, y, z, docid);
+    }
+
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord, byte filterByte) {
+        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, filterByte);
     }
 }
