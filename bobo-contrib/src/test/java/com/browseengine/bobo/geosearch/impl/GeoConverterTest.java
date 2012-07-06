@@ -411,9 +411,9 @@ public class GeoConverterTest {
                 z*=-1;
             }
              ccd = new CartesianCoordinateDocId(x, y, z, docid);
-             cgr = geoConverter.toCartesianGeoRecord(ccd);
+             cgr = geoConverter.toCartesianGeoRecord(ccd, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
              ccdconv = geoConverter.toCartesianCoordinateDocId(cgr);
-             cgrconv = geoConverter.toCartesianGeoRecord(ccdconv);
+             cgrconv = geoConverter.toCartesianGeoRecord(ccdconv, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
             
             assertTrue(ccd.x == ccdconv.x);
             assertTrue(ccd.y == ccdconv.y);
