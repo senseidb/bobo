@@ -14,15 +14,15 @@ public class CartesianGeoRecord implements IGeoRecord {
     public  final long lowOrder;
     public final byte filterByte;
     
-    public static final GeoRecord MIN_VALID_GEORECORD = 
-        new GeoRecord(0, 0, GeoRecord.DEFAULT_FILTER_BYTE);
+    public static final CartesianGeoRecord MIN_VALID_GEORECORD = 
+        new CartesianGeoRecord(0, 0, GeoRecord.DEFAULT_FILTER_BYTE);
     
-    public static final GeoRecord MAX_VALID_GEORECORD = 
-        new GeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
+    public static final CartesianGeoRecord MAX_VALID_GEORECORD = 
+        new CartesianGeoRecord(Long.MAX_VALUE, Long.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
     
     public CartesianGeoRecord(long highOrder, long lowOrder, byte filterByte) {
         if (highOrder < 0L || lowOrder < 0) {
-            throw new RuntimeException("GeoRecord(" + highOrder + ", " + lowOrder 
+            throw new RuntimeException("CartesianGeoRecord(" + highOrder + ", " + lowOrder 
                     + ", " + filterByte + "): only supports positive highOrder and lowOrder");
         }
         this.highOrder = highOrder;
@@ -51,7 +51,7 @@ public class CartesianGeoRecord implements IGeoRecord {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        GeoRecord other = (GeoRecord) obj;
+        CartesianGeoRecord other = (CartesianGeoRecord) obj;
         if (filterByte != other.filterByte) {
             return false;
         }
@@ -69,7 +69,7 @@ public class CartesianGeoRecord implements IGeoRecord {
      */
     @Override
     public String toString() {
-        return "GeoRecord [padded highOrder=" + lpad(highOrder) + ", padded lowOrder=" + 
+        return "CartesianGeoRecord [padded highOrder=" + lpad(highOrder) + ", padded lowOrder=" + 
             lpad(lowOrder) + ", filterByte=" + filterByte + "]";
     }
     

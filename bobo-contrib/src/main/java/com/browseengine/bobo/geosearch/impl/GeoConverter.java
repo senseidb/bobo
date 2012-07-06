@@ -3,7 +3,6 @@
  */
 package com.browseengine.bobo.geosearch.impl;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -130,6 +129,16 @@ public class GeoConverter implements IGeoConverter {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
+            String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
+        byte filterByte = fieldNameFilterConverter == null ? 
+                GeoRecord.DEFAULT_FILTER_BYTE : 
+                fieldNameFilterConverter.getFilterValue(new String[] {fieldName});
+        
+        return toCartesianGeoRecord(longitudeLatitudeDocId, filterByte);
+    }
+    
     @Override
     public GeoRecord toGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
             String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
@@ -419,6 +428,17 @@ public class GeoConverter implements IGeoConverter {
     @Override
     public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
         return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
+    }
+
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte) {
+        double latRadians = Conversions.d2r(latLongDocID.latitude);
+        double longRadians =  Conversions.d2r(latLongDocID.longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
+        
+        return toCartesianGeoRecord(x, y, z, latLongDocID.docid, filterByte);
     }
     
     /**

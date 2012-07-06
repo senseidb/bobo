@@ -23,9 +23,14 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         
         IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid);
         IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate);
+        CartesianGeoRecord toCartesianGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
+                String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId);
+        CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte);
         CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord);
         CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid);
         CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord);
+        CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord);
+        
         CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord);
         
     }
