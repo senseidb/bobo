@@ -23,60 +23,50 @@ public class GeoQuery extends Query {
      */
     private static final long serialVersionUID = 1L;
     
-    double centroidLongitude;
-    double centroidLatitude;
-    float rangeInMiles;
+    int centroidX;
+    int centroidY;
+    int centroidZ;
+    float rangeInKm;
     
-    private static final float KM_TO_MILES = (float)(3.1/5);
-    private static final float MINIMUM_RANGE_IN_MILES = 0.001f;
-    private static final float MAXIMUM_RANGE_IN_MILES = 500f;
+    private static final float MINIMUM_RANGE_IN_KM = 0.001f;
+    private static final float MAXIMUM_RANGE_IN_KM = 700f;
     
-    public GeoQuery(double centroidLongitude, double centroidLatitude, Float rangeInMiles, Float rangeInKilometers) {
-        this.centroidLongitude = centroidLongitude;
-        this.centroidLatitude = centroidLatitude;
-        if (!(null == rangeInMiles ^ null == rangeInKilometers)) {
-            throw new RuntimeException("please specify either rangeInMiles or rangeInKilometers");
+    public GeoQuery(int centroidX, int centroidY, int centroidZ, Float rangeInKm) {
+        this.centroidX = centroidX;
+        this.centroidX = centroidX;
+        this.centroidX = centroidX;
+        if (!( null == rangeInKm)) {
+            throw new RuntimeException("please specify rangeInKilometers");
         }
-        if (null != rangeInKilometers) {
-            this.rangeInMiles = KM_TO_MILES * rangeInKilometers;
-        } else {
-            this.rangeInMiles = rangeInMiles;
+       
+        if (this.rangeInKm < MINIMUM_RANGE_IN_KM || this.rangeInKm > MAXIMUM_RANGE_IN_KM) {
+            throw new RuntimeException("rangeInMiles out of range ["+MINIMUM_RANGE_IN_KM+", "+MAXIMUM_RANGE_IN_KM+"]: "+this.rangeInKm);
         }
-        if (this.rangeInMiles < MINIMUM_RANGE_IN_MILES || this.rangeInMiles > MAXIMUM_RANGE_IN_MILES) {
-            throw new RuntimeException("rangeInMiles out of range ["+MINIMUM_RANGE_IN_MILES+", "+MAXIMUM_RANGE_IN_MILES+"]: "+this.rangeInMiles);
-        }
-        if (!GeoUtil.isValidLongitude(centroidLongitude) || !GeoUtil.isValidLatitude(centroidLatitude)) {
-            throw new RuntimeException("bad centroidLongitude "+centroidLongitude+" or centroidLatitude "+centroidLatitude);
-        }
+      
     }
-    
-    
     
     /**
-     * @return the centroidLongitude
+     * @return the centroidX
      */
-    public double getCentroidLongitude() {
-        return centroidLongitude;
+    public int getCentroidX() {
+        return centroidX;
     }
-
-
-
     /**
-     * @return the centroidLatitude
+     * @return the centroidX
      */
-    public double getCentroidLatitude() {
-        return centroidLatitude;
+    public int getCentroidY() {
+        return centroidX;
     }
-
-
-
     /**
-     * @return the rangeInMiles
+     * @return the centroidX
      */
-    public float getRangeInMiles() {
-        return rangeInMiles;
+    public int getCentroidZ() {
+        return centroidX;
     }
-
+    
+    public float getRangeInKm() {
+        return this.rangeInKm;
+    }
 
     /**
      * {@inheritDoc}
@@ -91,8 +81,8 @@ public class GeoQuery extends Query {
      */
     @Override
     public String toString() {
-        return "GeoQuery [centroidLatitude=" + centroidLatitude + ", centroidLongitude=" + centroidLongitude
-                + ", rangeInMiles=" + rangeInMiles + "]";
+        return "GeoQuery [centroidX=" + centroidX + ", centroidY=" + centroidY + ", centroidZ=" + centroidZ 
+                + ", rangeInKm =" + rangeInKm + "]";
     }
 
     /**

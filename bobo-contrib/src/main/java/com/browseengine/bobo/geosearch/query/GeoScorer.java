@@ -55,7 +55,6 @@ public class GeoScorer extends Scorer {
     private int startDocidOfCurrentPartition;
     private GeoSegmentReader<CartesianGeoRecord> currentSegment = null;
     private DocsSortedByDocId currentBlockScoredDocs;
-    
     private Entry<Integer, Collection<GeRecordAndCartesianDocId>> currentDoc;
     
     private IDeletedDocs wholeIndexDeletedDocs;
@@ -111,10 +110,11 @@ public class GeoScorer extends Scorer {
      */
     private static final long MINIMUM_DISTANCE_WE_CARE_ABOUT = 273798;
     
-    private float score(Collection<CartesianCoordinateDocId> values) {
+    private float score(Collection<GeRecordAndCartesianDocId> values) {
         long squaredDistance = Long.MAX_VALUE;
-        for (CartesianCoordinateDocId value : values) {
-             long squaredDistance2 = computeDistance.getSquaredDistance(centroidX, centroidY, centroidZ, value.x, value.y, value.z);
+        for (GeRecordAndCartesianDocId value : values) {
+             long squaredDistance2 = computeDistance.getSquaredDistance(centroidX, centroidY, centroidZ, 
+                     value.cartesianCoordinateDocId.x, value.cartesianCoordinateDocId.y, value.cartesianCoordinateDocId.z);
              if(squaredDistance2 < squaredDistance) {
                  squaredDistance = squaredDistance2;
              }
