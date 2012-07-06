@@ -66,8 +66,6 @@ public class GeoOnlySearcher {
     private GeoOnlyHits collectHits(GeoQuery query, Iterator<IDGeoRecord> hitIterator, 
             CartesianCoordinateUUID minCoordinate, CartesianCoordinateUUID maxCoordinate,
             int start, int count) {
-        CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(
-            query.getCentroidLatitude(), query.getCentroidLongitude(), EMPTY_UUID);
         
         int totalHits = 0;
         GeoOnlyHitQueue hitQueue = new GeoOnlyHitQueue(start+count);
@@ -82,7 +80,7 @@ public class GeoOnlySearcher {
                 
                 double score = CartesianComputeDistance.computeDistanceSquared(
                         hitCoordinate.x, hitCoordinate.y, hitCoordinate.z, 
-                        centroidCoordinate.x, centroidCoordinate.y, centroidCoordinate.z);
+                        query.getCentroidX(), query.getCentroidY(), query.getCentroidZ());
                 GeoOnlyHit geoHit = new GeoOnlyHit(score, hitCoordinate.uuid);
                 hitQueue.insertWithOverflow(geoHit);
             }
@@ -101,13 +99,10 @@ public class GeoOnlySearcher {
     }
     
     private CartesianCoordinateUUID buildMinCoordinate(GeoQuery query) {
-        double rangeInkm = Conversions.mi2km(query.getRangeInMiles());
-        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
-        CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(query.getCentroidLatitude(), query.getCentroidLongitude(), EMPTY_UUID);
-        
-        int minX = calculateMinimumCoordinate(centroidCoordinate.x, rangeInUnits);
-        int minY = calculateMinimumCoordinate(centroidCoordinate.y, rangeInUnits);
-        int minZ = calculateMinimumCoordinate(centroidCoordinate.z, rangeInUnits);
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(query.getRangeInKm() * 1000);
+        int minX = calculateMinimumCoordinate(query.getCentroidX(), rangeInUnits);
+        int minY = calculateMinimumCoordinate(query.getCentroidY(), rangeInUnits);
+        int minZ = calculateMinimumCoordinate(query.getCentroidZ(), rangeInUnits);
         return new CartesianCoordinateUUID(minX, minY, minZ, EMPTY_UUID);
     }
     public static CartesianCoordinateDocId buildMinCoordinate(float rankeInKm, int x, int y, int z, int docid) {
@@ -126,13 +121,10 @@ public class GeoOnlySearcher {
     }
     
     private CartesianCoordinateUUID buildMaxCoordinate(GeoQuery query){
-        double rangeInkm = Conversions.mi2km(query.getRangeInMiles());
-        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
-        CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(query.getCentroidLatitude(), query.getCentroidLongitude(), EMPTY_UUID);
-        
-        int maxX = calculateMaximumCoordinate(centroidCoordinate.x, rangeInUnits);
-        int maxY = calculateMaximumCoordinate(centroidCoordinate.y, rangeInUnits);
-        int maxZ = calculateMaximumCoordinate(centroidCoordinate.z, rangeInUnits);
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(query.getRangeInKm() * 1000);
+        int maxX = calculateMaximumCoordinate(query.getCentroidX(), rangeInUnits);
+        int maxY = calculateMaximumCoordinate(query.getCentroidY(), rangeInUnits);
+        int maxZ = calculateMaximumCoordinate(query.getCentroidZ(), rangeInUnits);
         return new CartesianCoordinateUUID(maxX, maxY, maxZ, EMPTY_UUID);
     }
     
