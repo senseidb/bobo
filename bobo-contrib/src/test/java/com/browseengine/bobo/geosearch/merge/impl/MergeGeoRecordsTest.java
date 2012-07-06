@@ -48,8 +48,8 @@ public class MergeGeoRecordsTest {
     CartesianGeoRecordComparator geoRecordCompareByBitMag;
     
     private LatitudeLongitudeDocId[] originalRaws;
-    private GeoRecord[] originalGeoRecordsSortedArrayA;
-    private GeoRecord[] originalGeoRecordsSortedArrayB;
+    private CartesianGeoRecord[] originalGeoRecordsSortedArrayA;
+    private CartesianGeoRecord[] originalGeoRecordsSortedArrayB;
     
     private GeoRecordBTree a;
     private BitVector aDelete;
@@ -72,19 +72,19 @@ public class MergeGeoRecordsTest {
         };
         byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
         
-        originalGeoRecordsSortedArrayA = new GeoRecord[originalRaws.length];
+        originalGeoRecordsSortedArrayA = new CartesianGeoRecord[originalRaws.length];
         for (int i = 0; i < originalRaws.length; i++) {
-            originalGeoRecordsSortedArrayA[i] = geoConverter.toGeoRecord(filterByte, originalRaws[i]);
+            originalGeoRecordsSortedArrayA[i] = geoConverter.toCartesianGeoRecord(originalRaws[i], filterByte);
         }
         
-        originalGeoRecordsSortedArrayB = new GeoRecord[] {
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-65, -165, 0)),
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-55, -155, 1)),
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-45, -145, 2)),
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-35, -135, 3)),
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-25, -125, 4)),
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-15, -115, 5)),
-                geoConverter.toGeoRecord(filterByte, new LatitudeLongitudeDocId(-5, -105, 6)),
+        originalGeoRecordsSortedArrayB = new CartesianGeoRecord[] {
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-65, -165, 0), filterByte),
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-55, -155, 1), filterByte),
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-45, -145, 2), filterByte),
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-35, -135, 3), filterByte),
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-25, -125, 4), filterByte),
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-15, -115, 5), filterByte),
+                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-5, -105, 6), filterByte),
         };
         
         random = new Random(SEED);
@@ -251,8 +251,8 @@ public class MergeGeoRecordsTest {
     }
     
     private static GeoRecordBTree getGeoRecordBTreeAsArray(
-            GeoRecord[] geoRecordsSortedArray) throws IOException {
-        GeoRecord[] treeSorted = new GeoRecord[geoRecordsSortedArray.length];
+            CartesianGeoRecord[] geoRecordsSortedArray) throws IOException {
+        CartesianGeoRecord[] treeSorted = new CartesianGeoRecord[geoRecordsSortedArray.length];
         long[] highOrders = new long[treeSorted.length];
         long[] lowOrders = new long[treeSorted.length];
         byte[] filterBytes = new byte[treeSorted.length];
@@ -261,7 +261,7 @@ public class MergeGeoRecordsTest {
         int treeIndex = ((int)Math.pow(2, (height-1))) - 1;
         int i = 0;
         while (treeIndex >= 0) {
-            GeoRecord geoRecord = geoRecordsSortedArray[i++];
+            CartesianGeoRecord geoRecord = geoRecordsSortedArray[i++];
             treeSorted[treeIndex] = geoRecord;
             highOrders[treeIndex] = geoRecord.highOrder;
             lowOrders[treeIndex] = geoRecord.lowOrder;
