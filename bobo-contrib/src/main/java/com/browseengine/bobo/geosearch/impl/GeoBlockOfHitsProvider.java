@@ -21,7 +21,7 @@ import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
  */
 public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
     
-    private IGeoConverter geoConverter;
+    private final IGeoConverter geoConverter;
     
     public GeoBlockOfHitsProvider(IGeoConverter geoConverter) {
         this.geoConverter = geoConverter;
@@ -64,9 +64,9 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
             throws IOException {
 
         CartesianCoordinateDocId minccd = new CartesianCoordinateDocId(minX, minY, minZ, mindocid);
-        CartesianGeoRecord minValue = geoConverter.toCartesianGeoRecord(minccd, (byte)0);
+        CartesianGeoRecord minValue = geoConverter.toCartesianGeoRecord(minccd, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         CartesianCoordinateDocId maxccd = new CartesianCoordinateDocId(maxX, maxY, maxZ, maxdocid);
-        CartesianGeoRecord maxValue = geoConverter.toCartesianGeoRecord(maxccd, (byte)0);
+        CartesianGeoRecord maxValue = geoConverter.toCartesianGeoRecord(maxccd, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         Iterator<CartesianGeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
         DocsSortedByDocId docs = new DocsSortedByDocId();
 
