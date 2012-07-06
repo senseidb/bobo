@@ -56,7 +56,8 @@ public class GeoIndexer implements IGeoIndexer {
                 coordinate.getLongitude(), docID);
         
         IFieldNameFilterConverter fieldNameFilterConverter = geoConverter.makeFieldNameFilterConverter();
-        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(fieldNameFilterConverter, fieldName, longLatDocId);
+        fieldNameFilterConverter.fieldIsInFilter(fieldName, (byte)0);
+        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(longLatDocId, fieldName);
         
         //For now, we need to synchronize this since we can only safely have one thread at a
         //time adding an item to a treeset.  One alternative strategy is to add geoRecords to
