@@ -16,6 +16,7 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.junit.Test;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
@@ -59,28 +60,28 @@ public class GeoQueryTest {
     public void test_Test() throws IOException {
         GeoCoordinate gcord = new GeoCoordinate(Math.random() * 140.0 - 70.0,
                 Math.random() * 360.0 - 180.0);
-        float rangeInMiles = (float) (Math.random()*10.0);
-        ArrayList<LatitudeLongitudeDocId> indexedDocument = getSegmentOfLongitudeLatitudeDocIds(100 + (int)(Math.random()*1000), gcord);
+        float rangeInKm = (float) (Math.random()*10.0);
+        ArrayList<CartesianCoordinateDocId> indexedDocument = getSegmentOfLongitudeLatitudeDocIds(100 + (int)(Math.random()*1000), gcord);
         
-        printAllDocIdsInRange(rangeInMiles, indexedDocument, gcord);
+        printAllDocIdsInRange(rangeInKm, indexedDocument, gcord);
         
         TreeSet<GeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
         GeoRecordBTree geoRecordBTree = new GeoRecordBTree(treeSet); 
         MyGeoSegmentReader geoSegmentReader = new MyGeoSegmentReader(geoRecordBTree, indexedDocument.size());
         geoSubReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(); 
         geoSubReaders.add(geoSegmentReader);
-        GeoQuery geoQuery = new GeoQuery(gcord.getLongitude(), gcord.getLatitude(), rangeInMiles, null);
+        
+        GeoConverter gc = new GeoConverter();
+        CartesianGeoRecord cgr = gc.toCartesianGeoRecord(new LatitudeLongitudeDocId(gcord.getLongitude(), gcord.getLatitude(), 0), (byte)0);
+        CartesianCoordinateDocId ccd = gc.toCartesianCoordinateDocId(cgr);
+        GeoQuery geoQuery = new GeoQuery(ccd.x, ccd.y, ccd.z, rangeInKm);
         GeoWeight geoWeight = (GeoWeight)geoQuery.createWeight(null);
         Directory directory = buildEmptyDirectory();
         geoIndexReader = new GeoIndexReader(directory, new GeoSearchConfig());
         geoIndexReader.setGeoSegmentReaders(geoSubReaders);
         boolean scoreInOrder = true, topScorer = true; 
         GeoScorer geoScorer = (GeoScorer)geoWeight.scorer(geoIndexReader, scoreInOrder, topScorer);
-        test_Scorer(rangeInMiles, geoScorer, gcord, indexedDocument);
-        //IndexSearcher searcher = new IndexSearcher(new GeoIndexReader(directory, new GeoSearchConfig()));
-        //TopDocs topDocs = searcher.search(geoQuery, 10);
-        //test_TopDocs(topDocs);
-        
+        test_Scorer(rangeInKm, geoScorer, gcord, indexedDocument);
         assertTrue("",0==0);
     }
     
