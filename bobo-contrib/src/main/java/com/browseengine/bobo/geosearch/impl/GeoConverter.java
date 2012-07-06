@@ -426,8 +426,8 @@ public class GeoConverter implements IGeoConverter {
     }
     
     @Override
-    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
-        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
+    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord, byte filterByte) {
+        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, filterByte);
     }
 
     @Override

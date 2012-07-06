@@ -6,7 +6,7 @@ package com.browseengine.bobo.geosearch;
 import java.io.IOException;
 import java.util.Iterator;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 
 /**
  * The method to use on the GeoRecord tree/index.
@@ -24,5 +24,5 @@ public interface IGeoRecordIterator {
      * @param maxValue
      * @return
      */
-    Iterator<GeoRecord> getIterator(GeoRecord minValue, GeoRecord maxValue) throws IOException;
+    Iterator<CartesianGeoRecord> getIterator(CartesianGeoRecord minValue, CartesianGeoRecord maxValue) throws IOException;
 }

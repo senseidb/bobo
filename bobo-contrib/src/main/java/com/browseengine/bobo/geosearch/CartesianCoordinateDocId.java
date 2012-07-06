@@ -1,5 +1,6 @@
 package com.browseengine.bobo.geosearch;
 
+
 public class CartesianCoordinateDocId {
     public int x;
     public int y;
@@ -49,6 +50,19 @@ public class CartesianCoordinateDocId {
     @Override
     public String toString() {
         return "[(x=" + x + ", y=" + y + ", z=" + z + "), docid=" + docid + "]";
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CartesianCoordinateDocId clone() {
+        CartesianCoordinateDocId clone = new CartesianCoordinateDocId(
+                x,
+                y,
+                z,
+                docid);
+        return clone;
     }
 }
 
