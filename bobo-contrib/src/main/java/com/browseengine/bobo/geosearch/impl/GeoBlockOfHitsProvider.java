@@ -64,9 +64,9 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
             throws IOException {
 
         CartesianCoordinateDocId minccd = new CartesianCoordinateDocId(minX, minY, minZ, mindocid);
-        CartesianGeoRecord minValue = geoConverter.toCartesianGeoRecord(minccd);
+        CartesianGeoRecord minValue = geoConverter.toCartesianGeoRecord(minccd, (byte)0);
         CartesianCoordinateDocId maxccd = new CartesianCoordinateDocId(maxX, maxY, maxZ, maxdocid);
-        CartesianGeoRecord maxValue = geoConverter.toCartesianGeoRecord(maxccd);
+        CartesianGeoRecord maxValue = geoConverter.toCartesianGeoRecord(maxccd, (byte)0);
         Iterator<CartesianGeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
         DocsSortedByDocId docs = new DocsSortedByDocId();
 

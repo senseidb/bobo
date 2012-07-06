@@ -5,19 +5,19 @@ import java.util.TreeSet;
 
 import org.springframework.stereotype.Component;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IGeoUtil;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 @Component
 public class GeoUtil implements IGeoUtil {
 
     @Override
-    public Iterator<CartesianGeoRecord> getGeoRecordIterator(Iterator<LatitudeLongitudeDocId> lldidIter) {
+    public Iterator<CartesianGeoRecord> getGeoRecordIterator(Iterator<CartesianCoordinateDocId> lldidIter) {
         GeoConverter gc = new GeoConverter();
         ArrayList<CartesianGeoRecord> grl = new ArrayList<CartesianGeoRecord>();
         while (lldidIter.hasNext()) {
-            grl.add(gc.toCartesianGeoRecord(null, null, lldidIter.next()));
+            grl.add(gc.toCartesianGeoRecord(lldidIter.next(), (byte)0));
         }
         return grl.iterator();
     }
