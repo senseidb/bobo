@@ -73,17 +73,17 @@ public class GeoConverter implements IGeoConverter {
     //Geodetic datum.
     static final double ONE_MINUS_ECCENTRICITY_OF_EARTH = 0.99330562;
     
-    protected int getXFromRadians(double latRadians, double longRadians)
+    public int getXFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
     }
 
-    protected int getYFromRadians(double latRadians, double longRadians)
+    public int getYFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
     }
 
-    protected int getZFromRadians(double latRadians)
+    public int getZFromRadians(double latRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
     }
