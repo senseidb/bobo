@@ -28,6 +28,8 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte);
         CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord);
         CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid);
+        CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord);
+        CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord);
         
         CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord);
         

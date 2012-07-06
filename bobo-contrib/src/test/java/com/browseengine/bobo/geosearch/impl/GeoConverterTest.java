@@ -21,6 +21,7 @@ import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
  * 
  * 
  * @author gcooney
+ * @author shandets
  *
  */
 public class GeoConverterTest {
@@ -394,6 +395,7 @@ public class GeoConverterTest {
         CartesianGeoRecord cgrconv = null;
         CartesianCoordinateDocId ccdconv = null;
         Random random = new Random(31);
+        CartesianGeoRecordComparator comp = new CartesianGeoRecordComparator();
         for(int i = 0; i < 20; i++) {
             docid = random.nextInt(Integer.MAX_VALUE);
             x = random.nextInt(Integer.MAX_VALUE);
@@ -417,11 +419,42 @@ public class GeoConverterTest {
             assertTrue(ccd.y == ccdconv.y);
             assertTrue(Math.abs(ccd.z - ccdconv.z) <= 1);
             assertTrue(ccd.docid == ccdconv.docid);
-            
-            assertTrue(cgr.highOrder == cgrconv.highOrder);
-            assertTrue(cgr.lowOrder == cgrconv.lowOrder);
+            assertTrue(comp.compare(cgr, cgrconv) == 0);
         }
         
+    }
+    @Test
+    public void printOutDifferenceInXZYForDifferenceOfDistanceOf1km() {
+        // http://andrew.hedges.name/experiments/haversine/ says the distance between 
+        // 10.1 and 10.10641 is about 1KM
+        double latitudeA = Conversions.d2r(0.0);
+        double longitudeA = Conversions.d2r(0.0);
+        double latitudeB = Conversions.d2r(0.00641);
+        double longitudeB = Conversions.d2r(0.00641);
+        int x = geoConverter.getXFromRadians(latitudeA, longitudeA);
+        int y = geoConverter.getYFromRadians(latitudeA, longitudeA);
+        int z = geoConverter.getZFromRadians(latitudeA);
+        int xp = geoConverter.getXFromRadians(latitudeB, longitudeB);
+        int yp = geoConverter.getYFromRadians(latitudeB, longitudeB);
+        int zp = geoConverter.getZFromRadians(latitudeB);
+        
+        System.out.println("Distnace btw x, y, z are " + Math.abs(x-xp) + ", " + Math.abs(y-yp) + ", " + Math.abs(z-zp));
+    }
+    
+    @Test 
+    public void print2MSquaredDistance() {
+        double latitudeA = Conversions.d2r(10.1);
+        double longitudeA = Conversions.d2r(10.1);
+        double latitudeB = Conversions.d2r(10.10001);
+        double longitudeB = Conversions.d2r(10.10001);
+        int x = geoConverter.getXFromRadians(latitudeA, longitudeA);
+        int y = geoConverter.getYFromRadians(latitudeA, longitudeA);
+        int z = geoConverter.getZFromRadians(latitudeA);
+        int xp = geoConverter.getXFromRadians(latitudeB, longitudeB);
+        int yp = geoConverter.getYFromRadians(latitudeB, longitudeB);
+        int zp = geoConverter.getZFromRadians(latitudeB);
+        long l = (x-xp)*(x-xp) + (y-yp)*(y-yp) + (z-zp)*(z-zp);
+        System.out.println(l);
     }
     
     private void interlaceAndUninterlace(int startX, int deltaX, int startY, int deltaY, int startZ, int deltaZ,

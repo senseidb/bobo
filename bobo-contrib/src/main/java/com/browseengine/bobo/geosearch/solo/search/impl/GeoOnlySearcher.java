@@ -5,6 +5,7 @@ import java.util.Iterator;
 
 import org.apache.lucene.store.Directory;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
@@ -109,6 +110,20 @@ public class GeoOnlySearcher {
         int minZ = calculateMinimumCoordinate(centroidCoordinate.z, rangeInUnits);
         return new CartesianCoordinateUUID(minX, minY, minZ, EMPTY_UUID);
     }
+    public static CartesianCoordinateDocId buildMinCoordinate(float rankeInKm, int x, int y, int z, int docid) {
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits((double)rankeInKm * 1000.0);
+        int minX = calculateMinimumCoordinate(x, rangeInUnits);
+        int minY = calculateMinimumCoordinate(y, rangeInUnits);
+        int minZ = calculateMinimumCoordinate(z, rangeInUnits);
+        return new CartesianCoordinateDocId(minX, minY, minZ, docid);
+    }
+    public static CartesianCoordinateDocId buildMaxCoordinate(float rankeInKm, int x, int y, int z, int docid) {
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits((double)rankeInKm * 1000.0);
+        int maxX = calculateMaximumCoordinate(x, rangeInUnits);
+        int maxY = calculateMaximumCoordinate(y, rangeInUnits);
+        int maxZ = calculateMaximumCoordinate(z, rangeInUnits);
+        return new CartesianCoordinateDocId(maxX, maxY, maxZ, docid);
+    }
     
     private CartesianCoordinateUUID buildMaxCoordinate(GeoQuery query){
         double rangeInkm = Conversions.mi2km(query.getRangeInMiles());
@@ -121,7 +136,7 @@ public class GeoOnlySearcher {
         return new CartesianCoordinateUUID(maxX, maxY, maxZ, EMPTY_UUID);
     }
     
-    private int calculateMinimumCoordinate(int originalPoint, int delta) {
+    private static int calculateMinimumCoordinate(int originalPoint, int delta) {
         if (originalPoint > 0 || 
                 originalPoint > Integer.MIN_VALUE + delta) {
             return originalPoint - delta;
@@ -130,7 +145,7 @@ public class GeoOnlySearcher {
         }
     }
     
-    private int calculateMaximumCoordinate(int originalPoint, int delta) {
+    private static int calculateMaximumCoordinate(int originalPoint, int delta) {
         if (originalPoint < 0 || 
                 originalPoint < Integer.MAX_VALUE - delta) {
             return originalPoint + delta;

@@ -6,13 +6,13 @@ package com.browseengine.bobo.geosearch.impl;
 import java.io.IOException;
 import java.util.Iterator;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IDeletedDocs;
 import com.browseengine.bobo.geosearch.IGeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.IGeoConverter;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.DocsSortedByDocId;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecordAndLongitudeLatitudeDocId;
-import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.bo.GeRecordAndCartesianDocId;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 
 /**
@@ -30,7 +30,7 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
     /**
      * {@inheritDoc}
      * @throws IOException 
-     */
+     *
     @Override
     public DocsSortedByDocId getBlock(GeoSegmentReader geoSegmentReader, IDeletedDocs deletedDocsWithinSegment,
             final double minimumLongitude, final double minimumLatitude, final int minimumDocid, 
@@ -55,6 +55,30 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
                 docs.add(longitudeLatitudeDocId.docid, both);
             }
         }
+        return docs;
+    }
+*/
+    @Override
+    public DocsSortedByDocId getBlock(GeoSegmentReader geoSegmentReader, IDeletedDocs deletedDocsWithinSegment,
+            int minX, int maxX, int minY, int maxY, int minZ, int maxZ, int mindocid, int maxdocid)
+            throws IOException {
+
+        CartesianCoordinateDocId minccd = new CartesianCoordinateDocId(minX, minY, minZ, mindocid);
+        CartesianGeoRecord minValue = geoConverter.toCartesianGeoRecord(minccd);
+        CartesianCoordinateDocId maxccd = new CartesianCoordinateDocId(maxX, maxY, maxZ, maxdocid);
+        CartesianGeoRecord maxValue = geoConverter.toCartesianGeoRecord(maxccd);
+        Iterator<CartesianGeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
+        DocsSortedByDocId docs = new DocsSortedByDocId();
+
+        while (iterator.hasNext()) {
+            CartesianGeoRecord geoRecord = iterator.next();
+            CartesianCoordinateDocId ccd  = geoConverter.toCartesianCoordinateDocId(geoRecord);
+            if(minX <= ccd.x  && ccd.x <= maxX && minY <= ccd.y  && ccd.y <= maxY && minZ <= ccd.z  && ccd.z <= maxZ && mindocid <= ccd.docid  && ccd.docid <= maxdocid) {
+                GeRecordAndCartesianDocId both = new GeRecordAndCartesianDocId(geoRecord, ccd);
+                docs.add(ccd.docid, both);
+            }
+        }
+        
         return docs;
     }
 
