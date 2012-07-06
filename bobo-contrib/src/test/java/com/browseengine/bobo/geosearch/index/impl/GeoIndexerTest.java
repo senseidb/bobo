@@ -26,6 +26,7 @@ import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
@@ -150,14 +151,14 @@ public class GeoIndexerTest {
         double longitude = geoCoordinate.getLongitude();
         
         LatitudeLongitudeDocId latitudeLongitudeDocId = new LatitudeLongitudeDocId(latitude, longitude, docId);
-        final GeoRecord geoRecord = new GeoConverter().toGeoRecord(filterByte, latitudeLongitudeDocId);
+        final CartesianGeoRecord geoRecord = new GeoConverter().toCartesianGeoRecord(latitudeLongitudeDocId, filterByte);
         
         context.checking(new Expectations() {
             {
                 one(mockConverter).makeFieldNameFilterConverter();
                 will(returnValue(mockFieldNameFilterConverter));
                 
-                one(mockConverter).toGeoRecord(with(any(IFieldNameFilterConverter.class)), 
+                one(mockConverter).toCartesianGeoRecord(with(any(IFieldNameFilterConverter.class)), 
                         with(any(String.class)), with(any(LatitudeLongitudeDocId.class)));
                 will(returnValue(geoRecord));
             }

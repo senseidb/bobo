@@ -245,7 +245,8 @@ public class GeoOnlySearcherTest {
     
     private void searchAndVerify_allHitsInRange(double centroidLat, double centroidLong, 
             Float rangeInMiles, int hitCount, int missCount, int start, int count) throws IOException {
-        final GeoQuery query = new GeoQuery(centroidLong, centroidLat, rangeInMiles, null);
+        Float rangeInKilometers = Conversions.mi2km(rangeInMiles);
+        final GeoQuery query = new GeoQuery(centroidLong, centroidLat, rangeInKilometers);
         
         final IDGeoRecord maxRecord = buildMaxRecord(centroidLong, centroidLat, rangeInMiles, GeoOnlySearcher.EMPTY_UUID); 
         final IDGeoRecord minRecord = buildMinRecord(centroidLong, centroidLat, rangeInMiles, GeoOnlySearcher.EMPTY_UUID);

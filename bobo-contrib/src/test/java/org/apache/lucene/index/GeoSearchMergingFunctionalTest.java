@@ -27,6 +27,7 @@ import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 
 /**
  * Class to run GeoSearch Indexing functional tests.  These tests run 
@@ -186,9 +187,9 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         GeoCoordinate coordinate = calculateGeoCoordinate(3, 21);
         double longitude = coordinate.getLongitude();
         double lattitude = coordinate.getLatitude();
-        float miles = 500;
+        float kilometers = Conversions.mi2km(500);
          
-        GeoQuery query = new GeoQuery(longitude, lattitude, miles, null);
+        GeoQuery query = new GeoQuery(longitude, lattitude, kilometers);
         TopDocs topDocs = searcher.search(query, 10);
         
         List<String> expectedResults = new Vector<String>();
