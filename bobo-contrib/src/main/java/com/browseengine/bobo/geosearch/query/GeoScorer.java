@@ -11,21 +11,24 @@ import java.util.Map.Entry;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IDeletedDocs;
 import com.browseengine.bobo.geosearch.IGeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.IGeoConverter;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.DocsSortedByDocId;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecordAndLongitudeLatitudeDocId;
+import com.browseengine.bobo.geosearch.bo.GeRecordAndCartesianDocId;
 import com.browseengine.bobo.geosearch.impl.DeletedDocs;
 import com.browseengine.bobo.geosearch.impl.GeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.score.IComputeDistance;
 import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
+import com.browseengine.bobo.geosearch.solo.search.impl.GeoOnlySearcher;
 
 /**
  * @author Ken McCracken
+ * @author shandets
  *
  */
 public class GeoScorer extends Scorer {
@@ -39,25 +42,21 @@ public class GeoScorer extends Scorer {
     private final IGeoConverter geoConverter;
     private final IGeoBlockOfHitsProvider geoBlockOfHitsProvider;
     private final IComputeDistance computeDistance;
-    private final List<GeoSegmentReader<GeoRecord>> segmentsInOrder;
-    private final double centroidLongitudeDegrees;
-    private final double centroidLatitudeDegrees;
-    private final float rangeInMiles;
+    private final List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder;
+    private final int centroidX;
+    private final int centroidY;
+    private final int centroidZ;
+    private final float rangeInKm;
+    private int[] cartesianBoundingBox;
     
-    // TODO: add dynamic refinement as the query goes, 
-    // to collapse the range
-    private double minimumLongitudeDegrees;
-    private double maximumLongitudeDegrees;
-    private double minimumLatitudeDegrees;
-    private double maximumLatitudeDegrees;
     // current pointers
     private int docid = DOCID_CURSOR_NONE_YET; 
     private int indexOfCurrentPartition = DOCID_CURSOR_NONE_YET;
     private int startDocidOfCurrentPartition;
-    private GeoSegmentReader<GeoRecord> currentSegment = null;
+    private GeoSegmentReader<CartesianGeoRecord> currentSegment = null;
     private DocsSortedByDocId currentBlockScoredDocs;
     
-    private Entry<Integer, Collection<GeoRecordAndLongitudeLatitudeDocId>> currentDoc;
+    private Entry<Integer, Collection<GeRecordAndCartesianDocId>> currentDoc;
     
     private IDeletedDocs wholeIndexDeletedDocs;
     
@@ -67,11 +66,12 @@ public class GeoScorer extends Scorer {
     }
     
     public GeoScorer(Weight                      weight,
-                     List<GeoSegmentReader<GeoRecord>>      segmentsInOrder, 
+                     List<GeoSegmentReader<CartesianGeoRecord>>      segmentsInOrder, 
                      IDeletedDocs                wholeIndexDeletedDocs, 
-                     double                      centroidLongitudeDegrees,
-                     double                      centroidLatitudeDegrees,
-                     float                       rangeInMiles) {
+                     int                         centroidX,
+                     int                         centroidY,
+                     int                         centroidZ,
+                     float                       rangeInKm) {
                      super                       (weight);
         
         this.geoConverter = new GeoConverter();
@@ -79,29 +79,20 @@ public class GeoScorer extends Scorer {
         
         this.segmentsInOrder = segmentsInOrder;
         
-        this.centroidLongitudeDegrees = centroidLongitudeDegrees;
-        this.centroidLatitudeDegrees = centroidLatitudeDegrees;
-        this.rangeInMiles = rangeInMiles;
+        this.centroidX = centroidX;
+        this.centroidY = centroidY;
+        this.centroidZ = centroidZ;
+        this.rangeInKm = rangeInKm;
         
         startDocidOfCurrentPartition = -1;
         
         this.computeDistance = new HaversineComputeDistance();
+        CartesianCoordinateDocId minccd = GeoOnlySearcher.buildMinCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
+        CartesianCoordinateDocId maxccd = GeoOnlySearcher.buildMaxCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
+        this.cartesianBoundingBox = new int [] {minccd.x, maxccd.x, minccd.y, maxccd.y, minccd.z, maxccd.z};
         
-        init();
     }
     
-    private void init() {
-        double deltaLongitudeDegrees = computeDistance.computeLonBoundary(
-                centroidLatitudeDegrees, rangeInMiles);
-        
-        double deltaLatitudeDegrees = computeDistance.computeLatBoundary(rangeInMiles);
-
-        minimumLongitudeDegrees = centroidLongitudeDegrees - deltaLongitudeDegrees;
-        maximumLongitudeDegrees = centroidLongitudeDegrees + deltaLongitudeDegrees;
-        
-        minimumLatitudeDegrees = centroidLatitudeDegrees - deltaLatitudeDegrees;
-        maximumLatitudeDegrees = centroidLatitudeDegrees + deltaLatitudeDegrees;
-    }
 
     /**
      * {@inheritDoc}
@@ -114,33 +105,34 @@ public class GeoScorer extends Scorer {
     }
     
     /**
-     * about 5 feet.
+     * MINIMUM_DISTANCE_WE_CARE_ABOUT = (x-x')*(x-x') + (y-y')*(y-y') + (z-z')*(z-z')
+     *  Where x, y, z and x', y', z' are 2 meter apart.
+     * 
      */
-    private static final float MINIMUM_DISTANCE_WE_CARE_ABOUT_MILES = 0.0001f;
+    private static final long MINIMUM_DISTANCE_WE_CARE_ABOUT = 273798;
     
-    private float score(Collection<GeoRecordAndLongitudeLatitudeDocId> values) {
-        float minimumDistanceMiles = 9999999f;
-        for (GeoRecordAndLongitudeLatitudeDocId value : values) {
-            float distanceMiles = computeDistance.getDistanceInMiles(centroidLongitudeDegrees, centroidLatitudeDegrees, 
-                    value.longitudeLatitudeDocId.longitude, value.longitudeLatitudeDocId.latitude);
-            if (distanceMiles < minimumDistanceMiles) {
-                minimumDistanceMiles = distanceMiles;
-            }
+    private float score(Collection<CartesianCoordinateDocId> values) {
+        long squaredDistance = Long.MAX_VALUE;
+        for (CartesianCoordinateDocId value : values) {
+             long squaredDistance2 = computeDistance.getSquaredDistance(centroidX, centroidY, centroidZ, value.x, value.y, value.z);
+             if(squaredDistance2 < squaredDistance) {
+                 squaredDistance = squaredDistance2;
+             }
         }
-        return score(minimumDistanceMiles);
+        return score(squaredDistance);
     }
     
     /**
-     * Score is 1/distance normalized to 1 at MINIMUM_DISTANCE_WE_CARE_ABOUT_MILES.
+     * Score is 1/distance normalized to 1 at MINIMUM_DISTANCE_WE_CARE_ABOUT.
      * 
      * @param minimumDistanceMiles
      * @return
      */
-    private float score(float minimumDistanceMiles) {
-        if (minimumDistanceMiles < MINIMUM_DISTANCE_WE_CARE_ABOUT_MILES) {
+    private float score(long squaredDistance) {
+        if (squaredDistance < MINIMUM_DISTANCE_WE_CARE_ABOUT) {
             return 1f;
         }
-        return MINIMUM_DISTANCE_WE_CARE_ABOUT_MILES/minimumDistanceMiles;
+        return (float)((double)MINIMUM_DISTANCE_WE_CARE_ABOUT/((double)squaredDistance));
     }
 
     /**
@@ -208,9 +200,9 @@ public class GeoScorer extends Scorer {
 
         return false;
     }
-    
+
     private void nextDocidAndCurrentDocFromBlockInMemory() {
-        Entry<Integer, Collection<GeoRecordAndLongitudeLatitudeDocId>> doc = currentBlockScoredDocs.pollFirst();
+        Entry<Integer, Collection<GeRecordAndCartesianDocId>> doc = currentBlockScoredDocs.pollFirst();
         docid = doc.getKey() + startDocidOfCurrentPartition;
         // docid is now translated into the whole-index docid value
         currentDoc = doc;
@@ -256,10 +248,10 @@ public class GeoScorer extends Scorer {
         int maxDocInPartition = currentSegment.getMaxDoc();
         int maximumDocidInPartition = Math.min(maxDocInPartition, 
                 (blockNumber + 1) * BLOCK_SIZE);
-        
         currentBlockScoredDocs = geoBlockOfHitsProvider.getBlock(currentSegment, deletedDocsWithinSegment,
-                minimumLongitudeDegrees, minimumLatitudeDegrees, minimumDocidInPartition, 
-                maximumLongitudeDegrees, maximumLatitudeDegrees, maximumDocidInPartition);
+                cartesianBoundingBox[0], cartesianBoundingBox[1], cartesianBoundingBox[2],
+                cartesianBoundingBox[3], cartesianBoundingBox[4], cartesianBoundingBox[5],
+                minimumDocidInPartition, maximumDocidInPartition);
         currentBlockGlobalMaxDoc = startDocidOfCurrentPartition + maximumDocidInPartition;
     }
     

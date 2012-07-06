@@ -49,4 +49,25 @@ public class HaversineComputeDistance implements IComputeDistance {
         
         return Conversions.r2d(lonBoundaryRadians);
     }
+    
+    private final float ONEKMDIFFX =  82694f;  // 16 powers of 2 is 65,536
+    private final float ONEKMDIFFY = 224679f;  // 18 powers of 2 is 262,144
+    private final float ONEKMDIFFZ = 234124f;
+    
+    @Override 
+    public int [] cartesianBoundingBox(float rangeInKm, int x, int y, int z) {
+        int [] inta = new int[6];
+        inta[0] = x - (int)(rangeInKm*ONEKMDIFFX);
+        inta[1] = x + (int)(rangeInKm*ONEKMDIFFX);
+        inta[2] = y - (int)(rangeInKm*ONEKMDIFFY);
+        inta[3] = y + (int)(rangeInKm*ONEKMDIFFY);
+        inta[4] = z - (int)(rangeInKm*ONEKMDIFFZ);
+        inta[5] = z + (int)(rangeInKm*ONEKMDIFFZ);
+        return inta;
+    }
+
+    @Override
+    public long getSquaredDistance(int x, int y, int z, int xp, int yp, int zp) {
+        return (x-xp)*(x-xp)+(y-yp)*(y-yp)*(z-zp)*(z-zp);
+    }
 }

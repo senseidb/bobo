@@ -4,6 +4,7 @@
 package com.browseengine.bobo.geosearch;
 
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
@@ -24,5 +25,7 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         IDGeoRecord toIDGeoRecord(CartesianCoordinateUUID coordinate);
         CartesianCoordinateUUID toCartesianCoordinate(IDGeoRecord geoRecord);
         CartesianCoordinateUUID toCartesianCoordinate(double latitude, double longitude, byte[] uuid);
+        CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord);
+        CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord);
         
     }

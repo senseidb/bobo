@@ -8,7 +8,7 @@ package com.browseengine.bobo.geosearch.score;
  *
  */
 public interface IComputeDistance {
-
+    
     /**
      * Given two points A and B on the surface of the Earth, 
      * this function computes the distance between these two 
@@ -45,5 +45,10 @@ public interface IComputeDistance {
      */
     double computeLonBoundary(double latitudeInDegrees,
             float radiusInMiles);
+    
+    
+    long getSquaredDistance(int x, int y, int z, int xp, int yp, int zp);
+
+    int[] cartesianBoundingBox(float rangeInKm, int x, int y, int z);
     
 }

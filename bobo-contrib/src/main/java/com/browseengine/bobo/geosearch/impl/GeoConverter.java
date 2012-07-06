@@ -416,7 +416,8 @@ public class GeoConverter implements IGeoConverter {
         return outputValue;
     }
     
-    CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
         return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
     }
     
@@ -431,7 +432,6 @@ public class GeoConverter implements IGeoConverter {
      * @param filterByte
      * @return
      */
-    
     CartesianGeoRecord toCartesianGeoRecord(int x, int y, int z, int docid, byte filterByte) {
         long highOrderBits = 0;
         int highOrderPosition = LONGLENGTH - 2;
@@ -485,6 +485,7 @@ public class GeoConverter implements IGeoConverter {
         return new CartesianGeoRecord(highOrderBits, lowOrderBits, filterByte);
     }
     
+    @Override
     public CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord) {
         int x = 0;
         int y = 0;
