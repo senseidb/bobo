@@ -12,9 +12,9 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.util.BitVector;
 
 import com.browseengine.bobo.geosearch.IGeoConverter;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.impl.BTree;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 
 /**
  * Can merge multiple BTreeAsArray&lg;GeoRecord&gt; instances.
@@ -24,18 +24,18 @@ import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
  * @author Ken McCracken
  *
  */
-public class ChainedConvertedGeoRecordIterator implements Iterator<GeoRecord> {
+public class ChainedConvertedGeoRecordIterator implements Iterator<CartesianGeoRecord> {
     
     private static final Logger LOGGER = Logger.getLogger(ChainedConvertedGeoRecordIterator.class);
 
-    private static final GeoRecordComparator geoRecordCompareByBitMag = new GeoRecordComparator();
+    private static final CartesianGeoRecordComparator geoRecordCompareByBitMag = new CartesianGeoRecordComparator();
     
     protected IGeoConverter geoConverter;
-    protected Iterator<GeoRecord> mergedIterator;
-    protected OrderedIteratorChain<GeoRecord> orderedIteratorChain;
+    protected Iterator<CartesianGeoRecord> mergedIterator;
+    protected OrderedIteratorChain<CartesianGeoRecord> orderedIteratorChain;
     
     public ChainedConvertedGeoRecordIterator(IGeoConverter geoConverter, 
-            List<BTree<GeoRecord>> partitions,
+            List<BTree<CartesianGeoRecord>> partitions,
             List<BitVector> deletedDocsList, 
             int totalBufferCapacity) throws IOException {
         this.geoConverter = geoConverter;
@@ -48,22 +48,22 @@ public class ChainedConvertedGeoRecordIterator implements Iterator<GeoRecord> {
         
         int docid = 0;
         int bufferCapacityPerIterator = totalBufferCapacity / numberOfPartitions;
-        List<Iterator<GeoRecord>> mergedIterators = new ArrayList<Iterator<GeoRecord>>(partitions.size());
+        List<Iterator<CartesianGeoRecord>> mergedIterators = new ArrayList<Iterator<CartesianGeoRecord>>(partitions.size());
         
         for (int i = 0; i < partitions.size(); i++) {
-            BTree<GeoRecord> partition = partitions.get(i);
+            BTree<CartesianGeoRecord> partition = partitions.get(i);
             BitVector deletedDocs = deletedDocsList.get(i);
-            Iterator<GeoRecord> mergedIterator = 
+            Iterator<CartesianGeoRecord> mergedIterator = 
                 new ConvertedGeoRecordIterator(geoConverter, partition, 
                         docid, deletedDocs);
-            mergedIterator = new BufferedOrderedIterator<GeoRecord>(mergedIterator, 
+            mergedIterator = new BufferedOrderedIterator<CartesianGeoRecord>(mergedIterator, 
                     geoRecordCompareByBitMag, bufferCapacityPerIterator);
             mergedIterators.add(mergedIterator);
             docid += deletedDocs.size() - deletedDocs.count();
         }
 
         orderedIteratorChain = 
-            new OrderedIteratorChain<GeoRecord>(mergedIterators, geoRecordCompareByBitMag);
+            new OrderedIteratorChain<CartesianGeoRecord>(mergedIterators, geoRecordCompareByBitMag);
     }
     
     /**
@@ -78,7 +78,7 @@ public class ChainedConvertedGeoRecordIterator implements Iterator<GeoRecord> {
      * {@inheritDoc}
      */
     @Override
-    public GeoRecord next() {
+    public CartesianGeoRecord next() {
         return orderedIteratorChain.next();
     }
     
