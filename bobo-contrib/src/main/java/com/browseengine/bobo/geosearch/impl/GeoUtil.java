@@ -38,7 +38,7 @@ public class GeoUtil implements IGeoUtil {
     
     @Override
     public TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByDocId(Iterator<CartesianGeoRecord> grtIter) {
-        TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new GeoRecordCompareByDocId());
+        TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordCompareByDocId());
         while(grtIter.hasNext()){
             tree.add(grtIter.next());
         }
