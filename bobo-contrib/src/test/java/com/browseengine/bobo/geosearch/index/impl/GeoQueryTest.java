@@ -18,14 +18,12 @@ import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
 import com.browseengine.bobo.geosearch.query.GeoScorer;
@@ -61,11 +59,11 @@ public class GeoQueryTest {
         GeoCoordinate gcord = new GeoCoordinate(Math.random() * 140.0 - 70.0,
                 Math.random() * 360.0 - 180.0);
         float rangeInKm = (float) (Math.random()*10.0);
-        ArrayList<CartesianCoordinateDocId> indexedDocument = getSegmentOfLongitudeLatitudeDocIds(100 + (int)(Math.random()*1000), gcord);
+        ArrayList<LatitudeLongitudeDocId> indexedDocument = getSegmentOfLongitudeLatitudeDocIds(100 + (int)(Math.random()*1000), gcord);
         
         printAllDocIdsInRange(rangeInKm, indexedDocument, gcord);
         
-        TreeSet<GeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
+        TreeSet<CartesianGeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
         GeoRecordBTree geoRecordBTree = new GeoRecordBTree(treeSet); 
         MyGeoSegmentReader geoSegmentReader = new MyGeoSegmentReader(geoRecordBTree, indexedDocument.size());
         geoSubReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(); 
@@ -158,11 +156,11 @@ public class GeoQueryTest {
         writer.close();
         return directory;
     }
-    public TreeSet<GeoRecord> arrayListToTreeSet(ArrayList<LatitudeLongitudeDocId> indexedDocument) {
-        TreeSet<GeoRecord> treeSet = new  TreeSet<GeoRecord>(new GeoRecordComparator());
+    public TreeSet<CartesianGeoRecord> arrayListToTreeSet(ArrayList<LatitudeLongitudeDocId> indexedDocument) {
+        TreeSet<CartesianGeoRecord> treeSet = new  TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         GeoConverter gc = new GeoConverter();
         for (int i = 0; i < indexedDocument.size(); i++) {
-            treeSet.add(gc.toGeoRecord((byte)0, indexedDocument.get(i)));
+            treeSet.add(gc.toCartesianGeoRecord(indexedDocument.get(i), (byte)0));
         }
         return treeSet;
     }

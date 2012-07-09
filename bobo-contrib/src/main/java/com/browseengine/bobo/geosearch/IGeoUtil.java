@@ -6,7 +6,7 @@ import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 public interface IGeoUtil {
-    Iterator<CartesianGeoRecord> getGeoRecordIterator(Iterator<CartesianCoordinateDocId> lldidIter);
+    Iterator<CartesianGeoRecord> getGeoRecordIterator(Iterator<LatitudeLongitudeDocId> lldidIter);
     TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByBitMag(Iterator<CartesianGeoRecord> grIter);
     TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByBitMag();
     TreeSet<CartesianGeoRecord> getBinaryTreeOrderedByDocId(Iterator<CartesianGeoRecord> grIter);
