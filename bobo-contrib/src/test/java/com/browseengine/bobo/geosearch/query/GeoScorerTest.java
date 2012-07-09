@@ -28,13 +28,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.IGeoConverter;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
@@ -52,8 +52,8 @@ public class GeoScorerTest {
     private Weight geoWeight;
     private GeoIndexReader geoIndexReader;
     private Scorer scorer;
-    private List<GeoSegmentReader<GeoRecord>> geoSubReaders;
-    private GeoSegmentReader<GeoRecord> geoSegmentReader;
+    private List<GeoSegmentReader<CartesianGeoRecord>> geoSubReaders;
+    private GeoSegmentReader<CartesianGeoRecord> geoSegmentReader;
     
     private List<LatitudeLongitudeDocId> indexedDocuments;
     
@@ -69,16 +69,16 @@ public class GeoScorerTest {
     private float score;
     
     private int maxDoc2;
-    private TreeSet<GeoRecord> treeSet2;
+    private TreeSet<CartesianGeoRecord> treeSet2;
     private GeoRecordBTree geoRecordBTree2;
-    private GeoSegmentReader<GeoRecord> geoSegmentReader2;
+    private GeoSegmentReader<CartesianGeoRecord> geoSegmentReader2;
     
-    private static class MyGeoSegmentReader extends GeoSegmentReader<GeoRecord> {
+    private static class MyGeoSegmentReader extends GeoSegmentReader<CartesianGeoRecord> {
         private final GeoRecordBTree tree;
         
         public MyGeoSegmentReader(GeoRecordBTree tree, int maxDoc) {
-            super(tree.getArrayLength(), maxDoc, new GeoRecordSerializer(), 
-                    new GeoRecordComparator());
+            super(tree.getArrayLength(), maxDoc, new CartesianGeoRecordSerializer(), 
+                    new CartesianGeoRecordComparator());
             this.tree = tree;
         }
         
@@ -88,12 +88,12 @@ public class GeoScorerTest {
          * {@inheritDoc}
          */
         @Override
-        protected GeoRecord getValueAtIndex(int index) {
+        protected CartesianGeoRecord getValueAtIndex(int index) {
             return tree.getValueAtIndex(index);
         }
     }
     
-    TreeSet<GeoRecord> treeSet;
+    TreeSet<CartesianGeoRecord> treeSet;
     
     private List<LatitudeLongitudeDocId> indexedDocuments3;
     
@@ -122,7 +122,7 @@ public class GeoScorerTest {
         
         indexedDocuments3 = new ArrayList<LatitudeLongitudeDocId>();
         
-        geoSubReaders = new ArrayList<GeoSegmentReader<GeoRecord>>();
+        geoSubReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>();
     }
     
     private LatitudeLongitudeDocId HIT3_CLOSE;
@@ -131,9 +131,9 @@ public class GeoScorerTest {
     private LatitudeLongitudeDocId HIT4_CLOSE;
     private LatitudeLongitudeDocId SF_OTHER1;
     private LatitudeLongitudeDocId SF_OTHER2;
-    private Set<GeoRecord> treeSet3;
+    private Set<CartesianGeoRecord> treeSet3;
     private GeoRecordBTree geoRecordBTree3;
-    private GeoSegmentReader<GeoRecord> geoSegmentReader3;
+    private GeoSegmentReader<CartesianGeoRecord> geoSegmentReader3;
     private int maxDoc3;
     
     private void setupThirdSegment() throws Exception {
@@ -153,9 +153,9 @@ public class GeoScorerTest {
         SF_OTHER2 = new LatitudeLongitudeDocId(SF_CENTER.latitude + 0.00007f, SF_CENTER.longitude - 0.00003f, docid++);
         indexedDocuments3.add(SF_OTHER2);
         
-        treeSet3 = new TreeSet<GeoRecord>(new GeoRecordComparator());
+        treeSet3 = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         for (LatitudeLongitudeDocId raw : indexedDocuments3) {
-            GeoRecord geoRecord = geoConverter.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, raw);
+            CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(raw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
             treeSet3.add(geoRecord);
         }
         geoRecordBTree3 = new GeoRecordBTree(treeSet3);
@@ -178,9 +178,9 @@ public class GeoScorerTest {
     
     private void setupOneTree() throws Exception {
         
-        treeSet = new TreeSet<GeoRecord>(new GeoRecordComparator());
+        treeSet = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         for (LatitudeLongitudeDocId raw : indexedDocuments) {
-            GeoRecord geoRecord = geoConverter.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, raw);
+            CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(raw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
             treeSet.add(geoRecord);
         }
         
@@ -198,7 +198,7 @@ public class GeoScorerTest {
         
         geoIndexReader = new GeoIndexReader(directory, new GeoSearchConfig()) {
             @Override
-            public List<GeoSegmentReader<GeoRecord>> getGeoSegmentReaders() {
+            public List<GeoSegmentReader<CartesianGeoRecord>> getGeoSegmentReaders() {
                 return geoSubReaders;
             }
             
@@ -253,7 +253,7 @@ public class GeoScorerTest {
 
 
     private void addEmptySecondSegment() throws Exception {
-        treeSet2 = new TreeSet<GeoRecord>(new GeoRecordComparator());
+        treeSet2 = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         maxDoc2 = 6;
         geoRecordBTree2 = new GeoRecordBTree(treeSet2);
         geoSegmentReader2 = new MyGeoSegmentReader(geoRecordBTree2, maxDoc2);
