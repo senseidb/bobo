@@ -300,7 +300,7 @@ public class GeoIndexerTest {
                 //write actual tree
                 exactly(docsToAdd).of(mockOutput).seek(with(any(Long.class)));
                 exactly(docsToAdd).of(mockOutput).writeLong(with(any(Long.class)));
-                exactly(docsToAdd).of(mockOutput).writeInt(with(any(Integer.class)));
+                exactly(docsToAdd).of(mockOutput).writeLong(with(any(Long.class)));
                 exactly(docsToAdd).of(mockOutput).writeByte(GeoRecord.DEFAULT_FILTER_BYTE);
 
                 //close

@@ -209,7 +209,7 @@ public class GeoScorerTest {
         };
 
         Float rangeInKilometers = Conversions.mi2km(rangeInMiles);
-        geoQuery = new GeoQuery(centroidLongitude, centroidLatitude, rangeInKilometers);
+        geoQuery = new GeoQuery(centroidLatitude, centroidLongitude, rangeInKilometers);
         geoWeight = geoQuery.createWeight(searcher);
         boolean scoreDocsInOrder = true;
         boolean topScorer = true;

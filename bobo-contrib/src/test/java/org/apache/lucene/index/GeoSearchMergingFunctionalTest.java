@@ -189,7 +189,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         double lattitude = coordinate.getLatitude();
         float kilometers = Conversions.mi2km(500);
          
-        GeoQuery query = new GeoQuery(longitude, lattitude, kilometers);
+        GeoQuery query = new GeoQuery(lattitude, longitude, kilometers);
         TopDocs topDocs = searcher.search(query, 10);
         
         List<String> expectedResults = new Vector<String>();
