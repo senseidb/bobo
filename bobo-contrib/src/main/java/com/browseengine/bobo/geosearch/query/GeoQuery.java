@@ -37,8 +37,9 @@ public class GeoQuery extends Query {
     public GeoQuery(double centroidLatitude, double centroidLongitude, Float rangeInKm) {
         latRadians = Conversions.d2r(centroidLatitude);
         longRadians = Conversions.d2r(centroidLongitude);
+        this.rangeInKm = rangeInKm;
         
-        if (!( null == rangeInKm)) {
+        if (null == rangeInKm) {
             throw new RuntimeException("please specify rangeInKilometers");
         }
        
