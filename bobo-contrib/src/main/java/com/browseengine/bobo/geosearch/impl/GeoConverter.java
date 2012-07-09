@@ -58,6 +58,7 @@ public class GeoConverter implements IGeoConverter {
     /**
      * {@inheritDoc}
      */
+    @Override
     public CartesianGeoRecord toCartesianGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
             String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
         byte filterByte = fieldNameFilterConverter == null ? 
@@ -73,6 +74,7 @@ public class GeoConverter implements IGeoConverter {
     //Geodetic datum.
     static final double ONE_MINUS_ECCENTRICITY_OF_EARTH = 0.99330562;
     
+    @Override
     public int getXFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));

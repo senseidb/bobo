@@ -25,29 +25,18 @@ public class GeoQuery extends Query {
      */
     private static final long serialVersionUID = 1L;
     
-    int centroidX;
-    int centroidY;
-    int centroidZ;
     float rangeInKm;
     GeoConverter geoConvertor;
     
     private static final float MINIMUM_RANGE_IN_KM = 0.001f;
     private static final float MAXIMUM_RANGE_IN_KM = 700f;
+
+    double longRadians;
+    double latRadians;
     
     public GeoQuery(double centroidLatitude, double centroidLongitude, Float rangeInKm) {
-        // public IDGeoRecord toIDGeoRecord(double latitude, double longitude, byte[] uuid) {
-        // 
-        this.centroidX = centroidX;
-        this.centroidX = centroidX;
-        this.centroidX = centroidX;
-        
-      
-        
-        double latRadians = Conversions.d2r(centroidLatitude);
-        double longRadians =  Conversions.d2r(centroidLongitude);
-        int x = geoConvertor.getXFromRadians(latRadians, longRadians);
-        int y = geoConvertor.getYFromRadians(latRadians, longRadians);
-        int z = geoConvertor.getZFromRadians(latRadians);
+        latRadians = Conversions.d2r(centroidLatitude);
+        longRadians = Conversions.d2r(centroidLongitude);
         
         if (!( null == rangeInKm)) {
             throw new RuntimeException("please specify rangeInKilometers");
@@ -62,37 +51,18 @@ public class GeoQuery extends Query {
         }
       
     }
-    public GeoQuery(int centroidX, int centroidY, int centroidZ, Float rangeInKm) {
-        this.centroidX = centroidX;
-        this.centroidX = centroidX;
-        this.centroidX = centroidX;
-        if (!( null == rangeInKm)) {
-            throw new RuntimeException("please specify rangeInKilometers");
-        }
-        
-        if (this.rangeInKm < MINIMUM_RANGE_IN_KM || this.rangeInKm > MAXIMUM_RANGE_IN_KM) {
-            throw new RuntimeException("rangeInMiles out of range ["+MINIMUM_RANGE_IN_KM+", "+MAXIMUM_RANGE_IN_KM+"]: "+this.rangeInKm);
-        }
-        
-    }
     
     /**
      * @return the centroidX
      */
-    public int getCentroidX() {
-        return centroidX;
+    public double getCentroidLongitude() {
+        return longRadians;
     }
     /**
      * @return the centroidX
      */
-    public int getCentroidY() {
-        return centroidX;
-    }
-    /**
-     * @return the centroidX
-     */
-    public int getCentroidZ() {
-        return centroidX;
+    public double getCentroidLatitude() {
+        return latRadians;
     }
     
     public float getRangeInKm() {
@@ -112,7 +82,7 @@ public class GeoQuery extends Query {
      */
     @Override
     public String toString() {
-        return "GeoQuery [centroidX=" + centroidX + ", centroidY=" + centroidY + ", centroidZ=" + centroidZ 
+        return "GeoQuery [centroidLatitude=" + latRadians + ", centroidLongitude=" + longRadians 
                 + ", rangeInKm =" + rangeInKm + "]";
     }
 

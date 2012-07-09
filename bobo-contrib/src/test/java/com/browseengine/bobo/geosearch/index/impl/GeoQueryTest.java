@@ -16,7 +16,6 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.junit.Test;
 
-import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
@@ -70,9 +69,7 @@ public class GeoQueryTest {
         geoSubReaders.add(geoSegmentReader);
         
         GeoConverter gc = new GeoConverter();
-        CartesianGeoRecord cgr = gc.toCartesianGeoRecord(new LatitudeLongitudeDocId(gcord.getLongitude(), gcord.getLatitude(), 0), (byte)0);
-        CartesianCoordinateDocId ccd = gc.toCartesianCoordinateDocId(cgr);
-        GeoQuery geoQuery = new GeoQuery(ccd.x, ccd.y, ccd.z, rangeInKm);
+        GeoQuery geoQuery = new GeoQuery(gcord.getLatitude(), gcord.getLongitude(), rangeInKm);
         GeoWeight geoWeight = (GeoWeight)geoQuery.createWeight(null);
         Directory directory = buildEmptyDirectory();
         geoIndexReader = new GeoIndexReader(directory, new GeoSearchConfig());

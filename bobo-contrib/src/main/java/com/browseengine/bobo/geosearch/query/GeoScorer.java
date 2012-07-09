@@ -47,7 +47,7 @@ public class GeoScorer extends Scorer {
     private final int centroidY;
     private final int centroidZ;
     private final float rangeInKm;
-    private int[] cartesianBoundingBox;
+    private final int[] cartesianBoundingBox;
     
     // current pointers
     private int docid = DOCID_CURSOR_NONE_YET; 
@@ -64,23 +64,23 @@ public class GeoScorer extends Scorer {
         System.out.println("NO_MORE_DOCS equals to = " + NO_MORE_DOCS);
     }
     
-    public GeoScorer(Weight                      weight,
-                     List<GeoSegmentReader<CartesianGeoRecord>>      segmentsInOrder, 
-                     IDeletedDocs                wholeIndexDeletedDocs, 
-                     int                         centroidX,
-                     int                         centroidY,
-                     int                         centroidZ,
-                     float                       rangeInKm) {
-                     super                       (weight);
+    public GeoScorer(Weight weight,
+                     List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder, 
+                     IDeletedDocs wholeIndexDeletedDocs, 
+                     double centroidLatitude, 
+                     double centroidLongitude,
+                     float rangeInKm) {
+        
+        super(weight);
         
         this.geoConverter = new GeoConverter();
         this.geoBlockOfHitsProvider = new GeoBlockOfHitsProvider(geoConverter);
         
         this.segmentsInOrder = segmentsInOrder;
         
-        this.centroidX = centroidX;
-        this.centroidY = centroidY;
-        this.centroidZ = centroidZ;
+        this.centroidX = geoConverter.getXFromRadians(centroidLatitude, centroidLongitude);
+        this.centroidY = geoConverter.getYFromRadians(centroidLatitude, centroidLongitude);
+        this.centroidZ = geoConverter.getZFromRadians(centroidLatitude);
         this.rangeInKm = rangeInKm;
         
         startDocidOfCurrentPartition = -1;
