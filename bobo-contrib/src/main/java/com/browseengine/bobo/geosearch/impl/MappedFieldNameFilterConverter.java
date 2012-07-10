@@ -90,7 +90,7 @@ public class MappedFieldNameFilterConverter implements IFieldNameFilterConverter
 
     @Override
     public void loadFromInput(DataInput input) throws IOException {
-        input.readVInt();  //read version
+        int version = input.readVInt();  //read version
         
         int mapSize = input.readVInt();
         bitmasks = new HashMap<String, Byte>(mapSize);

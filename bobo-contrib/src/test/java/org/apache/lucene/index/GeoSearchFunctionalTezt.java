@@ -222,9 +222,9 @@ public class GeoSearchFunctionalTezt {
     
     protected MappedFieldNameFilterConverter buildFieldNameConverter(String geoFileName) throws IOException {
         DataInput input = directory.openInput(geoFileName);
-        input.readVInt(); //throw out version
-        input.readInt();   //throw out tree position
-        input.readVInt();  //throw out tree name    
+         input.readVInt(); //throw out version
+         input.readInt();   //throw out tree position
+         input.readVInt();  //throw out tree name    
         
         MappedFieldNameFilterConverter fieldNameConverter = new MappedFieldNameFilterConverter();
         fieldNameConverter.loadFromInput(input);
