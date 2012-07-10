@@ -23,10 +23,10 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
@@ -47,8 +47,8 @@ public class GeoSearchFunctionalTezt {
     
     GeoSearchConfig geoConfig;
     MappedFieldNameFilterConverter fieldNameConverter;
-    GeoRecordComparator geoComparator;
-    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
+    CartesianGeoRecordComparator geoComparator;
+    IGeoRecordSerializer<CartesianGeoRecord> geoRecordSerializer;
     
     static final String TEXT_FIELD = "text";
     static final String TITLE_FIELD = "title";
@@ -100,8 +100,8 @@ public class GeoSearchFunctionalTezt {
     }
     
     void buildGeoIndexWriter() throws CorruptIndexException, LockObtainFailedException, IOException {
-        geoComparator = new GeoRecordComparator();
-        geoRecordSerializer = new GeoRecordSerializer();
+        geoComparator = new CartesianGeoRecordComparator();
+        geoRecordSerializer = new CartesianGeoRecordSerializer();
         
         directory = new RAMDirectory();
         
@@ -187,7 +187,7 @@ public class GeoSearchFunctionalTezt {
     }
     
     protected void verifyFilter(String geoFileName, int maxDocs) throws IOException {
-        MappedFieldNameFilterConverter fieldNameConverter = buildFieldNameConverter(geoFileName);
+        MappedFieldNameFilterConverter fieldNameConverter = buildFieldNameConverter(geoFileName, maxDocs);
         
         //Verify mapping is correct
         List<String> filterFields = fieldNameConverter.getFields(LOCATION_BIT_MASK);
@@ -202,11 +202,11 @@ public class GeoSearchFunctionalTezt {
         int countImageLocationFiltered = 0;
         int countLocationFiltered = 0;
         
-        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+        GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
                 geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
-        Iterator<GeoRecord> geoIter = reader.getIterator(GeoRecord.MIN_VALID_GEORECORD, GeoRecord.MAX_VALID_GEORECORD);
+        Iterator<CartesianGeoRecord> geoIter = reader.getIterator(CartesianGeoRecord.MIN_VALID_GEORECORD, CartesianGeoRecord.MAX_VALID_GEORECORD);
         while (geoIter.hasNext()) {
-            GeoRecord geoRecord = geoIter.next();
+            CartesianGeoRecord geoRecord = geoIter.next();
             if (fieldNameConverter.fieldIsInFilter(LOCATION_FIELD, geoRecord.filterByte)) {
                 countLocationFiltered++;
             }
@@ -220,11 +220,14 @@ public class GeoSearchFunctionalTezt {
         assertEquals("Expected one point per doc to be filtered by image location", maxDocs, countImageLocationFiltered);
     }
     
-    protected MappedFieldNameFilterConverter buildFieldNameConverter(String geoFileName) throws IOException {
+    protected MappedFieldNameFilterConverter buildFieldNameConverter(String geoFileName, int maxDoc) throws IOException {
+        GeoSegmentReader<CartesianGeoRecord> segmentReader = new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, maxDoc, 1024, geoRecordSerializer, geoComparator);
+        
         DataInput input = directory.openInput(geoFileName);
-         input.readVInt(); //throw out version
-         input.readInt();   //throw out tree position
-         input.readVInt();  //throw out tree name    
+        input.readVInt(); //throw out version
+        input.readInt();   //throw out tree position
+        input.readVInt();  //throw out the data size
+        input.readVInt();  //throw out tree name    
         
         MappedFieldNameFilterConverter fieldNameConverter = new MappedFieldNameFilterConverter();
         fieldNameConverter.loadFromInput(input);
