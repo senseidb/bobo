@@ -37,7 +37,6 @@ import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
-import com.browseengine.bobo.geosearch.score.impl.Conversions;
 
 /**
  * @author Ken McCracken
@@ -208,7 +207,7 @@ public class GeoScorerTest {
             }
         };
 
-        geoQuery = new GeoQuery(centroidLongitude, centroidLatitude, rangeInKm);
+        geoQuery = new GeoQuery(centroidLatitude, centroidLongitude, rangeInKm);
         geoWeight = geoQuery.createWeight(searcher);
         boolean scoreDocsInOrder = true;
         boolean topScorer = true;

@@ -29,7 +29,7 @@ public class GeoQuery extends Query {
     GeoConverter geoConvertor;
     
     private static final float MINIMUM_RANGE_IN_KM = 0.001f;
-    private static final float MAXIMUM_RANGE_IN_KM = 700f;
+    private static final float MAXIMUM_RANGE_IN_KM = 2000f;
 
     double longRadians;
     double latRadians;
