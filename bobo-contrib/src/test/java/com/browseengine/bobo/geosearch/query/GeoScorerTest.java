@@ -141,7 +141,7 @@ public class GeoScorerTest {
         docid = 0;
         HIT3_CLOSE = new LatitudeLongitudeDocId(centroidLatitude + 0.00007f, centroidLongitude + 0.00009f, docid++);
         indexedDocuments3.add(HIT3_CLOSE);
-        MISS_EAST = new LatitudeLongitudeDocId(centroidLatitude + 0.00004f, centroidLongitude + 0.1001f, docid++);
+        MISS_EAST = new LatitudeLongitudeDocId(centroidLatitude + 10.00004f, centroidLongitude + 10.1001f, docid++);
         indexedDocuments3.add(MISS_EAST);
         SF_CENTER = new LatitudeLongitudeDocId(37.91f, -122.50f, docid++);
         indexedDocuments3.add(SF_CENTER);
