@@ -31,12 +31,12 @@ public class GeoQuery extends Query {
     private static final float MINIMUM_RANGE_IN_KM = 0.001f;
     private static final float MAXIMUM_RANGE_IN_KM = 2000f;
 
-    double longRadians;
-    double latRadians;
+    double centroidLatitude;
+    double centroidLongitude;
     
     public GeoQuery(double centroidLatitude, double centroidLongitude, Float rangeInKm) {
-        latRadians = Conversions.d2r(centroidLatitude);
-        longRadians = Conversions.d2r(centroidLongitude);
+        this.centroidLatitude = centroidLatitude;
+        this.centroidLongitude = centroidLongitude;
         this.rangeInKm = rangeInKm;
         
         if (null == rangeInKm) {
@@ -57,13 +57,13 @@ public class GeoQuery extends Query {
      * @return the centroidX
      */
     public double getCentroidLongitude() {
-        return longRadians;
+        return this.centroidLongitude;
     }
     /**
      * @return the centroidX
      */
     public double getCentroidLatitude() {
-        return latRadians;
+        return this.centroidLatitude;
     }
     
     public float getRangeInKm() {
@@ -83,7 +83,7 @@ public class GeoQuery extends Query {
      */
     @Override
     public String toString() {
-        return "GeoQuery [centroidLatitude=" + latRadians + ", centroidLongitude=" + longRadians 
+        return "GeoQuery [centroidLatitude=" + this.centroidLatitude + ", centroidLongitude=" + this.centroidLongitude 
                 + ", rangeInKm =" + rangeInKm + "]";
     }
 

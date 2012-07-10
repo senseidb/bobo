@@ -23,6 +23,7 @@ import com.browseengine.bobo.geosearch.impl.GeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.score.IComputeDistance;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
 import com.browseengine.bobo.geosearch.solo.search.impl.GeoOnlySearcher;
 
@@ -72,15 +73,16 @@ public class GeoScorer extends Scorer {
                      float rangeInKm) {
         
         super(weight);
-        
+        double centroidLatitudeRadians = Conversions.d2r(centroidLatitude);
+        double centroidLongitudeRadians = Conversions.d2r(centroidLongitude);
         this.geoConverter = new GeoConverter();
         this.geoBlockOfHitsProvider = new GeoBlockOfHitsProvider(geoConverter);
         
         this.segmentsInOrder = segmentsInOrder;
         
-        this.centroidX = geoConverter.getXFromRadians(centroidLatitude, centroidLongitude);
-        this.centroidY = geoConverter.getYFromRadians(centroidLatitude, centroidLongitude);
-        this.centroidZ = geoConverter.getZFromRadians(centroidLatitude);
+        this.centroidX = geoConverter.getXFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
+        this.centroidY = geoConverter.getYFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
+        this.centroidZ = geoConverter.getZFromRadians(centroidLatitudeRadians);
         this.rangeInKm = rangeInKm;
         
         startDocidOfCurrentPartition = -1;
