@@ -108,7 +108,7 @@ public class GeoScorerTest {
         indexedDocuments = new ArrayList<LatitudeLongitudeDocId>();
         MISS_FAR_WEST = new LatitudeLongitudeDocId(centroidLatitude, centroidLongitude-20, docid++);
         indexedDocuments.add(MISS_FAR_WEST);
-        HIT0_CLOSE = new LatitudeLongitudeDocId(centroidLatitude - 0.001f, centroidLongitude + 0.0001f, docid++);
+        HIT0_CLOSE = new LatitudeLongitudeDocId(centroidLatitude - 0.00001f, centroidLongitude + 0.0001f, docid++);
         indexedDocuments.add(HIT0_CLOSE);
         MISS_FAR_SOUTH = new LatitudeLongitudeDocId(centroidLatitude - 35, centroidLongitude, docid++);
         indexedDocuments.add(MISS_FAR_SOUTH);
@@ -397,7 +397,7 @@ public class GeoScorerTest {
     }
     
     private void verifyAdvanceAndScore_segment3() throws Exception {
-        float expectedScoreLowerBound = 0.001f;
+        float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
 
         int advanceTo = maxDoc + maxDoc2 + SF_CENTER.docid;
@@ -421,7 +421,7 @@ public class GeoScorerTest {
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
          score = scorer.score();
-        float expectedScoreLowerBound = 0.001f;
+        float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
@@ -433,7 +433,7 @@ public class GeoScorerTest {
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
          score = scorer.score();
-         expectedScoreLowerBound = 0.001f;
+         expectedScoreLowerBound = 0.00001f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
     }
@@ -460,7 +460,7 @@ public class GeoScorerTest {
         verifyNextDocAndScore_1segment();
         
         int expectedDocid;
-        float expectedScoreLowerBound = 0.001f;
+        float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
         
         // next hit should be on segment 3
@@ -497,7 +497,7 @@ public class GeoScorerTest {
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
          score = scorer.score();
-        float expectedScoreLowerBound = 0.001f;
+        float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
@@ -520,7 +520,7 @@ public class GeoScorerTest {
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
          score = scorer.score();
-         expectedScoreLowerBound = 0.001f;
+         expectedScoreLowerBound = 0.00001f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
@@ -531,7 +531,7 @@ public class GeoScorerTest {
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
          score = scorer.score();
-         expectedScoreLowerBound = 0.001f;
+         expectedScoreLowerBound = 0.00001f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
@@ -539,7 +539,7 @@ public class GeoScorerTest {
     
     private void verifyNextDocAndScoreSF() throws Exception {
         int expectedDocid;
-        float expectedScoreLowerBound = 0.001f;
+        float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
 
         // next hit should be SF_CENTER
