@@ -22,9 +22,9 @@ public class IDGeoRecordInterlaceTest extends InterlaceTezt<IDGeoRecord> {
     public static Collection<Object[]> data() {
         DimensionSpec[] dimensionSpecs = new DimensionSpec[3];
         
-        dimensionSpecs[0] =  new DimensionSpec("x", Integer.MIN_VALUE, Integer.MAX_VALUE);
-        dimensionSpecs[1] =  new DimensionSpec("y", Integer.MIN_VALUE, Integer.MAX_VALUE);
-        dimensionSpecs[2] =  new DimensionSpec("z", Integer.MIN_VALUE, Integer.MAX_VALUE);
+        dimensionSpecs[0] =  new DimensionSpec("x", Integer.MIN_VALUE, Integer.MAX_VALUE, 1);
+        dimensionSpecs[1] =  new DimensionSpec("y", Integer.MIN_VALUE, Integer.MAX_VALUE, 2);
+        dimensionSpecs[2] =  new DimensionSpec("z", Integer.MIN_VALUE, Integer.MAX_VALUE, 2);
 
         return buildDataFromDimensionSpecs(dimensionSpecs);
     }

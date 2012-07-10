@@ -29,6 +29,7 @@ import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
+import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
@@ -112,6 +113,7 @@ public class GeoIndexerTest {
                 one(mockOutput).writeVInt(GeoVersion.CURRENT_VERSION);
                 one(mockOutput).writeVInt(0);
                 one(mockOutput).writeInt(0);
+                one(mockOutput).writeVInt(GeoSegmentInfo.BYTES_PER_RECORD_V1);
                 one(mockOutput).writeInt(with(any(Integer.class)));
                 
                 one(mockOutput).close();
@@ -275,6 +277,8 @@ public class GeoIndexerTest {
                 inSequence(outputSequence);
                 one(mockOutput).writeVInt(docsToAdd);
                 inSequence(outputSequence);
+                one(mockOutput).writeVInt(GeoSegmentInfo.BYTES_PER_RECORD_V1);
+                inSequence(outputSequence);
                 one(mockFieldNameFilterConverter).writeToOutput(mockOutput);
                 inSequence(outputSequence);
 
@@ -285,7 +289,7 @@ public class GeoIndexerTest {
                 
                 // fill zeroes
                 one(mockOutput).length();
-                will(returnValue(7L));
+                will(returnValue(8L));
                 inSequence(outputSequence);
                 one(mockOutput).seek(with(any(Long.class)));
                 inSequence(outputSequence);
@@ -294,7 +298,7 @@ public class GeoIndexerTest {
                 one(mockOutput).seek(with(any(Long.class)));
                 inSequence(outputSequence);
                 one(mockOutput).length();
-                will(returnValue((long)(7+13*docsToAdd)));
+                will(returnValue((long)(8+GeoSegmentInfo.BYTES_PER_RECORD_V1*docsToAdd)));
                 inSequence(outputSequence);
 
                 //write actual tree

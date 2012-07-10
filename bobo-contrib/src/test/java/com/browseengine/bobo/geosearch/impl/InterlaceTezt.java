@@ -14,6 +14,12 @@ import org.junit.runners.Parameterized;
 
 import com.browseengine.bobo.geosearch.bo.IGeoRecord;
 
+/**
+ * Provides an abstract tests class for validating GeoRecord bit-interlace functions
+ * @author gcooney
+ *
+ * @param <T>
+ */
 @RunWith(Parameterized.class)
 public abstract class InterlaceTezt<T extends IGeoRecord> {
 
@@ -30,7 +36,7 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
     public void testToIDGeoRecordOrder_LargeDelta() {
         int totalCoordinates = 10000;
         int start = Integer.MIN_VALUE;
-        int delta = 2 * (Integer.MAX_VALUE / totalCoordinates);
+        int delta = getDelta(2 * (Integer.MAX_VALUE / totalCoordinates));
         
         createRecordsAndValidateSortOrder(dimensionSpecs, start, delta, totalCoordinates);
     }
@@ -39,8 +45,8 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
     public void testToIDGeoRecordOrder_SmallDelta() {
         int totalCoordinates = 10000;
         int start = -5000;
-        int delta = 1;
-        
+        int delta = getDelta(1);
+       
         createRecordsAndValidateSortOrder(dimensionSpecs, start, delta, totalCoordinates);
     }
     
@@ -48,7 +54,7 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
     public void testToIDGeoRecordOrder_TinyDelta() {
         int totalCoordinates = 10;
         int start = -5;
-        int delta = 1;
+        int delta = getDelta(1);
         
         createRecordsAndValidateSortOrder(dimensionSpecs, start, delta, totalCoordinates);
     }
@@ -57,7 +63,7 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
     public void testInterlaceThenUninterlace_LargeRange() {
         int totalCoordinates = 10000;
         int start = Integer.MIN_VALUE;
-        int delta = 2 * (Integer.MAX_VALUE / totalCoordinates);
+        int delta = getDelta(2 * (Integer.MAX_VALUE / totalCoordinates));
         
         interlaceAndUninterlace(dimensionSpecs, start, delta, totalCoordinates);
     }
@@ -66,7 +72,7 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
     public void testInterlaceThenUninterlace_SmallRange() {
         int totalCoordinates = 100;
         int start = -50;
-        int delta = 1;
+        int delta = getDelta(1);
         
         interlaceAndUninterlace(dimensionSpecs, start, delta, totalCoordinates);
     }
@@ -87,6 +93,18 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
         }
     }
     
+    private int getDelta(int requestedDelta) {
+        int delta = requestedDelta;
+        
+        for (int i = 0; i < dimensionSpecs.length; i++) {
+            if (!holdConstant[i]) {
+                delta = Math.max(delta, dimensionSpecs[i].minDelta);
+            }
+        }
+        
+        return delta;
+    }
+    
     private void interlaceAndUninterlace(DimensionSpec[] specs, int start, int delta,
             int totalCoordinates) {
         for (int i = 0; i < totalCoordinates; i++) {
@@ -103,12 +121,12 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
         for (int j = 0; j < specs.length; j++) {
             DimensionSpec spec = specs[j];
             if (holdConstant[j]) {
-                values[j] = 0;
+                values[j] = start + currentCoordinate * delta;
             } else {
                 int specDelta = delta;
                 int specStart = start;
                 if (start < spec.minValue) {
-                    specDelta = (int)(((double)delta * totalCoordinates - start + spec.minValue) /  totalCoordinates);
+                    specDelta = (int)(((double)delta * totalCoordinates + start - spec.minValue) /  totalCoordinates);
                     specStart = spec.minValue;
                 }
                 
@@ -130,6 +148,7 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
             
             list.add(geoRecord);
             tree.add(geoRecord);
+            
         }
         
         int i = 0;
@@ -174,11 +193,13 @@ public abstract class InterlaceTezt<T extends IGeoRecord> {
         final String dimensionName;
         final int minValue;
         final int maxValue;
+        final int minDelta;
 
-        public DimensionSpec(String dimensionName, int minValue, int maxValue) {
+        public DimensionSpec(String dimensionName, int minValue, int maxValue, int minDelta) {
             this.dimensionName = dimensionName;
             this.minValue = minValue;
             this.maxValue = maxValue;
+            this.minDelta = minDelta;
         }
     }
 }
