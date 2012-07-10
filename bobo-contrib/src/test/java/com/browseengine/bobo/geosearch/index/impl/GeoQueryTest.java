@@ -68,7 +68,6 @@ public class GeoQueryTest {
         geoSubReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(); 
         geoSubReaders.add(geoSegmentReader);
         
-        GeoConverter gc = new GeoConverter();
         GeoQuery geoQuery = new GeoQuery(gcord.getLatitude(), gcord.getLongitude(), rangeInKm);
         GeoWeight geoWeight = (GeoWeight)geoQuery.createWeight(null);
         Directory directory = buildEmptyDirectory();
@@ -77,18 +76,8 @@ public class GeoQueryTest {
         boolean scoreInOrder = true, topScorer = true; 
         GeoScorer geoScorer = (GeoScorer)geoWeight.scorer(geoIndexReader, scoreInOrder, topScorer);
         test_Scorer(rangeInKm, geoScorer, gcord, indexedDocument);
-        assertTrue("",0==0);
     }
     
-    /*
-    private void test_TopDocs(TopDocs topDocs) {
-        ScoreDoc[] scoreDosArray = topDocs.scoreDocs;   
-        for(ScoreDoc scoredoc: scoreDosArray){
-           System.out.println("Top documents by id are: "
-                         + scoredoc.doc);   
-        } 
-    }
-    */
     private void printAllDocIdsInRange(float rangeInMiles, ArrayList<LatitudeLongitudeDocId> indexedDocument,
             GeoCoordinate gcord) {
         
