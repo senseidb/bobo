@@ -4,7 +4,8 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
 
 public class GeoSegmentInfo {
-    public static final int BYTES_PER_RECORD_V1 = 13;
+    public static final int BYTES_PER_RECORD_V0 = 13;
+    public static final int BYTES_PER_RECORD_V1 = 17;
     
     private String segmentName;
     private IFieldNameFilterConverter fieldNameFilterConverter = new MappedFieldNameFilterConverter();
