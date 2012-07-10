@@ -46,7 +46,7 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 public class GeoScorerTest {
 
     private IGeoConverter geoConverter;
-    double centroidLongitude; double centroidLatitude; Float rangeInMiles;
+    double centroidLongitude; double centroidLatitude; Float rangeInKm;
     private GeoQuery geoQuery;
     private Searcher searcher;
     private Weight geoWeight;
@@ -103,7 +103,7 @@ public class GeoScorerTest {
         
         centroidLongitude = -71.61f;
         centroidLatitude = 42.42f;
-        rangeInMiles = 5f;
+        rangeInKm = 5f*1.609344f;
 
         docid = 0;
         indexedDocuments = new ArrayList<LatitudeLongitudeDocId>();
@@ -208,8 +208,7 @@ public class GeoScorerTest {
             }
         };
 
-        Float rangeInKilometers = Conversions.mi2km(rangeInMiles);
-        geoQuery = new GeoQuery(centroidLongitude, centroidLatitude, rangeInKilometers);
+        geoQuery = new GeoQuery(centroidLongitude, centroidLatitude, rangeInKm);
         geoWeight = geoQuery.createWeight(searcher);
         boolean scoreDocsInOrder = true;
         boolean topScorer = true;
