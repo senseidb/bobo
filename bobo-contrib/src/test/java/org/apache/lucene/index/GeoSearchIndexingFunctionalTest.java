@@ -21,7 +21,7 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
@@ -59,7 +59,7 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         
         String geoFileName = getGeoFileName();
         
-        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+        GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
                 geoFileName, maxDoc, 1024, geoRecordSerializer, geoComparator);
         assertEquals("Expected 2 locations per doc * 10 docs", 2 * maxDoc, reader.getArrayLength());
     }
@@ -73,7 +73,6 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         verifyFilter(geoFileName, maxDocs);
     }
 
-    
     protected String getGeoFileName() throws IOException {
         String[] fileNames = directory.listAll();
         
