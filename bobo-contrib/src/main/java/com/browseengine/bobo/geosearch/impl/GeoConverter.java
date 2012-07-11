@@ -266,11 +266,6 @@ public class GeoConverter implements IGeoConverter {
     }
     
     @Override
-    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord) {
-        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, (byte)0);
-    }
-
-    @Override
     public CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte) {
         double latRadians = Conversions.d2r(latLongDocID.latitude);
         double longRadians =  Conversions.d2r(latLongDocID.longitude);

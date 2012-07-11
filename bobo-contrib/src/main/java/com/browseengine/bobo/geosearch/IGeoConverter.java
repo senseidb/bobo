@@ -26,7 +26,6 @@ import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
         
         CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord);
         CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte);
-        CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord);
     
         int getXFromRadians(double latRadians, double longRadians);
         int getYFromRadians(double latRadians, double longRadians);
