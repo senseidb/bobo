@@ -371,7 +371,7 @@ public class GeoOnlySearcherTest {
     
     private CartesianCoordinateUUID buildMinCoordinate(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
-        double rangeInkm = Conversions.mi2km(rangeInMiles);
+        float rangeInkm = Conversions.mi2km(rangeInMiles);
         int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
         CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(
                 centroidLat, centroidLong, uuid);

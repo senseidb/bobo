@@ -107,10 +107,10 @@ public class GeoScorer extends Scorer {
     
     /**
      * MINIMUM_DISTANCE_WE_CARE_ABOUT = (x-x')*(x-x') + (y-y')*(y-y') + (z-z')*(z-z')
-     *  Where x, y, z and x', y', z' are 2 meter apart.
+     *  Where x, y, z and x', y', z' are 0.0001f miles or 0.16 meters apart.
      * 
      */
-    private static final long MINIMUM_DISTANCE_WE_CARE_ABOUT = 273798;
+    private static final long MINIMUM_DISTANCE_WE_CARE_ABOUT = 21903;
     
     private float score(Collection<GeRecordAndCartesianDocId> values) {
         long squaredDistance = Long.MAX_VALUE;

@@ -28,8 +28,8 @@ public class GeoQuery extends Query {
     float rangeInKm;
     GeoConverter geoConvertor;
     
-    private static final float MINIMUM_RANGE_IN_KM = 0.001f;
-    private static final float MAXIMUM_RANGE_IN_KM = 2000f;
+    private static final float MINIMUM_RANGE_IN_KM = Conversions.mi2km(0.001f);
+    private static final float MAXIMUM_RANGE_IN_KM = Conversions.mi2km(500f);
 
     double centroidLatitude;
     double centroidLongitude;

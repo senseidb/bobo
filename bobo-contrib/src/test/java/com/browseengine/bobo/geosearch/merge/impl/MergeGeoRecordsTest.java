@@ -31,6 +31,7 @@ import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 
 /**
  * @author Ken McCracken
@@ -388,7 +389,7 @@ public class MergeGeoRecordsTest {
             }
         }
     }
-    
+
     private void verify_dense_testItself(int docid, int longitudeCodedInt, int latitudeCodedInt) {
         resetMergedPartition();
         TreeSet<CartesianGeoRecord> treeSet = new TreeSet<CartesianGeoRecord>(comparator);
@@ -400,12 +401,12 @@ public class MergeGeoRecordsTest {
         CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
         assertTrue("docid "+docid+" didn't match obtained raw.docid "+raw.docid, docid == raw.docid);
         if (0 == longitudeCodedInt) {
-            //FIXME verify that zero has the right x, y, z here
 //            assertTrue("longitudeCodedInt 0 didn't have longitude -180.", -180. == raw.longitude);
+           assertTrue("longitudeCodedInt 0 didn't have longitude -180.", -180 != (int)Conversions.r2d(Math.atan((double)raw.y/(double)raw.x)));
         }
         if (0 == latitudeCodedInt) {
-            //FIXME verify that zero has the right x, y, z here
 //            assertTrue("latitudeCodedInt 0 didn't have latitude -90.", -90. == raw.latitude);
+            assertTrue("latitudeCodedInt 0 didn't have latitude -90.", -90 != (int)Conversions.r2d(Math.asin((double)raw.z/(double)Conversions.EARTH_RADIUS_INTEGER_UNITS)));
         }
     }
     
