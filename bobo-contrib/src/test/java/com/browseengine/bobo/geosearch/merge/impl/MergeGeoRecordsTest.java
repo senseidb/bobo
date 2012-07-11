@@ -476,8 +476,19 @@ public class MergeGeoRecordsTest {
             //FIXME:  This should verify that the cartesian coordinates are the same
             CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
             LatitudeLongitudeDocId original = this.originalRaws[i++];
-            assertTrue("raw "+raw+" did not match original "+original, raw.equals(original));
+            CartesianCoordinateDocId originalCoordinate = toCartesianCoordinateDocId(original);
+            assertTrue("raw "+raw+" did not match original "+originalCoordinate, raw.equals(originalCoordinate));
         }
+    }
+    
+    private CartesianCoordinateDocId toCartesianCoordinateDocId(LatitudeLongitudeDocId latLongDocId) {
+        double latRadians = Conversions.d2r(latLongDocId.latitude);
+        double longRadians = Conversions.d2r(latLongDocId.longitude);
+        int x = geoConverter.getXFromRadians(latRadians, longRadians);
+        int y = geoConverter.getYFromRadians(latRadians, longRadians);
+        int z = geoConverter.getZFromRadians(latRadians);
+        
+        return new CartesianCoordinateDocId(x, y, z, latLongDocId.docid);
     }
     
     @Test
