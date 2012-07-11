@@ -100,7 +100,7 @@ public class GeoQueryTest {
         
     }
 
-    private void test_Scorer(float rangeInMiles, 
+    private void test_Scorer(float rangeInKm, 
                              GeoScorer geoScorer,
                              GeoCoordinate gcord,
                              ArrayList<LatitudeLongitudeDocId> indexedDocument) throws IOException {
@@ -125,12 +125,12 @@ public class GeoQueryTest {
         while(it.hasNext()) {
             docid = it.next().docid;
             if(!recordRangeHitsDocIds.contains(new Integer(docid))){
-              assertTrue("Document less than rangeInMiles from centroid but not considered a hit ", 
-              hcd.getDistanceInMiles(gcord.getLongitude(), 
+              assertTrue("Document less than "+rangeInKm+"KM from centroid but not considered a hit ", 
+              Conversions.mi2km(hcd.getDistanceInMiles(gcord.getLongitude(), 
                                      gcord.getLatitude(),
                                      indexedDocument.get(docid).longitude,
-                                     indexedDocument.get(docid).latitude)
-              > rangeInMiles);
+                                     indexedDocument.get(docid).latitude))
+              > rangeInKm);
             }
         }
     }
