@@ -125,6 +125,7 @@ public class BufferedGeoMerger implements IGeoMerger {
             input.readVInt();  //read version
             input.readInt();   //throw out tree position
             input.readVInt();  //throw out tree size
+            input.readVInt();  //throw out record length
         
             fieldNameFilterConverter.loadFromInput(input);
         

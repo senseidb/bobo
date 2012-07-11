@@ -27,6 +27,7 @@ import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
 import com.browseengine.bobo.geosearch.query.GeoScorer;
 import com.browseengine.bobo.geosearch.query.GeoWeight;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
 
 
@@ -58,9 +59,10 @@ public class GeoQueryTest {
         GeoCoordinate gcord = new GeoCoordinate(Math.random() * 140.0 - 70.0,
                 Math.random() * 360.0 - 180.0);
         float rangeInKm = (float) (Math.random()*10.0);
+        float rangeInMiles = Conversions.km2mi(rangeInKm);
         ArrayList<LatitudeLongitudeDocId> indexedDocument = getSegmentOfLongitudeLatitudeDocIds(100 + (int)(Math.random()*1000), gcord);
         
-        printAllDocIdsInRange(rangeInKm, indexedDocument, gcord);
+        printAllDocIdsInRange(rangeInMiles, indexedDocument, gcord);
         
         TreeSet<CartesianGeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
         GeoRecordBTree geoRecordBTree = new GeoRecordBTree(treeSet); 
@@ -75,7 +77,7 @@ public class GeoQueryTest {
         geoIndexReader.setGeoSegmentReaders(geoSubReaders);
         boolean scoreInOrder = true, topScorer = true; 
         GeoScorer geoScorer = (GeoScorer)geoWeight.scorer(geoIndexReader, scoreInOrder, topScorer);
-        test_Scorer(rangeInKm, geoScorer, gcord, indexedDocument);
+        test_Scorer(rangeInMiles, geoScorer, gcord, indexedDocument);
     }
     
     private void printAllDocIdsInRange(float rangeInMiles, ArrayList<LatitudeLongitudeDocId> indexedDocument,

@@ -14,7 +14,6 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
@@ -62,7 +61,7 @@ public class GeoConverter implements IGeoConverter {
     public CartesianGeoRecord toCartesianGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
             String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
         byte filterByte = fieldNameFilterConverter == null ? 
-                GeoRecord.DEFAULT_FILTER_BYTE : 
+                CartesianGeoRecord.DEFAULT_FILTER_BYTE : 
                 fieldNameFilterConverter.getFilterValue(new String[] {fieldName});
         
         return toCartesianGeoRecord(longitudeLatitudeDocId, filterByte);
@@ -80,11 +79,13 @@ public class GeoConverter implements IGeoConverter {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
     }
 
+    @Override
     public int getYFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
     }
 
+    @Override
     public int getZFromRadians(double latRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
