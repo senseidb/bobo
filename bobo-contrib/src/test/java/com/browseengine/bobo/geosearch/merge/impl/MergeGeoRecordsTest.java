@@ -502,26 +502,24 @@ public class MergeGeoRecordsTest {
             new ConvertedGeoRecordIterator(geoConverter, a, 0, aDelete);
         assertTrue("iteratorA.hasNext() was false", iteratorA.hasNext());
         
-//        int i = 0;
-//        while (iteratorA.hasNext()) {
-//            CartesianGeoRecord geoRecord = iteratorA.next();
-//            LatitudeLongitudeDocId raw = geoConverter.toLongitudeLatitudeDocId(geoRecord);
-//            // 3 and 5 have been deleted
-//            if (i == 3 || i == 5) {
-//                i++;
-//            }
-//            LatitudeLongitudeDocId original = this.originalRaws[i++];
-//            if (original.docid == 4) {
-//                original = original.clone();
-//                original.docid = 3;
-//            } else if (original.docid >= 6) {
-//                original = original.clone();
-//                original.docid -= 2;
-//            }
-//           
-//            assertTrue("raw "+raw+" did not match original "+original, raw.equals(original));
-//        }
-        //FIXME
+        int i = 0;
+        while (iteratorA.hasNext()) {
+            CartesianGeoRecord geoRecord = iteratorA.next();
+            CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
+              if (i == 3 || i == 5) {
+                  i++;
+              }
+              LatitudeLongitudeDocId original = this.originalRaws[i++];
+              if (original.docid == 4) {
+                  original = original.clone();
+                  original.docid = 3;
+              } else if (original.docid >= 6) {
+                  original = original.clone();
+                  original.docid -= 2;
+              }
+              CartesianCoordinateDocId originalCoordinate = toCartesianCoordinateDocId(original);
+              assertTrue("raw "+raw+" did not match original "+originalCoordinate, raw.equals(originalCoordinate));
+        }
 
     }
     
@@ -539,23 +537,22 @@ public class MergeGeoRecordsTest {
         
         int i = 0;
         boolean skipped3 = false;
-//        while (iteratorA.hasNext()) {
-//            CartesianGeoRecord geoRecord = iteratorA.next();
-//            LatitudeLongitudeDocId raw = geoConverter.toLongitudeLatitudeDocId(geoRecord);
-//            // 3, 4, and 5 have been deleted
-//            if (i == 3) {
-//                i = 6;
-//                skipped3 = true;
-//            }
-//            LatitudeLongitudeDocId original = this.originalRaws[i++];
-//            if (skipped3) {
-//                original = original.clone();
-//                original.docid -= 3;
-//            }
-//           
-//            assertTrue("raw "+raw+" did not match original "+original, raw.equals(original));
-//        }
-        //FIXME
+        while (iteratorA.hasNext()) {
+            CartesianGeoRecord geoRecord = iteratorA.next();
+            CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
+            // 3, 4, and 5 have been deleted
+            if (i == 3) {
+                i = 6;
+               skipped3 = true;
+            }
+            LatitudeLongitudeDocId original = this.originalRaws[i++];
+            if (skipped3) {
+                original = original.clone();
+                original.docid -= 3;
+            }
+            CartesianCoordinateDocId originalCoordinate = toCartesianCoordinateDocId(original);
+            assertTrue("raw "+raw+" did not match original "+originalCoordinate, raw.equals(originalCoordinate));
+        }
     }
     
     CartesianGeoRecordComparator comparator = new CartesianGeoRecordComparator();
@@ -648,10 +645,8 @@ public class MergeGeoRecordsTest {
     }
 
     private void print(CartesianGeoRecord geoRecord) {
-        /*
-        LongitudeLatitudeDocId geoRecordRaw = geoConverter.toLongitudeLatitudeDocId(geoRecord);
+        CartesianCoordinateDocId geoRecordRaw = geoConverter.toCartesianCoordinateDocId(geoRecord);
         System.out.println("geoRecord "+geoRecord+", geoRecordRaw: "+geoRecordRaw);
-        */
     }
     
     @Test

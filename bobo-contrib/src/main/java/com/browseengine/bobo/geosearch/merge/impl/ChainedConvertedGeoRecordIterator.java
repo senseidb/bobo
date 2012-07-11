@@ -31,7 +31,7 @@ public class ChainedConvertedGeoRecordIterator implements Iterator<CartesianGeoR
     private static final CartesianGeoRecordComparator geoRecordCompareByBitMag = new CartesianGeoRecordComparator();
     
     protected IGeoConverter geoConverter;
-    protected Iterator<CartesianGeoRecord> mergedIterator;
+    //protected Iterator<CartesianGeoRecord> mergedIterator;
     protected OrderedIteratorChain<CartesianGeoRecord> orderedIteratorChain;
     
     public ChainedConvertedGeoRecordIterator(IGeoConverter geoConverter, 
