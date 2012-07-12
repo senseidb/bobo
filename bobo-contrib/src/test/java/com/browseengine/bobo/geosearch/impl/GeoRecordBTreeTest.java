@@ -11,7 +11,6 @@ import java.util.TreeSet;
 import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 public class GeoRecordBTreeTest {
@@ -84,7 +83,7 @@ public class GeoRecordBTreeTest {
         TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         GeoConverter gc = new GeoConverter();
         while(lldidIter.hasNext()) {
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
             tree.add(gc.toCartesianGeoRecord(lldidIter.next(), filterByte));
         }
         return tree;

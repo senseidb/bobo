@@ -25,7 +25,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
@@ -71,7 +70,7 @@ public class MergeGeoRecordsTest {
                 new CartesianCoordinateDocId(-200000000, -200000000, -200000000, 5), // X   X
                 new CartesianCoordinateDocId(-100000000, -100000000, -100000000, 6), // 4   3       
         };
-        byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+        byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
         
         originalGeoRecordsSortedArrayA = new CartesianGeoRecord[originalRaws.length];
         for (int i = 0; i < originalRaws.length; i++) {
@@ -216,7 +215,7 @@ public class MergeGeoRecordsTest {
         }
         LatitudeLongitudeDocId raw = new LatitudeLongitudeDocId(latitude, 
                 longitude, docid);
-        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(raw, GeoRecord.DEFAULT_FILTER_BYTE);
+        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(raw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         addSourceWithoutIncrementingAbsoluteDocIdOffsetInMergedPartition(treeSet, docid, survives, geoRecord);
     }
     
@@ -225,7 +224,7 @@ public class MergeGeoRecordsTest {
         if (survives && null != expectedTreeSetInMergedPartition) {
             CartesianCoordinateDocId rawBeforeMerge = geoConverter.toCartesianCoordinateDocId(geoRecord);
             CartesianCoordinateDocId mergedRaw = new CartesianCoordinateDocId(rawBeforeMerge.x, rawBeforeMerge.y, rawBeforeMerge.z, absoluteDocIdOffsetInMergedPartition);
-            geoRecord = geoConverter.toCartesianGeoRecord(mergedRaw, GeoRecord.DEFAULT_FILTER_BYTE);
+            geoRecord = geoConverter.toCartesianGeoRecord(mergedRaw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
             //verifyCycle(geoRecord);
             expectedTreeSetInMergedPartition.add(geoRecord);
         }
@@ -404,7 +403,7 @@ public class MergeGeoRecordsTest {
     
     private void verifyCycle(CartesianGeoRecord geoRecord) {
         CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
-        CartesianGeoRecord geoRecord2 = geoConverter.toCartesianGeoRecord(raw, GeoRecord.DEFAULT_FILTER_BYTE);
+        CartesianGeoRecord geoRecord2 = geoConverter.toCartesianGeoRecord(raw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         boolean trueTest = null != geoRecord2 && geoRecord2.equals(geoRecord);
         if (!trueTest) {
         assertTrue("geoRecord2 "+geoRecord2+" != geoRecord "+geoRecord, 
@@ -417,7 +416,7 @@ public class MergeGeoRecordsTest {
     public void test_geoConverter() {
         int docid = 0;
         LatitudeLongitudeDocId longitudeLatitudeDocId = new LatitudeLongitudeDocId(-90.,-180., docid);
-        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(longitudeLatitudeDocId, GeoRecord.DEFAULT_FILTER_BYTE);
+        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(longitudeLatitudeDocId, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         this.verifyCycle(geoRecord);
         for (int i = 0; i < 32; i++) {
             geoRecord = new CartesianGeoRecord(0, i, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
@@ -675,10 +674,10 @@ public class MergeGeoRecordsTest {
     @IfProfileValue(name = "test-suite", values = { "merge", "unit", "all" }) 
     public void test_orderedIteratorChain() throws Exception {
         CartesianCoordinateDocId raw = new CartesianCoordinateDocId(450000000, -650000000, 450000000, 0);
-        CartesianGeoRecord geoRecordOne = geoConverter.toCartesianGeoRecord(raw, GeoRecord.DEFAULT_FILTER_BYTE);
+        CartesianGeoRecord geoRecordOne = geoConverter.toCartesianGeoRecord(raw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         OneGeoRecordIterator one = new OneGeoRecordIterator(geoRecordOne);
         raw = new CartesianCoordinateDocId(460000000, -660000000, 450000000, 1);
-        CartesianGeoRecord geoRecordTwo = geoConverter.toCartesianGeoRecord(raw, GeoRecord.DEFAULT_FILTER_BYTE);
+        CartesianGeoRecord geoRecordTwo = geoConverter.toCartesianGeoRecord(raw, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         OneGeoRecordIterator two = new OneGeoRecordIterator(geoRecordTwo);
         List<Iterator<CartesianGeoRecord>> list = new ArrayList<Iterator<CartesianGeoRecord>>();
         list.add(one);

@@ -9,7 +9,6 @@ import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 public class UserCaseTest {
@@ -18,7 +17,7 @@ public class UserCaseTest {
     
     @Test
     public void useCase_Test() throws Exception{
-        byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+        byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
         
         for(int i = 0; i < 100; i++) {
             GeoConverter gc = new GeoConverter();

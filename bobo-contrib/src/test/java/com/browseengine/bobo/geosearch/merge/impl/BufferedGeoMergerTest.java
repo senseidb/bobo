@@ -30,7 +30,6 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.IGeoUtil;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
@@ -167,13 +166,13 @@ public class BufferedGeoMergerTest {
                 double longitude = Math.random();
                 double latitude = Math.random();
                 LatitudeLongitudeDocId longitudeLatitudeDocId = new LatitudeLongitudeDocId(latitude, longitude, docid);
-                CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(longitudeLatitudeDocId, GeoRecord.DEFAULT_FILTER_BYTE);
+                CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(longitudeLatitudeDocId, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
                 
                 tree.add(geoRecord);
                 
                 if (!isDeleted) {
                     LatitudeLongitudeDocId absoluteLongitudeLatitudeDocId = new LatitudeLongitudeDocId(latitude, longitude, absoluteDocId);
-                    CartesianGeoRecord absoluteGeoRecord = geoConverter.toCartesianGeoRecord(absoluteLongitudeLatitudeDocId, GeoRecord.DEFAULT_FILTER_BYTE);
+                    CartesianGeoRecord absoluteGeoRecord = geoConverter.toCartesianGeoRecord(absoluteLongitudeLatitudeDocId, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
                     expectedOutputTree.add(absoluteGeoRecord);
                 }
             }

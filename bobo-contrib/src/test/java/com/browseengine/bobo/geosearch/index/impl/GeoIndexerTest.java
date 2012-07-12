@@ -27,14 +27,13 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.BTree;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 
@@ -57,8 +56,8 @@ public class GeoIndexerTest {
     GeoIndexer geoIndexer;
     
     GeoSearchConfig config = new GeoSearchConfig();
-    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
-    Comparator<GeoRecord> geoComparator;
+    IGeoRecordSerializer<CartesianGeoRecord> geoRecordSerializer;
+    Comparator<CartesianGeoRecord> geoComparator;
     
     String locationField = "location1";
     byte locationFilterByte = (byte)1;
@@ -83,8 +82,8 @@ public class GeoIndexerTest {
         mockFieldNameFilterConverter = context.mock(IFieldNameFilterConverter.class);
         
         geoIndexer = new GeoIndexer(config);
-        geoRecordSerializer = new GeoRecordSerializer();
-        geoComparator = new GeoRecordComparator();
+        geoRecordSerializer = new CartesianGeoRecordSerializer();
+        geoComparator = new CartesianGeoRecordComparator();
         
         geoIndexerNoMocks = new GeoIndexer(new GeoSearchConfig());
     }
@@ -146,7 +145,7 @@ public class GeoIndexerTest {
     
     private void indexWithMocks(int docId, GeoCoordinateField field) {
         // because of a mockFieldNameFilterConverter, there are no registered fields.  we always use the default filterByte.
-        final byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+        final byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
 
         GeoCoordinate geoCoordinate = field.getGeoCoordinate();
         double latitude = geoCoordinate.getLatitude();
@@ -236,8 +235,8 @@ public class GeoIndexerTest {
             int totalDocs) throws IOException {
         String geoFileName = config.getGeoFileName(segmentName);
         
-        BTree<GeoRecord> segmentBTree = 
-            new GeoSegmentReader<GeoRecord>(directory, geoFileName, -1, 500, 
+        BTree<CartesianGeoRecord> segmentBTree = 
+            new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, -1, 500, 
                     geoRecordSerializer, geoComparator);
         
         assertEquals("Incorrect number of documents in geo index", totalDocs, 
@@ -305,7 +304,7 @@ public class GeoIndexerTest {
                 exactly(docsToAdd).of(mockOutput).seek(with(any(Long.class)));
                 exactly(docsToAdd).of(mockOutput).writeLong(with(any(Long.class)));
                 exactly(docsToAdd).of(mockOutput).writeLong(with(any(Long.class)));
-                exactly(docsToAdd).of(mockOutput).writeByte(GeoRecord.DEFAULT_FILTER_BYTE);
+                exactly(docsToAdd).of(mockOutput).writeByte(CartesianGeoRecord.DEFAULT_FILTER_BYTE);
 
                 //close
                 one(mockOutput).close();

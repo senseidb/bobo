@@ -11,7 +11,7 @@ import org.apache.lucene.store.DataOutput;
 import org.springframework.stereotype.Component;
 
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 
 /**
  * Provides a map backed implementation of a File name to filter converter
@@ -36,7 +36,7 @@ public class MappedFieldNameFilterConverter implements IFieldNameFilterConverter
     @Override
     public byte getFilterValue(String[] fieldNames) {
         if (fieldNames == null || fieldNames.length == 0) {
-            return GeoRecord.DEFAULT_FILTER_BYTE;
+            return CartesianGeoRecord.DEFAULT_FILTER_BYTE;
         }
             
         byte filterByte = (byte)0;

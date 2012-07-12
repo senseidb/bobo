@@ -14,15 +14,12 @@ import org.junit.Test;
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordSerializer;
@@ -35,12 +32,12 @@ public class GeoSegmentReaderTest {
     public void test_fileNotFoundGivesZeroGeoRecords() throws Exception {
         Directory ramDir = new RAMDirectory();
         String fileName = "abc.geo";
-        GeoSegmentReader<GeoRecord> geoSegmentReader = 
-            new GeoSegmentReader<GeoRecord>(ramDir, fileName, -1, 16*1024, 
-                    new GeoRecordSerializer(), new GeoRecordComparator());
-        GeoRecord minValue = GeoRecord.MIN_VALID_GEORECORD;
-        GeoRecord maxValue = GeoRecord.MAX_VALID_GEORECORD;
-        Iterator<GeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
+        GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = 
+            new GeoSegmentReader<CartesianGeoRecord>(ramDir, fileName, -1, 16*1024, 
+                    new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
+        CartesianGeoRecord minValue = CartesianGeoRecord.MIN_VALID_GEORECORD;
+        CartesianGeoRecord maxValue = CartesianGeoRecord.MAX_VALID_GEORECORD;
+        Iterator<CartesianGeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
         assertTrue("iterator for FNF had content, but shouldn't have had any", !iterator.hasNext());
     }
     
@@ -180,7 +177,7 @@ public class GeoSegmentReaderTest {
         TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         GeoConverter gc = new GeoConverter();
         while(lldidIter.hasNext()) {
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
             tree.add(gc.toCartesianGeoRecord(lldidIter.next(), filterByte));
         }
         return tree;

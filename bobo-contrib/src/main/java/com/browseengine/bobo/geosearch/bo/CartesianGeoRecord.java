@@ -15,10 +15,10 @@ public class CartesianGeoRecord implements IGeoRecord {
     public final byte filterByte;
     
     public static final CartesianGeoRecord MIN_VALID_GEORECORD = 
-        new CartesianGeoRecord(0, 0, GeoRecord.DEFAULT_FILTER_BYTE);
+        new CartesianGeoRecord(0, 0, DEFAULT_FILTER_BYTE);
     
     public static final CartesianGeoRecord MAX_VALID_GEORECORD = 
-        new CartesianGeoRecord(Long.MAX_VALUE, Long.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
+        new CartesianGeoRecord(Long.MAX_VALUE, Long.MAX_VALUE, DEFAULT_FILTER_BYTE);
     
     public CartesianGeoRecord(long highOrder, long lowOrder, byte filterByte) {
         if (highOrder < 0L || lowOrder < 0) {
