@@ -4,6 +4,10 @@ import java.util.Comparator;
 import com.browseengine.bobo.geosearch.bo.GeoRecord;
 public class GeoRecordComparator implements Comparator<GeoRecord>
 {
+    public GeoRecordComparator() {
+        super();
+    }
+    
     @Override
     public int compare(GeoRecord geoRecordFirst, GeoRecord geoRecordSecond) {
         long diff = geoRecordFirst.highOrder - geoRecordSecond.highOrder;

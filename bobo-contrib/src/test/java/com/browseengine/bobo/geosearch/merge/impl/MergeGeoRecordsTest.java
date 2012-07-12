@@ -48,7 +48,7 @@ public class MergeGeoRecordsTest {
     
     CartesianGeoRecordComparator geoRecordCompareByBitMag;
     
-    private LatitudeLongitudeDocId[] originalRaws;
+    private CartesianCoordinateDocId[] originalRaws;
     private CartesianGeoRecord[] originalGeoRecordsSortedArrayA;
     private CartesianGeoRecord[] originalGeoRecordsSortedArrayB;
     
@@ -62,14 +62,14 @@ public class MergeGeoRecordsTest {
         geoRecordCompareByBitMag = new CartesianGeoRecordComparator();
         
         geoConverter = new GeoConverter();
-        originalRaws = new LatitudeLongitudeDocId[] {
-                new LatitudeLongitudeDocId(-70, -170, 0), // 0   0
-                new LatitudeLongitudeDocId(-60, -160, 1), // 1   1
-                new LatitudeLongitudeDocId(-50, -150, 2), // 2   2
-                new LatitudeLongitudeDocId(-40, -140, 3), // X   X
-                new LatitudeLongitudeDocId(-30, -130, 4), // 3   X
-                new LatitudeLongitudeDocId(-20, -120, 5), // X   X
-                new LatitudeLongitudeDocId(-10, -110, 6), // 4   3       
+        originalRaws = new CartesianCoordinateDocId[] {
+                new CartesianCoordinateDocId(-700000000, -700000000, -700000000, 0), // 0   0
+                new CartesianCoordinateDocId(-600000000, -600000000, -600000000, 1), // 1   1
+                new CartesianCoordinateDocId(-500000000, -500000000, -500000000, 2), // 2   2
+                new CartesianCoordinateDocId(-400000000, -400000000, -400000000, 3), // X   X
+                new CartesianCoordinateDocId(-300000000, -300000000, -300000000, 4), // 3   X
+                new CartesianCoordinateDocId(-200000000, -200000000, -200000000, 5), // X   X
+                new CartesianCoordinateDocId(-100000000, -100000000, -100000000, 6), // 4   3       
         };
         byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
         
@@ -79,13 +79,13 @@ public class MergeGeoRecordsTest {
         }
         
         originalGeoRecordsSortedArrayB = new CartesianGeoRecord[] {
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-65, -165, 0), filterByte),
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-55, -155, 1), filterByte),
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-45, -145, 2), filterByte),
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-35, -135, 3), filterByte),
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-25, -125, 4), filterByte),
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-15, -115, 5), filterByte),
-                geoConverter.toCartesianGeoRecord(new LatitudeLongitudeDocId(-5, -105, 6), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-650000000, -650000000, -650000000, 0), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-550000000, -550000000, -550000000, 1), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-450000000, -450000000, -450000000, 2), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-350000000, -350000000, -350000000, 3), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-250000000, -250000000, -250000000, 4), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-150000000, -150000000, -150000000, 5), filterByte),
+                geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(-50000000, -50000000, -50000000, 6), filterByte),
         };
         
         random = new Random(SEED);
@@ -448,20 +448,9 @@ public class MergeGeoRecordsTest {
         while (iteratorA.hasNext()) {
             CartesianGeoRecord geoRecord = iteratorA.next();
             CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
-            LatitudeLongitudeDocId original = this.originalRaws[i++];
-            CartesianCoordinateDocId originalCoordinate = toCartesianCoordinateDocId(original);
-            assertTrue("raw "+raw+" did not match original "+originalCoordinate, raw.equals(originalCoordinate));
+            CartesianCoordinateDocId original = this.originalRaws[i++];
+            assertTrue("raw "+raw+" did not match original "+original, raw.equals(original));
         }
-    }
-    
-    private CartesianCoordinateDocId toCartesianCoordinateDocId(LatitudeLongitudeDocId latLongDocId) {
-        double latRadians = Conversions.d2r(latLongDocId.latitude);
-        double longRadians = Conversions.d2r(latLongDocId.longitude);
-        int x = geoConverter.getXFromRadians(latRadians, longRadians);
-        int y = geoConverter.getYFromRadians(latRadians, longRadians);
-        int z = geoConverter.getZFromRadians(latRadians);
-        
-        return new CartesianCoordinateDocId(x, y, z, latLongDocId.docid);
     }
     
     @Test
@@ -687,10 +676,10 @@ public class MergeGeoRecordsTest {
     @Test
     @IfProfileValue(name = "test-suite", values = { "merge", "unit", "all" }) 
     public void test_orderedIteratorChain() throws Exception {
-        LatitudeLongitudeDocId raw = new LatitudeLongitudeDocId(45, -65, 0);
+        CartesianCoordinateDocId raw = new CartesianCoordinateDocId(450000000, -650000000, 450000000, 0);
         CartesianGeoRecord geoRecordOne = geoConverter.toCartesianGeoRecord(raw, GeoRecord.DEFAULT_FILTER_BYTE);
         OneGeoRecordIterator one = new OneGeoRecordIterator(geoRecordOne);
-        raw = new LatitudeLongitudeDocId(46, -66, 1);
+        raw = new CartesianCoordinateDocId(460000000, -660000000, 450000000, 1);
         CartesianGeoRecord geoRecordTwo = geoConverter.toCartesianGeoRecord(raw, GeoRecord.DEFAULT_FILTER_BYTE);
         OneGeoRecordIterator two = new OneGeoRecordIterator(geoRecordTwo);
         List<Iterator<CartesianGeoRecord>> list = new ArrayList<Iterator<CartesianGeoRecord>>();
