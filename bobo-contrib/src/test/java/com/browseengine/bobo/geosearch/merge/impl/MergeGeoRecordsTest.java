@@ -278,7 +278,8 @@ public class MergeGeoRecordsTest {
         
     }
     
-    List<Pair<Integer,Integer>> denseListOfLongitudeLatitudePairs;
+    //List of dense x,y,z values.  DocId has no meaning in this list and is always 0.
+    List<CartesianCoordinateDocId> denseListOfLongitudeLatitudePairs;
     
     @Test
     @IfProfileValue(name = "test-suite", values = { "merge" , "unit", "all" }) 
@@ -295,11 +296,13 @@ public class MergeGeoRecordsTest {
            }
     
     private void resetListOfDenseCoordinates(int max) {
-        denseListOfLongitudeLatitudePairs = new ArrayList<Pair<Integer,Integer>>();
-        for (int longitude = 0; longitude < max; longitude++) {
-            for (int latitude = 0; latitude < max; latitude++) {
-                Pair<Integer, Integer> pair = new Pair<Integer, Integer>(longitude, latitude);
-                denseListOfLongitudeLatitudePairs.add(pair);
+        denseListOfLongitudeLatitudePairs = new ArrayList<CartesianCoordinateDocId>();
+        for (int x = 0; x < max; x++) {
+            for (int y = 0; y < max; y++) {
+                for (int z = 0; z < max; z++) {
+                    CartesianCoordinateDocId cartesianCoordinateDocId = new CartesianCoordinateDocId(x, y, z, 0);
+                    denseListOfLongitudeLatitudePairs.add(cartesianCoordinateDocId);
+                }
             }
         }
 
@@ -330,37 +333,8 @@ public class MergeGeoRecordsTest {
     }
     
     private void addSource(TreeSet<CartesianGeoRecord> treeSet, boolean survives, 
-            int docid, int longitudeCodedInt, int latitudeCodedInt) {
-        int lowOrder = 0;
-        int sourceBitNumber = 0;
-        int lowOrderBitNumber = 0;
-        if (getBitNumber(longitudeCodedInt, sourceBitNumber)) {
-            lowOrder = setBitNumber(lowOrder, lowOrderBitNumber);
-        }
-        lowOrderBitNumber++;
-        if (getBitNumber(docid, sourceBitNumber)) {
-            lowOrder = setBitNumber(lowOrder, lowOrderBitNumber);
-        }
-        lowOrderBitNumber++;
-        // loop
-        while (sourceBitNumber < 10) {
-            if (getBitNumber(latitudeCodedInt, sourceBitNumber-1)) {
-                lowOrder = setBitNumber(lowOrder, lowOrderBitNumber);
-            }
-            lowOrderBitNumber++;
-
-            sourceBitNumber++;
-            if (getBitNumber(longitudeCodedInt, sourceBitNumber)) {
-                lowOrder = setBitNumber(lowOrder, lowOrderBitNumber);
-            }
-            lowOrderBitNumber++;
-            if (getBitNumber(docid, sourceBitNumber)) {
-                lowOrder = setBitNumber(lowOrder, lowOrderBitNumber);
-            }
-            lowOrderBitNumber++;
-        }
-        System.out.println("lowOrder: "+GeoRecord.lpad(lowOrder));
-        CartesianGeoRecord geoRecord = new CartesianGeoRecord(0L, lowOrder, (byte)0);
+            int docid, int x, int y, int z) {
+        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(new CartesianCoordinateDocId(x, y, z, docid), (byte) 0);
         verifyCycle(geoRecord);
         treeSet.add(geoRecord);
         addSourceWithoutIncrementingAbsoluteDocIdOffsetInMergedPartition(treeSet, docid, survives, geoRecord);
@@ -371,40 +345,42 @@ public class MergeGeoRecordsTest {
     @IfProfileValue(name = "test-suite", values = { "merge", "unit", "all" }) 
     public void test_dense_testItself() throws Exception {
         
-        verify_dense_testItself(1023, 40, 40);
+        verify_dense_testItself(1023, 40, 40, 40);
 
-        verify_dense_testItself(0, 2, 0);
+        verify_dense_testItself(0, 4, 2, 0);
         
-        verify_dense_testItself(0, 2, 2);
+        verify_dense_testItself(0, 2, 2, 2);
 
-        verify_dense_testItself(0, 4, 4);
-        verify_dense_testItself(0, 1, 1);
+        verify_dense_testItself(0, 4, 4, 4);
+        verify_dense_testItself(0, 1, 1, 1);
         
         final int max = 8;
         for (int docid = 0; docid < max; docid++) {
-            for (int longitudeCodedInt = 0; longitudeCodedInt < max; longitudeCodedInt++) {
-                for (int latitudeCodedInt = 0; latitudeCodedInt < max; latitudeCodedInt++) {
-                    verify_dense_testItself(docid, longitudeCodedInt, latitudeCodedInt);
+            for (int x = 0; x < max; x++) {
+                for (int y = 0; y < max; y++) {
+                    for (int z = 0; z < max; z++) {
+                        verify_dense_testItself(docid, x, y, z);
+                    }
                 }
             }
         }
     }
 
-    private void verify_dense_testItself(int docid, int longitudeCodedInt, int latitudeCodedInt) {
+    private void verify_dense_testItself(int docid, int x, int y, int z) {
         resetMergedPartition();
         TreeSet<CartesianGeoRecord> treeSet = new TreeSet<CartesianGeoRecord>(comparator);
         boolean survives = true;
 
         addSource( treeSet,  survives, 
-                 docid,  longitudeCodedInt,  latitudeCodedInt);
+                 docid,  x,  y, z);
         CartesianGeoRecord geoRecord = treeSet.pollFirst();
         CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
         assertTrue("docid "+docid+" didn't match obtained raw.docid "+raw.docid, docid == raw.docid);
-        if (0 == longitudeCodedInt) {
+        if (0 == y) {
 //            assertTrue("longitudeCodedInt 0 didn't have longitude -180.", -180. == raw.longitude);
            assertTrue("longitudeCodedInt 0 didn't have longitude -180.", -180 != (int)Conversions.r2d(Math.atan((double)raw.y/(double)raw.x)));
         }
-        if (0 == latitudeCodedInt) {
+        if (0 == z) {
 //            assertTrue("latitudeCodedInt 0 didn't have latitude -90.", -90. == raw.latitude);
             assertTrue("latitudeCodedInt 0 didn't have latitude -90.", -90 != (int)Conversions.r2d(Math.asin((double)raw.z/(double)Conversions.EARTH_RADIUS_INTEGER_UNITS)));
         }
@@ -416,12 +392,10 @@ public class MergeGeoRecordsTest {
         TreeSet<CartesianGeoRecord> treeSet = new TreeSet<CartesianGeoRecord>(comparator);
         final boolean survives = true;
         for (int docid = 0; docid < maxDoc; docid++) {
-            Pair<Integer, Integer> pair = denseListOfLongitudeLatitudePairs.remove(
+            CartesianCoordinateDocId coordinate = denseListOfLongitudeLatitudePairs.remove(
                     random.nextInt(denseListOfLongitudeLatitudePairs.size()));
-            int longitudeCodedInt = pair.one;
-            int latitudeCodedInt = pair.two;
-            addSource(treeSet, survives, docid, longitudeCodedInt, latitudeCodedInt);
-         }
+            addSource(treeSet, survives, docid, coordinate.x, coordinate.y, coordinate.z);
+        }
         
         GeoRecordBTree geoRecordBTreeAsArray = new GeoRecordBTree(treeSet);
         PreMergedState preMergedState = new PreMergedState(geoRecordBTreeAsArray, bitVector, numberOfRecordsSurvivingDeletion);
@@ -473,7 +447,6 @@ public class MergeGeoRecordsTest {
         int i = 0;
         while (iteratorA.hasNext()) {
             CartesianGeoRecord geoRecord = iteratorA.next();
-            //FIXME:  This should verify that the cartesian coordinates are the same
             CartesianCoordinateDocId raw = geoConverter.toCartesianCoordinateDocId(geoRecord);
             LatitudeLongitudeDocId original = this.originalRaws[i++];
             CartesianCoordinateDocId originalCoordinate = toCartesianCoordinateDocId(original);
@@ -648,10 +621,8 @@ public class MergeGeoRecordsTest {
     }
 
     private void print(CartesianGeoRecord geoRecord) {
-        /*
-        LongitudeLatitudeDocId geoRecordRaw = geoConverter.toLongitudeLatitudeDocId(geoRecord);
+        CartesianCoordinateDocId geoRecordRaw = geoConverter.toCartesianCoordinateDocId(geoRecord);
         System.out.println("geoRecord "+geoRecord+", geoRecordRaw: "+geoRecordRaw);
-        */
     }
     
     @Test
@@ -799,7 +770,7 @@ public class MergeGeoRecordsTest {
         
         verifyNextGeoRecordInExpectedMergeIndex(geoRecord);
 
-        assertTrue("geoRecord first hit was null", geoRecord !=null);
+        assertTrue("geoRecord first hit was null", geoRecord != null);
         int count = 1;
         while (mergeGeoRecords.hasNext()) {
             CartesianGeoRecord next = mergeGeoRecords.next();
