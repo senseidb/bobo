@@ -46,9 +46,4 @@ public interface IComputeDistance {
     double computeLonBoundary(double latitudeInDegrees,
             float radiusInMiles);
     
-    
-    long getSquaredDistance(int x, int y, int z, int xp, int yp, int zp);
-
-    int[] cartesianBoundingBox(float rangeInKm, int x, int y, int z);
-    
 }

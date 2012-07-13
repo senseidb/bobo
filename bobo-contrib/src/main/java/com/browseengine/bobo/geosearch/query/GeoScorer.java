@@ -22,10 +22,8 @@ import com.browseengine.bobo.geosearch.impl.DeletedDocs;
 import com.browseengine.bobo.geosearch.impl.GeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
-import com.browseengine.bobo.geosearch.score.IComputeDistance;
+import com.browseengine.bobo.geosearch.score.impl.CartesianComputeDistance;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
-import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
-import com.browseengine.bobo.geosearch.solo.search.impl.GeoOnlySearcher;
 
 /**
  * @author Ken McCracken
@@ -42,12 +40,10 @@ public class GeoScorer extends Scorer {
 
     private final IGeoConverter geoConverter;
     private final IGeoBlockOfHitsProvider geoBlockOfHitsProvider;
-    private final IComputeDistance computeDistance;
     private final List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder;
     private final int centroidX;
     private final int centroidY;
     private final int centroidZ;
-    private final float rangeInKm;
     private final int[] cartesianBoundingBox;
     
     // current pointers
@@ -83,18 +79,31 @@ public class GeoScorer extends Scorer {
         this.centroidX = geoConverter.getXFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
         this.centroidY = geoConverter.getYFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
         this.centroidZ = geoConverter.getZFromRadians(centroidLatitudeRadians);
-        this.rangeInKm = rangeInKm;
         
         startDocidOfCurrentPartition = -1;
         
-        this.computeDistance = new HaversineComputeDistance();
-        CartesianCoordinateDocId minccd = GeoOnlySearcher.buildMinCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
-        CartesianCoordinateDocId maxccd = GeoOnlySearcher.buildMaxCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
+        CartesianCoordinateDocId minccd = buildMinCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
+        CartesianCoordinateDocId maxccd = buildMaxCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
         this.cartesianBoundingBox = new int [] {minccd.x, maxccd.x, minccd.y, maxccd.y, minccd.z, maxccd.z};
         
     }
     
-
+    public static CartesianCoordinateDocId buildMinCoordinate(float rangeInKm, int x, int y, int z, int docid) {
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInKm * 1000.0);
+        int minX = Conversions.calculateMinimumCoordinate(x, rangeInUnits);
+        int minY = Conversions.calculateMinimumCoordinate(y, rangeInUnits);
+        int minZ = Conversions.calculateMinimumCoordinate(z, rangeInUnits);
+        return new CartesianCoordinateDocId(minX, minY, minZ, docid);
+    }
+    public static CartesianCoordinateDocId buildMaxCoordinate(float rangeInKm, int x, int y, int z, int docid) {
+        int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInKm * 1000.0);
+        int maxX = Conversions.calculateMaximumCoordinate(x, rangeInUnits);
+        int maxY = Conversions.calculateMaximumCoordinate(y, rangeInUnits);
+        int maxZ = Conversions.calculateMaximumCoordinate(z, rangeInUnits);
+        return new CartesianCoordinateDocId(maxX, maxY, maxZ, docid);
+    }
+    
+    
     /**
      * {@inheritDoc}
      */
@@ -110,12 +119,14 @@ public class GeoScorer extends Scorer {
      *  Where x, y, z and x', y', z' are 0.0001f miles or 0.16 meters apart.
      * 
      */
-    private static final long MINIMUM_DISTANCE_WE_CARE_ABOUT = 21903;
+    private static final double MINIMUM_DISTANCE_WE_CARE_ABOUT = 2881.0;
+    private static final double MAX_DISTANCE_SQUARED = ((double)Conversions.EARTH_RADIUS_INTEGER_UNITS * Conversions.EARTH_RADIUS_INTEGER_UNITS * 4);
+    
     
     private float score(Collection<GeRecordAndCartesianDocId> values) {
-        long squaredDistance = Long.MAX_VALUE;
+        double squaredDistance = MAX_DISTANCE_SQUARED;
         for (GeRecordAndCartesianDocId value : values) {
-             long squaredDistance2 = computeDistance.getSquaredDistance(centroidX, centroidY, centroidZ, 
+             double squaredDistance2 = CartesianComputeDistance.computeDistanceSquared(centroidX, centroidY, centroidZ, 
                      value.cartesianCoordinateDocId.x, value.cartesianCoordinateDocId.y, value.cartesianCoordinateDocId.z);
              if(squaredDistance2 < squaredDistance) {
                  squaredDistance = squaredDistance2;
@@ -130,11 +141,11 @@ public class GeoScorer extends Scorer {
      * @param minimumDistanceMiles
      * @return
      */
-    private float score(long squaredDistance) {
+    private float score(double squaredDistance) {
         if (squaredDistance < MINIMUM_DISTANCE_WE_CARE_ABOUT) {
             return 1f;
         }
-        return (float)((double)MINIMUM_DISTANCE_WE_CARE_ABOUT/((double)squaredDistance));
+        return (float)(MINIMUM_DISTANCE_WE_CARE_ABOUT/squaredDistance);
     }
 
     /**
