@@ -13,6 +13,8 @@ import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
 /**
+ * Lucene query implementation that queries a geo index based on a centroid coordinate and a range.
+ * 
  * @author Shane Detsch
  * @author Ken McCracken
  *
