@@ -8,18 +8,18 @@ package com.browseengine.bobo.geosearch.score.impl;
  */
 public class CartesianComputeDistance {
     
-    public static double computeDistanceSquared(int x1, int y1, int z1, 
+    public static float computeDistanceSquared(int x1, int y1, int z1, 
             int x2, int y2, int z2) {
-        double xDiff = ((double)x1 - (double)x2);
-        double yDiff = ((double)y1 - (double)y2);
-        double zDiff = ((double)z1 - (double)z2);
+        float xDiff = ((float)x1 - (float)x2);
+        float yDiff = ((float)y1 - (float)y2);
+        float zDiff = ((float)z1 - (float)z2);
         
         return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff;
     }
     
-    public static double computeDistance(int x1, int y1, int z1, 
+    public static float computeDistance(int x1, int y1, int z1, 
             int x2, int y2, int z2) {
-        return Math.sqrt(computeDistanceSquared(x1, y1, z1, x2, y2, z2));
+        return (float) Math.sqrt(computeDistanceSquared(x1, y1, z1, x2, y2, z2));
     }
     
 }

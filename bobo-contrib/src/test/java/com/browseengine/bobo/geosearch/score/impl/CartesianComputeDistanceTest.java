@@ -53,6 +53,6 @@ public class CartesianComputeDistanceTest {
         int x2 = Integer.MIN_VALUE, y2 = Integer.MIN_VALUE, z2 = Integer.MIN_VALUE;
         
         double distancesq = CartesianComputeDistance.computeDistance(x1, y1, z1, x2, y2, z2);
-        assertEquals(7439101571.787, distancesq, 0.01);
+        assertEquals(7439101571.787, distancesq, 1000);
     }
 }

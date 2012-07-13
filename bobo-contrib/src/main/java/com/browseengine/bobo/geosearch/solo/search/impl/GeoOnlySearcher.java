@@ -79,7 +79,7 @@ public class GeoOnlySearcher {
                     ) {
                 totalHits++;
                 
-                double score = CartesianComputeDistance.computeDistanceSquared(
+                float score = CartesianComputeDistance.computeDistanceSquared(
                         hitCoordinate.x, hitCoordinate.y, hitCoordinate.z, 
                         centroidCoordinate.x, centroidCoordinate.y, centroidCoordinate.z);
                 GeoOnlyHit geoHit = new GeoOnlyHit(score, hitCoordinate.uuid);

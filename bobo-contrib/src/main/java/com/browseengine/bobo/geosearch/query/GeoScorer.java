@@ -119,14 +119,14 @@ public class GeoScorer extends Scorer {
      *  Where x, y, z and x', y', z' are 0.0001f miles or 0.16 meters apart.
      * 
      */
-    private static final double MINIMUM_DISTANCE_WE_CARE_ABOUT = 2881.0;
-    private static final double MAX_DISTANCE_SQUARED = ((double)Conversions.EARTH_RADIUS_INTEGER_UNITS * Conversions.EARTH_RADIUS_INTEGER_UNITS * 4);
+    private static final float MINIMUM_DISTANCE_WE_CARE_ABOUT = 2881.0f;
+    private static final float MAX_DISTANCE_SQUARED = ((float)Conversions.EARTH_RADIUS_INTEGER_UNITS * Conversions.EARTH_RADIUS_INTEGER_UNITS * 4);
     
     
     private float score(Collection<GeRecordAndCartesianDocId> values) {
-        double squaredDistance = MAX_DISTANCE_SQUARED;
+        float squaredDistance = MAX_DISTANCE_SQUARED;
         for (GeRecordAndCartesianDocId value : values) {
-             double squaredDistance2 = CartesianComputeDistance.computeDistanceSquared(centroidX, centroidY, centroidZ, 
+             float squaredDistance2 = CartesianComputeDistance.computeDistanceSquared(centroidX, centroidY, centroidZ, 
                      value.cartesianCoordinateDocId.x, value.cartesianCoordinateDocId.y, value.cartesianCoordinateDocId.z);
              if(squaredDistance2 < squaredDistance) {
                  squaredDistance = squaredDistance2;

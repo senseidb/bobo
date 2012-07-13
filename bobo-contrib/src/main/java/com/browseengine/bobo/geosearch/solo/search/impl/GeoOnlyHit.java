@@ -7,10 +7,10 @@ package com.browseengine.bobo.geosearch.solo.search.impl;
  */
 public class GeoOnlyHit {
 
-    public final double score;
+    public final float score;
     public final byte[] uuid;
 
-    public GeoOnlyHit(double score, byte[] uuid) {
+    public GeoOnlyHit(float score, byte[] uuid) {
         this.score = score;
         this.uuid = uuid;
     }
