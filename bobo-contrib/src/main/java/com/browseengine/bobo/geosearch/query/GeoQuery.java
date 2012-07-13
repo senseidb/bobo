@@ -38,17 +38,17 @@ public class GeoQuery extends Query {
         this.rangeInKm = rangeInKm;
         
         if (null == rangeInKm) {
-            throw new RuntimeException("please specify rangeInKilometers");
+            throw new IllegalArgumentException("please specify rangeInKilometers");
         }
        
         if (this.rangeInKm < MINIMUM_RANGE_IN_KM) {
-            throw new RuntimeException("range must be positive");
+            throw new IllegalArgumentException("range must be positive");
         }
         
         if(!GeoUtil.isValidLatitude(centroidLatitude)  || !GeoUtil.isValidLongitude(centroidLongitude)) {
-            throw new RuntimeException("bad latitude or longitude: " + centroidLatitude + ", " + centroidLongitude );
+            throw new IllegalArgumentException("bad latitude or longitude: " + centroidLatitude + ", " + centroidLongitude );
         }
-      
+
     }
     
     /**
