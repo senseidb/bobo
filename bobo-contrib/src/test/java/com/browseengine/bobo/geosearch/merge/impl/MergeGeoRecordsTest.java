@@ -480,7 +480,7 @@ public class MergeGeoRecordsTest {
                 original.docid -= 2;
             }
            
-            assertTrue("raw "+raw+" did not match original "+original, raw.equals(original));
+            assertTrue("raw "+raw+" did not git match original "+original, raw.equals(original));
         }
 
     }
