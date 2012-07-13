@@ -58,10 +58,10 @@ public class GeoSearchFunctionalTezt {
     static final byte LOCATION_BIT_MASK = (byte)1;
     static final byte IMAGE_LOCATION_BIT_MASK = (byte)2;
     
-    private static final float LATTITUDE_MAX_VALUE = 90f;
-    private static final float LATTITUDE_MIN_VALUE = -90f;
-    private static final float LONGITUDE_MAX_VALUE = 180f;
-    private static final float LONGITUDE_MIN_VALUE = -180f;
+    protected static final float LATTITUDE_MAX_VALUE = 90f;
+    protected static final float LATTITUDE_MIN_VALUE = -90f;
+    protected static final float LONGITUDE_MAX_VALUE = 180f;
+    protected static final float LONGITUDE_MIN_VALUE = -180f;
     
   //Sample text and titles come from the top 11 opening lines of novels according to
     //a random web page from google(Skipping Lolita because I was a little uncomfortable pastin

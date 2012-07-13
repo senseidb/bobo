@@ -57,7 +57,7 @@ public class GeoUtil implements IGeoUtil {
     
     public static boolean isValidLongitude(Double longitude) {
         return null != longitude 
-        && MINIMUM_LONGITUDE_EXCLUSIVE < longitude 
+        && MINIMUM_LONGITUDE_EXCLUSIVE <= longitude 
         && longitude <= MAXIMUM_LONGITUDE_INCLUSIVE;
     }
     

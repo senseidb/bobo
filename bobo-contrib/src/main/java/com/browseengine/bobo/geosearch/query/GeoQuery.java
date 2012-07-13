@@ -11,7 +11,6 @@ import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoUtil;
-import com.browseengine.bobo.geosearch.score.impl.Conversions;
 
 /**
  * @author Shane Detsch
@@ -28,8 +27,7 @@ public class GeoQuery extends Query {
     float rangeInKm;
     GeoConverter geoConvertor;
     
-    private static final float MINIMUM_RANGE_IN_KM = Conversions.mi2km(0.001f);
-    private static final float MAXIMUM_RANGE_IN_KM = Conversions.mi2km(500f);
+    private static final float MINIMUM_RANGE_IN_KM = 0.0f;
 
     double centroidLatitude;
     double centroidLongitude;
@@ -43,8 +41,8 @@ public class GeoQuery extends Query {
             throw new RuntimeException("please specify rangeInKilometers");
         }
        
-        if (this.rangeInKm < MINIMUM_RANGE_IN_KM || this.rangeInKm > MAXIMUM_RANGE_IN_KM) {
-            throw new RuntimeException("rangeInMiles out of range ["+MINIMUM_RANGE_IN_KM+", "+MAXIMUM_RANGE_IN_KM+"]: "+this.rangeInKm);
+        if (this.rangeInKm < MINIMUM_RANGE_IN_KM) {
+            throw new RuntimeException("range must be positive");
         }
         
         if(!GeoUtil.isValidLatitude(centroidLatitude)  || !GeoUtil.isValidLongitude(centroidLongitude)) {

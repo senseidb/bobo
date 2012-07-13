@@ -15,7 +15,6 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.IfProfileValue;
@@ -137,6 +136,19 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         
         List<String> expectedResults = new Vector<String>();
         expectedResults.add(titles[1]);
+        verifyExpectedResults(expectedResults, topDocs, searcher);
+    }
+    
+    @Test
+    public void testGeoSearch_onehit() throws IOException {
+        GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
+        IndexSearcher searcher = new IndexSearcher(reader);
+         
+        GeoQuery query = new GeoQuery(LATTITUDE_MIN_VALUE, LONGITUDE_MIN_VALUE, 0.0f);
+        TopDocs topDocs = searcher.search(query, 10);
+        
+        List<String> expectedResults = new Vector<String>();
+        expectedResults.add(titles[0]);
         verifyExpectedResults(expectedResults, topDocs, searcher);
     }
 }
