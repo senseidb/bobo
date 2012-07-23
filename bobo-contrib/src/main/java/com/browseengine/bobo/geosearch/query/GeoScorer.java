@@ -119,7 +119,7 @@ public class GeoScorer extends Scorer {
      *  Where x, y, z and x', y', z' are 0.0001f miles or 0.16 meters apart.
      * 
      */
-    private static final float MINIMUM_DISTANCE_WE_CARE_ABOUT = 2881.0f;
+    private static final float MINIMUM_DISTANCE_WE_CARE_ABOUT = 0.16f;
     private static final float MAX_DISTANCE_SQUARED = ((float)Conversions.EARTH_RADIUS_INTEGER_UNITS * Conversions.EARTH_RADIUS_INTEGER_UNITS * 4);
     
     
@@ -142,10 +142,13 @@ public class GeoScorer extends Scorer {
      * @return
      */
     private float score(double squaredDistance) {
-        if (squaredDistance < MINIMUM_DISTANCE_WE_CARE_ABOUT) {
+        double distance = Math.sqrt(squaredDistance);
+        double distanceMeters = Conversions.unitsToMeters(distance);
+        if (distanceMeters < MINIMUM_DISTANCE_WE_CARE_ABOUT) {
             return 1f;
         }
-        return (float)(MINIMUM_DISTANCE_WE_CARE_ABOUT/squaredDistance);
+        
+        return (float)(MINIMUM_DISTANCE_WE_CARE_ABOUT/distanceMeters);
     }
 
     /**

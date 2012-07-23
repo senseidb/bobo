@@ -86,4 +86,7 @@ public class Conversions {
             return Integer.MAX_VALUE;
         }
     }
+    public static double unitsToMeters(double distance) {
+        return distance / EARTH_RADIUS_METERS_TO_INTEGER_UNITS;
+    }
 }
