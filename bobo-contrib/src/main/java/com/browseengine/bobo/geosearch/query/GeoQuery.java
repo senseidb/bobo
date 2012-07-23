@@ -14,6 +14,9 @@ import com.browseengine.bobo.geosearch.impl.GeoUtil;
 
 /**
  * Lucene query implementation that queries a geo index based on a centroid coordinate and a range.
+ *
+ * NOTE:  Early versions of this class took longitude before latitude in the constructor.  In order to be consistent throughout the library
+ * this has been modified.  If you are upgrading from a prior version please take note of this change.
  * 
  * @author Shane Detsch
  * @author Ken McCracken
@@ -34,6 +37,14 @@ public class GeoQuery extends Query {
     double centroidLatitude;
     double centroidLongitude;
     
+    /**
+     * NOTE:  Early versions of this class took longitude before latitude in the constructor.  In order to be consistent throughout the library
+     * this has been modified.  If you are upgrading from a prior version please take note of this change.
+     * 
+     * @param centroidLatitude  Latitude in degrees
+     * @param centroidLongitude  Longitude in degrees
+     * @param rangeInKm  search radius in Kilometers
+     */
     public GeoQuery(double centroidLatitude, double centroidLongitude, Float rangeInKm) {
         this.centroidLatitude = centroidLatitude;
         this.centroidLongitude = centroidLongitude;
