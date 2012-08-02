@@ -140,6 +140,10 @@ public abstract class DocComparatorSource {
 				}
 
 				public String value(ScoreDoc doc) {
+					if (values.lookup[values.order[doc.doc]] == null) {
+							return null;
+					}
+
 					return String.valueOf(values.lookup[values.order[doc.doc]]);
 				}
 			};
