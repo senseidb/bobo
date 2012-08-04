@@ -49,4 +49,9 @@ public class HaversineComputeDistance implements IComputeDistance {
         
         return Conversions.r2d(lonBoundaryRadians);
     }
+    
+    private final float ONEKMDIFFX =  82694f;  // 16 powers of 2 is 65,536
+    private final float ONEKMDIFFY = 224679f;  // 18 powers of 2 is 262,144
+    private final float ONEKMDIFFZ = 234124f;
+    
 }

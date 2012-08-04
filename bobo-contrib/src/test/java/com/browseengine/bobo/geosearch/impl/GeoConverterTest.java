@@ -3,21 +3,20 @@ package com.browseengine.bobo.geosearch.impl;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeSet;
+import java.util.Random;
 
 import org.junit.Test;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
-import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
-import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
 
 /**
  * 
  * 
  * @author gcooney
+ * @author shandets
  *
  */
 public class GeoConverterTest {
@@ -119,292 +118,76 @@ public class GeoConverterTest {
     }
     
     @Test
-    public void testToIDGeoRecord_XCoordOrder_LargeDelta() {
-        int totalCoordinates = 10000;
-        int startX = Integer.MIN_VALUE;
-        int deltaX = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        int startY = 0;
-        int deltaY = 0;
-        int startZ = 0;
-        int deltaZ = 0;
+    public void testCartesianGeoRecord() {
         
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_XCoordOrder_SmallDelta() {
-        int totalCoordinates = 10000;
-        int startX = -5000;
-        int deltaX = 1;
-        int startY = 0;
-        int deltaY = 0;
-        int startZ = 0;
-        int deltaZ = 0;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_XCoordOrder_TinyDelta() {
-        int totalCoordinates = 10;
-        int startX = -5;
-        int deltaX = 1;
-        int startY = 0;
-        int deltaY = 0;
-        int startZ = 0;
-        int deltaZ = 0;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_YCoordOrder_LargeDelta() {
-        int startX = 0;
-        int deltaX = 0;
-        int totalCoordinates = 10000;
-        int startY = Integer.MIN_VALUE;
-        int deltaY = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        int startZ = 0;
-        int deltaZ = 0;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_YCoordOrder_SmallDelta() {
-        int totalCoordinates = 10000;
-        int startX = 0;
-        int deltaX = 0;
-        int startY = -5000;
-        int deltaY = 2;
-        int startZ = 0;
-        int deltaZ = 0;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_ZCoordOrder_LargeDelta() {
-        int startX = 0;
-        int deltaX = 0;
-        int startY = 0;
-        int deltaY = 0;
-        int totalCoordinates = 10000;
-        int startZ = Integer.MIN_VALUE;
-        int deltaZ = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_ZCoordOrder_SmallDelta() {
-        int totalCoordinates = 10000;
-        int startX = 0;
-        int deltaX = 0;
-        int startY = 0;
-        int deltaY = 0;
-        int startZ = -5000;
-        int deltaZ = 2;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_ZCoordOrder_TinyDelta() {
-        int totalCoordinates = 10;
-        int startX = 0;
-        int deltaX = 0;
-        int startY = 0;
-        int deltaY = 0;
-        int startZ = -5;
-        int deltaZ = 2;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_AllCoordOrder_LargeDelta() {
-        int totalCoordinates = 10000;
-        int startX = Integer.MIN_VALUE;
-        int deltaX = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        int startY = Integer.MIN_VALUE;
-        int deltaY = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        int startZ = Integer.MIN_VALUE;
-        int deltaZ = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    @Test
-    public void testToIDGeoRecord_AllCoordOrder_SmallDelta() {
-        int totalCoordinates = 10000;
-        int startX = -5000;
-        int deltaX = 1;
-        int startY = -5000;
-        int deltaY = 2;
-        int startZ = -5000;
-        int deltaZ = 2;
-        
-        createRecordsAndValidateSortOrder(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
-    }
-    
-    private void createRecordsAndValidateSortOrder(int startX, int deltaX, int startY, int deltaY,
-            int startZ, int deltaZ, int totalCoordinates) {
-        ArrayList<IDGeoRecord> list = new ArrayList<IDGeoRecord>(totalCoordinates);
-        TreeSet<IDGeoRecord> tree = new TreeSet<IDGeoRecord>(new IDGeoRecordComparator());
-        
-        for (int i = 0; i < totalCoordinates; i++) {
-            int x = startX + i * deltaX;
-            int y = startY + i * deltaY;
-            int z = startZ + i * deltaZ;
-            byte[] id = Integer.toString(i).getBytes();
+        int x,y,z,docid;
+        CartesianCoordinateDocId ccd = null;
+        CartesianGeoRecord cgr = null;
+        CartesianGeoRecord cgrconv = null;
+        CartesianCoordinateDocId ccdconv = null;
+        Random random = new Random(31);
+        CartesianGeoRecordComparator comp = new CartesianGeoRecordComparator();
+        for(int i = 0; i < 20; i++) {
+            docid = random.nextInt(Integer.MAX_VALUE);
+            x = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                x*=-1;
+            }
+            y = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                y*=-1;
+            }
+            z = random.nextInt(Integer.MAX_VALUE);
+            if(random.nextBoolean()){
+                z*=-1;
+            }
+             ccd = new CartesianCoordinateDocId(x, y, z, docid);
+             cgr = geoConverter.toCartesianGeoRecord(ccd, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
+             ccdconv = geoConverter.toCartesianCoordinateDocId(cgr);
+             cgrconv = geoConverter.toCartesianGeoRecord(ccdconv, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
             
-            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(x, y, z, id);
-            
-            assertEquals("Iteration " + i + ": Unexpected id", id, geoRecord.id);
-            
-            list.add(geoRecord);
-            tree.add(geoRecord);
+            assertTrue(ccd.x == ccdconv.x);
+            assertTrue(ccd.y == ccdconv.y);
+            assertTrue(Math.abs(ccd.z - ccdconv.z) <= 1);
+            assertTrue(ccd.docid == ccdconv.docid);
+            assertTrue(comp.compare(cgr, cgrconv) == 0);
         }
         
-        int i = 0;
-        for (Iterator<IDGeoRecord> geoIter = tree.iterator(); geoIter.hasNext();) {
-            IDGeoRecord treeNext = geoIter.next();
-            IDGeoRecord arrayNext = list.get(i);
-            
-            assertEquals("unexepcted record at index " + i, arrayNext, treeNext);
-            
-            i++;
-        }
     }
-    
     @Test
-    public void testInterlaceThenUninterlace_LargeRange() {
-        int totalCoordinates = 10000;
-        int startX = Integer.MIN_VALUE;
-        int deltaX = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        int startY = Integer.MIN_VALUE;
-        int deltaY = 2 * (Integer.MAX_VALUE / totalCoordinates);
-        int startZ = Integer.MIN_VALUE;
-        int deltaZ = 2 * (Integer.MAX_VALUE / totalCoordinates);
+    public void printOutDifferenceInXZYForDifferenceOfDistanceOf1km() {
+        // http://andrew.hedges.name/experiments/haversine/ says the distance between 
+        // 10.1 and 10.10641 is about 1KM
+        double latitudeA = Conversions.d2r(0.0);
+        double longitudeA = Conversions.d2r(0.0);
+        double latitudeB = Conversions.d2r(0.00641);
+        double longitudeB = Conversions.d2r(0.00641);
+        int x = geoConverter.getXFromRadians(latitudeA, longitudeA);
+        int y = geoConverter.getYFromRadians(latitudeA, longitudeA);
+        int z = geoConverter.getZFromRadians(latitudeA);
+        int xp = geoConverter.getXFromRadians(latitudeB, longitudeB);
+        int yp = geoConverter.getYFromRadians(latitudeB, longitudeB);
+        int zp = geoConverter.getZFromRadians(latitudeB);
         
-        interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
+        System.out.println("Distnace btw x, y, z are " + Math.abs(x-xp) + ", " + Math.abs(y-yp) + ", " + Math.abs(z-zp));
     }
     
-    @Test
-    public void testInterlaceThenUninterlace_SmallRange() {
-        int totalCoordinates = 100;
-        int startX = -50;
-        int deltaX = 1;
-        int startY = -50;
-        int deltaY = 1;
-        int startZ = -50;
-        int deltaZ = 1;
-        
-        interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                startZ, deltaZ, totalCoordinates);
+    @Test 
+    public void print2MSquaredDistance() {
+        double latitudeA = Conversions.d2r(10.1);
+        double longitudeA = Conversions.d2r(10.1);
+        double latitudeB = Conversions.d2r(10.10001);
+        double longitudeB = Conversions.d2r(10.10001);
+        int x = geoConverter.getXFromRadians(latitudeA, longitudeA);
+        int y = geoConverter.getYFromRadians(latitudeA, longitudeA);
+        int z = geoConverter.getZFromRadians(latitudeA);
+        int xp = geoConverter.getXFromRadians(latitudeB, longitudeB);
+        int yp = geoConverter.getYFromRadians(latitudeB, longitudeB);
+        int zp = geoConverter.getZFromRadians(latitudeB);
+        long l = (x-xp)*(x-xp) + (y-yp)*(y-yp) + (z-zp)*(z-zp);
+        System.out.println(l);
     }
     
-    @Test
-    public void testInterlaceThenUninterlace_EveryPowerOfTwo_XOnly() {
-        int totalCoordinates = 1;
-        int startX = Integer.MIN_VALUE;
-        int deltaX = 0;
-        int startY = Integer.MIN_VALUE;
-        int deltaY = 0;
-        int startZ = Integer.MIN_VALUE;
-        int deltaZ = 0;
-        
-        for (int i=0; i < 31; i++) {
-            startX = 2^i;
-            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                    startZ, deltaZ, totalCoordinates);
-            
-            startX = 2^i + Integer.MIN_VALUE;
-            
-            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                    startZ, deltaZ, totalCoordinates);
-        }
-    }
-    
-    @Test
-    public void testInterlaceThenUninterlace_EveryPowerOfTwo_YOnly() {
-        int totalCoordinates = 1;
-        int startX = Integer.MIN_VALUE;
-        int deltaX = 0;
-        int startY = Integer.MIN_VALUE;
-        int deltaY = 0;
-        int startZ = Integer.MIN_VALUE;
-        int deltaZ = 0;
-        
-        for (int i=0; i < 31; i++) {
-            startY = 2^i;
-            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                    startZ, deltaZ, totalCoordinates);
-            
-            startY = 2^i + Integer.MIN_VALUE;
-            
-            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                    startZ, deltaZ, totalCoordinates);
-        }
-    }
-    
-    @Test
-    public void testInterlaceThenUninterlace_EveryPowerOfTwo_ZOnly() {
-        int totalCoordinates = 1;
-        int startX = Integer.MIN_VALUE;
-        int deltaX = 0;
-        int startY = Integer.MIN_VALUE;
-        int deltaY = 0;
-        int startZ = Integer.MIN_VALUE;
-        int deltaZ = 0;
-        
-        for (int i=0; i < 31; i++) {
-            startZ = 2^i;
-            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                    startZ, deltaZ, totalCoordinates);
-            
-            startZ = 2^i + Integer.MIN_VALUE;
-            
-            interlaceAndUninterlace(startX, deltaX, startY, deltaY, 
-                    startZ, deltaZ, totalCoordinates);
-        }
-    }
-    
-    private void interlaceAndUninterlace(int startX, int deltaX, int startY, int deltaY, int startZ, int deltaZ,
-            int totalCoordinates) {
-        for (int i = 0; i < totalCoordinates; i++) {
-            int x = startX + i * deltaX;
-            int y = startY + i * deltaY;
-            int z = startZ + i * deltaZ;
-            byte[] id = Integer.toString(i).getBytes();
-            
-            CartesianCoordinateUUID expectedCoordinate = new CartesianCoordinateUUID(x, y, z, id);
-            IDGeoRecord geoRecord = geoConverter.toIDGeoRecord(x, y, z, id);
-            
-            CartesianCoordinateUUID actualCoordinate = geoConverter.toCartesianCoordinate(geoRecord);
-
-            assertEquals("UUID should not change", expectedCoordinate.uuid, actualCoordinate.uuid);
-            assertTrue("x should not change: expected=" + expectedCoordinate.x + "; actual=" + 
-                    actualCoordinate.x, expectedCoordinate.x - actualCoordinate.x == 0);
-            assertTrue("y should not change by more than 1: expected=" + expectedCoordinate.y + "; actual=" + 
-                    actualCoordinate.y, Math.abs(expectedCoordinate.y - actualCoordinate.y) <= 1);
-            assertTrue("z should not change by more than 1: expected=" + expectedCoordinate.z + "; actual=" + 
-                    actualCoordinate.z, Math.abs(expectedCoordinate.z - actualCoordinate.z) <= 1);
-        }
-    }
-
     public enum Dimension {
         X, Y, Z;
     }

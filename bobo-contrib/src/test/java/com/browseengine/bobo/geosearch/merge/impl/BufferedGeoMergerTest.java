@@ -29,13 +29,12 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.IGeoUtil;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
-import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
 
 /**
@@ -68,7 +67,7 @@ public class BufferedGeoMergerTest {
     IGeoConverter geoConverter;
     IGeoUtil geoUtil;
     
-    TreeSet<GeoRecord> expectedOutputTree;
+    TreeSet<CartesianGeoRecord> expectedOutputTree;
     
     @Before
     public void setUp() {
@@ -81,13 +80,13 @@ public class BufferedGeoMergerTest {
         
         bufferedGeoMerger = new BufferedGeoMerger() {
             @Override
-            public BTree<GeoRecord> getInputBTree(Directory directory, String geoFileName, 
+            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, String geoFileName, 
                     int bufferSizePerGeoReader) {
                 return inputTrees.get(geoFileName);
             }
             
             @Override
-            public BTree<GeoRecord> getOutputBTree(int newSegmentSize, Iterator<GeoRecord> inputIterator,
+            public BTree<CartesianGeoRecord> getOutputBTree(int newSegmentSize, Iterator<CartesianGeoRecord> inputIterator,
                     Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
                 outputTree = new GeoRecordBTree(newSegmentSize, inputIterator, directory, outputFileName, geoSegmentInfo);
                 return outputTree;
@@ -156,7 +155,7 @@ public class BufferedGeoMergerTest {
     }
 
     private GeoRecordBTree buildInputTree(int segmentStartInNewIndex, int segmentSize, int numberOfDeletes) throws IOException {
-        TreeSet<GeoRecord> tree = geoUtil.getBinaryTreeOrderedByBitMag();
+        TreeSet<CartesianGeoRecord> tree = geoUtil.getBinaryTreeOrderedByBitMag();
         
         int absoluteDocId = segmentStartInNewIndex;
         for (int i = 0; i < segmentSize; i++) {
@@ -167,13 +166,13 @@ public class BufferedGeoMergerTest {
                 double longitude = Math.random();
                 double latitude = Math.random();
                 LatitudeLongitudeDocId longitudeLatitudeDocId = new LatitudeLongitudeDocId(latitude, longitude, docid);
-                GeoRecord geoRecord = geoConverter.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, longitudeLatitudeDocId);
+                CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(longitudeLatitudeDocId, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
                 
                 tree.add(geoRecord);
                 
                 if (!isDeleted) {
                     LatitudeLongitudeDocId absoluteLongitudeLatitudeDocId = new LatitudeLongitudeDocId(latitude, longitude, absoluteDocId);
-                    GeoRecord absoluteGeoRecord = geoConverter.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, absoluteLongitudeLatitudeDocId);
+                    CartesianGeoRecord absoluteGeoRecord = geoConverter.toCartesianGeoRecord(absoluteLongitudeLatitudeDocId, CartesianGeoRecord.DEFAULT_FILTER_BYTE);
                     expectedOutputTree.add(absoluteGeoRecord);
                 }
             }
@@ -206,17 +205,17 @@ public class BufferedGeoMergerTest {
             return;
         }
         assertEquals("trees sould be equal in size", expectedOutputTree.size(), outputTree.getArrayLength());
-        Iterator<GeoRecord> outputIterator = outputTree.getIterator(GeoRecord.MIN_VALID_GEORECORD, GeoRecord.MAX_VALID_GEORECORD);
-        Iterator<GeoRecord> expectedIterator = expectedOutputTree.iterator();
+        Iterator<CartesianGeoRecord> outputIterator = outputTree.getIterator(CartesianGeoRecord.MIN_VALID_GEORECORD, CartesianGeoRecord.MAX_VALID_GEORECORD);
+        Iterator<CartesianGeoRecord> expectedIterator = expectedOutputTree.iterator();
         
         int i = 0;
         while (outputIterator.hasNext() && expectedIterator.hasNext()) {
-            GeoRecord actualGeoRecord = outputIterator.next();
-            GeoRecord expectedGeoRecord = expectedIterator.next(); 
+            CartesianGeoRecord actualGeoRecord = outputIterator.next();
+            CartesianGeoRecord expectedGeoRecord = expectedIterator.next(); 
             
-            assertEquals("Index " + i + " of tree does not match expected.  Expected LngLatDocId=" +
-                        geoConverter.toLongitudeLatitudeDocId(expectedGeoRecord) + 
-                        ";  Actual LngLatDocId=" + geoConverter.toLongitudeLatitudeDocId(actualGeoRecord), 
+            assertEquals("Index " + i + " of tree does not match expected.  Expected CartCoordDocId=" +
+                        geoConverter.toCartesianCoordinateDocId(expectedGeoRecord) + 
+                        ";  Actual LngLatDocId=" + geoConverter.toCartesianCoordinateDocId(actualGeoRecord), 
                     expectedGeoRecord, actualGeoRecord);
             
             i++;
@@ -316,17 +315,17 @@ public class BufferedGeoMergerTest {
         
         bufferedGeoMerger = new BufferedGeoMerger() {
             @Override
-            public BTree<GeoRecord> getInputBTree(Directory directory, String geoFileName, 
+            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, String geoFileName, 
                     int bufferSizePerGeoReader) throws IOException {
                 if (noGeoFileNames.contains(geoFileName)) {
                     // empty TreeSet<GeoRecord> tree
-                    return new GeoRecordBTree(new TreeSet<GeoRecord>());
+                    return new GeoRecordBTree(new TreeSet<CartesianGeoRecord>());
                 }
                 return inputTrees.get(geoFileName);
             }
             
             @Override
-            public BTree<GeoRecord> getOutputBTree(int newSegmentSize, Iterator<GeoRecord> inputIterator,
+            public BTree<CartesianGeoRecord> getOutputBTree(int newSegmentSize, Iterator<CartesianGeoRecord> inputIterator,
                     Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
                 outputTree = new GeoRecordBTree(newSegmentSize, inputIterator, directory, outputFileName, geoSegmentInfo);
                 return outputTree;

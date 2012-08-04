@@ -1,16 +1,8 @@
-/**
- * 
- */
 package com.browseengine.bobo.geosearch.bo;
 
-/**
- * Inlinable POJO representing a bit interlace record.
- * 
- * @author Shane Detsch
- * @author Ken McCracken
- *
- */
-public class GeoRecord implements IGeoRecord {
+import com.browseengine.bobo.geosearch.GeoRecordUtil;
+
+public class CartesianGeoRecord implements IGeoRecord {
     /**
      * This constant will be removed when we figure out how to make the filters real.
      * Until then, you should reference when calling this constructor, it will make 
@@ -19,18 +11,18 @@ public class GeoRecord implements IGeoRecord {
     public static final byte DEFAULT_FILTER_BYTE = (byte)0;
     
     public final long highOrder;
-    public final int lowOrder;
+    public  final long lowOrder;
     public final byte filterByte;
     
-    public static final GeoRecord MIN_VALID_GEORECORD = 
-        new GeoRecord(0, 0, GeoRecord.DEFAULT_FILTER_BYTE);
+    public static final CartesianGeoRecord MIN_VALID_GEORECORD = 
+        new CartesianGeoRecord(0, 0, DEFAULT_FILTER_BYTE);
     
-    public static final GeoRecord MAX_VALID_GEORECORD = 
-        new GeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, GeoRecord.DEFAULT_FILTER_BYTE);
+    public static final CartesianGeoRecord MAX_VALID_GEORECORD = 
+        new CartesianGeoRecord(Long.MAX_VALUE, Long.MAX_VALUE, DEFAULT_FILTER_BYTE);
     
-    public GeoRecord(long highOrder, int lowOrder, byte filterByte) {
+    public CartesianGeoRecord(long highOrder, long lowOrder, byte filterByte) {
         if (highOrder < 0L || lowOrder < 0) {
-            throw new RuntimeException("GeoRecord(" + highOrder + ", " + lowOrder 
+            throw new RuntimeException("CartesianGeoRecord(" + highOrder + ", " + lowOrder 
                     + ", " + filterByte + "): only supports positive highOrder and lowOrder");
         }
         this.highOrder = highOrder;
@@ -44,7 +36,7 @@ public class GeoRecord implements IGeoRecord {
         int result = 1;
         result = prime * result + filterByte;
         result = prime * result + (int) (highOrder ^ (highOrder >>> 32));
-        result = prime * result + lowOrder;
+        result = prime * result + (int) (lowOrder ^ lowOrder >>> 32);
         return result;
     }
 
@@ -59,7 +51,7 @@ public class GeoRecord implements IGeoRecord {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        GeoRecord other = (GeoRecord) obj;
+        CartesianGeoRecord other = (CartesianGeoRecord) obj;
         if (filterByte != other.filterByte) {
             return false;
         }
@@ -77,42 +69,11 @@ public class GeoRecord implements IGeoRecord {
      */
     @Override
     public String toString() {
-        return "GeoRecord [padded highOrder=" + lpad(highOrder) + ", padded lowOrder=" + 
+        return "CartesianGeoRecord [padded highOrder=" + lpad(highOrder) + ", padded lowOrder=" + 
             lpad(lowOrder) + ", filterByte=" + filterByte + "]";
     }
     
-    private static final int MAX_DIGITS_INT = ndigits(Integer.MAX_VALUE);
-    private static final int MAX_DIGITS_LONG = ndigits(Long.MAX_VALUE);
-    
-    public static String lpad(int val) {
-        return lpad(MAX_DIGITS_INT, val);
-    }
-    
     public static String lpad(long val) {
-        return lpad(MAX_DIGITS_LONG, val);
+        return GeoRecordUtil.lpad(GeoRecordUtil.MAX_DIGITS_LONG, val);
     }
-    
-    private static String lpad(int maxDigits, long val) {
-        int ndigits = ndigits(val);
-        int pad = maxDigits - ndigits;
-        StringBuilder buf = new StringBuilder();
-        while (pad > 0) {
-            buf.append('0');
-            pad--;
-        }
-        buf.append(val);
-        return buf.toString();
-    }
-    
-    private static int ndigits(long val) {
-        val = Long.highestOneBit(val);
-        int i = 0;
-        while (val > 0) {
-            i++;
-            val /= 10;
-        }
-        return i;
-    }
-    
-    
 }

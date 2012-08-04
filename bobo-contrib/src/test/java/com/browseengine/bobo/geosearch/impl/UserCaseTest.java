@@ -7,30 +7,31 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 public class UserCaseTest {
     
-    GeoRecordComparator geoComparator = new GeoRecordComparator();
+    CartesianGeoRecordComparator geoComparator = new CartesianGeoRecordComparator();
     
     @Test
     public void useCase_Test() throws Exception{
-        byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
+        byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
         
         for(int i = 0; i < 100; i++) {
             GeoConverter gc = new GeoConverter();
             GeoUtil gu = new GeoUtil();
             // User Creates a Range
             LatitudeLongitudeDocId minLldidRange, maxLldidRange;
-            GeoRecord minGeoRecordRange, maxGeoRecordRange;
+            CartesianGeoRecord minGeoRecordRange, maxGeoRecordRange;
             minLldidRange = getRandomLongitudeLatitudeDocId(true);
             maxLldidRange = getRandomLongitudeLatitudeDocId(false);
             // Make sure minRange is <= maxRange
             while 
                 (geoComparator.compare( 
-                    gc.toGeoRecord(filterByte, minLldidRange), 
-                    gc.toGeoRecord(filterByte, maxLldidRange))
+                    gc.toCartesianGeoRecord(minLldidRange, filterByte), 
+                    gc.toCartesianGeoRecord(maxLldidRange, filterByte))
                    == 1 
                    ||
                    (minLldidRange.docid - maxLldidRange.docid) < 0
@@ -38,8 +39,8 @@ public class UserCaseTest {
             {
                            maxLldidRange = getRandomLongitudeLatitudeDocId(false);
             }
-            minGeoRecordRange = gc.toGeoRecord(filterByte, minLldidRange);
-            maxGeoRecordRange = gc.toGeoRecord(filterByte, maxLldidRange);
+            minGeoRecordRange = gc.toCartesianGeoRecord(minLldidRange, filterByte);
+            maxGeoRecordRange = gc.toCartesianGeoRecord(maxLldidRange, filterByte);
             
             // Create a random list of LongitudeLatitude (i.e. lng lat docid triplets).
             ArrayList<LatitudeLongitudeDocId> lldid = 
@@ -48,14 +49,14 @@ public class UserCaseTest {
                                  );
             
             // Get an iterator of Georecords
-            Iterator<GeoRecord> grIter = gu.getGeoRecordIterator(lldid.iterator());
+            Iterator<CartesianGeoRecord> grIter = gu.getGeoRecordIterator(lldid.iterator());
            
             // Create a self balancing binary search tree constructed by order of bit interlace magnitude 
-            TreeSet<GeoRecord> tree = gu.getBinaryTreeOrderedByBitMag(grIter);
+            TreeSet<CartesianGeoRecord> tree = gu.getBinaryTreeOrderedByBitMag(grIter);
             
             // Get an iterator of GeoRecord objects in order of increase magnitude of their bit interlaced representation
             // and within and/or including the range
-            Iterator <GeoRecord> inRangeInOrderByBitInterMag = gu.getGeoRecordRangeIterator(tree, minGeoRecordRange, maxGeoRecordRange);
+            Iterator <CartesianGeoRecord> inRangeInOrderByBitInterMag = gu.getGeoRecordRangeIterator(tree, minGeoRecordRange, maxGeoRecordRange);
             // Test this.
             test_IfDocumentsAreInRangeAndInOrderOfBitInterlacedMag(inRangeInOrderByBitInterMag);
      
@@ -64,29 +65,29 @@ public class UserCaseTest {
             tree = gu.getBinaryTreeOrderedByDocId(grIter);
             // Get an iterator of GeoRecord objects in order of increasing docid 
             // and within and/or including the range
-            Iterator <GeoRecord> inRangeInOrderByDocId = gu.getGeoRecordRangeIterator(tree, minGeoRecordRange, maxGeoRecordRange);
+            Iterator <CartesianGeoRecord> inRangeInOrderByDocId = gu.getGeoRecordRangeIterator(tree, minGeoRecordRange, maxGeoRecordRange);
             // Test this
             test_IfDocumentsAreInRangeAndInOrderOfDocid(inRangeInOrderByDocId);
         }
     }
     
-    public void test_IfDocumentsAreInRangeAndInOrderOfDocid(Iterator <GeoRecord> inRangeInOrderByDocId) {
+    public void test_IfDocumentsAreInRangeAndInOrderOfDocid(Iterator <CartesianGeoRecord> inRangeInOrderByDocId) {
         if(inRangeInOrderByDocId.hasNext()) {
             GeoConverter gc = new GeoConverter();
-            LatitudeLongitudeDocId lldidCurrent, lldidNext;
-            lldidNext = gc.toLongitudeLatitudeDocId(inRangeInOrderByDocId.next());
+            CartesianCoordinateDocId ccdidCurrent, ccdidNext;
+            ccdidNext = gc.toCartesianCoordinateDocId(inRangeInOrderByDocId.next());
             while(inRangeInOrderByDocId.hasNext()) {
-                    lldidCurrent = lldidNext;
-                    lldidNext = gc.toLongitudeLatitudeDocId(inRangeInOrderByDocId.next());
+                    ccdidCurrent = ccdidNext;
+                    ccdidNext = gc.toCartesianCoordinateDocId(inRangeInOrderByDocId.next());
                     assertTrue("The records are out of order by their document id. ",
-                            (lldidNext.docid - lldidCurrent.docid) >= 0);
+                            (ccdidNext.docid - ccdidCurrent.docid) >= 0);
             }
         }
     }
     
-    public void test_IfDocumentsAreInRangeAndInOrderOfBitInterlacedMag(Iterator <GeoRecord> inRangeInOrderByBitInterMag) {
+    public void test_IfDocumentsAreInRangeAndInOrderOfBitInterlacedMag(Iterator <CartesianGeoRecord> inRangeInOrderByBitInterMag) {
         if(inRangeInOrderByBitInterMag.hasNext()) {    
-            GeoRecord next = inRangeInOrderByBitInterMag.next(), current = null;
+            CartesianGeoRecord next = inRangeInOrderByBitInterMag.next(), current = null;
             while(inRangeInOrderByBitInterMag.hasNext()) {
                     current = next;
                     next = inRangeInOrderByBitInterMag.next();

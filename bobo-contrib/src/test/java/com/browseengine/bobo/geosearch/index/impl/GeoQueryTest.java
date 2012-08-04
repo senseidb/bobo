@@ -16,29 +16,30 @@ import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.junit.Test;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
 import com.browseengine.bobo.geosearch.query.GeoScorer;
 import com.browseengine.bobo.geosearch.query.GeoWeight;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
 
 
 public class GeoQueryTest {
     private GeoIndexReader geoIndexReader;
-    List<GeoSegmentReader<GeoRecord>> geoSubReaders;
-    private static class MyGeoSegmentReader extends GeoSegmentReader<GeoRecord> {
+    List<GeoSegmentReader<CartesianGeoRecord>> geoSubReaders;
+    private static class MyGeoSegmentReader extends GeoSegmentReader<CartesianGeoRecord> {
         private final GeoRecordBTree tree;
         
         public MyGeoSegmentReader(GeoRecordBTree tree, int maxDoc) {
-            super(tree.getArrayLength(), maxDoc, new GeoRecordSerializer(), 
-                    new GeoRecordComparator());
+            super(tree.getArrayLength(), maxDoc, new CartesianGeoRecordSerializer(), 
+                    new CartesianGeoRecordComparator());
             this.tree = tree;
         }
         
@@ -48,7 +49,7 @@ public class GeoQueryTest {
          * {@inheritDoc}
          */
         @Override
-        protected GeoRecord getValueAtIndex(int index) {
+        protected CartesianGeoRecord getValueAtIndex(int index) {
             return tree.getValueAtIndex(index);
         }
     }
@@ -57,17 +58,19 @@ public class GeoQueryTest {
     public void test_Test() throws IOException {
         GeoCoordinate gcord = new GeoCoordinate(Math.random() * 140.0 - 70.0,
                 Math.random() * 360.0 - 180.0);
-        float rangeInMiles = (float) (Math.random()*10.0);
+        float rangeInKm = (float) (Math.random()*10.0);
+        float rangeInMiles = Conversions.km2mi(rangeInKm);
         ArrayList<LatitudeLongitudeDocId> indexedDocument = getSegmentOfLongitudeLatitudeDocIds(100 + (int)(Math.random()*1000), gcord);
         
         printAllDocIdsInRange(rangeInMiles, indexedDocument, gcord);
         
-        TreeSet<GeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
+        TreeSet<CartesianGeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
         GeoRecordBTree geoRecordBTree = new GeoRecordBTree(treeSet); 
         MyGeoSegmentReader geoSegmentReader = new MyGeoSegmentReader(geoRecordBTree, indexedDocument.size());
-        geoSubReaders = new ArrayList<GeoSegmentReader<GeoRecord>>(); 
+        geoSubReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(); 
         geoSubReaders.add(geoSegmentReader);
-        GeoQuery geoQuery = new GeoQuery(gcord.getLongitude(), gcord.getLatitude(), rangeInMiles, null);
+        
+        GeoQuery geoQuery = new GeoQuery(gcord.getLatitude(), gcord.getLongitude(), rangeInKm);
         GeoWeight geoWeight = (GeoWeight)geoQuery.createWeight(null);
         Directory directory = buildEmptyDirectory();
         geoIndexReader = new GeoIndexReader(directory, new GeoSearchConfig());
@@ -75,21 +78,8 @@ public class GeoQueryTest {
         boolean scoreInOrder = true, topScorer = true; 
         GeoScorer geoScorer = (GeoScorer)geoWeight.scorer(geoIndexReader, scoreInOrder, topScorer);
         test_Scorer(rangeInMiles, geoScorer, gcord, indexedDocument);
-        //IndexSearcher searcher = new IndexSearcher(new GeoIndexReader(directory, new GeoSearchConfig()));
-        //TopDocs topDocs = searcher.search(geoQuery, 10);
-        //test_TopDocs(topDocs);
-        
-        assertTrue("",0==0);
     }
-    /*
-    private void test_TopDocs(TopDocs topDocs) {
-        ScoreDoc[] scoreDosArray = topDocs.scoreDocs;   
-        for(ScoreDoc scoredoc: scoreDosArray){
-           System.out.println("Top documents by id are: "
-                         + scoredoc.doc);   
-        } 
-    }
-    */
+    
     private void printAllDocIdsInRange(float rangeInMiles, ArrayList<LatitudeLongitudeDocId> indexedDocument,
             GeoCoordinate gcord) {
         
@@ -110,7 +100,7 @@ public class GeoQueryTest {
         
     }
 
-    private void test_Scorer(float rangeInMiles, 
+    private void test_Scorer(float rangeInKm, 
                              GeoScorer geoScorer,
                              GeoCoordinate gcord,
                              ArrayList<LatitudeLongitudeDocId> indexedDocument) throws IOException {
@@ -135,12 +125,12 @@ public class GeoQueryTest {
         while(it.hasNext()) {
             docid = it.next().docid;
             if(!recordRangeHitsDocIds.contains(new Integer(docid))){
-              assertTrue("Document less than rangeInMiles from centroid but not considered a hit ", 
-              hcd.getDistanceInMiles(gcord.getLongitude(), 
+              assertTrue("Document less than "+rangeInKm+"KM from centroid but not considered a hit ", 
+              Conversions.mi2km(hcd.getDistanceInMiles(gcord.getLongitude(), 
                                      gcord.getLatitude(),
                                      indexedDocument.get(docid).longitude,
-                                     indexedDocument.get(docid).latitude)
-              > rangeInMiles);
+                                     indexedDocument.get(docid).latitude))
+              > rangeInKm);
             }
         }
     }
@@ -154,11 +144,11 @@ public class GeoQueryTest {
         writer.close();
         return directory;
     }
-    public TreeSet<GeoRecord> arrayListToTreeSet(ArrayList<LatitudeLongitudeDocId> indexedDocument) {
-        TreeSet<GeoRecord> treeSet = new  TreeSet<GeoRecord>(new GeoRecordComparator());
+    public TreeSet<CartesianGeoRecord> arrayListToTreeSet(ArrayList<LatitudeLongitudeDocId> indexedDocument) {
+        TreeSet<CartesianGeoRecord> treeSet = new  TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         GeoConverter gc = new GeoConverter();
         for (int i = 0; i < indexedDocument.size(); i++) {
-            treeSet.add(gc.toGeoRecord((byte)0, indexedDocument.get(i)));
+            treeSet.add(gc.toCartesianGeoRecord(indexedDocument.get(i), (byte)0));
         }
         return treeSet;
     }

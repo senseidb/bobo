@@ -22,11 +22,12 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 
 /**
  * Class to run GeoSearch Indexing functional tests.  These tests run 
@@ -78,15 +79,15 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         String geoFileName = getMergedGeoFileName();
         assertTrue(directory.fileExists(geoFileName));
         
-        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+        GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
                 geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
         
         assertEquals(maxDocs * 2, reader.getArrayLength());
         
-        GeoRecord previousRecord = GeoRecord.MIN_VALID_GEORECORD;
-        Iterator<GeoRecord> geoIter = reader.getIterator(GeoRecord.MIN_VALID_GEORECORD, GeoRecord.MAX_VALID_GEORECORD);
+        CartesianGeoRecord previousRecord = CartesianGeoRecord.MIN_VALID_GEORECORD;
+        Iterator<CartesianGeoRecord> geoIter = reader.getIterator(CartesianGeoRecord.MIN_VALID_GEORECORD, CartesianGeoRecord.MAX_VALID_GEORECORD);
         while (geoIter.hasNext()) {
-            GeoRecord currentRecord = geoIter.next();
+            CartesianGeoRecord currentRecord = geoIter.next();
             System.out.println(currentRecord);
             assertTrue(geoComparator.compare(currentRecord, previousRecord) >= 0);
             previousRecord = currentRecord;
@@ -186,9 +187,9 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         GeoCoordinate coordinate = calculateGeoCoordinate(3, 21);
         double longitude = coordinate.getLongitude();
         double lattitude = coordinate.getLatitude();
-        float miles = 500;
+        float kilometers = Conversions.mi2km(500);
          
-        GeoQuery query = new GeoQuery(longitude, lattitude, miles, null);
+        GeoQuery query = new GeoQuery(lattitude, longitude, kilometers);
         TopDocs topDocs = searcher.search(query, 10);
         
         List<String> expectedResults = new Vector<String>();

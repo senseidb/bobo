@@ -21,11 +21,12 @@ import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.query.GeoQuery;
+import com.browseengine.bobo.geosearch.score.impl.Conversions;
 
 /**
  * Class to run GeoSearch Indexing functional tests.  These tests run 
@@ -58,7 +59,7 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         
         String geoFileName = getGeoFileName();
         
-        GeoSegmentReader<GeoRecord> reader = new GeoSegmentReader<GeoRecord>(directory, 
+        GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
                 geoFileName, maxDoc, 1024, geoRecordSerializer, geoComparator);
         assertEquals("Expected 2 locations per doc * 10 docs", 2 * maxDoc, reader.getArrayLength());
     }
@@ -72,7 +73,6 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         verifyFilter(geoFileName, maxDocs);
     }
 
-    
     protected String getGeoFileName() throws IOException {
         String[] fileNames = directory.listAll();
         
@@ -129,13 +129,26 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         GeoCoordinate coordinate = calculateGeoCoordinate(3, 21);
         double longitude = coordinate.getLongitude();
         double lattitude = coordinate.getLatitude();
-        float miles = 500;
+        float kilometers = Conversions.mi2km(500);
          
-        GeoQuery query = new GeoQuery(longitude, lattitude, miles, null);
+        GeoQuery query = new GeoQuery(lattitude, longitude, kilometers);
         TopDocs topDocs = searcher.search(query, 10);
         
         List<String> expectedResults = new Vector<String>();
         expectedResults.add(titles[1]);
+        verifyExpectedResults(expectedResults, topDocs, searcher);
+    }
+    
+    @Test
+    public void testGeoSearch_onehit() throws IOException {
+        GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
+        IndexSearcher searcher = new IndexSearcher(reader);
+         
+        GeoQuery query = new GeoQuery(LATTITUDE_MIN_VALUE, LONGITUDE_MIN_VALUE, 0.0f);
+        TopDocs topDocs = searcher.search(query, 10);
+        
+        List<String> expectedResults = new Vector<String>();
+        expectedResults.add(titles[0]);
         verifyExpectedResults(expectedResults, topDocs, searcher);
     }
 }

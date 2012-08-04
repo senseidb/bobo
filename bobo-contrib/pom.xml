@@ -25,7 +25,6 @@
   
   <description>Bobo is a Faceted Search implementation written purely in Java, an extension of Apache Lucene</description>
   <url>http://javasoze.github.com/bobo</url>
-    
   <build>
     <plugins>
       <plugin>

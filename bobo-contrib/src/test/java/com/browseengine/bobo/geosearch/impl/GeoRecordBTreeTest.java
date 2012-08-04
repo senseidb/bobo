@@ -10,18 +10,18 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 
 public class GeoRecordBTreeTest {
     
-    GeoRecordComparator geoComparator = new GeoRecordComparator();
+    CartesianGeoRecordComparator geoComparator = new CartesianGeoRecordComparator();
     
     @Test
     public void test_Test() throws IOException {
         for(int i = 0; i < 100; i++) {
             // Create a Random Binary Tree
-            TreeSet<GeoRecord> tree = getRandomBTreeOrderedByBitMag(10 + (int) (100 * Math.random()));
+            TreeSet<CartesianGeoRecord> tree = getRandomBTreeOrderedByBitMag(10 + (int) (100 * Math.random()));
             // Construct a GeoRecordBTreeAsArray
             GeoRecordBTree grbt = new GeoRecordBTree(tree);
             // Test if the GeoRecordBTreeAsArray was constructed correctly
@@ -34,15 +34,15 @@ public class GeoRecordBTreeTest {
     public void test_IteratorFunctionality(GeoRecordBTree grbt) throws IOException {
         GeoConverter gc = new GeoConverter();
         ArrayList<LatitudeLongitudeDocId> lldida = getArrayListLLDID(2);
-        GeoRecord minRecord, maxRecord;
-        minRecord = gc.toGeoRecord((byte)0, lldida.get(0));
-        maxRecord = gc.toGeoRecord((byte)0, lldida.get(1));
+        CartesianGeoRecord minRecord, maxRecord;
+        minRecord = gc.toCartesianGeoRecord(lldida.get(0), (byte)0);
+        maxRecord = gc.toCartesianGeoRecord(lldida.get(1), (byte)0);
         if(geoComparator.compare(minRecord, maxRecord) == 1) {
-            minRecord = gc.toGeoRecord((byte)0, lldida.get(1));
-            maxRecord = gc.toGeoRecord((byte)0, lldida.get(0));
+            minRecord = gc.toCartesianGeoRecord(lldida.get(1), (byte)0);
+            maxRecord = gc.toCartesianGeoRecord(lldida.get(0), (byte)0);
         }
-        Iterator<GeoRecord> gIt = grbt.getIterator(minRecord, maxRecord);
-        GeoRecord current=null, next=null;
+        Iterator<CartesianGeoRecord> gIt = grbt.getIterator(minRecord, maxRecord);
+        CartesianGeoRecord current=null, next=null;
         while(gIt.hasNext()) {
             if(next != null) {
                 current = next;
@@ -78,13 +78,13 @@ public class GeoRecordBTreeTest {
         }
     }
     
-    public TreeSet<GeoRecord>     getRandomBTreeOrderedByBitMag(int len) {
+    public TreeSet<CartesianGeoRecord>     getRandomBTreeOrderedByBitMag(int len) {
         Iterator <LatitudeLongitudeDocId> lldidIter = getArrayListLLDID(len).iterator();
-        TreeSet<GeoRecord> tree = new TreeSet<GeoRecord>(new GeoRecordComparator());
+        TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         GeoConverter gc = new GeoConverter();
         while(lldidIter.hasNext()) {
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
-            tree.add(gc.toGeoRecord(filterByte, lldidIter.next()));
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
+            tree.add(gc.toCartesianGeoRecord(lldidIter.next(), filterByte));
         }
         return tree;
     }

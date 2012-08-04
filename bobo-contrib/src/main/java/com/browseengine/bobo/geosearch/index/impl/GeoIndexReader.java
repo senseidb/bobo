@@ -14,11 +14,10 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.SegmentReader;
 import org.apache.lucene.store.Directory;
 
-import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 
 /**
  * @author Shane Detsch
@@ -30,18 +29,18 @@ public class GeoIndexReader extends FilterIndexReader {
     
     private static final int DEFAULT_BUFFER_SIZE_PER_SEGMENT = 16*1024;
     
-    private List<GeoSegmentReader<GeoRecord>> geoSegmentReaders;
+    private List<GeoSegmentReader<CartesianGeoRecord>> geoSegmentReaders;
     
     private List<GeoIndexReader> subGeoReaders;
     
-    private final IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
-    private final Comparator<GeoRecord> geoRecordComparator;
+    private final CartesianGeoRecordSerializer geoRecordSerializer;
+    private final Comparator<CartesianGeoRecord> geoRecordComparator;
     
     public GeoIndexReader(Directory directory, GeoSearchConfig geoSearchConfig) throws IOException {
         super(initReader(directory, geoSearchConfig));
 
-        geoRecordSerializer = new GeoRecordSerializer();
-        geoRecordComparator = new GeoRecordComparator();
+        geoRecordSerializer = new CartesianGeoRecordSerializer();
+        geoRecordComparator = new CartesianGeoRecordComparator();
         
         if (subGeoReaders == null) {
             subGeoReaders = buildSubReaders();
@@ -58,8 +57,8 @@ public class GeoIndexReader extends FilterIndexReader {
     private GeoIndexReader(IndexReader reader) {
         super(reader);
         
-        geoRecordSerializer = new GeoRecordSerializer();
-        geoRecordComparator = new GeoRecordComparator();
+        geoRecordSerializer = new CartesianGeoRecordSerializer();
+        geoRecordComparator = new CartesianGeoRecordComparator();
         
         if (subGeoReaders == null) {
             subGeoReaders = buildSubReaders();
@@ -88,22 +87,22 @@ public class GeoIndexReader extends FilterIndexReader {
         return subGeoReaders;
     }
     
-    private List<GeoSegmentReader<GeoRecord>> buildGeoSegmentReaders(GeoSearchConfig geoSearchConfig) throws IOException {
-        geoSegmentReaders = new ArrayList<GeoSegmentReader<GeoRecord>>();
+    private List<GeoSegmentReader<CartesianGeoRecord>> buildGeoSegmentReaders(GeoSearchConfig geoSearchConfig) throws IOException {
+        geoSegmentReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>();
         if (subGeoReaders == null || subGeoReaders.size() == 0) {
             if (in instanceof SegmentReader) {
                 SegmentReader segmentReader = (SegmentReader) in;
                 int maxDoc = segmentReader.maxDoc();
                 String segmentName = segmentReader.getSegmentName();
                 String geoSegmentName = geoSearchConfig.getGeoFileName(segmentName);
-                GeoSegmentReader<GeoRecord> geoSegmentReader = new GeoSegmentReader<GeoRecord>(
+                GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = new GeoSegmentReader<CartesianGeoRecord>(
                         directory(), geoSegmentName, maxDoc, DEFAULT_BUFFER_SIZE_PER_SEGMENT,
                         geoRecordSerializer, geoRecordComparator);
                 geoSegmentReaders.add(geoSegmentReader);
             } 
         } else {
             for (GeoIndexReader subReader : subGeoReaders) {
-                for (GeoSegmentReader<GeoRecord> geoSegmentReader : subReader.getGeoSegmentReaders()) {
+                for (GeoSegmentReader<CartesianGeoRecord> geoSegmentReader : subReader.getGeoSegmentReaders()) {
                     geoSegmentReaders.add(geoSegmentReader);
                 }
             }
@@ -122,7 +121,7 @@ public class GeoIndexReader extends FilterIndexReader {
         
     }
     
-    public List<GeoSegmentReader<GeoRecord>> getGeoSegmentReaders() {
+    public List<GeoSegmentReader<CartesianGeoRecord>> getGeoSegmentReaders() {
         return geoSegmentReaders;
     }
     
@@ -153,7 +152,7 @@ public class GeoIndexReader extends FilterIndexReader {
         this.subGeoReaders = subGeoReaders;
     }
 
-    public void setGeoSegmentReaders(List<GeoSegmentReader<GeoRecord>> geoSegmentReaders) {
+    public void setGeoSegmentReaders(List<GeoSegmentReader<CartesianGeoRecord>> geoSegmentReaders) {
         this.geoSegmentReaders = geoSegmentReaders;
     }
 }

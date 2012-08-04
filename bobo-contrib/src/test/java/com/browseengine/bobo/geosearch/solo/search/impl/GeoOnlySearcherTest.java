@@ -245,7 +245,8 @@ public class GeoOnlySearcherTest {
     
     private void searchAndVerify_allHitsInRange(double centroidLat, double centroidLong, 
             Float rangeInMiles, int hitCount, int missCount, int start, int count) throws IOException {
-        final GeoQuery query = new GeoQuery(centroidLong, centroidLat, rangeInMiles, null);
+        Float rangeInKilometers = Conversions.mi2km(rangeInMiles);
+        final GeoQuery query = new GeoQuery(centroidLat, centroidLong, rangeInKilometers);
         
         final IDGeoRecord maxRecord = buildMaxRecord(centroidLong, centroidLat, rangeInMiles, GeoOnlySearcher.EMPTY_UUID); 
         final IDGeoRecord minRecord = buildMinRecord(centroidLong, centroidLat, rangeInMiles, GeoOnlySearcher.EMPTY_UUID);
@@ -370,7 +371,7 @@ public class GeoOnlySearcherTest {
     
     private CartesianCoordinateUUID buildMinCoordinate(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
-        double rangeInkm = Conversions.mi2km(rangeInMiles);
+        float rangeInkm = Conversions.mi2km(rangeInMiles);
         int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
         CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(
                 centroidLat, centroidLong, uuid);
@@ -386,7 +387,7 @@ public class GeoOnlySearcherTest {
     
     private CartesianCoordinateUUID buildMaxCoordinate(double centroidLong, double centroidLat, float rangeInMiles, 
             byte[] uuid) {
-        double rangeInkm = Conversions.mi2km(rangeInMiles);
+        float rangeInkm = Conversions.mi2km(rangeInMiles);
         int rangeInUnits = Conversions.radiusMetersToIntegerUnits(rangeInkm * 1000);
         CartesianCoordinateUUID centroidCoordinate = geoConverter.toCartesianCoordinate(
                 centroidLat, centroidLong, GeoOnlySearcher.EMPTY_UUID);

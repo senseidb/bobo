@@ -11,7 +11,6 @@ import org.apache.lucene.store.IndexInput;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.IGeoRecord;
 import com.browseengine.bobo.geosearch.impl.BTree;
@@ -47,7 +46,7 @@ public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements 
             this.indexInput = dir.openInput(fileName, bufferSize);
             init();
         } catch (FileNotFoundException e) {
-            LOGGER.warn("file not found: "+e+", treating this as no "+GeoRecord.class+"s");
+            LOGGER.warn("file not found: "+e+", treating this as no geoRecords");
             init(0, nullCheckChecksValues);
         }
     }

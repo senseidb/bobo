@@ -13,7 +13,7 @@ import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.geosearch.IDeletedDocs;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.impl.IndexReaderDeletedDocs;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
@@ -73,14 +73,11 @@ public class GeoWeight extends Weight {
                     +GeoIndexReader.class);
         }
         GeoIndexReader geoIndexReader = (GeoIndexReader) reader;
-        List<GeoSegmentReader<GeoRecord>> segmentsInOrder = geoIndexReader.getGeoSegmentReaders();
+        List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder = geoIndexReader.getGeoSegmentReaders();
         IDeletedDocs wholeIndexDeletedDocs = new IndexReaderDeletedDocs(reader);
-
-        double centroidLongitudeDegrees = geoQuery.getCentroidLongitude();
-        double centroidLatitudeDegrees = geoQuery.getCentroidLatitude();
-        float rangeInMiles = geoQuery.getRangeInMiles();
+        
         return new GeoScorer(this, segmentsInOrder, wholeIndexDeletedDocs, 
-                centroidLongitudeDegrees, centroidLatitudeDegrees, rangeInMiles);
+                geoQuery.getCentroidLatitude(), geoQuery.getCentroidLongitude(), geoQuery.rangeInKm);
     }
     
     /**

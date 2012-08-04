@@ -16,28 +16,28 @@ import java.util.TreeMap;
  */
 public class DocsSortedByDocId {
     
-    private TreeMap<Integer, Collection<GeoRecordAndLongitudeLatitudeDocId>> docs;
+    private TreeMap<Integer, Collection<GeRecordAndCartesianDocId>> docs;
     
     public DocsSortedByDocId() {
-        docs = new TreeMap<Integer, Collection<GeoRecordAndLongitudeLatitudeDocId>>(new IntegerComparator());
+        docs = new TreeMap<Integer, Collection<GeRecordAndCartesianDocId>>(new IntegerComparator());
     }
     
-    public void add(int docid, GeoRecordAndLongitudeLatitudeDocId data) {
-        Collection<GeoRecordAndLongitudeLatitudeDocId> collection = docs.get(docid);
+    public void add(int docid, GeRecordAndCartesianDocId data) {
+        Collection<GeRecordAndCartesianDocId> collection = docs.get(docid);
         if (null != collection) {
             collection.add(data);
         } else {
-            collection = new HashSet<GeoRecordAndLongitudeLatitudeDocId>();
+            collection = new HashSet<GeRecordAndCartesianDocId>();
             collection.add(data);
             docs.put(docid, collection);
         }
     }
     
-    public Iterator<Entry<Integer,Collection<GeoRecordAndLongitudeLatitudeDocId>>> getScoredDocs() {
+    public Iterator<Entry<Integer,Collection<GeRecordAndCartesianDocId>>> getScoredDocs() {
         return docs.entrySet().iterator();
     }
     
-    public Entry<Integer, Collection<GeoRecordAndLongitudeLatitudeDocId>> pollFirst() {
+    public Entry<Integer, Collection<GeRecordAndCartesianDocId>> pollFirst() {
         return docs.pollFirstEntry();
     }
     

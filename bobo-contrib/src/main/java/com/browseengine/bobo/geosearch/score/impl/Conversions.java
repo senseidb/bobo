@@ -68,4 +68,25 @@ public class Conversions {
     public static double radiusIntegerUnitsToMeters(int integerUnits) {
         return integerUnits / EARTH_RADIUS_METERS_TO_INTEGER_UNITS;
     }
+    
+    public static int calculateMinimumCoordinate(int originalPoint, int delta) {
+        if (originalPoint > 0 || 
+                originalPoint > Integer.MIN_VALUE + delta) {
+            return originalPoint - delta;
+        } else {
+            return Integer.MIN_VALUE;
+        }
+    }
+    
+    public static int calculateMaximumCoordinate(int originalPoint, int delta) {
+        if (originalPoint < 0 || 
+                originalPoint < Integer.MAX_VALUE - delta) {
+            return originalPoint + delta;
+        } else {
+            return Integer.MAX_VALUE;
+        }
+    }
+    public static double unitsToMeters(double distance) {
+        return distance / EARTH_RADIUS_METERS_TO_INTEGER_UNITS;
+    }
 }

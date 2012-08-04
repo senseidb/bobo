@@ -41,7 +41,7 @@ public class GeoOnlyHitQueueTest {
         
         for (int i = 0; i < hitSize; i++) {
             byte[] uuid = new byte[] {(byte)i};
-            double score = i;
+            float score = i;
             GeoOnlyHit hit = new GeoOnlyHit(score, uuid);
             hitQueue.insertWithOverflow(hit);
         }

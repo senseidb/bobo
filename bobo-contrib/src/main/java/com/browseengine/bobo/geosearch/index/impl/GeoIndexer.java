@@ -12,11 +12,11 @@ import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.IGeoUtil;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.IGeoIndexer;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
@@ -31,9 +31,9 @@ public class GeoIndexer implements IGeoIndexer {
     IGeoUtil geoUtil;
     IGeoConverter geoConverter;
     GeoSearchConfig config;
-    IGeoRecordSerializer<GeoRecord> geoRecordSerializer;
+    IGeoRecordSerializer<CartesianGeoRecord> geoRecordSerializer;
 
-    Set<GeoRecord> fieldTree;
+    Set<CartesianGeoRecord> fieldTree;
     Set<String> fieldNames = new HashSet<String>();
     
     private final Object treeLock = new Object();
@@ -42,7 +42,7 @@ public class GeoIndexer implements IGeoIndexer {
         geoUtil = config.getGeoUtil();
         geoConverter = config.getGeoConverter();
         fieldTree = geoUtil.getBinaryTreeOrderedByBitMag();
-        geoRecordSerializer = new GeoRecordSerializer();
+        geoRecordSerializer = new CartesianGeoRecordSerializer();
         
         this.config = config;
     }
@@ -56,7 +56,7 @@ public class GeoIndexer implements IGeoIndexer {
                 coordinate.getLongitude(), docID);
         
         IFieldNameFilterConverter fieldNameFilterConverter = geoConverter.makeFieldNameFilterConverter();
-        GeoRecord geoRecord = geoConverter.toGeoRecord(fieldNameFilterConverter, fieldName, longLatDocId);
+        CartesianGeoRecord geoRecord = geoConverter.toCartesianGeoRecord(fieldNameFilterConverter, fieldName, longLatDocId);
         
         //For now, we need to synchronize this since we can only safely have one thread at a
         //time adding an item to a treeset.  One alternative strategy is to add geoRecords to
@@ -72,7 +72,7 @@ public class GeoIndexer implements IGeoIndexer {
 
     @Override
     public void flush(Directory directory, String segmentName) throws IOException {
-        Set<GeoRecord> treeToFlush;
+        Set<CartesianGeoRecord> treeToFlush;
         Set<String> fieldNamesToFlush;
         synchronized (treeLock) {
             fieldNamesToFlush = fieldNames;
@@ -82,14 +82,14 @@ public class GeoIndexer implements IGeoIndexer {
             fieldTree = geoUtil.getBinaryTreeOrderedByBitMag();
         }
         
-        GeoSegmentWriter<GeoRecord> geoRecordBTree = null;
+        GeoSegmentWriter<CartesianGeoRecord> geoRecordBTree = null;
         
         GeoSegmentInfo geoSegmentInfo = buildGeoSegmentInfo(fieldNamesToFlush, segmentName);
         
         boolean success = false;
         try {
             String fileName = config.getGeoFileName(segmentName);
-            geoRecordBTree = new GeoSegmentWriter<GeoRecord>(treeToFlush, directory, 
+            geoRecordBTree = new GeoSegmentWriter<CartesianGeoRecord>(treeToFlush, directory, 
                     fileName, geoSegmentInfo, geoRecordSerializer);
             
             success = true;

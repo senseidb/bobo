@@ -8,7 +8,7 @@ package com.browseengine.bobo.geosearch.score;
  *
  */
 public interface IComputeDistance {
-
+    
     /**
      * Given two points A and B on the surface of the Earth, 
      * this function computes the distance between these two 

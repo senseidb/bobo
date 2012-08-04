@@ -9,10 +9,11 @@ import java.util.Map.Entry;
 
 import org.springframework.stereotype.Component;
 
+import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
@@ -52,170 +53,18 @@ public class GeoConverter implements IGeoConverter {
         return mappedFieldNameFilterConverter;
     }
     
-    @Override
-    public LatitudeLongitudeDocId toLongitudeLatitudeDocId(GeoRecord geoRecord) {
-
-        long lShift;
-        double lngDivisor, latDivisor;
-        int iShift;
-        int docPlace;
-        long hob;
-        int lob;
-
-        lShift = LONGLENGTH - 1;
-        iShift = INTLENGTH - 1;
-        docPlace = INTLENGTH - 1;
-        lngDivisor = PIRADIANS;
-        latDivisor = (PIRADIANS / 2.0);
-
-        lob = geoRecord.lowOrder << 1;
-        hob = geoRecord.highOrder;
-
-        int docid = 0;
-        double lng = 0.0;
-        double lat = 0.0;
-
-        while (iShift > -1) {
-            if (lShift > -1) {
-                if ((hob & (ONE_AS_LONG << lShift)) == (ONE_AS_LONG << lShift)) {
-                    docid += (ONE_AS_INT << docPlace);
-                }
-                lShift--;
-                docPlace--;
-            } else {
-                if ((lob & (ONE_AS_INT << iShift)) == (ONE_AS_INT << iShift)) {
-                    docid += (ONE_AS_INT << docPlace);
-                }
-                iShift--;
-                docPlace--;
-            }
-            if (lShift > -1) {
-                if ((hob & (ONE_AS_LONG << lShift)) == (ONE_AS_LONG << lShift)) {
-                    lng += lngDivisor;
-                }
-                lShift--;
-                lngDivisor /= 2;
-            } else {
-                if ((lob & (ONE_AS_INT << iShift)) == (ONE_AS_INT << iShift)) {
-                    lng += lngDivisor;
-                }
-                iShift--;
-                lngDivisor /= 2;
-            }
-            if (lShift > -1) {
-                if ((hob & (ONE_AS_LONG << lShift)) == (ONE_AS_LONG << lShift)) {
-                    lat += latDivisor;
-                }
-                lShift--;
-                latDivisor /= 2;
-            } else {
-                if ((lob & (ONE_AS_INT << iShift)) == (ONE_AS_INT << iShift)) {
-                    lat += latDivisor;
-                }
-                iShift--;
-                latDivisor /= 2;
-            }
-
-        }
-        lng -= PIRADIANS; // make (0, 360] go to (-180, 180]
-        lat -= (PIRADIANS / 2.0); // make [0, 180] go to [-90,
-                                  // 90]
-
-        return new LatitudeLongitudeDocId(lat, lng, docid);
-    }
-
+    
     /**
      * {@inheritDoc}
      */
     @Override
-    public GeoRecord toGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
+    public CartesianGeoRecord toCartesianGeoRecord(IFieldNameFilterConverter fieldNameFilterConverter, 
             String fieldName, LatitudeLongitudeDocId longitudeLatitudeDocId) {
         byte filterByte = fieldNameFilterConverter == null ? 
-                GeoRecord.DEFAULT_FILTER_BYTE : 
+                CartesianGeoRecord.DEFAULT_FILTER_BYTE : 
                 fieldNameFilterConverter.getFilterValue(new String[] {fieldName});
         
-        return toGeoRecord(filterByte, longitudeLatitudeDocId);
-    }
-
-    @Override
-    public GeoRecord toGeoRecord(byte filterByte, LatitudeLongitudeDocId latitudeLongitudeDocId) {
-        double lng, lat;
-        double lngDivisor, latDivisor;
-        long lShift;
-        int iShift;
-        int docPlace;
-
-        lng = latitudeLongitudeDocId.longitude + PIRADIANS; // make (-180, 180]
-                                                            // go to (0, 360]
-        lat = latitudeLongitudeDocId.latitude + (PIRADIANS / 2.0); // make [-90,
-                                                                   // 90] go to
-        // [0, 180]
-        lngDivisor = PIRADIANS;
-        latDivisor = (PIRADIANS / 2.0);
-        lShift = LONGLENGTH - 1;
-        iShift = INTLENGTH - 1;
-
-        long hob = 0;
-        int lob = 0;
-        docPlace = INTLENGTH - 1;
-
-        while (iShift > -1) {
-            if ((latitudeLongitudeDocId.docid & (ONE_AS_INT << docPlace)) == (ONE_AS_INT << docPlace)) {
-                if (lShift > -1) {
-                    hob += (ONE_AS_LONG << lShift);
-                    lShift--;
-                } else {
-                    lob += (ONE_AS_INT << iShift);
-                    iShift--;
-                }
-                docPlace--;
-            } else {
-                docPlace--;
-                if (lShift > -1) {
-                    lShift--;
-                } else {
-                    iShift--;
-                }
-            }
-            if (lng / lngDivisor >= 1 ? true : false) {
-                lng -= lngDivisor;
-                if (lShift > -1) {
-                    hob += (ONE_AS_LONG << lShift);
-                    lShift--;
-                } else {
-                    lob += (ONE_AS_INT << iShift);
-                    iShift--;
-                }
-            } else {
-                if (lShift > -1) {
-                    lShift--;
-                } else {
-                    iShift--;
-                }
-            }
-            lngDivisor /= 2;
-            if (lat / latDivisor >= 1 ? true : false) {
-                lat -= latDivisor;
-                if (lShift > -1) {
-                    hob += (ONE_AS_LONG << lShift);
-                    lShift--;
-                } else {
-                    lob += (ONE_AS_INT << iShift);
-                    iShift--;
-                }
-            } else {
-                if (lShift > -1) {
-                    lShift--;
-                } else {
-                    iShift--;
-                }
-            }
-            latDivisor /= 2;
-        }
-        // >>> does not shift in the sign bit.
-        lob >>>= 1;
-
-        return new GeoRecord(hob, lob, filterByte);
+        return toCartesianGeoRecord(longitudeLatitudeDocId, filterByte);
     }
     
     //This constant is calculated as the 1 - e^2 where 
@@ -224,17 +73,20 @@ public class GeoConverter implements IGeoConverter {
     //Geodetic datum.
     static final double ONE_MINUS_ECCENTRICITY_OF_EARTH = 0.99330562;
     
-    protected int getXFromRadians(double latRadians, double longRadians)
+    @Override
+    public int getXFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.cos(longRadians));
     }
 
-    protected int getYFromRadians(double latRadians, double longRadians)
+    @Override
+    public int getYFromRadians(double latRadians, double longRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * Math.cos(latRadians) * Math.sin(longRadians));
     }
 
-    protected int getZFromRadians(double latRadians)
+    @Override
+    public int getZFromRadians(double latRadians)
     {
       return (int) (Conversions.EARTH_RADIUS_INTEGER_UNITS * ONE_MINUS_ECCENTRICITY_OF_EARTH * Math.sin(latRadians));
     }
@@ -411,5 +263,139 @@ public class GeoConverter implements IGeoConverter {
         }
         
         return outputValue;
+    }
+    
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(LatitudeLongitudeDocId latLongDocID, byte filterByte) {
+        double latRadians = Conversions.d2r(latLongDocID.latitude);
+        double longRadians =  Conversions.d2r(latLongDocID.longitude);
+        int x = getXFromRadians(latRadians, longRadians);
+        int y = getYFromRadians(latRadians, longRadians);
+        int z = getZFromRadians(latRadians);
+        
+        return toCartesianGeoRecord(x, y, z, latLongDocID.docid, filterByte);
+    }
+    
+    /**
+     * Bitinterlaces docid, x, y, z into long high and low order bits with the lose of a sign 
+     * bit on docid which does not exist anyways and the least significant bit on z which is 
+     * sub meter precision. 
+     * @param x
+     * @param y
+     * @param z
+     * @param docid
+     * @param filterByte
+     * @return
+     */
+    CartesianGeoRecord toCartesianGeoRecord(int x, int y, int z, int docid, byte filterByte) {
+        long highOrderBits = 0;
+        int highOrderPosition = LONGLENGTH - 2;
+        
+        //first divide on the sign bit
+        if (x < 0) {
+            x = x + Integer.MIN_VALUE;
+        } else {
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        
+        if (y < 0) {
+            y = y + Integer.MIN_VALUE;
+        } else {
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        
+        if (z < 0) {
+            z = z + Integer.MIN_VALUE;
+        } else {
+            highOrderBits += (ONE_AS_LONG << highOrderPosition);
+        }
+        highOrderPosition--;
+        
+        
+        //now interlace the rest
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
+        int docIdPos = INTLENGTH - 2;
+        
+        highOrderBits = interlaceToLong(docid, INTLENGTH - 2, highOrderBits, highOrderPosition, 4);
+        docIdPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(x, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        xPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(y, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        yPos -= (highOrderPosition / 4) + 1;
+        highOrderBits = interlaceToLong(z, INTLENGTH - 2, highOrderBits, --highOrderPosition, 4);
+        zPos -= (highOrderPosition / 4) + 1;
+        
+        
+        long lowOrderBits = 0;
+        int lowOrderPosition = LONGLENGTH - 2;
+        lowOrderBits = interlaceToLong(docid, docIdPos, lowOrderBits, lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(x, xPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(y, yPos, lowOrderBits, --lowOrderPosition, 4);
+        lowOrderBits = interlaceToLong(z, zPos, lowOrderBits, --lowOrderPosition, 4);
+        
+        return new CartesianGeoRecord(highOrderBits, lowOrderBits, filterByte);
+    }
+    
+    @Override
+    public CartesianCoordinateDocId toCartesianCoordinateDocId(CartesianGeoRecord geoRecord) {
+        int x = 0;
+        int y = 0;
+        int z = 0;
+        int docid = 0;
+        int dimensions = 4;
+        
+        int highOrderPosition = LONGLENGTH - 2 - dimensions + 1;
+        
+        //now interlace the rest
+        int xPos = INTLENGTH - 2;
+        int yPos = INTLENGTH - 2;
+        int zPos = INTLENGTH - 2;
+        int docidPos = INTLENGTH - 2;
+        
+        //uninterlace high order bits
+        docid = unInterlaceFromLong(docid, docidPos, geoRecord.highOrder, highOrderPosition, dimensions);
+        docidPos -= (highOrderPosition / dimensions) + 1;
+        x = unInterlaceFromLong(x, xPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        xPos -= (highOrderPosition / dimensions) + 1;
+        y = unInterlaceFromLong(y, yPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        yPos -= (highOrderPosition / dimensions) + 1;
+        z = unInterlaceFromLong(z, zPos, geoRecord.highOrder, --highOrderPosition, dimensions);
+        zPos -= (highOrderPosition / dimensions) + 1;
+        
+        //uninterlace low order bits
+        int lowOrderPosition = LONGLENGTH - 2;
+        docid = unInterlaceFromLong(docid, docidPos, geoRecord.lowOrder, lowOrderPosition, dimensions);
+        x = unInterlaceFromLong(x, xPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        y = unInterlaceFromLong(y, yPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        z = unInterlaceFromLong(z, zPos, geoRecord.lowOrder, --lowOrderPosition, dimensions);
+        
+        
+        highOrderPosition = LONGLENGTH - 2;
+        //uninterlace sign bit
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            x = x - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            y = y - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+        
+        if ((geoRecord.highOrder & (ONE_AS_LONG << highOrderPosition)) == 0) {
+            z = z - Integer.MIN_VALUE;
+        } 
+        highOrderPosition--;
+
+        return new CartesianCoordinateDocId(x, y, z, docid);
+    }
+
+    @Override
+    public CartesianGeoRecord toCartesianGeoRecord(CartesianCoordinateDocId coord, byte filterByte) {
+        return toCartesianGeoRecord(coord.x, coord.y, coord.z, coord.docid, filterByte);
     }
 }

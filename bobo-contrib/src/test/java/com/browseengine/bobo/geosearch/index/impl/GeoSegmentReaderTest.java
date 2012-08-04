@@ -13,31 +13,31 @@ import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
-import com.browseengine.bobo.geosearch.impl.GeoRecordComparator;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordSerializer;
 
 public class GeoSegmentReaderTest {
 
-    GeoRecordComparator geoComparator = new GeoRecordComparator();
+    CartesianGeoRecordComparator geoComparator = new CartesianGeoRecordComparator();
     
     @Test
     public void test_fileNotFoundGivesZeroGeoRecords() throws Exception {
         Directory ramDir = new RAMDirectory();
         String fileName = "abc.geo";
-        GeoSegmentReader<GeoRecord> geoSegmentReader = 
-            new GeoSegmentReader<GeoRecord>(ramDir, fileName, -1, 16*1024, 
-                    new GeoRecordSerializer(), new GeoRecordComparator());
-        GeoRecord minValue = GeoRecord.MIN_VALID_GEORECORD;
-        GeoRecord maxValue = GeoRecord.MAX_VALID_GEORECORD;
-        Iterator<GeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
+        GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = 
+            new GeoSegmentReader<CartesianGeoRecord>(ramDir, fileName, -1, 16*1024, 
+                    new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
+        CartesianGeoRecord minValue = CartesianGeoRecord.MIN_VALID_GEORECORD;
+        CartesianGeoRecord maxValue = CartesianGeoRecord.MAX_VALID_GEORECORD;
+        Iterator<CartesianGeoRecord> iterator = geoSegmentReader.getIterator(minValue, maxValue);
         assertTrue("iterator for FNF had content, but shouldn't have had any", !iterator.hasNext());
     }
     
@@ -48,25 +48,25 @@ public class GeoSegmentReaderTest {
             try {
                 // Create a random binary tree or records. 
                 int len = 10 + (int) (100 * Math.random());
-                TreeSet<GeoRecord> tree = getRandomBTreeOrderedByBitMag(len);
+                TreeSet<CartesianGeoRecord> tree = getRandomBTreeOrderedByBitMag(len);
                 
                 GeoSearchConfig geoConf = new GeoSearchConfig();
                 geoConf.setGeoFileExtension("gto");
                 GeoSegmentInfo geoSegmentInfo = buildGeoSegmentInfo(GeoVersion.CURRENT_VERSION);
                 
-                IGeoRecordSerializer<GeoRecord> geoRecordSerializer = new GeoRecordSerializer();
+                IGeoRecordSerializer<CartesianGeoRecord> geoRecordSerializer = new CartesianGeoRecordSerializer();
                 
                 RAMDirectory dir = new RAMDirectory();
                 String fileName = geoSegmentInfo.getSegmentName() + "." + geoConf.getGeoFileExtension();
-                GeoSegmentWriter<GeoRecord> geoOut = new GeoSegmentWriter<GeoRecord>(
+                GeoSegmentWriter<CartesianGeoRecord> geoOut = new GeoSegmentWriter<CartesianGeoRecord>(
                         tree, dir, fileName, geoSegmentInfo, geoRecordSerializer);
                 assertTrue("Not a full binary tree. ", 
                         geoOut.getMaxIndex() < geoOut.getArrayLength());
                 geoOut.close();
                 
-                GeoSegmentReader<GeoRecord> geoRand = 
-                    new GeoSegmentReader<GeoRecord>(dir, fileName, -1, 16*1024,
-                            new GeoRecordSerializer(), new GeoRecordComparator());
+                GeoSegmentReader<CartesianGeoRecord> geoRand = 
+                    new GeoSegmentReader<CartesianGeoRecord>(dir, fileName, -1, 16*1024,
+                            new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
                 validate_IteratorFunctionality(geoRand);
                 validate_CompleteTreeIsOrderedCorrectly(geoRand);
                 
@@ -110,9 +110,9 @@ public class GeoSegmentReaderTest {
         geoOut.close();
         
         //read and verify data
-        GeoSegmentReader<GeoRecord> geoSegmentReader = 
-            new GeoSegmentReader<GeoRecord>(dir, fileName, -1, 16*1024,
-                    new GeoRecordSerializer(), new GeoRecordComparator());
+        GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = 
+            new GeoSegmentReader<CartesianGeoRecord>(dir, fileName, -1, 16*1024,
+                    new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
         validate_IteratorFunctionality(geoSegmentReader);
         validate_CompleteTreeIsOrderedCorrectly(geoSegmentReader);
     }
@@ -125,7 +125,7 @@ public class GeoSegmentReaderTest {
         return geoSegmentInfo;
     }
     
-    public void validate_CompleteTreeIsOrderedCorrectly(GeoSegmentReader<GeoRecord> grbt) throws IOException {
+    public void validate_CompleteTreeIsOrderedCorrectly(GeoSegmentReader<CartesianGeoRecord> grbt) throws IOException {
         int len = grbt.getArrayLength();
         for(int index = 0; index < len; index++) {
             if(index > 0) {
@@ -147,18 +147,18 @@ public class GeoSegmentReaderTest {
         }
     }
     
-    public void validate_IteratorFunctionality(GeoSegmentReader<GeoRecord> grbt) throws IOException {
+    public void validate_IteratorFunctionality(GeoSegmentReader<CartesianGeoRecord> grbt) throws IOException {
         GeoConverter gc = new GeoConverter();
         ArrayList<LatitudeLongitudeDocId> lldida = getArrayListLLDID(2);
-        GeoRecord minRecord, maxRecord;
-        minRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(0));
-        maxRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(1));
+        CartesianGeoRecord minRecord, maxRecord;
+        minRecord = gc.toCartesianGeoRecord(lldida.get(0), CartesianGeoRecord.DEFAULT_FILTER_BYTE);
+        maxRecord = gc.toCartesianGeoRecord(lldida.get(1), CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         if(geoComparator.compare(minRecord, maxRecord) == 1) {
-            minRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(1));
-            maxRecord = gc.toGeoRecord(GeoRecord.DEFAULT_FILTER_BYTE, lldida.get(0));
+            minRecord = gc.toCartesianGeoRecord(lldida.get(1), CartesianGeoRecord.DEFAULT_FILTER_BYTE);
+            maxRecord = gc.toCartesianGeoRecord(lldida.get(0), CartesianGeoRecord.DEFAULT_FILTER_BYTE);
         }
-        Iterator<GeoRecord> gIt = grbt.getIterator(minRecord, maxRecord);
-        GeoRecord current=null, next=null;
+        Iterator<CartesianGeoRecord> gIt = grbt.getIterator(minRecord, maxRecord);
+        CartesianGeoRecord current=null, next=null;
         while(gIt.hasNext()) {
             if(next != null) {
                 current = next;
@@ -172,13 +172,13 @@ public class GeoSegmentReaderTest {
         }
     }
     
-    public TreeSet<GeoRecord> getRandomBTreeOrderedByBitMag(int len) {
+    public TreeSet<CartesianGeoRecord> getRandomBTreeOrderedByBitMag(int len) {
         Iterator <LatitudeLongitudeDocId> lldidIter = getArrayListLLDID(len).iterator();
-        TreeSet<GeoRecord> tree = new TreeSet<GeoRecord>(new GeoRecordComparator());
+        TreeSet<CartesianGeoRecord> tree = new TreeSet<CartesianGeoRecord>(new CartesianGeoRecordComparator());
         GeoConverter gc = new GeoConverter();
         while(lldidIter.hasNext()) {
-            byte filterByte = GeoRecord.DEFAULT_FILTER_BYTE;
-            tree.add(gc.toGeoRecord(filterByte, lldidIter.next()));
+            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE;
+            tree.add(gc.toCartesianGeoRecord(lldidIter.next(), filterByte));
         }
         return tree;
     }

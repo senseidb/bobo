@@ -10,31 +10,31 @@ import org.junit.Test;
 import org.springframework.test.annotation.IfProfileValue;
 
 import com.browseengine.bobo.geosearch.IGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
-import com.browseengine.bobo.geosearch.impl.GeoRecordSerializer;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.IGeoRecordSerializerTezt;
 
 @IfProfileValue(name = "test-suite", values = { "unit", "all" })
-public class GeoRecordSerializerTest extends IGeoRecordSerializerTezt<GeoRecord> {
-    
+public class CartesianGeoRecordSerializerTest extends IGeoRecordSerializerTezt<CartesianGeoRecord> {
+
     @Override
-    public IGeoRecordSerializer<GeoRecord> getGeoRecordSerializer() {
-        return new GeoRecordSerializer();
+    public IGeoRecordSerializer<CartesianGeoRecord> getGeoRecordSerializer() {
+        return new CartesianGeoRecordSerializer();
     }
     
     @Test
     public void testSerializeAndDeserialize() throws IOException {
-        GeoRecord geoRecord = new GeoRecord(Long.MAX_VALUE, Integer.MAX_VALUE, Byte.MAX_VALUE);
+        CartesianGeoRecord geoRecord = new CartesianGeoRecord(Long.MAX_VALUE, Long.MAX_VALUE, Byte.MAX_VALUE);
         serializeAndDeserialize(geoRecord, GeoSegmentInfo.BYTES_PER_RECORD_V1);
         
-        geoRecord = new GeoRecord(0, 0, (byte)0);
+        geoRecord = new CartesianGeoRecord(0, 0, (byte)0);
         serializeAndDeserialize(geoRecord, GeoSegmentInfo.BYTES_PER_RECORD_V1);
         
-        geoRecord = new GeoRecord(0, Integer.MAX_VALUE, (byte)0);
+        geoRecord = new CartesianGeoRecord(0, Long.MAX_VALUE, (byte)0);
         serializeAndDeserialize(geoRecord, GeoSegmentInfo.BYTES_PER_RECORD_V1);
         
-        geoRecord = new GeoRecord(Long.MAX_VALUE, 0, (byte)(Byte.MAX_VALUE / 2));
+        geoRecord = new CartesianGeoRecord(Long.MAX_VALUE, 0, (byte)(Byte.MAX_VALUE / 2));
         serializeAndDeserialize(geoRecord, GeoSegmentInfo.BYTES_PER_RECORD_V1);
     }
     
@@ -45,7 +45,7 @@ public class GeoRecordSerializerTest extends IGeoRecordSerializerTezt<GeoRecord>
         for (long highIdx = 0; highIdx < 10; highIdx++) {
             for (int lowIdx = 0; lowIdx < 10; lowIdx++) {
                 for (byte byteIdx = 0; byteIdx < 10; byteIdx++) {
-                    GeoRecord geoRecord = new GeoRecord(highIdx, lowIdx, byteIdx);
+                    CartesianGeoRecord geoRecord = new CartesianGeoRecord(highIdx, lowIdx, byteIdx);
                     
                     geoRecordSerializer.writeGeoRecord(output, geoRecord, GeoSegmentInfo.BYTES_PER_RECORD_V1);
                 }
@@ -59,8 +59,8 @@ public class GeoRecordSerializerTest extends IGeoRecordSerializerTezt<GeoRecord>
         for (long highIdx = 0; highIdx < 10; highIdx++) {
             for (int lowIdx = 0; lowIdx < 10; lowIdx++) {
                 for (byte byteIdx = 0; byteIdx < 10; byteIdx++) {
-                    GeoRecord expectedRecord = new GeoRecord(highIdx, lowIdx, byteIdx);
-                    GeoRecord actualRecord = geoRecordSerializer.readGeoRecord(input, GeoSegmentInfo.BYTES_PER_RECORD_V1);
+                    CartesianGeoRecord expectedRecord = new CartesianGeoRecord(highIdx, lowIdx, byteIdx);
+                    CartesianGeoRecord actualRecord = geoRecordSerializer.readGeoRecord(input, GeoSegmentInfo.BYTES_PER_RECORD_V1);
                     assertEquals(expectedRecord, actualRecord);
                 }
             }

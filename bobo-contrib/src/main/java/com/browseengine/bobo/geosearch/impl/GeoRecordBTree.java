@@ -10,26 +10,26 @@ import java.util.Set;
 import org.apache.lucene.store.Directory;
 
 import com.browseengine.bobo.geosearch.IGeoRecordIterator;
-import com.browseengine.bobo.geosearch.bo.GeoRecord;
+import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 
 /**
  * @author Ken McCracken
  *
  */
-public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordIterator {
+public class GeoRecordBTree extends BTree<CartesianGeoRecord> implements IGeoRecordIterator {
     public static final long HIGH_ORDER_NULL_NODE_VALUE = -1L;
     
     private final long[] highOrders;
-    private final int[] lowOrders;
+    private final long[] lowOrders;
     private final byte[] filterBytes;
 
-    public GeoRecordBTree(int treeSize, Iterator<GeoRecord> inputIterator, Directory directory, 
+    public GeoRecordBTree(int treeSize, Iterator<CartesianGeoRecord> inputIterator, Directory directory, 
             String fileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
         super(treeSize, false);
         
         highOrders = new long[this.arrayLength];
-        lowOrders = new int [this.arrayLength];
+        lowOrders = new long [this.arrayLength];
         filterBytes = new byte [this.arrayLength];
         
         buildTreeFromIterator(inputIterator);
@@ -37,21 +37,21 @@ public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordItera
         nullCheckChecksValues = true;
     }
     
-    public GeoRecordBTree(Set<GeoRecord> tree) throws IOException {
+    public GeoRecordBTree(Set<CartesianGeoRecord> tree) throws IOException {
         super(tree.size(), false);
         highOrders = new long[this.arrayLength];
-        lowOrders = new int [this.arrayLength];
+        lowOrders = new long [this.arrayLength];
         filterBytes = new byte [this.arrayLength];
         
-        Iterator<GeoRecord> it = tree.iterator();
+        Iterator<CartesianGeoRecord> it = tree.iterator();
         buildTreeFromIterator(it);
         nullCheckChecksValues = true;
     }
     
-    private void buildTreeFromIterator(Iterator<GeoRecord> geoIter) throws IOException {
+    private void buildTreeFromIterator(Iterator<CartesianGeoRecord> geoIter) throws IOException {
         int index = leftMostLeafIndex;
         while(geoIter.hasNext()) {
-            GeoRecord geoRecord = geoIter.next();
+            CartesianGeoRecord geoRecord = geoIter.next();
             highOrders [index] = geoRecord.highOrder;
             lowOrders [index] = geoRecord.lowOrder;
             filterBytes [index] = geoRecord.filterByte;
@@ -59,7 +59,7 @@ public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordItera
         }
     }
     
-    public GeoRecordBTree(long[] highOrders, int[] lowOrders, byte[] filterBytes) {
+    public GeoRecordBTree(long[] highOrders, long[] lowOrders, byte[] filterBytes) {
         super(highOrders.length, true);
         this.highOrders = highOrders;
         this.lowOrders = lowOrders;
@@ -78,21 +78,21 @@ public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordItera
      * {@inheritDoc}
      */
     @Override
-    protected int compare(int index, GeoRecord value) {
+    protected int compare(int index, CartesianGeoRecord value) {
         return compare(highOrders[index], lowOrders[index], value.highOrder, value.lowOrder);
     }
     
-    private int compare(long leftHighOrder, int leftLowOrder, long rightHighOrder, int rightLowOrder) {
+    private int compare(long leftHighOrder, long leftLowOrder, long rightHighOrder, long rightLowOrder) {
         long diff = leftHighOrder - rightHighOrder;
         if (diff < 0) {
             return -1;
         } else if (diff > 0) {
             return 1;
         }
-        int idiff = leftLowOrder - rightLowOrder;
-        if(idiff < 0) {
+        long lowdiff = leftLowOrder - rightLowOrder;
+        if(lowdiff < 0) {
             return -1;
-        } else if (idiff > 0) {
+        } else if (lowdiff > 0) {
             return 1;
         }
         return 0;
@@ -110,8 +110,8 @@ public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordItera
      * {@inheritDoc}
      */
     @Override
-    public GeoRecord getValueAtIndex(int index) {
-        return new GeoRecord(highOrders[index], lowOrders[index], filterBytes[index]);
+    public CartesianGeoRecord getValueAtIndex(int index) {
+        return new CartesianGeoRecord(highOrders[index], lowOrders[index], filterBytes[index]);
     }
 
     /**
@@ -129,7 +129,7 @@ public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordItera
 
     
 
-    public int[] getLowOrders() {
+    public long[] getLowOrders() {
         return lowOrders;
     }
 
@@ -146,7 +146,7 @@ public class GeoRecordBTree  extends BTree<GeoRecord> implements IGeoRecordItera
     }
 
     @Override
-    protected void setValueAtIndex(int index, GeoRecord value) throws IOException {
+    protected void setValueAtIndex(int index, CartesianGeoRecord value) throws IOException {
         highOrders[index] = value.highOrder;
         lowOrders[index] = value.lowOrder;
         filterBytes[index] = value.filterByte;
