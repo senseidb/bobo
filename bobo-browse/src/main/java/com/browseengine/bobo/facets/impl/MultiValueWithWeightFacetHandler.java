@@ -57,7 +57,7 @@ public class MultiValueWithWeightFacetHandler extends MultiValueFacetHandler
   @Override
   public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException
   {
-    MultiValueFacetFilter f= new MultiValueFacetFilter(new MultiDataCacheBuilder(getName()), value);
+    MultiValueFacetFilter f= new MultiValueFacetFilter(new MultiDataCacheBuilder(getName(), _indexFieldName), value);
     return f;
   }
   @Override

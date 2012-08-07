@@ -29,25 +29,21 @@ public interface IComputeDistance {
      * go radiusInMiles miles from the point (longitudeInDegrees, latitudeInDegrees)
      * on the surface of the Earth.
      * 
-     * @param longitudeInDegrees
-     * @param longitudeInDegrees
      * @param radiusInMiles
      * @return the delta latitude, in decimal degrees
      */
-    double computeLatBoundary(double longitudeInDegrees, double latitudeInDegrees, 
-            float radiusInMiles);
+    double computeLatBoundary(float radiusInMiles);
     
     /**
      * The delta in the longitudinal dimension in degrees, 
      * to go radiusInMiles miles from the point (longitudeInDegrees, latitudeInDegrees) 
      * on the surface of the Earth.
      * 
-     * @param longitudeInDegrees
      * @param latitudeInDegrees
      * @param radiusInMiles
      * @return
      */
-    double computeLonBoundary(double longitudeInDegrees, double latitudeInDegrees,
+    double computeLonBoundary(double latitudeInDegrees,
             float radiusInMiles);
     
 }

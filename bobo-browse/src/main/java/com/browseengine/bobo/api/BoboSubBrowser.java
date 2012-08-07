@@ -230,7 +230,7 @@ public class BoboSubBrowser extends BoboSearcher2 implements Browsable,Closeable
         }
         catch (IOException e)
         {
-          logger.error("error trying to set FacetHandler : " + facetName+":"+e.getMessage(),e);
+          throw new BrowseException("error trying to set FacetHandler : " + facetName+":"+e.getMessage(),e);
         }
     }
     // done initialize all RuntimeFacetHandlers with data supplied by user at run-time.

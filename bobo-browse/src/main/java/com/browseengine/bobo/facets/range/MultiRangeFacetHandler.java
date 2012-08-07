@@ -39,7 +39,7 @@ public class MultiRangeFacetHandler extends RangeFacetHandler {
 
   @Override
   public DocComparatorSource getDocComparatorSource() {
-    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(getName()));
+    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(getName(), _indexFieldName));
   }
 
   @Override

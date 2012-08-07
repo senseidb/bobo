@@ -89,7 +89,7 @@ public class HaversineFormula {
      *            formula. hence, the name reflects both.
      * @return the latitudinal displacement, in radians
      */
-    public static double computeLatBoundary(double lon1, double lat1, float radius_d) {
+    public static double computeLatBoundary(float radius_d) {
         // d =
         // R*(2*sin^-1(min(1,sqrt(sin^2(dlat/2)+cos(lat1)*cos(lat2)*sin^2(dlon/2)))))
         // dlon = 0, so sin^2(dlon/2) = 0
@@ -108,7 +108,7 @@ public class HaversineFormula {
      * all inputs and outputs are in radians. might be screwed up near the
      * poles. lat1 can't be PI/2, for example.
      */
-    public static double computeLonBoundary(double lon1, double lat1, float radius_d) {
+    public static double computeLonBoundary(double lat1, float radius_d) {
         // d =
         // R*(2*sin^-1(min(1,sqrt(sin^2(dlat/2)+cos(lat1)*cos(lat2)*sin^2(dlon/2)))))
         // dlat = 0, so sin^2(dlat/2) = 0

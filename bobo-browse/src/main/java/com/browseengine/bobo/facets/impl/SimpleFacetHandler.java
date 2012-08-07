@@ -113,9 +113,14 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 
 		@Override
 		public String getName() {
-			return _indexFieldName;
+			return SimpleFacetHandler.this.getName();
 		}
-    	
+
+		@Override
+    public String getIndexFieldName() {
+      return _indexFieldName;
+    }
+
     }, f, new String[]{value}, false);
     return af;
   }
@@ -148,11 +153,16 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
   			return  getFacetData(reader);
   		}
 
-  		@Override
-  		public String getName() {
-  			return _indexFieldName;
-  		}
-      	
+      @Override
+      public String getName() {
+        return SimpleFacetHandler.this.getName();
+      }
+
+      @Override
+      public String getIndexFieldName() {
+        return _indexFieldName;
+      }
+
       }, f, vals, isNot);
     }
     else if(vals.length == 1)

@@ -91,11 +91,10 @@ public class GeoScorer extends Scorer {
     }
     
     private void init() {
-        double deltaLongitudeDegrees = computeDistance.computeLonBoundary(centroidLongitudeDegrees, 
+        double deltaLongitudeDegrees = computeDistance.computeLonBoundary(
                 centroidLatitudeDegrees, rangeInMiles);
         
-        double deltaLatitudeDegrees = computeDistance.computeLatBoundary(centroidLongitudeDegrees, 
-                centroidLatitudeDegrees, rangeInMiles);
+        double deltaLatitudeDegrees = computeDistance.computeLatBoundary(rangeInMiles);
 
         minimumLongitudeDegrees = centroidLongitudeDegrees - deltaLongitudeDegrees;
         maximumLongitudeDegrees = centroidLongitudeDegrees + deltaLongitudeDegrees;

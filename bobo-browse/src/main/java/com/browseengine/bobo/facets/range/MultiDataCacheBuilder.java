@@ -6,14 +6,22 @@ import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBui
 
 public class MultiDataCacheBuilder implements FacetDataCacheBuilder{
   private String name;
-  public MultiDataCacheBuilder( String name) {      
+  private String indexFieldName;
+
+  public MultiDataCacheBuilder(String name, String indexFieldName) {
     this.name = name;
-    
+    this.indexFieldName = indexFieldName;
   }
+
   public MultiValueFacetDataCache build(BoboIndexReader reader) {
     return (MultiValueFacetDataCache) reader.getFacetData(name);
   }
+
   public String getName() {
     return name;
-  }   
+  }
+
+  public String getIndexFieldName() {
+    return indexFieldName;
+  }
 }

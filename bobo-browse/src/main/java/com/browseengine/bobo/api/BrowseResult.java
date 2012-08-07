@@ -26,9 +26,11 @@
 package com.browseengine.bobo.api;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -75,6 +77,7 @@ public class BrowseResult implements Serializable{
 	private BrowseHit[] hits;
 	private long time;
 	private MapReduceResult mapReduceResult;
+  private List<String> errors;
 	private static BrowseHit[] NO_HITS=new BrowseHit[0];
 		
 	/**
@@ -332,4 +335,18 @@ public class BrowseResult implements Serializable{
 	    fa.close();
 	  }
 	}
+
+  public void addError(String message) {
+    if (errors == null)
+      errors = new ArrayList<String>(1);
+
+    errors.add(message);
+  }
+
+  public List<String> getBoboErrors() {
+    if (errors == null)
+      errors = new ArrayList<String>(1);
+
+    return errors;
+  }
 }

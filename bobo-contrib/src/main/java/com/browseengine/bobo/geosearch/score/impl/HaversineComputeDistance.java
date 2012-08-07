@@ -31,12 +31,8 @@ public class HaversineComputeDistance implements IComputeDistance {
      * {@inheritDoc}
      */
     @Override
-    public double computeLatBoundary(double longitudeInDegrees, double latitudeInDegrees,
-            float radiusInMiles) {
-        double longitudeInRadians = Conversions.d2r(latitudeInDegrees);
-        double latitudeInRadians = Conversions.d2r(latitudeInDegrees);
-        double latBoundaryRadians = HaversineFormula.computeLatBoundary(longitudeInRadians, latitudeInRadians, 
-                radiusInMiles);
+    public double computeLatBoundary(float radiusInMiles) {
+        double latBoundaryRadians = HaversineFormula.computeLatBoundary(radiusInMiles);
         
         return Conversions.r2d(latBoundaryRadians);
     }
@@ -45,11 +41,10 @@ public class HaversineComputeDistance implements IComputeDistance {
      * {@inheritDoc}
      */
     @Override
-    public double computeLonBoundary(double longitudeInDegrees, double latitudeInDegrees, 
+    public double computeLonBoundary(double latitudeInDegrees, 
             float radiusInMiles) {
-        double longitudeInRadians = Conversions.d2r(latitudeInDegrees);
         double latitudeInRadians = Conversions.d2r(latitudeInDegrees);
-        double lonBoundaryRadians = HaversineFormula.computeLonBoundary(longitudeInRadians, latitudeInRadians, 
+        double lonBoundaryRadians = HaversineFormula.computeLonBoundary(latitudeInRadians, 
                 radiusInMiles);
         
         return Conversions.r2d(lonBoundaryRadians);

@@ -37,6 +37,7 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	public interface FacetDataCacheBuilder{
 		FacetDataCache build(BoboIndexReader reader);
 		String getName();
+		String getIndexFieldName();
 	}
 	
 	// If takeComplement is true, we still return the filter for NotValues . Therefore, the calling function of this class needs to apply NotFilter on top
@@ -87,8 +88,8 @@ public class AdaptiveFacetFilter extends RandomAccessFilter {
 	  // takeComplement is only used to choose between TermListRandomAccessDocIdSet and innerDocSet
 	  int validFreqCount = _takeComplement ? (totalCount - freqCount) : freqCount;
 	  
-	  if (_facetDataCacheBuilder.getName() != null && ((validFreqCount<<1) < totalCount)) {
-	    return new TermListRandomAccessDocIdSet(_facetDataCacheBuilder.getName(), innerDocSet, validVals, reader);
+	  if (_facetDataCacheBuilder.getIndexFieldName() != null && ((validFreqCount<<1) < totalCount)) {
+	    return new TermListRandomAccessDocIdSet(_facetDataCacheBuilder.getIndexFieldName(), innerDocSet, validVals, reader);
 	  }
 	  else{
 		  return innerDocSet;
