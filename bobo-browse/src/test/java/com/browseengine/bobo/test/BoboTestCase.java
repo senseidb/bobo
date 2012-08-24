@@ -128,6 +128,8 @@ import com.browseengine.bobo.query.ScoreAdjusterQuery;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.BigIntArray;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class BoboTestCase extends TestCase {
@@ -1296,11 +1298,11 @@ public class BoboTestCase extends TestCase {
 		pathSpec.setCustomComparatorFactory(new ComparatorFactory(){
 
 			public IntComparator newComparator(
-					FieldValueAccessor fieldValueAccessor, final int[] counts) {
+					FieldValueAccessor fieldValueAccessor, final BigSegmentedArray counts) {
 				return new IntComparator(){
 
 					public int compare(Integer f1, Integer f2) {
-						int val = counts[f2] - counts[f1];
+						int val = counts.get(f2) - counts.get(f1);
 						if (val==0)
 				        {
 				            val=f2-f1;
@@ -1309,7 +1311,7 @@ public class BoboTestCase extends TestCase {
 					}
 					
 					public int compare(int f1, int f2) {
-					  int val = counts[f2] - counts[f1];
+					  int val = counts.get(f2) - counts.get(f1);
 					  if (val==0)
 					  {
 					    val=f2-f1;
@@ -2515,7 +2517,7 @@ public class BoboTestCase extends TestCase {
 		numberSpec.setCustomComparatorFactory(new ComparatorFactory() {
 			
 			public IntComparator newComparator(final FieldValueAccessor fieldValueAccessor,
-					final int[] counts) {
+					final BigSegmentedArray counts) {
 				
 				return new IntComparator(){
 
@@ -2525,7 +2527,7 @@ public class BoboTestCase extends TestCase {
 						
 						int val = size1-size2;
 						if (val == 0){
-							val = counts[v1]-counts[v2];
+							val = counts.get(v1)-counts.get(v2);
 						}
 						return val;
 					}
@@ -2536,7 +2538,7 @@ public class BoboTestCase extends TestCase {
             
             int val = size1-size2;
             if (val == 0){
-              val = counts[v1]-counts[v2];
+              val = counts.get(v1)-counts.get(v2);
             }
             return val;
           }

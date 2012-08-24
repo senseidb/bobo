@@ -903,6 +903,36 @@ public final class BigNestedIntArray
     return;
   }
   
+  public final void countNoReturn(final int id, final BigSegmentedArray count)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) {
+      count.add(0, count.get(0) + 1);
+      return;
+    }
+    
+    int val = page[id & SLOTID_MASK];
+    if(val >= 0)
+    {
+      count.add(val, count.get(val) + 1);
+      return;
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT); // signed shift, remember val is a negative number
+      int cnt = (val & COUNT_MASK);
+      int end = idx + cnt;
+      while(idx < end)
+      {
+        count.add(page[idx], count.get(page[idx]) + 1);
+        idx++;
+      }
+      return;
+    }
+    count.add(0, count.get(0) + 1);
+    return;
+  }
+  
   public final void countNoReturnWithFilter(final int id, final int[] count, BitVector filter)
   {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -975,6 +1005,42 @@ public final class BigNestedIntArray
     return;
   }
 
+  public final void countNoReturnWithFilter(final int id, final BigSegmentedArray count, 
+                                            OpenBitSet filter)
+  {
+    final int[] page = _list[id >> PAGEID_SHIFT];
+    if(page == null) {
+      count.add(0, count.get(0) + 1);
+      return;
+    }
+    
+    int val = page[id & SLOTID_MASK];
+    if(val >= 0)
+    {
+      if (filter.fastGet(val))
+      {
+        count.add(val, count.get(val) + 1);
+      }
+      return;
+    }
+    else if(val != MISSING)
+    {
+      int idx = - (val >> VALIDX_SHIFT); // signed shift, remember val is a negative number
+      int cnt = (val & COUNT_MASK);
+      int end = idx + cnt;
+      while(idx < end)
+      {
+        int value = page[idx++];
+        if (filter.fastGet(value))
+        {
+          count.add(value, count.get(value) + 1);
+        }
+      }
+      return;
+    }
+    count.add(0, count.get(0) + 1);
+    return;
+  }
 
   /**
    * returns the number data items for id

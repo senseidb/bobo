@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.LongFacetIterator;
 import com.browseengine.bobo.facets.data.TermLongList;
+import com.browseengine.bobo.util.BigSegmentedArray;
 
 /**
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
@@ -16,12 +17,12 @@ public class DefaultLongFacetIterator extends LongFacetIterator
 {
 
   public TermLongList _valList;
-  private int[] _count;
+  private BigSegmentedArray _count;
   private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultLongFacetIterator(TermLongList valList, int[] countarray, int countlength,
+  public DefaultLongFacetIterator(TermLongList valList, BigSegmentedArray countarray, int countlength,
       boolean zeroBased)
   {
     _valList = valList;
@@ -87,7 +88,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
-    count = _count[_index];
+    count = _count.get(_index);
     return _valList.get(_index);
   }
 
@@ -100,7 +101,7 @@ public class DefaultLongFacetIterator extends LongFacetIterator
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
-    count = _count[_index];
+    count = _count.get(_index);
     return facet;
   }
 
@@ -124,10 +125,10 @@ public class DefaultLongFacetIterator extends LongFacetIterator
   {
     while (++_index < _countlength)
     {
-      if (_count[_index] >= minHits)
+      if (_count.get(_index) >= minHits)
       {
         facet = _valList.getPrimitiveValue(_index);
-        count = _count[_index];
+        count = _count.get(_index);
         return _valList.format(facet);
       }
     }
@@ -143,10 +144,10 @@ public class DefaultLongFacetIterator extends LongFacetIterator
   {
     while (++_index < _countlength)
     {
-      if (_count[_index] >= minHits)
+      if (_count.get(_index) >= minHits)
       {
         facet = _valList.getPrimitiveValue(_index);
-        count = _count[_index];
+        count = _count.get(_index);
         return facet;
       }
     }

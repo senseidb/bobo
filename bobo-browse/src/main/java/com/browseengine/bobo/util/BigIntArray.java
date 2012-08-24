@@ -142,4 +142,22 @@ public final class BigIntArray extends BigSegmentedArray implements Serializable
   public int maxValue() {
 	return Integer.MAX_VALUE;
   }
+
+  public static BigSegmentedArray fromArray(int[] original) {
+    BigIntArray result = new BigIntArray(original.length);
+    int i = 0;
+    for (int c : original) {
+      result.add(i++, c);
+    }
+    return result;
+  }
+  
+  public static int[] toArray(BigSegmentedArray original) {
+    int[] result = new int[original.size()];
+    for (int i = 0; i < original.size(); i++) {
+      result[i] = original.get(i);
+    }
+    return result;
+  }
+  
 }

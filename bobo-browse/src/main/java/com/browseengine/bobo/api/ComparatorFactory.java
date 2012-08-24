@@ -2,6 +2,7 @@ package com.browseengine.bobo.api;
 
 import java.util.Comparator;
 
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 /**
@@ -12,10 +13,10 @@ public interface ComparatorFactory{
 	/**
 	 * Providers a Comparator from field values and counts. This is called within a browse.
 	 * @param fieldValueAccessor accessor for field values
-	 * @param counts hit counts
+	 * @param counts hit counts. Either int[] or BigIntArray
 	 * @return Comparator instance
 	 */
-  IntComparator newComparator(FieldValueAccessor fieldValueAccessor,int[] counts);
+  IntComparator newComparator(FieldValueAccessor fieldValueAccessor,BigSegmentedArray counts); 
 	
 	/**
 	 * Providers a Comparator. This is called when doing a merge across browses.

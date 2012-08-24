@@ -15,7 +15,9 @@ import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.filter.GeoFacetFilter;
 import com.browseengine.bobo.facets.impl.GeoFacetHandler.GeoFacetData;
 import com.browseengine.bobo.util.BigFloatArray;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.GeoMatchUtil;
+import com.browseengine.bobo.util.LazyBigIntArray;
 
 /**
  * @author nnarkhed
@@ -25,7 +27,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 
 	private final String _name;
 	private final FacetSpec _spec;
-	private int[] _count;
+	private BigSegmentedArray _count;
 	private int _countlength;
 	private GeoFacetData _dataCache;
 	private final TermStringList _predefinedRanges;
@@ -92,7 +94,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 		_predefinedRanges.addAll(predefinedRanges);
 		_docBase = docBase;
     _countlength = predefinedRanges.size();
-		_count = new int[_countlength];
+		_count = new LazyBigIntArray(_countlength);
 		_ranges = new GeoRange[predefinedRanges.size()];
 		int index = 0;
 		for(String range: predefinedRanges) {
@@ -149,7 +151,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 			if(GeoFacetFilter.inCircle(docX, docY, docZ, targetX, targetY, targetZ, radius)) {
 				// if the lat, lon values of this docid match the current user-specified range, then increment the 
 				// appropriate count[] value
-				_count[countIndex]++;
+			  _count.add(countIndex, _count.get(countIndex) + 1);
 				// do not break here, since one document could lie in multiple user-specified ranges
 			}				
 		}
@@ -162,13 +164,14 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 	/**
 	 * @return Count distribution for all the user specified range values
 	 */
-	public int[] getCountDistribution() {
-		int[] dist = null;
+	public BigSegmentedArray getCountDistribution() {
+		BigSegmentedArray dist = null;
 		if(_predefinedRanges != null) {
-			dist = new int[_predefinedRanges.size()];
+			dist = new LazyBigIntArray(_predefinedRanges.size());
 			int distIdx = 0;
-			for(int count : _count) {
-				dist[distIdx++] = count;
+			for (int i = 0; i < _count.size(); i++) {
+			  int count = _count.get(i);
+        dist.add(distIdx++, count);
 			}
 		}
 		return dist;
@@ -188,7 +191,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 			int index = 0;
 			if((index = _predefinedRanges.indexOf(value)) != -1) {
 				BrowseFacet choice = new BrowseFacet();
-				choice.setHitCount(_count[index]);
+				choice.setHitCount(_count.get(index));
 				choice.setValue(value);
 				return choice;
 			}
@@ -211,7 +214,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
       int index = 0;
       if((index = _predefinedRanges.indexOf(value)) != -1)
       {
-        return _count[index];
+        return _count.get(index);
       }
       else
       {
@@ -235,9 +238,9 @@ public class GeoFacetCountCollector implements FacetCountCollector {
 				int countIndex = -1;
 				for(String value : _predefinedRanges) {
 					countIndex++;
-					if(_count[countIndex] >= minHitCount) {
+					if(_count.get(countIndex) >= minHitCount) {
 						BrowseFacet choice = new BrowseFacet();
-						choice.setHitCount(_count[countIndex]);
+						choice.setHitCount(_count.get(countIndex));
 						choice.setValue(value);
 						facets.add(choice);
 					}

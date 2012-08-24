@@ -18,8 +18,10 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.data.FacetDataCache;
+import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.BoundedPriorityQueue;
+import com.browseengine.bobo.util.LazyBigIntArray;
 import com.browseengine.bobo.util.ListMerger;
 
 public class PathFacetCountCollector implements FacetCountCollector
@@ -27,7 +29,7 @@ public class PathFacetCountCollector implements FacetCountCollector
   private static final Logger log = Logger.getLogger(PathFacetCountCollector.class.getName());
 	private final BrowseSelection _sel;
 	private final FacetSpec _ospec;
-	protected int[] _count;
+	protected BigSegmentedArray _count;
 	private final String _name;
 	private final String _sep;
 	private final BigSegmentedArray _orderArray;
@@ -49,13 +51,13 @@ public class PathFacetCountCollector implements FacetCountCollector
         _dataCache = dataCache;
         _sep = sep;
         _sepArray = sep.toCharArray();
-		_count=new int[_dataCache.freqs.length];
-		log.info(name +": " + _count.length);
+		_count = new LazyBigIntArray(_dataCache.freqs.length);
+		log.info(name +": " + _count.size());
 		_orderArray = _dataCache.orderArray;
 		_minHitCount = ospec.getMinHitCount();
 		_maxCount = ospec.getMaxCount();
 		if (_maxCount<1){
-			_maxCount = _count.length;
+			_maxCount = _count.size();
 		}
 		FacetSortSpec sortOption = ospec.getOrderBy();
 		switch(sortOption){
@@ -71,7 +73,7 @@ public class PathFacetCountCollector implements FacetCountCollector
 	}
 
 
-	public int[] getCountDistribution()
+	public BigSegmentedArray getCountDistribution()
 	{
 	  return _count;
 	}
@@ -82,12 +84,13 @@ public class PathFacetCountCollector implements FacetCountCollector
 	}
 	
 	public void collect(int docid) {
-		_count[_orderArray.get(docid)]++;
+	  int i = _orderArray.get(docid);
+	  _count.add(i, _count.get(i) + 1);
 	}
 	
 	public void collectAll()
 	{
-	    _count = _dataCache.freqs; 
+	    _count = BigIntArray.fromArray(_dataCache.freqs); 
 	}
 	
 	public BrowseFacet getFacet(String value)
@@ -208,12 +211,12 @@ public class PathFacetCountCollector implements FacetCountCollector
 		
 		String[] pathParts;
 		StringBuffer buf = new StringBuffer();
-		for (int i=index;i<_count.length;++i){
-			if (_count[i] >= minCount){
+		for (int i=index;i<_count.size();++i){
+			if (_count.get(i) >= minCount){
 				String path=_dataCache.valArray.get(i);
 				//if (path==null || path.equals(selectedPath)) continue;						
 				
-				int subCount=_count[i];
+				int subCount=_count.get(i);
 
 				// do not use Java split string in a loop !
 //				String[] pathParts=path.split(_sep);
@@ -371,12 +374,12 @@ public class PathFacetCountCollector implements FacetCountCollector
     String[] paths= _sel == null ? null : _sel.getValues();
     if (paths==null || paths.length == 0)
     {
-      finalList = getFacetsForPath(null, depth, strict, Integer.MIN_VALUE, _count.length);
+      finalList = getFacetsForPath(null, depth, strict, Integer.MIN_VALUE, _count.size());
       return new PathFacetIterator(finalList);
     }
 
     if (paths.length==1) {
-      finalList = getFacetsForPath(paths[0],depth,strict, Integer.MIN_VALUE, _count.length);
+      finalList = getFacetsForPath(paths[0],depth,strict, Integer.MIN_VALUE, _count.size());
       return new PathFacetIterator(finalList);
     }
 
@@ -384,7 +387,7 @@ public class PathFacetCountCollector implements FacetCountCollector
     ArrayList<Iterator<BrowseFacet>> iterList = new ArrayList<Iterator<BrowseFacet>>(paths.length);
     for (String path : paths)
     {
-      List<BrowseFacet> subList=getFacetsForPath(path, depth, strict, Integer.MIN_VALUE, _count.length);
+      List<BrowseFacet> subList=getFacetsForPath(path, depth, strict, Integer.MIN_VALUE, _count.size());
       if (subList.size() > 0)
       {
         iterList.add(subList.iterator());

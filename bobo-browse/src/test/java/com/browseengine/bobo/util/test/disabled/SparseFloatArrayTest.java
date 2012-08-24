@@ -22,14 +22,13 @@
  * please go to https://sourceforge.net/projects/bobo-browse/, or 
  * send mail to owner@browseengine.com.
  */
-package com.browseengine.bobo.util.test;
+package com.browseengine.bobo.util.test.disabled;
 
 import java.util.Random;
 
 import junit.framework.TestCase;
 
 import com.browseengine.bobo.util.SparseFloatArray;
-
 
 /**
  * @author spackle
