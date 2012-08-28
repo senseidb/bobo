@@ -37,7 +37,7 @@
         <version>2.5</version>
         <configuration>
           <excludes>
-            <exclude>com/browseengine/bobo/util/test/*.java</exclude>
+            <exclude>com/browseengine/bobo/util/test/SparseFloatArrayTest.java</exclude>
             <exclude>com/browseengine/bobo/test/TestPathMultiVal.java</exclude>
           </excludes>
         </configuration>
