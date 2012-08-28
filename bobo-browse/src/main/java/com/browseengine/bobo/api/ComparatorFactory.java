@@ -13,7 +13,7 @@ public interface ComparatorFactory{
 	/**
 	 * Providers a Comparator from field values and counts. This is called within a browse.
 	 * @param fieldValueAccessor accessor for field values
-	 * @param counts hit counts. Either int[] or BigIntArray
+	 * @param counts hit counts
 	 * @return Comparator instance
 	 */
   IntComparator newComparator(FieldValueAccessor fieldValueAccessor,BigSegmentedArray counts); 

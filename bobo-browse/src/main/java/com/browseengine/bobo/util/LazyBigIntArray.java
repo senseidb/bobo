@@ -249,7 +249,7 @@ public class LazyBigIntArray extends BigSegmentedArray implements Serializable
       else
       {
         int val = _array[i][id & MASK];
-        if ((val & MASK) != 0)
+        if ((val & bits) != 0)
           return id;
         else
           id++;

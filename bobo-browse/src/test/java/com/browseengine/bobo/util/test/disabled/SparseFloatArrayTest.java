@@ -22,7 +22,7 @@
  * please go to https://sourceforge.net/projects/bobo-browse/, or 
  * send mail to owner@browseengine.com.
  */
-package com.browseengine.bobo.util.test.disabled;
+package com.browseengine.bobo.util.test;
 
 import java.util.Random;
 

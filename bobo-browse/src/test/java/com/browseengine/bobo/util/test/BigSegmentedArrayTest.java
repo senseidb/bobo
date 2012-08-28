@@ -65,8 +65,8 @@ public class BigSegmentedArrayTest extends TestCase
     final int b = a * 2;
     final int c = a * 3;
     
-    array.put(1000, a);
-    array.put(2000, b);
+    array.add(1000, a);
+    array.add(2000, b);
     assertEquals(1000, array.findValue(a, 0, 2000));
     assertEquals(DocIdSetIterator.NO_MORE_DOCS, array.findValue(a, 1001, 2000));
     assertEquals(2000, array.findValue(b, 2000, 3000));
@@ -93,7 +93,7 @@ public class BigSegmentedArrayTest extends TestCase
     final int e = a * 5;
     final int f = a * 6;
     
-    array.put(10000, b);
+    array.add(10000, b);
     assertEquals(DocIdSetIterator.NO_MORE_DOCS, array.findValueRange(d, e, 0, array.size()));
     assertEquals(10000, array.findValueRange(a, e, 0, array.size()));
     assertEquals(10000, array.findValueRange(a, e, 10000, array.size()));
@@ -123,7 +123,7 @@ public class BigSegmentedArrayTest extends TestCase
     array.fill(a);
     assertEquals(a, array.get(20000));
     
-    array.put(20000, b);
+    array.add(20000, b);
     assertEquals(b, array.get(20000));
     assertEquals(a, array.get(20001));
     
@@ -139,7 +139,7 @@ public class BigSegmentedArrayTest extends TestCase
   {
     for (int i = 0; i < array.size(); i++)
     {
-      array.put(i, i % array.maxValue());
+      array.add(i, i % array.maxValue());
     }
     return array;
   }

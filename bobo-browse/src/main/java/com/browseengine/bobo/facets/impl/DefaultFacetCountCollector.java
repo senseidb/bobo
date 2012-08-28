@@ -94,11 +94,9 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 
     if (_dataCache.freqs.length <= 3096)
     {
-      _countlength = _dataCache.freqs.length;
       _count = new LazyBigIntArray(_countlength);
     } else
     {
-      _countlength = _dataCache.freqs.length;
       _count = intarraymgr.get(_countlength);
       intarraylist.add(_count);
     }

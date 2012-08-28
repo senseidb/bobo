@@ -114,7 +114,7 @@ public class CombinedFacetAccessible implements FacetAccessible
   }
 
   public List<BrowseFacet> getFacets() 
-  {    
+  {
     if (_closed)
     {
       throw new IllegalStateException("This instance of count collector was already closed");

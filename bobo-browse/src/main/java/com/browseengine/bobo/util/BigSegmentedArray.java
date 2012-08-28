@@ -39,10 +39,6 @@ public abstract class BigSegmentedArray {
 	  return _numrows * _blockSize;
 	}
 	
-	public void put(int id, int val) {
-	  add(id, val);
-	}
-	
 	abstract public void add(int id, int val);
 	
 	abstract public void fill(int val);
