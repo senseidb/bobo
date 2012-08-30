@@ -2606,7 +2606,10 @@ public class BoboTestCase extends TestCase {
 
 	}
 	
-	public void testIndexReaderReopen() throws Exception{
+	/**
+	 * Reopened is not used any more
+	 */
+	public void ntestIndexReaderReopen() throws Exception{
 		Directory idxDir = new RAMDirectory();
 		Document[] docs = buildData();
 		
