@@ -17,7 +17,7 @@
 	<parent>
             <groupId>com.browseengine.bobo</groupId>
             <artifactId>bobo-parent</artifactId>
-             <version>3.1.0</version>
+             <version>3.1.1-SNAPSHOT</version>
             <relativePath>../bobo-parent/pom.xml</relativePath>
     </parent>
 
@@ -113,7 +113,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>2.5.6</version>
+			<version>2.5.5</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
