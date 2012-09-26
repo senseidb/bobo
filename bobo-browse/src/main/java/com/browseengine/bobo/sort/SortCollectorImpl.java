@@ -507,6 +507,7 @@ public class SortCollectorImpl extends SortCollector {
       hit.setScore(fdoc.score);
       hit.setComparable(fdoc.getValue());
       if (groupBy != null) {
+        hit.setGroupField(groupBy.getName());
         hit.setGroupValue(hit.getField(groupBy.getName()));
         hit.setRawGroupValue(hit.getRawField(groupBy.getName()));
         if (groupAccessibles != null &&
