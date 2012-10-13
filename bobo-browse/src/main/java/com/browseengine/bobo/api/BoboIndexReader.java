@@ -734,6 +734,14 @@ public class BoboIndexReader extends FilterIndexReader
     return _runtimeFacetHandlerFactoryMap;
   }
 
+  /**
+   * @return the map of RuntimeFacetHandlers
+   */
+  public Map<String, RuntimeFacetHandler<?>> getRuntimeFacetHandlerMap()
+  {
+    return _runtimeFacetHandlerMap.get();
+  }
+
   @Override
   public Document document(int docid) throws IOException
   {
