@@ -81,7 +81,6 @@ public class BoboIndexReader extends FilterIndexReader
   protected Collection<FacetHandler<?>>                _facetHandlers;
   protected Collection<RuntimeFacetHandlerFactory<?,?>> _runtimeFacetHandlerFactories;
   protected Map<String,RuntimeFacetHandlerFactory<?,?>> _runtimeFacetHandlerFactoryMap;
-
   protected WorkArea                                _workArea;
 
   protected IndexReader _srcReader;
@@ -192,7 +191,9 @@ public class BoboIndexReader extends FilterIndexReader
   @Override
   public synchronized IndexReader reopen() throws CorruptIndexException,
 		IOException {
-	IndexReader newInner = null;
+		  throw new UnsupportedOperationException();
+	/*
+   IndexReader newInner = null;
 
 	SegmentInfos sinfos = new SegmentInfos();
 	sinfos.read(_dir);
@@ -285,7 +286,7 @@ public class BoboIndexReader extends FilterIndexReader
 	  else{
 		return this;
 	  }
-	}
+	}*/
   }
 
   @Override
@@ -356,9 +357,12 @@ public class BoboIndexReader extends FilterIndexReader
   @Override
   protected void doClose() throws IOException
   {
-	_facetDataMap.clear();
-    if(_srcReader != null) _srcReader.close();
-    super.doClose();
+   
+    
+    //We can not clean up the facetDataMap, as it might be used by other BoboIndexReaders created by the copy method 
+    /*_facetDataMap.clear();
+    if(_srcReader != null) _srcReader.close();*/
+    //super.doClose();
   }
   
   @Override
@@ -844,7 +848,10 @@ public class BoboIndexReader extends FilterIndexReader
     copy._workArea = this._workArea;
     copy._facetDataMap.putAll(this._facetDataMap);
     copy._srcReader = in;
-    copy._starts = this._starts;
+    copy._starts = this._starts;    
     return copy;
   }
+  
+
+  
 }
