@@ -112,6 +112,13 @@ public abstract class SortCollector extends Collector {
       reader.setRuntimeFacetHandlerMap(_runtimeFacetMap);
       reader.setRuntimeFacetDataMap(_runtimeFacetDataMap);
     }
+
+    public void clearRuntimeFacetData() {
+      reader.clearRuntimeFacetData();
+      reader.clearRuntimeFacetHandler();
+      _runtimeFacetDataMap = null;
+      _runtimeFacetMap = null;
+    }
   }
 
   public FacetHandler<?> groupBy = null; // Point to the first element of groupByMulti to avoid array lookups.
@@ -277,6 +284,13 @@ public abstract class SortCollector extends Collector {
     if (!_closed)
     {
       _closed = true;
+      if (contextList != null)
+      {
+        for (CollectorContext context : contextList)
+        {
+          context.clearRuntimeFacetData();
+        }
+      }
       if (docidarraylist != null) {
         while(!docidarraylist.isEmpty())
         {
