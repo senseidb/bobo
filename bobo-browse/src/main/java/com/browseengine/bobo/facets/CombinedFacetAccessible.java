@@ -34,9 +34,9 @@ import com.browseengine.bobo.facets.impl.CombinedShortFacetIterator;
 public class CombinedFacetAccessible implements FacetAccessible 
 {
   private static final Logger log = Logger.getLogger(CombinedFacetAccessible.class);
-  private final List<FacetAccessible> _list;
-  private final FacetSpec _fspec;
-  private boolean _closed;
+  protected final List<FacetAccessible> _list;
+  protected final FacetSpec _fspec;
+  protected boolean _closed;
   
   public CombinedFacetAccessible(FacetSpec fspec,List<FacetAccessible> list)
   {
@@ -85,10 +85,7 @@ public class CombinedFacetAccessible implements FacetAccessible
     {
       for (FacetAccessible facetAccessor : _list)
       {
-        if (facetAccessor instanceof CombinedFacetAccessible)
-          sum += ((CombinedFacetAccessible)facetAccessor).getCappedFacetCount(value, cap-sum);
-        else
-          sum += facetAccessor.getFacetHitsCount(value);
+        sum += facetAccessor.getFacetHitsCount(value);
         if (sum >= cap)
           return cap;
       }
