@@ -170,9 +170,9 @@ public class SortCollectorImpl extends SortCollector {
         }
         else {
           _currentValueDocMaps = null;
-          _facetCountCollectorMulti = new FacetCountCollector[groupByList.size()];
-          _facetAccessibleLists = new List[groupByMulti.length];
-          for (int i=0; i<groupByMulti.length; ++i) {
+          _facetCountCollectorMulti = new FacetCountCollector[groupByList.size() - 1];
+          _facetAccessibleLists = new List[_facetCountCollectorMulti.length];
+          for (int i=0; i<_facetCountCollectorMulti.length; ++i) {
             _facetAccessibleLists[i] = new LinkedList<FacetAccessible>();
           }
         }
@@ -335,15 +335,15 @@ public class SortCollectorImpl extends SortCollector {
     _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
     if (groupBy != null) {
-      if (_facetCountCollectorMulti != null) {
-        for (int i=0; i<groupByMulti.length; ++i) {
+      if (_facetCountCollectorMulti != null) {  // _facetCountCollectorMulti.length >= 1
+        for (int i=0; i<_facetCountCollectorMulti.length; ++i) {
           _facetCountCollectorMulti[i] = groupByMulti[i].getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
         }
         //if (_facetCountCollector != null)
           //collectTotalGroups();
         _facetCountCollector = _facetCountCollectorMulti[0];
         if (_facetAccessibleLists != null) {
-          for(int i=0; i<groupByMulti.length; ++i) {
+          for(int i=0; i<_facetCountCollectorMulti.length; ++i) {
             _facetAccessibleLists[i].add(_facetCountCollectorMulti[i]);
           }
         }
