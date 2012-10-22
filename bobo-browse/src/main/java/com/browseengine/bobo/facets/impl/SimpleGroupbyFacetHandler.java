@@ -19,8 +19,8 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
-import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
+import com.browseengine.bobo.api.FieldValueAccessor;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.facets.FacetHandler;
@@ -29,8 +29,11 @@ import com.browseengine.bobo.facets.filter.RandomAccessAndFilter;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.BigIntArray;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
+import com.browseengine.bobo.util.LazyBigIntArray;
 
 public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
   private final LinkedHashSet<String> _fieldsSet;
@@ -182,7 +185,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
     private final DefaultFacetCountCollector[] _subcollectors;
     private final String _name;
     private final FacetSpec _fspec;
-    private final int[] _count;
+    private final BigSegmentedArray _count;
     private final int _countlength;
     private final int[] _lens;
     private final int _maxdoc;
@@ -200,7 +203,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         totalLen*=_lens[i];
       }
       _countlength = totalLen;
-      _count = new int[_countlength];
+      _count = new LazyBigIntArray(_countlength);
       _maxdoc = maxdoc;
     }
 
@@ -212,7 +215,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         segsize = segsize / _lens[i++];
         idx+=(subcollector._dataCache.orderArray.get(docid) * segsize);
       }
-      _count[idx]++;
+      _count.add(idx, _count.get(idx) + 1);
     }
 
     public void collectAll() {
@@ -221,7 +224,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
       }
     }
 
-    public int[] getCountDistribution() {
+    public BigSegmentedArray getCountDistribution() {
       return _count;
     }
 
@@ -250,7 +253,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 
       int count = 0;
       for (int i = startIdx;i<startIdx+segLen;++i){
-        count+=_count[i];
+        count+=_count.get(i);
       }
 
       BrowseFacet f = new BrowseFacet(buf.toString(),count);
@@ -273,7 +276,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 
       int count = 0;
       for (int i=startIdx; i<startIdx+segLen; ++i)
-        count += _count[i];
+        count += _count.get(i);
 
       return count;
     }
@@ -320,7 +323,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
           facetColl=new ArrayList<BrowseFacet>(max);
           for (int i = 1; i < _countlength;++i) // exclude zero
           {
-            int hits=_count[i];
+            int hits=_count.get(i);
             if (hits>=minCount)
             {
               BrowseFacet facet=new BrowseFacet(getFacetString(i),hits);
@@ -359,7 +362,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
 
           for (int i=1;i<_countlength;++i) // exclude zero
           {
-            int hits=_count[i];
+            int hits=_count.get(i);
             if (hits>=minCount)
             {
               if(!pq.offer(i))
@@ -373,7 +376,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
           int val;
           while((val = pq.pollInt()) != forbidden)
           {
-            BrowseFacet facet=new BrowseFacet(getFacetString(val),_count[val]);
+            BrowseFacet facet=new BrowseFacet(getFacetString(val),_count.get(val));
             ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
           }
         }
@@ -412,7 +415,7 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
           throw new NoSuchElementException("No more facets in this iteration");
         _index++;
         facet = getFacetString(_index);
-        count = _count[_index];
+        count = _count.get(_index);
         return facet;
       }
 
@@ -444,11 +447,11 @@ public class SimpleGroupbyFacetHandler extends FacetHandler<FacetDataNone> {
         do
         {
           _index++;
-        }while( (_index < (_countlength-1)) && (_count[_index] < minHits) );
-        if(_count[_index] >= minHits)
+        }while( (_index < (_countlength-1)) && (_count.get(_index) < minHits) );
+        if(_count.get(_index) >= minHits)
         {
           facet = getFacetString(_index);
-          count = _count[_index];
+          count = _count.get(_index);
         }
         else
         {

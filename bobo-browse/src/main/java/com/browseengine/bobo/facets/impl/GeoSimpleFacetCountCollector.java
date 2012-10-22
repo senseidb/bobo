@@ -17,7 +17,9 @@ import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermStringList;
 import com.browseengine.bobo.facets.filter.FacetRangeFilter;
 import com.browseengine.bobo.facets.filter.GeoSimpleFacetFilter;
+import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
+import com.browseengine.bobo.util.LazyBigIntArray;
 
 /**
  * @author nnarkhed
@@ -103,10 +105,10 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 	/* (non-Javadoc)
 	 * @see com.browseengine.bobo.facets.FacetCountCollector#getCountDistribution()
 	 */
-	public int[] getCountDistribution() {
-		int[] dist = null;
+	public BigSegmentedArray getCountDistribution() {
+		BigSegmentedArray dist = null;
 		if(_latPredefinedRangeIndexes != null) {
-			dist = new int[_latPredefinedRangeIndexes.length];
+			dist = new LazyBigIntArray(_latPredefinedRangeIndexes.length);
 			int n = 0;
 			int start;
 			int end;
@@ -117,7 +119,7 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 				for(int i = start; i < end; i++) {
 					sum += _latCount[i];
 				}
-				dist[n++] = sum;
+				dist.add(n++, sum);
 			}
 		}
 		return dist;
@@ -215,18 +217,18 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
 	
 	public FacetIterator iterator() {
 		// each range is of the form <lat, lon, radius>
-		int[] rangeCounts = new int[_latPredefinedRangeIndexes.length];
+		LazyBigIntArray rangeCounts = new LazyBigIntArray(_latPredefinedRangeIndexes.length);
 		for (int i=0;i<_latCount.length;++i){
 			if (_latCount[i] >0 ){
 				for (int k=0;k<_latPredefinedRangeIndexes.length;++k)
 				{
 					if (i>=_latPredefinedRangeIndexes[k][0] && i<=_latPredefinedRangeIndexes[k][1])
 					{
-						rangeCounts[k]+=_latCount[i];
+					  rangeCounts.add(k, rangeCounts.get(k) + _latCount[i]);
 					}
 				}
 			}
 		}
-		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.length, true);
+		return new DefaultFacetIterator(_predefinedRanges, rangeCounts, rangeCounts.size(), true);
 	}	
 }

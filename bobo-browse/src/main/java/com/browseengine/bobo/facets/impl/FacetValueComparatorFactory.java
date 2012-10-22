@@ -5,12 +5,13 @@ import java.util.Comparator;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FieldValueAccessor;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class FacetValueComparatorFactory implements ComparatorFactory {
 
   public IntComparator newComparator(
-      FieldValueAccessor fieldValueAccessor, int[] counts) {
+      FieldValueAccessor fieldValueAccessor, BigSegmentedArray counts) {
     return new IntComparator(){
       public int compare(Integer o1, Integer o2) {
         return o2-o1;

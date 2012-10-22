@@ -5,6 +5,7 @@ package com.browseengine.bobo.facets.impl;
 
 import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.facets.data.TermValueList;
+import com.browseengine.bobo.util.BigSegmentedArray;
 
 /**
  * @author nnarkhed
@@ -13,12 +14,12 @@ import com.browseengine.bobo.facets.data.TermValueList;
 public class DefaultFacetIterator extends FacetIterator {
 
   private TermValueList _valList;
-  private int[] _count;
+  private BigSegmentedArray _count;
   private int _countlength;
   private int _index;
   private int _lastIndex;
 
-  public DefaultFacetIterator(TermValueList valList, int[] counts, int countlength, boolean zeroBased)
+  public DefaultFacetIterator(TermValueList valList, BigSegmentedArray counts, int countlength, boolean zeroBased)
   {
     _valList = valList;
     _count = counts;
@@ -45,7 +46,7 @@ public class DefaultFacetIterator extends FacetIterator {
   public Comparable next() {
     _index++;
     facet = (Comparable)_valList.getRawValue(_index);
-    count = _count[_index];
+    count = _count.get(_index);
     return format(facet);
   }
 
@@ -63,10 +64,10 @@ public class DefaultFacetIterator extends FacetIterator {
   {
     while(++_index < _countlength)
     {
-      if(_count[_index] >= minHits)
+      if(_count.get(_index) >= minHits)
       {
     	facet = (Comparable)_valList.getRawValue(_index);
-        count = _count[_index];
+        count = _count.get(_index);
         return format(facet);
       }
     }

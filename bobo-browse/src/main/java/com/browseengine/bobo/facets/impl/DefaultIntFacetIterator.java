@@ -4,17 +4,19 @@ import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.IntFacetIterator;
 import com.browseengine.bobo.facets.data.TermIntList;
+import com.browseengine.bobo.util.BigIntArray;
+import com.browseengine.bobo.util.BigSegmentedArray;
 
 public class DefaultIntFacetIterator extends IntFacetIterator
 {
 
   public TermIntList _valList;
-  private int[] _count;
+  private BigSegmentedArray _count;
   private int _countlength;
   private int _countLengthMinusOne;
   private int _index;
 
-  public DefaultIntFacetIterator(TermIntList valList, int[] countarray, int countlength, boolean zeroBased)
+  public DefaultIntFacetIterator(TermIntList valList, BigSegmentedArray countarray, int countlength, boolean zeroBased)
   {
     _valList = valList;
     _count = countarray;
@@ -64,7 +66,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
-    count = _count[_index];
+    count = _count.get(_index);
     return _valList.get(_index);
   }
 
@@ -77,7 +79,7 @@ public class DefaultIntFacetIterator extends IntFacetIterator
       throw new NoSuchElementException("No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
-    count = _count[_index];
+    count = _count.get(_index);
     return facet;
   }
 
@@ -95,10 +97,10 @@ public class DefaultIntFacetIterator extends IntFacetIterator
   {
     while(++_index < _countlength)
     {
-      if(_count[_index] >= minHits)
+      if(_count.get(_index) >= minHits)
       {
         facet = _valList.getPrimitiveValue(_index);
-        count = _count[_index];
+        count = _count.get(_index);
         return _valList.format(facet);
       }
     }
@@ -113,10 +115,10 @@ public class DefaultIntFacetIterator extends IntFacetIterator
   {
     while(++_index < _countlength)
     {
-      if(_count[_index] >= minHits)
+      if(_count.get(_index) >= minHits)
       {
         facet = _valList.getPrimitiveValue(_index);
-        count = _count[_index];
+        count = _count.get(_index);
         return facet;
       }
     }

@@ -14,6 +14,7 @@ import com.browseengine.bobo.api.FacetIterator;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.impl.DefaultFacetCountCollector;
+import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public  final class AttributesFacetCountCollector extends DefaultFacetCountCollector {
@@ -49,7 +50,7 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
   @Override
   public final void collectAll()
   {
-    _count = _dataCache.freqs;
+    _count = BigIntArray.fromArray(_dataCache.freqs);
   }
   @Override
   public List<BrowseFacet> getFacets() {

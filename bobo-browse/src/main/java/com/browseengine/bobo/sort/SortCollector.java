@@ -24,6 +24,7 @@ import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseHit;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.facets.FacetHandler;
+import com.browseengine.bobo.facets.RuntimeFacetHandler;
 import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.sort.DocComparatorSource.DocIdDocComparatorSource;
 import com.browseengine.bobo.sort.DocComparatorSource.RelevanceDocComparatorSource;
@@ -96,10 +97,27 @@ public abstract class SortCollector extends Collector {
     public DocComparator comparator;
     public int length;
 
+    private Map<String, RuntimeFacetHandler<?>> _runtimeFacetMap;
+    private Map<String, Object> _runtimeFacetDataMap;
+
     public CollectorContext(BoboIndexReader reader, int base, DocComparator comparator) {
       this.reader = reader;
       this.base = base;
       this.comparator = comparator;
+      _runtimeFacetMap = reader.getRuntimeFacetHandlerMap();
+      _runtimeFacetDataMap = reader.getRuntimeFacetDataMap();
+    }
+
+    public void restoreRuntimeFacets() {
+      reader.setRuntimeFacetHandlerMap(_runtimeFacetMap);
+      reader.setRuntimeFacetDataMap(_runtimeFacetDataMap);
+    }
+
+    public void clearRuntimeFacetData() {
+      reader.clearRuntimeFacetData();
+      reader.clearRuntimeFacetHandler();
+      _runtimeFacetDataMap = null;
+      _runtimeFacetMap = null;
     }
   }
 
@@ -266,6 +284,13 @@ public abstract class SortCollector extends Collector {
     if (!_closed)
     {
       _closed = true;
+      if (contextList != null)
+      {
+        for (CollectorContext context : contextList)
+        {
+          context.clearRuntimeFacetData();
+        }
+      }
       if (docidarraylist != null) {
         while(!docidarraylist.isEmpty())
         {

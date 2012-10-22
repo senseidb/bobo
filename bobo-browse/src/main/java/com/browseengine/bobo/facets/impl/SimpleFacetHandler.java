@@ -30,6 +30,7 @@ import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.BigIntArray;
 
 public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements FacetScoreable
 {
@@ -231,11 +232,12 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		}
 		
 		public final void collect(int docid) {
-			_count[_array.get(docid)]++;
+      int index = _array.get(docid);
+      _count.add(index, _count.get(index) + 1);
 		}
 		
 		public final void collectAll() {
-		  _count = _dataCache.freqs;
+		  _count = BigIntArray.fromArray(_dataCache.freqs);
 		}
 	}
 	
@@ -250,12 +252,15 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 		}
 		
 		public final void collect(int docid) {
-			if(++_count[_array.get(docid)] <= 1)
+		  int index = _array.get(docid);
+		  int newValue = _count.get(index) + 1; 
+		  _count.add(index, newValue);
+			if(newValue <= 1)
         ++_totalGroups;
 		}
 		
 		public final void collectAll() {
-		  _count = _dataCache.freqs;
+		  _count = BigIntArray.fromArray(_dataCache.freqs);
       _totalGroups = -1;
 		}
 
@@ -265,7 +270,8 @@ public class SimpleFacetHandler extends FacetHandler<FacetDataCache> implements 
 
       // If the user calls collectAll instead of collect, we have to collect all the groups here:
       _totalGroups = 0;
-      for (int c: _count) {
+      for (int i = 0; i < _count.size(); i++) {
+        int c = _count.get(i);
         if (c > 0)
           ++_totalGroups;
       }

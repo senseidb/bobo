@@ -5,15 +5,17 @@ import java.util.Comparator;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.ComparatorFactory;
 import com.browseengine.bobo.api.FieldValueAccessor;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
 
 public class FacetHitcountComparatorFactory implements ComparatorFactory {
   public IntComparator newComparator(FieldValueAccessor valueList,
-      final int[] counts) {
+      final BigSegmentedArray counts) {
+    
     return new IntComparator(){
 
       public int compare(Integer f1, Integer f2) {
-        int val = counts[f1] - counts[f2];
+        int val = counts.get(f1) - counts.get(f2);
         if (val==0)
         {
           val=f2-f1;
@@ -24,7 +26,7 @@ public class FacetHitcountComparatorFactory implements ComparatorFactory {
       // use ploymorphism to avoid auto-boxing
       public int compare(int f1, int f2)
       {
-        int val = counts[f1] - counts[f2];
+        int val = counts.get(f1) - counts.get(f2);
         if (val==0)
         {
           val=f2-f1;
