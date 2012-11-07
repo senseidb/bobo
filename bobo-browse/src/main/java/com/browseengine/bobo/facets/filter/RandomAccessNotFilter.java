@@ -7,7 +7,6 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.kamikaze.docidset.impl.NotDocIdSet;
 
 public class RandomAccessNotFilter extends RandomAccessFilter
 {

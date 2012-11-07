@@ -18,7 +18,6 @@ import com.browseengine.bobo.docidset.EmptyDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;
-import com.kamikaze.docidset.impl.OrDocIdSet;
 
 public class AdaptiveFacetFilter extends RandomAccessFilter {
 

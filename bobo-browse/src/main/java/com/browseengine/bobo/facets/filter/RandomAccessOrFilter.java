@@ -9,8 +9,6 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.browseengine.bobo.facets.data.FacetDataCache;
-import com.kamikaze.docidset.impl.OrDocIdSet;
 
 public class RandomAccessOrFilter extends RandomAccessFilter
 {

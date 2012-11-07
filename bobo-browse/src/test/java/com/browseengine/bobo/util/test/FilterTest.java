@@ -7,7 +7,7 @@ import junit.framework.TestCase;
 import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.docidset.FilteredDocSetIterator;
-import com.kamikaze.docidset.impl.IntArrayDocIdSet;
+import com.browseengine.bobo.facets.filter.IntArrayDocIdSet;
 
 public class FilterTest extends TestCase
 {

@@ -730,18 +730,20 @@ public class BoboIndexReader extends FilterIndexReader
     return _runtimeFacetHandlerFactoryMap;
   }
 
-  @Override
-  public Document document(int docid) throws IOException
+  public Document fillFacetData(int docid,Document doc) throws IOException
   {
     if(_subReaders != null)
     {
       int readerIndex = readerIndex(docid, _starts, _subReaders.length);
       BoboIndexReader subReader = _subReaders[readerIndex];
-      return subReader.document(docid - _starts[readerIndex]);
+      int subid = docid - _starts[readerIndex];
+      return subReader.fillFacetData(subid,doc);
     }
     else
     {
-      Document doc = super.document(docid);
+      if (doc == null){
+        doc = new Document();
+      }
       Collection<FacetHandler<?>> facetHandlers = _facetHandlerMap.values();
       for (FacetHandler<?> facetHandler : facetHandlers)
       {

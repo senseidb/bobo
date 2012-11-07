@@ -6,8 +6,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 
-import com.kamikaze.docidset.impl.NotDocIdSet;
-
 public class NotFilter extends Filter {
 
 	/**
