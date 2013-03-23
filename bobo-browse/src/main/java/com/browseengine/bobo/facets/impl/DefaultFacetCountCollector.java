@@ -1,7 +1,6 @@
 package com.browseengine.bobo.facets.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +30,7 @@ import com.browseengine.bobo.jmx.JMXUtil;
 import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue;
 import com.browseengine.bobo.util.IntBoundedPriorityQueue.IntComparator;
+import com.browseengine.bobo.util.LazyBigIntArray;
 import com.browseengine.bobo.util.MemoryManager;
 import com.browseengine.bobo.util.MemoryManagerAdminMBean;
 
@@ -38,33 +38,34 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 {
   private static final Logger log = Logger.getLogger(DefaultFacetCountCollector.class.getName());
   protected final FacetSpec _ospec;
-  public int[] _count;
+  public BigSegmentedArray _count;
+  
   public int _countlength;
   protected FacetDataCache _dataCache;
   private final String _name;
   protected final BrowseSelection _sel;
   protected final BigSegmentedArray _array;
   private int _docBase;
-  protected final LinkedList<int[]> intarraylist = new LinkedList<int[]>();
+  protected final LinkedList<BigSegmentedArray> intarraylist = new LinkedList<BigSegmentedArray>();
   private Iterator _iterator;
   private boolean _closed = false;
 
-  protected static MemoryManager<int[]> intarraymgr = new MemoryManager<int[]>(new MemoryManager.Initializer<int[]>()
+  protected static MemoryManager<BigSegmentedArray> intarraymgr = new MemoryManager<BigSegmentedArray>(new MemoryManager.Initializer<BigSegmentedArray>()
   {
-    public void init(int[] buf)
+    public void init(BigSegmentedArray buf)
     {
-      Arrays.fill(buf, 0);
+      buf.fill(0);
     }
 
-    public int[] newInstance(int size)
+    public BigSegmentedArray newInstance(int size)
     {
-      return new int[size];
+      return new LazyBigIntArray(size);
     }
 
-    public int size(int[] buf)
+    public int size(BigSegmentedArray buf)
     {
-      assert buf!=null;
-      return buf.length;
+      assert buf != null;
+      return buf.size();
     }
 
   });
@@ -89,16 +90,17 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     _ospec = ospec;
     _name = name;
     _dataCache=dataCache;
+    _countlength = _dataCache.freqs.length;
+
     if (_dataCache.freqs.length <= 3096)
     {
-      _countlength = _dataCache.freqs.length;
-      _count = new int[_countlength];
+      _count = new LazyBigIntArray(_countlength);
     } else
     {
-      _countlength = _dataCache.freqs.length;
-      _count = intarraymgr.get(_countlength);//new int[_dataCache.freqs.length];
+      _count = intarraymgr.get(_countlength);
       intarraylist.add(_count);
     }
+
     _array = _dataCache.orderArray;
     _docBase = docBase;
   }
@@ -121,7 +123,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     BrowseFacet facet = null;
     int index=_dataCache.valArray.indexOf(value);
     if (index >=0 ){
-      facet = new BrowseFacet(_dataCache.valArray.get(index),_count[index]);
+      facet = new BrowseFacet(_dataCache.valArray.get(index),_count.get(index));
     }
     else{
       facet = new BrowseFacet(_dataCache.valArray.format(value),0);  
@@ -138,14 +140,14 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
     int index=_dataCache.valArray.indexOf(value);
     if (index >= 0)
     {
-      return _count[index];
+      return _count.get(index);
     }
     else{
       return 0;  
     }
   }
 
-  public int[] getCountDistribution()
+  public BigSegmentedArray getCountDistribution()
   {
     return _count;
   }
@@ -154,7 +156,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 	  return _dataCache;
   }
   
-  public static List<BrowseFacet> getFacets(FacetSpec ospec,int[] count, int countlength, final TermValueList<?> valList){
+  public static List<BrowseFacet> getFacets(FacetSpec ospec, BigSegmentedArray count, int countlength, final TermValueList<?> valList){
 	  if (ospec!=null)
 	    {
 	      int minCount=ospec.getMinHitCount();
@@ -168,7 +170,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 	        facetColl=new ArrayList<BrowseFacet>(max);
 	        for (int i = 1; i < countlength;++i) // exclude zero
 	        {
-	          int hits=count[i];
+	          int hits=count.get(i);
 	          if (hits>=minCount)
 	          {
 	            BrowseFacet facet=new BrowseFacet(valList.get(i),hits);
@@ -208,7 +210,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 
 	        for (int i=1;i<countlength;++i)
 	        {
-	          int hits=count[i];
+	          int hits=count.get(i);
 	          if (hits>=minCount)
 	          {
 	            pq.offer(i);
@@ -218,7 +220,7 @@ public abstract class DefaultFacetCountCollector implements FacetCountCollector
 	        int val;
 	        while((val = pq.pollInt()) != forbidden)
 	        {
-	          BrowseFacet facet=new BrowseFacet(valList.get(val),count[val]);
+	          BrowseFacet facet=new BrowseFacet(valList.get(val),count.get(val));
 	          ((LinkedList<BrowseFacet>)facetColl).addFirst(facet);
 	        }
 	      }

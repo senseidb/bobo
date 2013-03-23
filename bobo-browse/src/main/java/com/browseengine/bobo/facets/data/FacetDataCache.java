@@ -35,7 +35,6 @@ public class FacetDataCache<T> implements Serializable {
   public int[] freqs;
   public int[] minIDs;
   public int[] maxIDs;
-  private final TermCountSize _termCountSize;
 
   public FacetDataCache(BigSegmentedArray orderArray, TermValueList<T> valArray, int[] freqs, int[] minIDs,
       int[] maxIDs, TermCountSize termCountSize) {
@@ -44,7 +43,6 @@ public class FacetDataCache<T> implements Serializable {
     this.freqs = freqs;
     this.minIDs = minIDs;
     this.maxIDs = maxIDs;
-    _termCountSize = termCountSize;
   }
 
   public FacetDataCache() {
@@ -53,7 +51,6 @@ public class FacetDataCache<T> implements Serializable {
     this.maxIDs = null;
     this.minIDs = null;
     this.freqs = null;
-    _termCountSize = TermCountSize.large;
   }
 
   public int getNumItems(int docid) {
@@ -61,27 +58,25 @@ public class FacetDataCache<T> implements Serializable {
     return valIdx <= 0 ? 0 : 1;
   }
 
-  private final static BigSegmentedArray newInstance(TermCountSize termCountSize, int maxDoc) {
-    if (termCountSize == TermCountSize.small) {
+  private final static BigSegmentedArray newInstance(int termCount, int maxDoc) {
+    // we use < instead of <= to take into consideration "missing" value (zero element in the dictionary)
+    if (termCount < Byte.MAX_VALUE) {
       return new BigByteArray(maxDoc);
-    } else if (termCountSize == TermCountSize.medium) {
+    } else if (termCount < Short.MAX_VALUE) {
       return new BigShortArray(maxDoc);
     } else
       return new BigIntArray(maxDoc);
   }
 
-  protected int getNegativeValueCount(IndexReader reader, String field) throws IOException {
+  protected int getDictValueCount(IndexReader reader, String field) throws IOException {
     int ret = 0;   
     TermEnum termEnum = null;
     try {
       termEnum = reader.terms(new Term(field, ""));
       do {
         Term term = termEnum.term();
-        if (term == null || term.field() != field)
+        if (term == null || !term.field().equals(field))
           break;
-        if (!term.text().startsWith("-")) {
-          break;
-        }
         ret++;
       } while (termEnum.next());
     } finally {
@@ -89,7 +84,25 @@ public class FacetDataCache<T> implements Serializable {
     }
     return ret;
   }
-
+  protected int getNegativeValueCount(IndexReader reader, String field) throws IOException {
+      int ret = 0;   
+      TermEnum termEnum = null;
+      try {
+        termEnum = reader.terms(new Term(field, ""));
+        do {
+          Term term = termEnum.term();
+          if (term == null || term.field() != field)
+            break;
+          if (!term.text().startsWith("-")) {
+            break;
+          }
+          ret++;
+        } while (termEnum.next());
+      } finally {
+        termEnum.close();
+      }
+      return ret;
+    }
   public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory) throws IOException {
     String field = fieldName.intern();
     int maxDoc = reader.maxDoc();
@@ -97,7 +110,8 @@ public class FacetDataCache<T> implements Serializable {
     BigSegmentedArray order = this.orderArray;
     if (order == null) // we want to reuse the memory
     {
-      order = newInstance(_termCountSize, maxDoc);
+        int dictValueCount = getDictValueCount(reader, fieldName);
+        order = newInstance(dictValueCount, maxDoc);
     } else {
       order.ensureCapacity(maxDoc); // no need to fill to 0, we are reseting the
                                     // data anyway
@@ -130,9 +144,7 @@ public class FacetDataCache<T> implements Serializable {
         if (term == null || term.field() != field)
           break;
 
-        if (t > order.maxValue()) {
-          throw new IOException("maximum number of value cannot exceed: " + order.maxValue());
-        }
+        
         // store term text
         // we expect that there is at most one term per document
         if (t >= length)

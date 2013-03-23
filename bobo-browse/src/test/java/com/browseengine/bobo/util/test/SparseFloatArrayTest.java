@@ -30,7 +30,6 @@ import junit.framework.TestCase;
 
 import com.browseengine.bobo.util.SparseFloatArray;
 
-
 /**
  * @author spackle
  *

@@ -26,6 +26,8 @@ import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.filter.RandomAccessFilter;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.BigSegmentedArray;
+import com.browseengine.bobo.util.LazyBigIntArray;
 
 public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler<FacetDataNone>
 {
@@ -119,7 +121,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     private final T _start;
     private final T _end;
     private final T _unit;
-    private final int[] _count;
+    private final BigSegmentedArray _count;
     private final TermValueList<?> _valArray;
     private final FacetCountCollector _baseCollector;
     private final String _facetName;
@@ -136,7 +138,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       _start = start;
       _end = end;
       _unit = unit;
-      _count = new int[countArraySize()];
+      _count = new LazyBigIntArray(countArraySize());
     }
     
     private int countArraySize()
@@ -161,7 +163,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     /**
      * not supported
      */
-    public int[] getCountDistribution()
+    public BigSegmentedArray getCountDistribution()
     {
       if(!_isAggregated) aggregate();
       return _count;
@@ -172,9 +174,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       if(!_isAggregated) aggregate();
       
       int idx = Integer.parseInt(value);
-      if(idx >= 0 && idx < _count.length)
+      if(idx >= 0 && idx < _count.size())
       {
-        return new BrowseFacet(value, _count[idx]);
+        return new BrowseFacet(value, _count.get(idx));
       }
       return null; 
     }
@@ -188,9 +190,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         idx = Integer.parseInt((String)value);
       else
         idx = ((Number)value).intValue();
-      if(idx >= 0 && idx < _count.length)
+      if(idx >= 0 && idx < _count.size())
       {
-        return _count[idx];
+        return _count.get(idx);
       }
       return 0; 
     }
@@ -217,7 +219,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
       int endIdx = _valArray.indexOf(_end);
       if (endIdx < 0) endIdx = -(endIdx + 1);
       
-      int[] baseCounts = _baseCollector.getCountDistribution();
+      BigSegmentedArray baseCounts = _baseCollector.getCountDistribution();
       if(_start instanceof Long)
       {
         long start = _start.longValue();
@@ -227,9 +229,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         {
           long val = valArray.getPrimitiveValue(i);
           int idx = (int)((val - start) / unit);
-          if(idx >= 0 && idx < _count.length)
+          if(idx >= 0 && idx < _count.size())
           {
-            _count[idx] += baseCounts[i];
+            _count.add(idx, _count.get(idx) + baseCounts.get(i));
           }
         }
       }
@@ -242,9 +244,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         {
           int val = valArray.getPrimitiveValue(i);
           int idx = ((val - start) / unit);
-          if(idx >= 0 && idx < _count.length)
+          if(idx >= 0 && idx < _count.size())
           {
-            _count[idx] += baseCounts[i];
+            _count.add(idx, _count.get(idx) + baseCounts.get(i));
           }
         }
       }
@@ -256,9 +258,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
         {
           Number val = (Number)_valArray.getRawValue(i);
           int idx = (int)((val.doubleValue() - start) / unit);
-          if(idx >= 0 && idx < _count.length)
+          if(idx >= 0 && idx < _count.size())
           {
-            _count[idx] += baseCounts[i];
+            _count.add(idx, _count.get(idx) + baseCounts.get(i));
           }
         }
       }
@@ -270,16 +272,16 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   	  {
         int minCount = _ospec.getMinHitCount();
         int max = _ospec.getMaxCount();
-        if (max <= 0) max = _count.length;
+        if (max <= 0) max = _count.size();
         
         List<BrowseFacet> facetColl;
         FacetSortSpec sortspec = _ospec.getOrderBy();
         if (sortspec == FacetSortSpec.OrderValueAsc)
         {
           facetColl = new ArrayList<BrowseFacet>(max);
-          for (int i = 0; i < _count.length; ++i)
+          for (int i = 0; i < _count.size(); ++i)
           {
-        	int hits = _count[i];
+        	int hits = _count.get(i);
   	        if (hits >= minCount)
   	        {
   	          BrowseFacet facet = new BrowseFacet(_formatter.format(i),hits);
@@ -319,15 +321,15 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
   public static class HistogramFacetIterator extends IntFacetIterator
   {
     private final DecimalFormat _formatter;
-    private final int[] _count;
+    private final BigSegmentedArray _count;
     private final int _maxMinusOne;
     private int _idx;
 
-    public HistogramFacetIterator(int count[], DecimalFormat formatter)
+    public HistogramFacetIterator(BigSegmentedArray count, DecimalFormat formatter)
     {
       _idx = -1;
       _count = count;
-      _maxMinusOne = count.length - 1;
+      _maxMinusOne = count.size() - 1;
       _formatter = formatter;
     }
 
@@ -335,7 +337,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     {
       if(hasNext())
       {
-        count = _count[++_idx];
+        count = _count.get(++_idx);
         return (facet = _idx);
       }
       return null;
@@ -345,9 +347,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     {
       while(_idx < _maxMinusOne)
       {
-        if(_count[++_idx] >= minHits)
+        if(_count.get(++_idx) >= minHits)
         {
-          count = _count[_idx];          
+          count = _count.get(_idx);          
           return (facet = _idx);
         }
       }
@@ -358,7 +360,7 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     {
       if(hasNext())
       {
-        count = _count[++_idx];
+        count = _count.get(++_idx);
         return (facet = _idx);
       }
       return TermIntList.VALUE_MISSING;
@@ -368,9 +370,9 @@ public class HistogramFacetHandler<T extends Number> extends RuntimeFacetHandler
     {
       while(_idx < _maxMinusOne)
       {
-        if(_count[++_idx] >= minHits)
+        if(_count.get(++_idx) >= minHits)
         {
-          count = _count[_idx];
+          count = _count.get(_idx);
           return (facet = _idx);
         }
       }

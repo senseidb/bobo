@@ -35,6 +35,7 @@ import com.browseengine.bobo.query.scoring.BoboDocScorer;
 import com.browseengine.bobo.query.scoring.FacetScoreable;
 import com.browseengine.bobo.query.scoring.FacetTermScoringFunctionFactory;
 import com.browseengine.bobo.sort.DocComparatorSource;
+import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCache> implements FacetScoreable 
@@ -303,7 +304,7 @@ public class MultiValueFacetHandler extends FacetHandler<MultiValueFacetDataCach
     @Override
     public final void collectAll()
     {
-      _count = _dataCache.freqs;
+      _count = BigIntArray.fromArray(_dataCache.freqs);
     }
   }
 }

@@ -16,6 +16,7 @@ import com.browseengine.bobo.facets.impl.CombinedFacetIterator;
 import com.browseengine.bobo.facets.impl.CombinedIntFacetIterator;
 import com.browseengine.bobo.facets.impl.DefaultFacetIterator;
 import com.browseengine.bobo.facets.impl.DefaultIntFacetIterator;
+import com.browseengine.bobo.util.BigIntArray;
 
 
 public class BoboFacetIteratorTest extends TestCase
@@ -89,12 +90,18 @@ public class BoboFacetIteratorTest extends TestCase
     tsl1.add("i");
     tsl1.add("m");
     tsl1.seal();
-    DefaultFacetIterator itr1 = new DefaultFacetIterator(tsl1, new int[] { 1, 2 }, 2, false);
+    BigIntArray count = new BigIntArray(2);
+    count.add(0, 1);
+    count.add(1, 2);
+    DefaultFacetIterator itr1 = new DefaultFacetIterator(tsl1, count, 2, false);
     TermStringList tsl2 = new TermStringList();
     tsl2.add("i");
     tsl2.add("m");
     tsl2.seal();
-    DefaultFacetIterator itr2 = new DefaultFacetIterator(tsl2, new int[] { 1, 5 }, 2, true);
+    BigIntArray count2 = new BigIntArray(2);
+    count2.add(0, 1);
+    count2.add(1, 5);
+    DefaultFacetIterator itr2 = new DefaultFacetIterator(tsl2, count2, 2, true);
     List<FacetIterator> list = new ArrayList<FacetIterator>();
     list.add(itr1);
     list.add(itr2);
@@ -119,7 +126,7 @@ public class BoboFacetIteratorTest extends TestCase
     {
       TermIntList tsl1 = new TermIntList(format);
       int limit = 25;
-      int [] count = new int[limit];
+      BigIntArray count = new BigIntArray(limit);
       String[] terms = new String[limit];
       for(int i = limit - 1; i>=0; i--)
       {
@@ -129,7 +136,7 @@ public class BoboFacetIteratorTest extends TestCase
       for(int i = 0; i< limit; i++)
       {
         tsl1.add(terms[i]);
-        count[i] = i;
+        count.add(i, i);
       }
       tsl1.seal();
       DefaultIntFacetIterator itr1 = new DefaultIntFacetIterator(tsl1, count, limit, true);

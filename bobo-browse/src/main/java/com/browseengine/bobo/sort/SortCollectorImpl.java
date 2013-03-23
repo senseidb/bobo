@@ -35,10 +35,8 @@ import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.PrimitiveLongArrayWrapper;
 import com.browseengine.bobo.facets.impl.GroupByFacetCountCollector;
-import com.browseengine.bobo.facets.impl.SimpleFacetHandler;
-import com.browseengine.bobo.sort.ReverseDocComparatorSource.ReverseDocComparator.ReverseComparable;
+import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.ListMerger;
-import com.browseengine.bobo.util.StringArrayComparator;
 
 
 public class SortCollectorImpl extends SortCollector {
@@ -172,9 +170,9 @@ public class SortCollectorImpl extends SortCollector {
         }
         else {
           _currentValueDocMaps = null;
-          _facetCountCollectorMulti = new FacetCountCollector[groupByList.size()];
-          _facetAccessibleLists = new List[groupByMulti.length];
-          for (int i=0; i<groupByMulti.length; ++i) {
+          _facetCountCollectorMulti = new FacetCountCollector[groupByList.size() - 1];
+          _facetAccessibleLists = new List[_facetCountCollectorMulti.length];
+          for (int i=0; i<_facetCountCollectorMulti.length; ++i) {
             _facetAccessibleLists[i] = new LinkedList<FacetAccessible>();
           }
         }
@@ -322,8 +320,9 @@ public class SortCollectorImpl extends SortCollector {
       return;
     }
 
-    int[] count = _facetCountCollector.getCountDistribution();
-    for (int c : count) {
+    BigSegmentedArray count = _facetCountCollector.getCountDistribution();
+    for (int i = 0; i < count.size(); i++) {
+      int c = count.get(i);
       if (c > 0)
         ++_totalGroups;
     }
@@ -336,15 +335,15 @@ public class SortCollectorImpl extends SortCollector {
     _currentComparator = _compSource.getComparator(reader,docBase);
     _currentQueue = new DocIDPriorityQueue(_currentComparator, _numHits, docBase);
     if (groupBy != null) {
-      if (_facetCountCollectorMulti != null) {
-        for (int i=0; i<groupByMulti.length; ++i) {
+      if (_facetCountCollectorMulti != null) {  // _facetCountCollectorMulti.length >= 1
+        for (int i=0; i<_facetCountCollectorMulti.length; ++i) {
           _facetCountCollectorMulti[i] = groupByMulti[i].getFacetCountCollectorSource(null, null, true).getFacetCountCollector(_currentReader, docBase);
         }
         //if (_facetCountCollector != null)
           //collectTotalGroups();
         _facetCountCollector = _facetCountCollectorMulti[0];
         if (_facetAccessibleLists != null) {
-          for(int i=0; i<groupByMulti.length; ++i) {
+          for(int i=0; i<_facetCountCollectorMulti.length; ++i) {
             _facetAccessibleLists[i].add(_facetCountCollectorMulti[i]);
           }
         }
@@ -508,6 +507,7 @@ public class SortCollectorImpl extends SortCollector {
       hit.setScore(fdoc.score);
       hit.setComparable(fdoc.getValue());
       if (groupBy != null) {
+        hit.setGroupField(groupBy.getName());
         hit.setGroupValue(hit.getField(groupBy.getName()));
         hit.setRawGroupValue(hit.getRawField(groupBy.getName()));
         if (groupAccessibles != null &&

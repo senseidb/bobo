@@ -386,7 +386,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
 	  @Override
 	  public final void collectAll()
 	  {
-	    _count = _dataCache.freqs;
+	    _count = BigIntArray.fromArray(_dataCache.freqs);
 	    _aggregated = true;
 	  }
 	  
@@ -425,7 +425,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
 	    return super.getFacetHitsCount(value);  
     }
       @Override
-      public int[] getCountDistribution()
+      public BigSegmentedArray getCountDistribution()
       {
         if(!_aggregated) aggregateCounts();
         return _count;
@@ -440,7 +440,7 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
       
       private void aggregateCounts()
       {
-        _count[0] = _noValCount;
+        _count.add(0, _noValCount);
         
         for(int i = 1; i < _combinationCount.length; i++)
         {
@@ -454,7 +454,8 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache> 
             {
               if ((encoded & 0x00000001) != 0x0)
               {
-                _count[index + offset] += count;
+                int idx = index+offset;
+                _count.add(idx, _count.get(idx) + count);
               }
               index++;
               encoded >>>= 1;
