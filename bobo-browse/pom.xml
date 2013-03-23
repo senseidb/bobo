@@ -36,6 +36,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.5</version>
         <configuration>
+          <argLine>-Xms512m -Xmx2g</argLine>
           <excludes>
             <exclude>com/browseengine/bobo/util/test/SparseFloatArrayTest.java</exclude>
             <exclude>com/browseengine/bobo/test/TestPathMultiVal.java</exclude>
