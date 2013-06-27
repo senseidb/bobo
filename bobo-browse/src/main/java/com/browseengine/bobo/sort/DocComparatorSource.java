@@ -4,337 +4,372 @@ import java.io.IOException;
 import java.text.Collator;
 import java.util.Locale;
 
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.BinaryDocValues;
+import org.apache.lucene.index.SortedDocValues;
 import org.apache.lucene.search.FieldCache;
-import org.apache.lucene.search.FieldCache.StringIndex;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.util.BytesRef;
 
 public abstract class DocComparatorSource {
-	
-    boolean _reverse = false;
-	
-	public DocComparatorSource setReverse(boolean reverse){
-		_reverse = reverse;
+
+  boolean _reverse = false;
+
+  public DocComparatorSource setReverse(boolean reverse) {
+    _reverse = reverse;
     return this;
-	}
-	
-	public final boolean isReverse(){
-		return _reverse;
-	}
-	
-	public abstract DocComparator getComparator(IndexReader reader,int docbase)
-			throws IOException;
+  }
 
-	public static class IntDocComparatorSource extends DocComparatorSource {
-		private final String field;
+  public final boolean isReverse() {
+    return _reverse;
+  }
 
-		public IntDocComparatorSource(String field) {
-			this.field = field;
-		}
+  public abstract DocComparator getComparator(AtomicReader reader, int docbase) throws IOException;
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+  public static class IntDocComparatorSource extends DocComparatorSource {
+    private final String field;
 
-			final int[] values = FieldCache.DEFAULT.getInts(reader, field);
+    public IntDocComparatorSource(String field) {
+      this.field = field;
+    }
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					// cannot return v1-v2 because it could overflow
-					if (values[doc1.doc] < values[doc2.doc]) {
-						return -1;
-					} else if (values[doc1.doc] > values[doc2.doc]) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-				public Integer value(ScoreDoc doc) {
-					return Integer.valueOf(values[doc.doc]);
-				}
-			};
-		}
-	}
-	
-	public static class StringLocaleComparatorSource extends DocComparatorSource {
-		private final String field;
-		private final Collator _collator;
+      final FieldCache.Ints values = FieldCache.DEFAULT.getInts(reader, field, true);
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          // cannot return v1-v2 because it could overflow
+          if (values.get(doc1.doc) < values.get(doc2.doc)) {
+            return -1;
+          } else if (values.get(doc1.doc) > values.get(doc2.doc)) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
 
-		public StringLocaleComparatorSource(String field,Locale locale) {
-			this.field = field;
-			_collator = Collator.getInstance(locale);
-		}
+        @Override
+        public Integer value(ScoreDoc doc) {
+          return values.get(doc.doc);
+        }
+      };
+    }
+  }
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+  public static class StringLocaleComparatorSource extends DocComparatorSource {
+    private final String field;
+    private final Collator _collator;
 
-			final String[] values = FieldCache.DEFAULT.getStrings(reader, field);
+    public StringLocaleComparatorSource(String field, Locale locale) {
+      this.field = field;
+      _collator = Collator.getInstance(locale);
+    }
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-				    if (values[doc1.doc] == null) {
-				      if (values[doc2.doc] == null) {
-				        return 0;
-				      }
-				      return -1;
-				    } else if (values[doc2.doc] == null) {
-				      return 1;
-				    }				   
-				    return _collator.compare(values[doc1.doc], values[doc2.doc]);
-				}
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-				public String value(ScoreDoc doc) {
-					return values[doc.doc];
-				}
-			};
-		}
-	}
-	
-	public static class StringValComparatorSource extends DocComparatorSource {
-		private final String field;
+      final BinaryDocValues values = FieldCache.DEFAULT.getTerms(reader, field);
 
-		public StringValComparatorSource(String field) {
-			this.field = field;
-		}
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          BytesRef result1 = new BytesRef();
+          BytesRef result2 = new BytesRef();
+          values.get(doc1.doc, result1);
+          values.get(doc2.doc, result2);
+          if (result1.length == 0) {
+            if (result2.length == 0) {
+              return 0;
+            }
+            return -1;
+          } else if (result2.length == 0) {
+            return 1;
+          }
+          return _collator.compare(result1.utf8ToString(), result2.utf8ToString());
+        }
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+        @Override
+        public String value(ScoreDoc doc) {
+          BytesRef result = new BytesRef();
+          values.get(doc.doc, result);
+          return result.utf8ToString();
+        }
+      };
+    }
+  }
 
-			final String[] values = FieldCache.DEFAULT.getStrings(reader, field);
+  public static class StringValComparatorSource extends DocComparatorSource {
+    private final String field;
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-				    if (values[doc1.doc] == null) {
-				      if (values[doc2.doc] == null) {
-				        return 0;
-				      }
-				      return -1;
-				    } else if (values[doc2.doc] == null) {
-				      return 1;
-				    }				   
-				    return values[doc1.doc].compareTo(values[doc2.doc]);
-				}
+    public StringValComparatorSource(String field) {
+      this.field = field;
+    }
 
-				public String value(ScoreDoc doc) {
-					return values[doc.doc];
-				}
-			};
-		}
-	}
-	
-	public static class StringOrdComparatorSource extends DocComparatorSource {
-		private final String field;
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-		public StringOrdComparatorSource(String field) {
-			this.field = field;
-		}
+      final BinaryDocValues values = FieldCache.DEFAULT.getTerms(reader, field);
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          BytesRef result1 = new BytesRef();
+          BytesRef result2 = new BytesRef();
+          values.get(doc1.doc, result1);
+          values.get(doc2.doc, result2);
 
-			final StringIndex values = FieldCache.DEFAULT.getStringIndex(reader, field);
+          if (result1.length == 0) {
+            if (result2.length == 0) {
+              return 0;
+            }
+            return -1;
+          } else if (result2.length == 0) {
+            return 1;
+          }
+          return result1.utf8ToString().compareTo(result2.utf8ToString());
+        }
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					return values.order[doc1.doc] -  values.order[doc2.doc];
-				}
+        @Override
+        public String value(ScoreDoc doc) {
+          BytesRef result = new BytesRef();
+          values.get(doc.doc, result);
+          return result.utf8ToString();
+        }
+      };
+    }
+  }
 
-				public String value(ScoreDoc doc) {
-					return String.valueOf(values.lookup[values.order[doc.doc]]);
-				}
-			};
-		}
-	}
-	
-	public static class ShortDocComparatorSource extends DocComparatorSource {
-		private final String field;
+  public static class StringOrdComparatorSource extends DocComparatorSource {
+    private final String field;
 
-		public ShortDocComparatorSource(String field) {
-			this.field = field;
-		}
+    public StringOrdComparatorSource(String field) {
+      this.field = field;
+    }
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-			final short[] values = FieldCache.DEFAULT.getShorts(reader, field);
+      final SortedDocValues values = FieldCache.DEFAULT.getTermsIndex(reader, field);
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          return values.getOrd(doc1.doc) - values.getOrd(doc2.doc);
+        }
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					return values[doc1.doc] - values[doc2.doc];
-				}
+        @Override
+        public String value(ScoreDoc doc) {
+          int ord = values.getOrd(doc.doc);
+          BytesRef term = new BytesRef();
+          values.lookupOrd(ord, term);
+          return term.utf8ToString();
+        }
+      };
+    }
+  }
 
-				public Short value(ScoreDoc doc) {
-					return Short.valueOf(values[doc.doc]);
-				}
-			};
-		}
-	}
-	
-	public static class LongDocComparatorSource extends DocComparatorSource {
-		private final String field;
+  public static class ShortDocComparatorSource extends DocComparatorSource {
+    private final String field;
 
-		public LongDocComparatorSource(String field) {
-			this.field = field;
-		}
+    public ShortDocComparatorSource(String field) {
+      this.field = field;
+    }
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-			final long[] values = FieldCache.DEFAULT.getLongs(reader, field);
+      final FieldCache.Shorts values = FieldCache.DEFAULT.getShorts(reader, field, true);
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					// cannot return v1-v2 because it could overflow
-					if (values[doc1.doc] < values[doc2.doc]) {
-						return -1;
-					} else if (values[doc1.doc] > values[doc2.doc]) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          return values.get(doc1.doc) - values.get(doc2.doc);
+        }
 
-				public Long value(ScoreDoc doc) {
-					return Long.valueOf(values[doc.doc]);
-				}
-			};
-		}
-	}
-	
-	public static class FloatDocComparatorSource extends DocComparatorSource {
-		private final String field;
+        @Override
+        public Short value(ScoreDoc doc) {
+          return values.get(doc.doc);
+        }
+      };
+    }
+  }
 
-		public FloatDocComparatorSource(String field) {
-			this.field = field;
-		}
+  public static class LongDocComparatorSource extends DocComparatorSource {
+    private final String field;
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+    public LongDocComparatorSource(String field) {
+      this.field = field;
+    }
 
-			final float[] values = FieldCache.DEFAULT.getFloats(reader, field);
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					// cannot return v1-v2 because it could overflow
-					if (values[doc1.doc] < values[doc2.doc]) {
-						return -1;
-					} else if (values[doc1.doc] > values[doc2.doc]) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}
+      final FieldCache.Longs values = FieldCache.DEFAULT.getLongs(reader, field, true);
 
-				public Float value(ScoreDoc doc) {
-					return Float.valueOf(values[doc.doc]);
-				}
-			};
-		}
-	}
-	
-	public static class DoubleDocComparatorSource extends DocComparatorSource {
-		private final String field;
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          // cannot return v1-v2 because it could overflow
+          if (values.get(doc1.doc) < values.get(doc2.doc)) {
+            return -1;
+          } else if (values.get(doc1.doc) > values.get(doc2.doc)) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
 
-		public DoubleDocComparatorSource(String field) {
-			this.field = field;
-		}
+        @Override
+        public Long value(ScoreDoc doc) {
+          return values.get(doc.doc);
+        }
+      };
+    }
+  }
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+  public static class FloatDocComparatorSource extends DocComparatorSource {
+    private final String field;
 
-			final double[] values = FieldCache.DEFAULT.getDoubles(reader, field);
+    public FloatDocComparatorSource(String field) {
+      this.field = field;
+    }
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					// cannot return v1-v2 because it could overflow
-					if (values[doc1.doc] < values[doc2.doc]) {
-						return -1;
-					} else if (values[doc1.doc] > values[doc2.doc]) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-				public Double value(ScoreDoc doc) {
-					return Double.valueOf(values[doc.doc]);
-				}
-			};
-		}
-	}
-	
-	public static class RelevanceDocComparatorSource extends DocComparatorSource {
-		public RelevanceDocComparatorSource() {
-		}
+      final FieldCache.Floats values = FieldCache.DEFAULT.getFloats(reader, field, true);
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          // cannot return v1-v2 because it could overflow
+          if (values.get(doc1.doc) < values.get(doc2.doc)) {
+            return -1;
+          } else if (values.get(doc1.doc) > values.get(doc2.doc)) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					// cannot return v1-v2 because it could overflow
-					if (doc1.score < doc2.score) {
-						return -1;
-					} else if (doc1.score > doc2.score) {
-						return 1;
-					} else {
-						return 0;
-					}
-				}
+        @Override
+        public Float value(ScoreDoc doc) {
+          return values.get(doc.doc);
+        }
+      };
+    }
+  }
 
-				public Float value(ScoreDoc doc) {
-					return Float.valueOf(doc.score);
-				}
-			};
-		}
-		
-		
-	}
-	
-	public static class DocIdDocComparatorSource extends DocComparatorSource {
-		public DocIdDocComparatorSource() {
-		}
+  public static class DoubleDocComparatorSource extends DocComparatorSource {
+    private final String field;
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+    public DoubleDocComparatorSource(String field) {
+      this.field = field;
+    }
 
-			final int _docbase = docbase;
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					return doc1.doc-doc2.doc;
-				}
+      final FieldCache.Doubles values = FieldCache.DEFAULT.getDoubles(reader, field, true);
 
-				public Integer value(ScoreDoc doc) {
-					return Integer.valueOf(doc.doc+_docbase);
-				}
-			};
-		}
-	}
-	
-	public static class ByteDocComparatorSource extends DocComparatorSource {
-		private final String field;
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          // cannot return v1-v2 because it could overflow
+          if (values.get(doc1.doc) < values.get(doc2.doc)) {
+            return -1;
+          } else if (values.get(doc1.doc) > values.get(doc2.doc)) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
 
-		public ByteDocComparatorSource(String field) {
-			this.field = field;
-		}
+        @Override
+        public Double value(ScoreDoc doc) {
+          return values.get(doc.doc);
+        }
+      };
+    }
+  }
 
-		public DocComparator getComparator(IndexReader reader,int docbase)
-				throws IOException {
+  public static class RelevanceDocComparatorSource extends DocComparatorSource {
+    public RelevanceDocComparatorSource() {
+    }
 
-			final byte[] values = FieldCache.DEFAULT.getBytes(reader, field);
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
 
-			return new DocComparator() {
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					return values[doc1.doc] - values[doc2.doc];
-				}
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          // cannot return v1-v2 because it could overflow
+          if (doc1.score < doc2.score) {
+            return -1;
+          } else if (doc1.score > doc2.score) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
 
-				public Byte value(ScoreDoc doc) {
-					return Byte.valueOf(values[doc.doc]);
-				}
-			};
-		}
-	}
-	
-	
+        @Override
+        public Float value(ScoreDoc doc) {
+          return Float.valueOf(doc.score);
+        }
+      };
+    }
+
+  }
+
+  public static class DocIdDocComparatorSource extends DocComparatorSource {
+    public DocIdDocComparatorSource() {
+    }
+
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
+
+      final int _docbase = docbase;
+
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          return doc1.doc - doc2.doc;
+        }
+
+        @Override
+        public Integer value(ScoreDoc doc) {
+          return Integer.valueOf(doc.doc + _docbase);
+        }
+      };
+    }
+  }
+
+  public static class ByteDocComparatorSource extends DocComparatorSource {
+    private final String field;
+
+    public ByteDocComparatorSource(String field) {
+      this.field = field;
+    }
+
+    @Override
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
+
+      final FieldCache.Bytes values = FieldCache.DEFAULT.getBytes(reader, field, true);
+
+      return new DocComparator() {
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          return values.get(doc1.doc) - values.get(doc2.doc);
+        }
+
+        @Override
+        public Byte value(ScoreDoc doc) {
+          return values.get(doc.doc);
+        }
+      };
+    }
+  }
+
 }
