@@ -1,7 +1,7 @@
 package com.browseengine.bobo.facets;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 
 public abstract class FacetCountCollectorSource {
-	public abstract FacetCountCollector getFacetCountCollector(BoboIndexReader reader,int docBase);
+	public abstract FacetCountCollector getFacetCountCollector(BoboSegmentReader reader,int docBase);
 }

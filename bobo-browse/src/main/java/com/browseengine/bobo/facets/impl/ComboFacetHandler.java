@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Map.Entry;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
@@ -26,30 +26,30 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 
 	private static final String DFEAULT_SEPARATOR = ":";
 	private final String _separator;
-	
-	
+
+
 	public ComboFacetHandler(String name,Set<String> dependsOn){
 		this(name,DFEAULT_SEPARATOR,dependsOn);
 	}
-	
+
 	public ComboFacetHandler(String name,String seperator,Set<String> dependsOn){
 		super(name,dependsOn);
 		_separator = seperator;
 	}
-	
+
 	public String getSeparator(){
 		return _separator;
 	}
-	
+
 	private static class ComboSelection{
 		final String name;
 		final String val;
-		
+
 		private ComboSelection(String name,String val){
 			this.name = name;
 			this.val = val;
 		}
-		
+
 		static ComboSelection parse(String value,String sep){
 			StringTokenizer strtok = new StringTokenizer(value, sep);
 			if (strtok.hasMoreTokens()){
@@ -62,7 +62,7 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public RandomAccessFilter buildRandomAccessFilter(String value,
 			Properties selectionProperty) throws IOException {
@@ -76,7 +76,7 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 		}
 		return retFilter;
 	}
-	
+
 	private static Map<String,List<String>> convertMap(String[] vals,String sep){
 		Map<String,List<String>> retmap = new HashMap<String,List<String>>();
 		for (String val : vals){
@@ -98,7 +98,7 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 			Properties prop) throws IOException {
 		Map<String,List<String>> valMap = convertMap(vals,_separator);
 		Set<Entry<String,List<String>>> entries = valMap.entrySet();
-		
+
 		List<RandomAccessFilter> filterList = new LinkedList<RandomAccessFilter>();
 		for (Entry<String,List<String>> entry : entries){
 			String name = entry.getKey();
@@ -112,7 +112,7 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 			if (f == EmptyFilter.getInstance()) return f;
 			filterList.add(f);
 		}
-		
+
 		if (filterList.size() == 0){
 			return EmptyFilter.getInstance();
 		}
@@ -126,9 +126,9 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 	public RandomAccessFilter buildRandomAccessOrFilter(String[] vals,
 			Properties prop, boolean isNot) throws IOException {
 		Map<String,List<String>> valMap = convertMap(vals,_separator);
-		
+
         Set<Entry<String,List<String>>> entries = valMap.entrySet();
-		
+
 		List<RandomAccessFilter> filterList = new LinkedList<RandomAccessFilter>();
 		for (Entry<String,List<String>> entry : entries){
 			String name = entry.getKey();
@@ -144,14 +144,14 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 			if (f == EmptyFilter.getInstance()) continue;
 			filterList.add(f);
 		}
-		
+
 		if (filterList.size() == 0){
 			return EmptyFilter.getInstance();
 		}
 		if (filterList.size() == 1){
 			return filterList.get(0);
 		}
-		
+
 		if (isNot){
 		  return new RandomAccessAndFilter(filterList);
 		}
@@ -172,7 +172,7 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 	}
 
 	@Override
-	public String[] getFieldValues(BoboIndexReader reader, int id) {		
+	public String[] getFieldValues(BoboSegmentReader reader, int id) {
 		Set<String> dependsOn = this.getDependsOn();
 		List<String> valueList = new LinkedList<String>();
 		for (String depends : dependsOn){
@@ -186,8 +186,8 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 		}
 		return valueList.toArray(new String[0]);
 	}
-	
-	
+
+
 
 	@Override
 	public int getNumItems(BoboIndexReader reader, int id) {
@@ -205,7 +205,7 @@ public class ComboFacetHandler extends FacetHandler<FacetDataNone> {
 	}
 
 	@Override
-	public FacetDataNone load(BoboIndexReader reader) throws IOException {
+	public FacetDataNone load(BoboSegmentReader reader) throws IOException {
 		return FacetDataNone.instance;
 	}
 }

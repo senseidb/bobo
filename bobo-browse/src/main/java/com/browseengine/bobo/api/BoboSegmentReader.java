@@ -312,6 +312,13 @@ public class BoboSegmentReader extends FilterAtomicReader {
     }
   }
 
+  public String[] getStoredFieldValue(int docid, final String fieldname) throws IOException {
+    DocumentStoredFieldVisitor visitor = new DocumentStoredFieldVisitor(fieldname);
+    super.document(docid, visitor);
+    Document doc = visitor.getDocument();
+    return doc.getValues(fieldname);
+  }
+
   /**
    * Work area for loading
    */

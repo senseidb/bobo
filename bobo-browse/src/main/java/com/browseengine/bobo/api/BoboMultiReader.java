@@ -37,7 +37,7 @@ import org.apache.lucene.index.FilterDirectoryReader;
 import com.browseengine.bobo.facets.FacetHandler;
 
 public class BoboMultiReader extends FilterDirectoryReader {
-  private List<BoboSegmentReader> _subReaders = new ArrayList<BoboSegmentReader>();
+  protected List<BoboSegmentReader> _subReaders = new ArrayList<BoboSegmentReader>();
 
   /**
    * Constructor
@@ -81,6 +81,14 @@ public class BoboMultiReader extends FilterDirectoryReader {
     for (BoboSegmentReader r : _subReaders) {
       r.facetInit();
     }
+  }
+
+  public List<BoboSegmentReader> getSubReaders() {
+    return _subReaders;
+  }
+
+  public final int subReaderBase(int readerIndex) {
+    return readerBase(readerIndex);
   }
 
   public static class BoboSubReaderWrapper extends SubReaderWrapper {
