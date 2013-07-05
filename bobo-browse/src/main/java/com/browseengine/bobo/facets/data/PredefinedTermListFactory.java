@@ -16,7 +16,7 @@ import java.util.Map;
  * <li> {@link Long}</li>
  * <li> {@link Date}</li>
  * </ul>
- * 
+ *
  * Autoboxing: primitive types corresponding classes above are supported.
  */
 public class PredefinedTermListFactory<T> implements TermListFactory<T>
@@ -44,22 +44,24 @@ public class PredefinedTermListFactory<T> implements TermListFactory<T>
   private final String _format;
   private final Class<? extends TermValueList<T>> _listClass;
 
-  public PredefinedTermListFactory(Class<?> cls, String format)
+  @SuppressWarnings("unchecked")
+  public PredefinedTermListFactory(Class<T> cls, String format)
   {
     if (supportedTypes.get(cls) == null)
     {
       throw new IllegalArgumentException("Class " + cls + " not defined.");
     }
-    _cls = (Class<T>) cls;
+    _cls = cls;
     _format = format;
     _listClass = (Class<? extends TermValueList<T>>) supportedTypes.get(_cls);
   }
 
-  public PredefinedTermListFactory(Class<?> cls)
+  public PredefinedTermListFactory(Class<T> cls)
   {
     this(cls, null);
   }
 
+  @Override
   public TermValueList<T> createTermList(int capacity)
   {
     if (TermCharList.class.equals(_listClass)) // we treat char type separate as
@@ -83,11 +85,13 @@ public class PredefinedTermListFactory<T> implements TermListFactory<T>
     }
   }
 
+  @Override
   public TermValueList<T> createTermList()
   {
     return createTermList(-1);
   }
 
+  @Override
   public Class<T> getType()
   {
     // TODO Auto-generated method stub

@@ -102,7 +102,7 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
       Set<Entry<String, List<FacetAccessible>>> entries = mergedMap.entrySet();
       for (Entry<String, List<FacetAccessible>> entry : entries) {
         String name = entry.getKey();
-        FacetHandler handler = getFacetHandler(name);
+        FacetHandler<?> handler = getFacetHandler(name);
         try {
           List<FacetAccessible> subList = entry.getValue();
           if (subList != null) {

@@ -95,6 +95,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
     return sum;
   }
 
+  @SuppressWarnings({"unchecked","rawtypes"})
   @Override
   public List<BrowseFacet> getFacets() {
     if (_closed) {
@@ -106,7 +107,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
     LinkedList<BrowseFacet> list = new LinkedList<BrowseFacet>();
 
     int cnt = 0;
-    Comparable facet = null;
+    Comparable<?> facet = null;
     FacetIterator iter = this.iterator();
     Comparator<BrowseFacet> comparator;
     if (FacetSortSpec.OrderValueAsc.equals(_fspec.getOrderBy())) {
@@ -189,8 +190,9 @@ public class CombinedFacetAccessible implements FacetAccessible {
     return list;
   }
 
-  private PriorityQueue createPQ(final int max, final Comparator<BrowseFacet> comparator) {
-    PriorityQueue queue = new PriorityQueue(max) {
+  private PriorityQueue<?> createPQ(final int max, final Comparator<BrowseFacet> comparator) {
+    @SuppressWarnings("rawtypes")
+    PriorityQueue<?> queue = new PriorityQueue(max) {
       @Override
       protected boolean lessThan(Object arg0, Object arg1) {
         BrowseFacet o1 = (BrowseFacet) arg0;

@@ -1,7 +1,7 @@
 /**
- * Bobo Browse Engine - High performance faceted/parametric search implementation 
+ * Bobo Browse Engine - High performance faceted/parametric search implementation
  * that handles various types of semi-structured data.  Written in Java.
- * 
+ *
  * Copyright (C) 2005-2006  John Wang
  *
  * This library is free software; you can redistribute it and/or
@@ -17,9 +17,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * To contact the project administrators for the bobo-browse project, 
- * please go to https://sourceforge.net/projects/bobo-browse/, or 
+ *
+ * To contact the project administrators for the bobo-browse project,
+ * please go to https://sourceforge.net/projects/bobo-browse/, or
  * send mail to owner@browseengine.com.
  */
 
@@ -32,11 +32,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.browseengine.bobo.mapred.MapReduceResult;
-import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 import com.browseengine.bobo.sort.SortCollector;
 
 
@@ -73,13 +72,13 @@ public class BrowseResult implements Serializable{
 	private FacetAccessible[] _groupAccessibles;
     transient private SortCollector _sortCollector;
   //private int totalGroups;
-	private Map<String,FacetAccessible> _facetMap;
+	private final Map<String,FacetAccessible> _facetMap;
 	private BrowseHit[] hits;
 	private long time;
 	private MapReduceResult mapReduceResult;
   private List<String> errors;
 	private static BrowseHit[] NO_HITS=new BrowseHit[0];
-		
+
 	/**
 	 * Constructor
 	 */
@@ -129,7 +128,7 @@ public class BrowseResult implements Serializable{
     _sortCollector = sortCollector;
     return this;
   }
-	
+
 	/**
 	 * Get the facets by name
 	 * @param name
@@ -138,7 +137,7 @@ public class BrowseResult implements Serializable{
 	public FacetAccessible getFacetAccessor(String name) {
       return _facetMap.get(name);
 	}
-	
+
 	/**
 	 * Get the hit count
 	 * @return hit count
@@ -198,7 +197,7 @@ public class BrowseResult implements Serializable{
 		totalDocs = docs;
     return this;
 	}
-	
+
 	/**
 	 * Gets the total number of groups in the index
 	 * @return total number of groups in the index.
@@ -216,7 +215,7 @@ public class BrowseResult implements Serializable{
 	//public void setTotalGroups(int groups) {
 		//totalGroups = groups;
 	//}
-	
+
 	/**
 	 * Add a container full of choices
    * @param facets container full of facets
@@ -224,8 +223,8 @@ public class BrowseResult implements Serializable{
 	public BrowseResult addFacets(String name, FacetAccessible facets){
 		_facetMap.put(name,facets);
     return this;
-	}	
-	
+	}
+
 	/**
 	 * Add all of the given FacetAccessible to this BrowseResult
    * @param facets map of facets to add to the result set
@@ -234,7 +233,7 @@ public class BrowseResult implements Serializable{
 		_facetMap.putAll(facets);
     return this;
 	}
-	
+
 	/**
 	 * Sets the hits
 	 *
@@ -245,7 +244,7 @@ public class BrowseResult implements Serializable{
 		this.hits=hits;
     return this;
 	}
-	
+
 	/**
 	 * Gets the hits
 	 * @return hits
@@ -254,7 +253,7 @@ public class BrowseResult implements Serializable{
 	public BrowseHit[] getHits(){
 		return hits==null ? NO_HITS : hits;
 	}
-	
+
 	/**
 	 * Sets the search time in milliseconds
 	 *
@@ -264,7 +263,7 @@ public class BrowseResult implements Serializable{
 	public void setTime(long time){
 		this.time=time;
 	}
-	
+
 	/**
 	 * Gets the search time in milliseconds
 	 * @return search time
@@ -273,7 +272,7 @@ public class BrowseResult implements Serializable{
 	public long getTime(){
 		return time;
 	}
-	
+
 	/**
 	 * Gets all the facet collections
 	 * @return list of facet collections
@@ -281,7 +280,7 @@ public class BrowseResult implements Serializable{
 	public Map<String,FacetAccessible> getFacetMap(){
 		return _facetMap;
 	}
-    
+
 	public MapReduceResult getMapReduceResult() {
 		return mapReduceResult;
 	}
@@ -293,7 +292,7 @@ public class BrowseResult implements Serializable{
 	public static String toString(Map<String,FacetAccessible> map) {
 		StringBuilder buffer=new StringBuilder();
 		Set<Entry<String,FacetAccessible>> entries = map.entrySet();
-		
+
 		buffer.append("{");
 		for (Entry<String,FacetAccessible> entry : entries)
 		{
@@ -305,7 +304,7 @@ public class BrowseResult implements Serializable{
 		buffer.append("}").append('\n');
 		return buffer.toString();
 	}
-	
+
 	@Override
 	public String toString(){
 		StringBuilder buf=new StringBuilder();
@@ -315,7 +314,7 @@ public class BrowseResult implements Serializable{
 		buf.append("hits: ").append(Arrays.toString(hits));
 		return buf.toString();
 	}
-	
+
 	public void close()
 	{
     if (_groupAccessibles != null)

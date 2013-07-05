@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.lucene.util.OpenBitSet;
-
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetIterator;
@@ -18,21 +16,16 @@ import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
 public  final class AttributesFacetCountCollector extends DefaultFacetCountCollector {
-  private final AttributesFacetHandler attributesFacetHandler;
   public final BigNestedIntArray _array;
-  private int[] buffer;   
   private List<BrowseFacet> cachedFacets;
   private final int numFacetsPerKey;
   private final char separator;
-  private OpenBitSet excludes;
-  private OpenBitSet includes;
-  private final MultiValueFacetDataCache dataCache;
+  private final MultiValueFacetDataCache<?> dataCache;
   private String[] values;
-  
+
   @SuppressWarnings("rawtypes")
   public AttributesFacetCountCollector(AttributesFacetHandler attributesFacetHandler, String name, MultiValueFacetDataCache dataCache, int docBase, BrowseSelection browseSelection, FacetSpec ospec, int numFacetsPerKey, char separator){
     super(name,dataCache,docBase,browseSelection,ospec);
-    this.attributesFacetHandler = attributesFacetHandler;
     this.dataCache = dataCache;
     this.numFacetsPerKey = numFacetsPerKey;
     this.separator = separator;
@@ -43,8 +36,8 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
   }
 
   @Override
-  public final void collect(int docid) {    
-      dataCache._nestedArray.countNoReturn(docid, _count);    
+  public final void collect(int docid) {
+      dataCache._nestedArray.countNoReturn(docid, _count);
   }
 
   @Override
@@ -64,7 +57,7 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
     }
     return cachedFacets;
   }
-  
+
   private void filterByKeys(List<BrowseFacet> facets, char separator, int numFacetsPerKey, String[] values) {
     Map<String, AtomicInteger> keyOccurences = new HashMap<String, AtomicInteger>();
     Iterator<BrowseFacet> iterator = facets.iterator();
@@ -77,7 +70,7 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
         continue;
       }
       if (values !=null && values.length > 0) {
-        boolean belongsToKeys = false;       
+        boolean belongsToKeys = false;
         for (String val : values) {
           if (value.startsWith(val)) {
             belongsToKeys = true;
@@ -99,11 +92,11 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
       if (count > numFacetsPerKey) {
         iterator.remove();
       }
-    }    
+    }
   }
 
   @Override
-  public FacetIterator iterator() {    
+  public FacetIterator iterator() {
     return new AttributesFacetIterator(getFacets());
-  }  
+  }
 }

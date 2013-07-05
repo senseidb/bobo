@@ -6,13 +6,9 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 public class TermIntList extends TermNumberList<Integer>
 {
-  private static Logger log = Logger.getLogger(TermIntList.class);
   private int[] _elements = null;
-  private int sanity = -1;
   private boolean withDummy = true;
   public static final int VALUE_MISSING = Integer.MIN_VALUE;
   private static int parse(String s)
@@ -46,7 +42,7 @@ public class TermIntList extends TermNumberList<Integer>
   {
     if (_innerList.size() == 0 && o!=null) withDummy = false; // the first value added is not null
     int item = parse(o);
-  
+
     return ((IntArrayList) _innerList).add(item);
   }
 
@@ -226,7 +222,7 @@ public class TermIntList extends TermNumberList<Integer>
     else
       return Arrays.binarySearch(_elements, val) >= 0;
   }
-  
+
   @Override
   public boolean containsWithType(Integer val)
   {
@@ -252,7 +248,7 @@ public class TermIntList extends TermNumberList<Integer>
     return _elements;
   }
   @Override
-  public double getDoubleValue(int index) {    
+  public double getDoubleValue(int index) {
     return _elements[index];
   }
 }

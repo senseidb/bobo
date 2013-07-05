@@ -6,14 +6,15 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.IOException;
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.index.TermEnum;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.util.BytesRef;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.facets.FacetHandler.TermCountSize;
 import com.browseengine.bobo.sort.DocComparator;
@@ -24,10 +25,9 @@ import com.browseengine.bobo.util.BigSegmentedArray;
 import com.browseengine.bobo.util.BigShortArray;
 
 public class FacetDataCache<T> implements Serializable {
-  private static Logger logger = Logger.getLogger(FacetDataCache.class.getName());
   /**
-	 * 
-	 */
+   *
+   */
   private static final long serialVersionUID = 1L;
 
   public BigSegmentedArray orderArray;
@@ -36,8 +36,8 @@ public class FacetDataCache<T> implements Serializable {
   public int[] minIDs;
   public int[] maxIDs;
 
-  public FacetDataCache(BigSegmentedArray orderArray, TermValueList<T> valArray, int[] freqs, int[] minIDs,
-      int[] maxIDs, TermCountSize termCountSize) {
+  public FacetDataCache(BigSegmentedArray orderArray, TermValueList<T> valArray, int[] freqs,
+      int[] minIDs, int[] maxIDs, TermCountSize termCountSize) {
     this.orderArray = orderArray;
     this.valArray = valArray;
     this.freqs = freqs;
@@ -59,128 +59,118 @@ public class FacetDataCache<T> implements Serializable {
   }
 
   private final static BigSegmentedArray newInstance(int termCount, int maxDoc) {
-    // we use < instead of <= to take into consideration "missing" value (zero element in the dictionary)
+    // we use < instead of <= to take into consideration "missing" value (zero element in the
+    // dictionary)
     if (termCount < Byte.MAX_VALUE) {
       return new BigByteArray(maxDoc);
     } else if (termCount < Short.MAX_VALUE) {
       return new BigShortArray(maxDoc);
-    } else
-      return new BigIntArray(maxDoc);
+    } else return new BigIntArray(maxDoc);
   }
 
-  protected int getDictValueCount(IndexReader reader, String field) throws IOException {
-    int ret = 0;   
-    TermEnum termEnum = null;
-    try {
-      termEnum = reader.terms(new Term(field, ""));
-      do {
-        Term term = termEnum.term();
-        if (term == null || !term.field().equals(field))
-          break;
-        ret++;
-      } while (termEnum.next());
-    } finally {
-      termEnum.close();
+  protected int getDictValueCount(AtomicReader reader, String field) throws IOException {
+    int ret = 0;
+    Terms terms = reader.terms(field);
+    if (terms == null) {
+      return ret;
+    }
+    TermsEnum termsEnum = terms.iterator(null);
+    while (termsEnum.next() != null) {
+      ret++;
     }
     return ret;
   }
-  protected int getNegativeValueCount(IndexReader reader, String field) throws IOException {
-      int ret = 0;   
-      TermEnum termEnum = null;
-      try {
-        termEnum = reader.terms(new Term(field, ""));
-        do {
-          Term term = termEnum.term();
-          if (term == null || term.field() != field)
-            break;
-          if (!term.text().startsWith("-")) {
-            break;
-          }
-          ret++;
-        } while (termEnum.next());
-      } finally {
-        termEnum.close();
-      }
+
+  protected int getNegativeValueCount(AtomicReader reader, String field) throws IOException {
+    int ret = 0;
+    Terms terms = reader.terms(field);
+    if (terms == null) {
       return ret;
     }
-  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory) throws IOException {
+
+    TermsEnum termsEnum = terms.iterator(null);
+    BytesRef text;
+    while ((text = termsEnum.next()) != null) {
+      if (!text.utf8ToString().startsWith("-")) {
+        break;
+      }
+      ret++;
+    }
+    return ret;
+  }
+
+  public void load(String fieldName, AtomicReader reader, TermListFactory<T> listFactory)
+      throws IOException {
     String field = fieldName.intern();
     int maxDoc = reader.maxDoc();
 
     BigSegmentedArray order = this.orderArray;
     if (order == null) // we want to reuse the memory
     {
-        int dictValueCount = getDictValueCount(reader, fieldName);
-        order = newInstance(dictValueCount, maxDoc);
+      int dictValueCount = getDictValueCount(reader, fieldName);
+      order = newInstance(dictValueCount, maxDoc);
     } else {
       order.ensureCapacity(maxDoc); // no need to fill to 0, we are reseting the
                                     // data anyway
     }
     this.orderArray = order;
-    
+
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
 
     int length = maxDoc + 1;
-    TermValueList<T> list = listFactory == null ? (TermValueList<T>) new TermStringList() : listFactory
-        .createTermList();
-    int negativeValueCount = getNegativeValueCount(reader, field); 
-    
-    TermDocs termDocs = reader.termDocs();
-    TermEnum termEnum = reader.terms(new Term(field, ""));
+    @SuppressWarnings("unchecked")
+    TermValueList<T> list = listFactory == null ? (TermValueList<T>) new TermStringList()
+        : listFactory.createTermList();
+    int negativeValueCount = getNegativeValueCount(reader, field);
+
+    Terms terms = reader.terms(field);
+    TermsEnum termsEnum = terms.iterator(null);
     int t = 0; // current term number
 
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
-    int totalFreq = 0;    
-    // int df = 0;
+    int totalFreq = 0;
     t++;
-    try {
-      do {
-        Term term = termEnum.term();
-        if (term == null || term.field() != field)
-          break;
 
-        
-        // store term text
-        // we expect that there is at most one term per document
-        if (t >= length)
-          throw new RuntimeException("there are more terms than " + "documents in field \"" + field
-              + "\", but it's impossible to sort on " + "tokenized fields");
-        list.add(term.text());
-        termDocs.seek(termEnum);
-        // freqList.add(termEnum.docFreq()); // doesn't take into account
-        // deldocs
-        int minID = -1;
-        int maxID = -1;
-        int df = 0;
-        int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
-        if (termDocs.next()) {
+    BytesRef text;
+    while ((text = termsEnum.next()) != null) {
+      // store term text
+      // we expect that there is at most one term per document
+      if (t >= length) throw new RuntimeException("there are more terms than "
+          + "documents in field \"" + field + "\", but it's impossible to sort on "
+          + "tokenized fields");
+      String strText = text.utf8ToString();
+      list.add(strText);
+      Term term = new Term(field, strText);
+      DocsEnum docsEnum = reader.termDocsEnum(term);
+      // freqList.add(termEnum.docFreq()); // doesn't take into account
+      // deldocs
+      int minID = -1;
+      int maxID = -1;
+      int docID = -1;
+      int df = 0;
+      int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
+      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+        df++;
+        order.add(docID, valId);
+        minID = docID;
+        while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
           df++;
-          int docid = termDocs.doc();
-          order.add(docid, valId);
-          minID = docid;
-          while (termDocs.next()) {
-            df++;
-            docid = termDocs.doc();
-            order.add(docid, valId);
-          }
-          maxID = docid;
+          order.add(docID, valId);
         }
-        freqList.add(df);
-        totalFreq += df;
-        minIDList.add(minID);
-        maxIDList.add(maxID);
-
-        t++;
-      } while (termEnum.next());
-    } finally {
-      termDocs.close();
-      termEnum.close();
+        maxID = docID;
+      }
+      freqList.add(df);
+      totalFreq += df;
+      minIDList.add(minID);
+      maxIDList.add(maxID);
+      t++;
     }
+
     list.seal();
     this.valArray = list;
     this.freqs = freqList.toIntArray();
@@ -205,7 +195,7 @@ public class FacetDataCache<T> implements Serializable {
     this.freqs[0] = maxDoc + 1 - totalFreq;
   }
 
-  private static int[] convertString(FacetDataCache dataCache, String[] vals) {
+  private static int[] convertString(FacetDataCache<?> dataCache, String[] vals) {
     IntList list = new IntArrayList(vals.length);
     for (int i = 0; i < vals.length; ++i) {
       int index = dataCache.valArray.indexOf(vals[i]);
@@ -220,15 +210,14 @@ public class FacetDataCache<T> implements Serializable {
    * Same as convert(FacetDataCache dataCache,String[] vals) except that the
    * values are supplied in raw form so that we can take advantage of the type
    * information to find index faster.
-   * 
+   *
    * @param <T>
    * @param dataCache
    * @param vals
    * @return the array of order indices of the values.
    */
   public static <T> int[] convert(FacetDataCache<T> dataCache, T[] vals) {
-    if (vals != null && (vals instanceof String[]))
-      return convertString(dataCache, (String[]) vals);
+    if (vals != null && (vals instanceof String[])) return convertString(dataCache, (String[]) vals);
     IntList list = new IntArrayList(vals.length);
     for (int i = 0; i < vals.length; ++i) {
       int index = dataCache.valArray.indexOfWithType(vals[i]);
@@ -240,25 +229,24 @@ public class FacetDataCache<T> implements Serializable {
   }
 
   public static class FacetDocComparatorSource extends DocComparatorSource {
-    private FacetHandler<FacetDataCache> _facetHandler;
+    private final FacetHandler<FacetDataCache<?>> _facetHandler;
 
-    public FacetDocComparatorSource(FacetHandler<FacetDataCache> facetHandler) {
+    public FacetDocComparatorSource(FacetHandler<FacetDataCache<?>> facetHandler) {
       _facetHandler = facetHandler;
     }
 
     @Override
-    public DocComparator getComparator(IndexReader reader, int docbase) throws IOException {
-      if (!(reader instanceof BoboIndexReader))
-        throw new IllegalStateException("reader not instance of " + BoboIndexReader.class);
-      BoboIndexReader boboReader = (BoboIndexReader) reader;
-      final FacetDataCache dataCache = _facetHandler.getFacetData(boboReader);
+    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
+      if (!(reader instanceof BoboSegmentReader)) throw new IllegalStateException(
+          "reader not instance of " + BoboSegmentReader.class);
+      BoboSegmentReader boboReader = (BoboSegmentReader) reader;
+      final FacetDataCache<?> dataCache = _facetHandler.getFacetData(boboReader);
       final BigSegmentedArray orderArray = dataCache.orderArray;
       return new DocComparator() {
-        
         @Override
-        public Comparable value(ScoreDoc doc) {
+        public Comparable<?> value(ScoreDoc doc) {
           int index = orderArray.get(doc.doc);
-          return dataCache.valArray.getComparableValue(index);          
+          return dataCache.valArray.getComparableValue(index);
         }
 
         @Override

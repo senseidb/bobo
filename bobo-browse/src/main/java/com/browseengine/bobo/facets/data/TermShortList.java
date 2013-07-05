@@ -6,13 +6,9 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 public class TermShortList extends TermNumberList<Short>
 {
-  private static Logger log = Logger.getLogger(TermShortList.class);
   private short[] _elements = null;
-  private short sanity = -1;
   private boolean withDummy = true;
   public static final short VALUE_MISSING = Short.MIN_VALUE;
   private static short parse(String s)
@@ -179,7 +175,7 @@ public class TermShortList extends TermNumberList<Short>
     else
       return Arrays.binarySearch(_elements, val) >= 0;
   }
-  
+
   @Override
   public boolean containsWithType(Short val)
   {
@@ -206,8 +202,8 @@ public class TermShortList extends TermNumberList<Short>
   }
 
   @Override
-  public double getDoubleValue(int index) {    
+  public double getDoubleValue(int index) {
     return _elements[index];
   }
-  
+
 }

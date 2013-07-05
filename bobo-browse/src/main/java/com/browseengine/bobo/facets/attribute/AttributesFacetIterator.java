@@ -7,7 +7,7 @@ import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.FacetIterator;
 
 public class AttributesFacetIterator extends FacetIterator {
-  private Iterator<BrowseFacet> iterator;
+  private final Iterator<BrowseFacet> iterator;
 
   public AttributesFacetIterator(List<BrowseFacet> facets) {
     iterator = facets.iterator();
@@ -21,12 +21,11 @@ public class AttributesFacetIterator extends FacetIterator {
 
   @Override
   public void remove() {
-   throw new UnsupportedOperationException();
-    
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public Comparable next() {
+  public Comparable<?> next() {
     count = 0;
     BrowseFacet next = iterator.next();
     if (next == null) {
@@ -38,7 +37,7 @@ public class AttributesFacetIterator extends FacetIterator {
   }
 
   @Override
-  public Comparable next(int minHits) {
+  public Comparable<?> next(int minHits) {
     while (iterator.hasNext()) {
       BrowseFacet next = iterator.next();
       count = next.getFacetValueHitCount();

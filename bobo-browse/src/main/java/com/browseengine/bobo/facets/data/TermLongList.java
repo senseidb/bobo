@@ -6,15 +6,11 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 public class TermLongList extends TermNumberList<Long>
 {
-  private static Logger log = Logger.getLogger(TermLongList.class);
   protected long[] _elements = null;
-  private long sanity = -1;
   private boolean withDummy = true;
-  public static final long VALUE_MISSING = Long.MIN_VALUE;  
+  public static final long VALUE_MISSING = Long.MIN_VALUE;
   protected long parse(String s)
   {
     if (s == null || s.length() == 0)
@@ -72,7 +68,7 @@ public class TermLongList extends TermNumberList<Long>
     }
     if (formatter == null)
       return String.valueOf(val);
-    
+
     return formatter.format(val);
   }
 
@@ -185,7 +181,7 @@ public class TermLongList extends TermNumberList<Long>
     else
       return Arrays.binarySearch(_elements, val) >= 0;
   }
-  
+
   @Override
   public boolean containsWithType(Long val)
   {
@@ -206,12 +202,12 @@ public class TermLongList extends TermNumberList<Long>
     else
       return Arrays.binarySearch(_elements, val) >= 0;
   }
-  
+
   public long[] getElements() {
     return _elements;
   }
   @Override
-  public double getDoubleValue(int index) {    
+  public double getDoubleValue(int index) {
     return _elements[index];
   }
 }

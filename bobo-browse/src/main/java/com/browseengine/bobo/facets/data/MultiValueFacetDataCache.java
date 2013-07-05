@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.browseengine.bobo.facets.data;
 
@@ -8,16 +8,18 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.DocsAndPositionsEnum;
+import org.apache.lucene.index.DocsEnum;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermDocs;
-import org.apache.lucene.index.TermEnum;
-import org.apache.lucene.index.TermPositions;
+import org.apache.lucene.index.Terms;
+import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.OpenBitSet;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
+import com.browseengine.bobo.api.BoboSegmentReader;
+import com.browseengine.bobo.api.BoboSegmentReader.WorkArea;
 import com.browseengine.bobo.facets.range.MultiDataCacheBuilder;
 import com.browseengine.bobo.sort.DocComparator;
 import com.browseengine.bobo.sort.DocComparatorSource;
@@ -27,43 +29,36 @@ import com.browseengine.bobo.util.BigNestedIntArray.BufferedLoader;
 import com.browseengine.bobo.util.BigNestedIntArray.Loader;
 import com.browseengine.bobo.util.StringArrayComparator;
 
-/**
- * @author ymatsuda
- *
- */
-public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
-{
+public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(MultiValueFacetDataCache.class);
- 
+
   public final BigNestedIntArray _nestedArray;
   protected int _maxItems = BigNestedIntArray.MAX_ITEMS;
   protected boolean _overflow = false;
-  
-  public MultiValueFacetDataCache()
-  {
+
+  public MultiValueFacetDataCache() {
     super();
     _nestedArray = new BigNestedIntArray();
   }
-  
-  public MultiValueFacetDataCache<T> setMaxItems(int maxItems)
-  {
+
+  public MultiValueFacetDataCache<T> setMaxItems(int maxItems) {
     _maxItems = Math.min(maxItems, BigNestedIntArray.MAX_ITEMS);
     _nestedArray.setMaxItems(_maxItems);
     return this;
   }
-  
+
   @Override
-  public int getNumItems(int docid){
-	  return _nestedArray.getNumItems(docid);
+  public int getNumItems(int docid) {
+    return _nestedArray.getNumItems(docid);
   }
-  
+
   @Override
-  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory) throws IOException
-  {
+  public void load(String fieldName, AtomicReader reader, TermListFactory<T> listFactory)
+      throws IOException {
     this.load(fieldName, reader, listFactory, new WorkArea());
   }
-  
+
   /**
    * loads multi-value facet data. This method uses a workarea to prepare loading.
    * @param fieldName
@@ -72,136 +67,93 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
    * @param workArea
    * @throws IOException
    */
-  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory, WorkArea workArea) throws IOException
-  {
-    long t0 = System.currentTimeMillis();
+  public void load(String fieldName, AtomicReader reader, TermListFactory<T> listFactory,
+      WorkArea workArea) throws IOException {
+    String field = fieldName.intern();
     int maxdoc = reader.maxDoc();
     BufferedLoader loader = getBufferedLoader(maxdoc, workArea);
 
-    TermEnum tenum = null;
-    TermDocs tdoc = null;
-    TermValueList<T> list = (listFactory == null ? (TermValueList<T>)new TermStringList() : listFactory.createTermList());
+    @SuppressWarnings("unchecked")
+    TermValueList<T> list = (listFactory == null ? (TermValueList<T>) new TermStringList()
+        : listFactory.createTermList());
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
     OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
-    int negativeValueCount = getNegativeValueCount(reader, fieldName.intern()); 
+    int negativeValueCount = getNegativeValueCount(reader, field);
     int t = 0; // current term number
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
     t++;
-    
+
     _overflow = false;
-    try
-    {
-      tdoc = reader.termDocs();
-      tenum = reader.terms(new Term(fieldName, ""));
-      if (tenum != null)
-      {
-        do
-        {
-          Term term = tenum.term();
-          if (term == null || !fieldName.equals(term.field()))
-            break;
 
-          String val = term.text();
+    Terms terms = reader.terms(field);
+    TermsEnum termsEnum = terms.iterator(null);
+    BytesRef text;
+    while ((text = termsEnum.next()) != null) {
+      String strText = text.utf8ToString();
+      list.add(strText);
 
-          if (val != null)
-          {
-            list.add(val);
-
-            tdoc.seek(tenum);
-            //freqList.add(tenum.docFreq()); // removed because the df doesn't take into account the num of deletedDocs
-            int df = 0;
-            int minID = -1;
-            int maxID = -1;
-            int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
-            if(tdoc.next())
-            {
-              df++;
-              int docid = tdoc.doc();
-              if(!loader.add(docid, valId)) logOverflow(fieldName);
-              minID = docid;
-              bitset.fastSet(docid);
-              while(tdoc.next())
-              {
-                df++;
-                docid = tdoc.doc();
-               
-                if(!loader.add(docid, valId)) logOverflow(fieldName);
-                bitset.fastSet(docid);
-              }
-              maxID = docid;
-            }
-            freqList.add(df);
-            minIDList.add(minID);
-            maxIDList.add(maxID);
-          }
-
-          t++;
+      Term term = new Term(field, strText);
+      DocsEnum docsEnum = reader.termDocsEnum(term);
+      // freqList.add(tenum.docFreq()); // removed because the df doesn't take into account
+      // the num of deletedDocs
+      int df = 0;
+      int minID = -1;
+      int maxID = -1;
+      int docID = -1;
+      int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
+      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+        df++;
+        if (!loader.add(docID, valId)) logOverflow(fieldName);
+        minID = docID;
+        bitset.fastSet(docID);
+        while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+          df++;
+          if (!loader.add(docID, valId)) logOverflow(fieldName);
+          bitset.fastSet(docID);
         }
-        while (tenum.next());
+        maxID = docID;
       }
-    }
-    finally
-    {
-      try
-      {
-        if (tdoc != null)
-        {
-          tdoc.close();
-        }
-      }
-      finally
-      {
-        if (tenum != null)
-        {
-          tenum.close();
-        }
-      }
+      freqList.add(df);
+      minIDList.add(minID);
+      maxIDList.add(maxID);
+      t++;
     }
 
     list.seal();
 
-    try
-    {
+    try {
       _nestedArray.load(maxdoc + 1, loader);
-    }
-    catch (IOException e)
-    {
+    } catch (IOException e) {
       throw e;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       throw new RuntimeException("failed to load due to " + e.toString(), e);
     }
-    
+
     this.valArray = list;
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true))
-    {
+    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
       ++doc;
     }
-    if (doc <= maxdoc)
-    {
+    if (doc <= maxdoc) {
       this.minIDs[0] = doc;
       doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true))
-      {
+      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
         --doc;
       }
-      if (doc > 0)
-      {
+      if (doc > 0) {
         this.maxIDs[0] = doc;
       }
     }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();   
+    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 
   /**
@@ -212,27 +164,23 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
    * @param listFactory
    * @throws IOException
    */
-  public void load(String fieldName, IndexReader reader, TermListFactory<T> listFactory, Term sizeTerm) throws IOException
-  {
+  public void load(String fieldName, AtomicReader reader, TermListFactory<T> listFactory,
+      Term sizeTerm) throws IOException {
+    String field = fieldName.intern();
     int maxdoc = reader.maxDoc();
     Loader loader = new AllocOnlyLoader(_maxItems, sizeTerm, reader);
-    int negativeValueCount = getNegativeValueCount(reader, fieldName.intern()); 
-    try
-    {
+    int negativeValueCount = getNegativeValueCount(reader, field);
+    try {
       _nestedArray.load(maxdoc + 1, loader);
-    }
-    catch (IOException e)
-    {
+    } catch (IOException e) {
       throw e;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       throw new RuntimeException("failed to load due to " + e.toString(), e);
     }
-    
-    TermEnum tenum = null;
-    TermDocs tdoc = null;
-    TermValueList<T> list = (listFactory == null ? (TermValueList<T>)new TermStringList() : listFactory.createTermList());
+
+    @SuppressWarnings("unchecked")
+    TermValueList<T> list = (listFactory == null ? (TermValueList<T>) new TermStringList()
+        : listFactory.createTermList());
     IntArrayList minIDList = new IntArrayList();
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
@@ -246,223 +194,162 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T>
     t++;
 
     _overflow = false;
-    try
-    {
-      tdoc = reader.termDocs();
-      tenum = reader.terms(new Term(fieldName, ""));
-      if (tenum != null)
-      {
-        do
-        {
-          Term term = tenum.term();
-          if(term == null || !fieldName.equals(term.field()))
-            break;
-          
-          String val = term.text();
-          
-          if (val != null)
-          {
-            list.add(val);
-            
-            tdoc.seek(tenum);
-            //freqList.add(tenum.docFreq()); // removed because the df doesn't take into account the num of deletedDocs
-            int df = 0;
-            int minID = -1;
-            int maxID = -1;
-            if(tdoc.next())
-            {
-              df++;
-              int docid = tdoc.doc();
-              if (!_nestedArray.addData(docid, t)) logOverflow(fieldName);
-              minID = docid;
-              bitset.fastSet(docid);
-              int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
-              while(tdoc.next())
-              {
-                df++;
-                docid = tdoc.doc();
-                if(!_nestedArray.addData(docid, valId)) logOverflow(fieldName);
-                bitset.fastSet(docid);
-              }
-              maxID = docid;
-            }
-            freqList.add(df);
-            minIDList.add(minID);
-            maxIDList.add(maxID);
-          }
-          
-          t++;
+
+    Terms terms = reader.terms(field);
+    TermsEnum termsEnum = terms.iterator(null);
+    BytesRef text;
+    while ((text = termsEnum.next()) != null) {
+      String strText = text.utf8ToString();
+      list.add(strText);
+
+      Term term = new Term(field, strText);
+      DocsEnum docsEnum = reader.termDocsEnum(term);
+
+      list.add(strText);
+
+      int df = 0;
+      int minID = -1;
+      int maxID = -1;
+      int docID = -1;
+      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+        df++;
+
+        if (!_nestedArray.addData(docID, t)) logOverflow(fieldName);
+        minID = docID;
+        bitset.fastSet(docID);
+        int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
+        while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+          df++;
+          if (!_nestedArray.addData(docID, valId)) logOverflow(fieldName);
+          bitset.fastSet(docID);
         }
-        while (tenum.next());
+        maxID = docID;
       }
+      freqList.add(df);
+      minIDList.add(minID);
+      maxIDList.add(maxID);
+      t++;
     }
-    finally
-    {
-      try
-      {
-        if (tdoc != null)
-        {
-          tdoc.close();
-        }
-      }
-      finally
-      {
-        if (tenum != null)
-        {
-          tenum.close();
-        }
-      }
-    }
-    
+
     list.seal();
-    
+
     this.valArray = list;
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true))
-    {
+    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
       ++doc;
     }
-    if (doc <= maxdoc)
-    {
+    if (doc <= maxdoc) {
       this.minIDs[0] = doc;
       doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true))
-      {
+      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
         --doc;
       }
-      if (doc > 0)
-      {
+      if (doc > 0) {
         this.maxIDs[0] = doc;
       }
     }
     this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
-    
   }
-  
-  protected void logOverflow(String fieldName)
-  {
-    if (!_overflow)
-    {
-      logger.error("Maximum value per document: " + _maxItems + " exceeded, fieldName=" + fieldName);
+
+  protected void logOverflow(String fieldName) {
+    if (!_overflow) {
+      logger
+          .error("Maximum value per document: " + _maxItems + " exceeded, fieldName=" + fieldName);
       _overflow = true;
     }
   }
 
-  protected BufferedLoader getBufferedLoader(int maxdoc, WorkArea workArea)
-  {
-    if(workArea == null)
-    {
+  protected BufferedLoader getBufferedLoader(int maxdoc, WorkArea workArea) {
+    if (workArea == null) {
       return new BufferedLoader(maxdoc, _maxItems, new BigIntBuffer());
-    }
-    else
-    {
+    } else {
       BigIntBuffer buffer = workArea.get(BigIntBuffer.class);
-      if(buffer == null)
-      {
+      if (buffer == null) {
         buffer = new BigIntBuffer();
         workArea.put(buffer);
-      }
-      else
-      {
+      } else {
         buffer.reset();
       }
-      
-      BufferedLoader loader = workArea.get(BufferedLoader.class);      
-      if(loader == null || loader.capacity() < maxdoc)
-      {
+
+      BufferedLoader loader = workArea.get(BufferedLoader.class);
+      if (loader == null || loader.capacity() < maxdoc) {
         loader = new BufferedLoader(maxdoc, _maxItems, buffer);
         workArea.put(loader);
-      }
-      else
-      {
+      } else {
         loader.reset(maxdoc, _maxItems, buffer);
       }
       return loader;
     }
   }
-  
+
   /**
    * A loader that allocate data storage without loading data to BigNestedIntArray.
    * Note that this loader supports only non-negative integer data.
    */
-  public final static class AllocOnlyLoader extends Loader
-  {
-    private IndexReader _reader;
-    private Term _sizeTerm;
-    private int _maxItems;
-    
-    public AllocOnlyLoader(int maxItems, Term sizeTerm, IndexReader reader) throws IOException
-    {
+  public final static class AllocOnlyLoader extends Loader {
+    private final AtomicReader _reader;
+    private final Term _sizeTerm;
+    private final int _maxItems;
+
+    public AllocOnlyLoader(int maxItems, Term sizeTerm, AtomicReader reader) throws IOException {
       _maxItems = Math.min(maxItems, BigNestedIntArray.MAX_ITEMS);
       _sizeTerm = sizeTerm;
       _reader = reader;
     }
-    
-    @Override
-    public void load() throws Exception
-    {
-      TermPositions tp = null;
-      byte[] payloadBuffer = new byte[4];        // four bytes for an int
-      try
-      {
-        tp = _reader.termPositions(_sizeTerm);
 
-        if(tp == null) return;
-        
-        while(tp.next())
-        {
-          if(tp.freq() > 0)
-          {
-            tp.nextPosition();
-            tp.getPayload(payloadBuffer, 0);
-            int len = bytesToInt(payloadBuffer);
-            allocate(tp.doc(), Math.min(len, _maxItems), true);
-          }
+    @Override
+    public void load() throws Exception {
+      DocsAndPositionsEnum docPosEnum = _reader.termPositionsEnum(_sizeTerm);
+      if (docPosEnum == null) {
+        return;
+      }
+      int docID = -1;
+      while ((docID = docPosEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+        if (docPosEnum.freq() > 0) {
+          docPosEnum.nextPosition();
+          int len = bytesToInt(docPosEnum.getPayload().bytes);
+          allocate(docID, Math.min(len, _maxItems), true);
         }
       }
-      finally
-      {
-        if(tp != null) tp.close();
-      }
     }
-    
-    private static int bytesToInt(byte[] bytes) 
-    {
-      return ((bytes[3] & 0xFF) << 24) | ((bytes[2] & 0xFF) << 16) | 
-              ((bytes[1] & 0xFF) <<  8) |  (bytes[0] & 0xFF);
+
+    private static int bytesToInt(byte[] bytes) {
+      return ((bytes[3] & 0xFF) << 24) | ((bytes[2] & 0xFF) << 16) | ((bytes[1] & 0xFF) << 8)
+          | (bytes[0] & 0xFF);
     }
   }
-    
-	public final static class MultiFacetDocComparatorSource extends DocComparatorSource{
-		private MultiDataCacheBuilder cacheBuilder;
-		public MultiFacetDocComparatorSource(MultiDataCacheBuilder multiDataCacheBuilder){
-		  cacheBuilder = multiDataCacheBuilder;
-		}
-		
-		@Override
-		public DocComparator getComparator(final IndexReader reader, int docbase)
-				throws IOException {
-			if (!(reader instanceof BoboIndexReader)) throw new IllegalStateException("reader must be instance of "+BoboIndexReader.class);
-			BoboIndexReader boboReader = (BoboIndexReader)reader;
-			final MultiValueFacetDataCache dataCache = cacheBuilder.build(boboReader);
-			return new DocComparator(){
-				
-				@Override
-				public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-					return dataCache._nestedArray.compare(doc1.doc, doc2.doc);
-				}
 
-				@Override
-				public Comparable value(ScoreDoc doc) {
-					String[] vals = dataCache._nestedArray.getTranslatedData(doc.doc, dataCache.valArray);
-			          return new StringArrayComparator(vals);
-				}
-				
-			};
-		}
-	}
+  public final static class MultiFacetDocComparatorSource extends DocComparatorSource {
+    private final MultiDataCacheBuilder cacheBuilder;
+
+    public MultiFacetDocComparatorSource(MultiDataCacheBuilder multiDataCacheBuilder) {
+      cacheBuilder = multiDataCacheBuilder;
+    }
+
+    @Override
+    public DocComparator getComparator(final AtomicReader reader, int docbase) throws IOException {
+      if (!(reader instanceof BoboSegmentReader)) throw new IllegalStateException(
+          "reader must be instance of " + BoboSegmentReader.class);
+      BoboSegmentReader boboReader = (BoboSegmentReader) reader;
+      final MultiValueFacetDataCache<?> dataCache = cacheBuilder.build(boboReader);
+      return new DocComparator() {
+
+        @Override
+        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
+          return dataCache._nestedArray.compare(doc1.doc, doc2.doc);
+        }
+
+        @Override
+        public Comparable<?> value(ScoreDoc doc) {
+          String[] vals = dataCache._nestedArray.getTranslatedData(doc.doc, dataCache.valArray);
+          return new StringArrayComparator(vals);
+        }
+
+      };
+    }
+  }
 }
