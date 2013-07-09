@@ -1,10 +1,8 @@
 package com.browseengine.bobo.sort;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.search.ScoreDoc;
 
 public class DocIDPriorityQueue {
-  private static Logger logger = Logger.getLogger(DocIDPriorityQueue.class.getName());
   public int size;
   final protected ScoreDoc[] heap;
   public final int base;
@@ -17,10 +15,9 @@ public class DocIDPriorityQueue {
     this.base = base;
     int heapSize;
     if (0 == maxSize)
-      // We allocate 1 extra to avoid if statement in top()
-      heapSize = 2;
-    else
-      heapSize = maxSize + 1;
+    // We allocate 1 extra to avoid if statement in top()
+    heapSize = 2;
+    else heapSize = maxSize + 1;
     heap = new ScoreDoc[heapSize];
   }
 
@@ -28,7 +25,7 @@ public class DocIDPriorityQueue {
    * Adds an Object to a PriorityQueue in log(size) time. If one tries to add
    * more objects than maxSize from initialize an
    * {@link ArrayIndexOutOfBoundsException} is thrown.
-   * 
+   *
    * @return the new 'bottom' element in the queue.
    */
   public final ScoreDoc add(ScoreDoc element) {
@@ -63,7 +60,7 @@ public class DocIDPriorityQueue {
    * @return the 'bottom' element in the queue.
    **/
   public ScoreDoc replace(ScoreDoc newEle, ScoreDoc oldEle) {
-    for (int i=1; i<=size; ++i) {
+    for (int i = 1; i <= size; ++i) {
       if (heap[i] == oldEle) {
         heap[i] = newEle;
         upHeap(i);
@@ -86,33 +83,32 @@ public class DocIDPriorityQueue {
     time. */
   public final ScoreDoc pop() {
     if (size > 0) {
-      ScoreDoc result = heap[1];			  // save first value
-      heap[1] = heap[size];			  // move last to first
-      heap[size] = null;			  // permit GC of objects
+      ScoreDoc result = heap[1]; // save first value
+      heap[1] = heap[size]; // move last to first
+      heap[size] = null; // permit GC of objects
       size--;
-      downHeap(1);				  // adjust heap
+      downHeap(1); // adjust heap
       return result;
-    } else
-      return null;
+    } else return null;
   }
 
   /**
    * Should be called when the Object at top changes values. Still log(n) worst
    * case, but it's at least twice as fast to
-   * 
+   *
    * <pre>
    * pq.top().change();
    * pq.updateTop();
    * </pre>
-   * 
+   *
    * instead of
-   * 
+   *
    * <pre>
    * o = pq.pop();
    * o.change();
    * pq.push(o);
    * </pre>
-   * 
+   *
    * @return the new 'top' element.
    */
   public final ScoreDoc updateTop() {
@@ -134,25 +130,25 @@ public class DocIDPriorityQueue {
   }
 
   private final void upHeap(int i) {
-    ScoreDoc node = heap[i];			  // save bottom node
+    ScoreDoc node = heap[i]; // save bottom node
     int j = i >>> 1;
     while (j > 0 && compare(node, heap[j]) < 0) {
-      heap[i] = heap[j];			  // shift parents down
+      heap[i] = heap[j]; // shift parents down
       i = j;
       j = j >>> 1;
     }
-    heap[i] = node;				  // install saved node
+    heap[i] = node; // install saved node
   }
 
   private final void downHeap(int i) {
-    ScoreDoc node = heap[i];			  // save top node
-    int j = i << 1;				  // find smaller child
+    ScoreDoc node = heap[i]; // save top node
+    int j = i << 1; // find smaller child
     int k = j + 1;
     if (k <= size && compare(heap[k], heap[j]) < 0) {
       j = k;
     }
     while (j <= size && compare(heap[j], node) < 0) {
-      heap[i] = heap[j];			  // shift up child
+      heap[i] = heap[j]; // shift up child
       i = j;
       j = i << 1;
       k = j + 1;
@@ -160,6 +156,6 @@ public class DocIDPriorityQueue {
         j = k;
       }
     }
-    heap[i] = node;				  // install saved node
+    heap[i] = node; // install saved node
   }
 }

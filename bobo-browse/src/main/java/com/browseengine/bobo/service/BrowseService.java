@@ -29,7 +29,9 @@ import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 
 public interface BrowseService {
-	BrowseResult browse(BrowseRequest req) throws BrowseException;	
-	void close() throws BrowseException;
-	static final BrowseResult EMPTY_RESULT=new BrowseResult();
+  BrowseResult browse(BrowseRequest req) throws BrowseException;
+
+  void close() throws BrowseException;
+
+  static final BrowseResult EMPTY_RESULT = new BrowseResult();
 }
