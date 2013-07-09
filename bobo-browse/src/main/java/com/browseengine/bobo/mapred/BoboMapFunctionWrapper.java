@@ -8,26 +8,31 @@ import com.browseengine.bobo.facets.FacetCountCollector;
  *
  */
 public interface BoboMapFunctionWrapper {
-	/**
-	 * When there is no filter, map reduce will try to map the entire segment
-	 * @param reader
-	 */
-	public void mapFullIndexReader(BoboSegmentReader reader, FacetCountCollector[] facetCountCollectors);
-	/**
-	 * The basic callback method for a single doc
-	 * @param docId
-	 * @param reader
-	 */
-	public void mapSingleDocument(int docId, BoboSegmentReader reader);
-	/**
-	 * The callback method, after the segment was processed
-	 * @param reader
-	 */
-	public void finalizeSegment(BoboSegmentReader reader,  FacetCountCollector[] facetCountCollectors);
-	/**
+  /**
+   * When there is no filter, map reduce will try to map the entire segment
+   * @param reader
+   */
+  public void mapFullIndexReader(BoboSegmentReader reader,
+      FacetCountCollector[] facetCountCollectors);
+
+  /**
+   * The basic callback method for a single doc
+   * @param docId
+   * @param reader
+   */
+  public void mapSingleDocument(int docId, BoboSegmentReader reader);
+
+  /**
+   * The callback method, after the segment was processed
+   * @param reader
+   */
+  public void finalizeSegment(BoboSegmentReader reader, FacetCountCollector[] facetCountCollectors);
+
+  /**
    * The callback method, after the partition was processed
    *
    */
-	public void finalizePartition();
-	public MapReduceResult getResult();
+  public void finalizePartition();
+
+  public MapReduceResult getResult();
 }
