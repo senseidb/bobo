@@ -12,7 +12,8 @@ import java.util.Iterator;
 public abstract class FacetIterator implements Iterator<Comparable<?>>{
 
 	public int count;
-	public Comparable<?> facet;
+	@SuppressWarnings("rawtypes")
+  public Comparable facet;
 
 	/**
 	 * Moves the iteration to the next facet

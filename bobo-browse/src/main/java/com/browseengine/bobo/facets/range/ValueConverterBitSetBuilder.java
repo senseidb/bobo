@@ -10,24 +10,25 @@ public class ValueConverterBitSetBuilder implements BitSetBuilder {
   private final String[] vals;
   private final boolean takeCompliment;
 
-  public ValueConverterBitSetBuilder(FacetValueConverter facetValueConverter, String[] vals,boolean takeCompliment) {
+  public ValueConverterBitSetBuilder(FacetValueConverter facetValueConverter, String[] vals,
+      boolean takeCompliment) {
     this.facetValueConverter = facetValueConverter;
     this.vals = vals;
-    this.takeCompliment = takeCompliment;    
+    this.takeCompliment = takeCompliment;
   }
 
   @Override
-  public OpenBitSet bitSet(FacetDataCache dataCache) {
-    int[] index = facetValueConverter.convert(dataCache, vals);
-    
+  public OpenBitSet bitSet(FacetDataCache<?> dataCache) {
+    @SuppressWarnings("unchecked")
+    int[] index = facetValueConverter.convert((FacetDataCache<String>) dataCache, vals);
+
     OpenBitSet bitset = new OpenBitSet(dataCache.valArray.size());
     for (int i : index) {
       bitset.fastSet(i);
     }
-    if (takeCompliment)
-    {
+    if (takeCompliment) {
       // flip the bits
-      for (int i=0; i < index.length; ++i){
+      for (int i = 0; i < index.length; ++i) {
         bitset.fastFlip(i);
       }
     }

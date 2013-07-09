@@ -4,7 +4,6 @@
 package com.browseengine.bobo.api;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -19,26 +18,23 @@ public class BoboBrowser extends MultiBoboBrowser {
     super(createBrowsables(reader));
   }
 
-  public static void gatherSubReaders(List<BoboSegmentReader> readerList, BoboSegmentReader reader) {
-    readerList.add(reader);
+  public BoboBrowser(BoboMultiReader reader) throws IOException {
+    super(createBrowsables(reader));
   }
 
-  public static BoboSubBrowser[] createSegmentedBrowsables(List<BoboSegmentReader> readerList) {
+  public static Browsable[] createBrowsables(BoboSegmentReader reader) {
+    BoboSubBrowser[] browsables = new BoboSubBrowser[1];
+    browsables[0] = new BoboSubBrowser(reader);
+    return browsables;
+  }
+
+  public static Browsable[] createBrowsables(BoboMultiReader reader) {
+    List<BoboSegmentReader> readerList = reader.getSubReaders();
     BoboSubBrowser[] browsables = new BoboSubBrowser[readerList.size()];
     for (int i = 0; i < readerList.size(); ++i) {
       browsables[i] = new BoboSubBrowser(readerList.get(i));
     }
     return browsables;
-  }
-
-  public static Browsable[] createBrowsables(BoboSegmentReader reader) {
-    List<BoboSegmentReader> readerList = new ArrayList<BoboSegmentReader>();
-    readerList.add(reader);
-    return createSegmentedBrowsables(readerList);
-  }
-
-  public static Browsable[] createBrowsables(List<BoboSegmentReader> readerList) {
-    return createSegmentedBrowsables(readerList);
   }
 
   /**

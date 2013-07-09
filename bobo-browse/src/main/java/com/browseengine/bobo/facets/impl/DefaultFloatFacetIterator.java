@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.browseengine.bobo.facets.impl;
 
@@ -9,83 +9,70 @@ import com.browseengine.bobo.api.FloatFacetIterator;
 import com.browseengine.bobo.facets.data.TermFloatList;
 import com.browseengine.bobo.util.BigSegmentedArray;
 
-/**
- * @author "Xiaoyang Gu<xgu@linkedin.com>"
- * 
- */
-public class DefaultFloatFacetIterator extends FloatFacetIterator
-{
+public class DefaultFloatFacetIterator extends FloatFacetIterator {
 
   public TermFloatList _valList;
-  private BigSegmentedArray _count;
-  private int _countlength;
-  private int _countLengthMinusOne;
+  private final BigSegmentedArray _count;
+  private final int _countlength;
+  private final int _countLengthMinusOne;
   private int _index;
 
-  public DefaultFloatFacetIterator(TermFloatList valList, BigSegmentedArray countarray, int countlength,
-      boolean zeroBased)
-  {
+  public DefaultFloatFacetIterator(TermFloatList valList, BigSegmentedArray countarray,
+      int countlength, boolean zeroBased) {
     _valList = valList;
     _countlength = countlength;
     _count = countarray;
     _countLengthMinusOne = _countlength - 1;
     _index = -1;
-    if (!zeroBased)
-      _index++;
+    if (!zeroBased) _index++;
     facet = TermFloatList.VALUE_MISSING;
     count = 0;
   }
 
   /*
    * (non-Javadoc)
-   * 
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
-  public String getFacet()
-  {
+  public String getFacet() {
     if (facet == TermFloatList.VALUE_MISSING) return null;
     return _valList.format(facet);
   }
 
-  public String format(float val)
-  {
+  @Override
+  public String format(float val) {
     return _valList.format(val);
   }
 
-  public String format(Object val)
-  {
+  @Override
+  public String format(Object val) {
     return _valList.format(val);
   }
 
   /*
    * (non-Javadoc)
-   * 
    * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
    */
-  public int getFacetCount()
-  {
+  public int getFacetCount() {
     return count;
   }
 
   /*
    * (non-Javadoc)
-   * 
    * @see java.util.Iterator#hasNext()
    */
-  public boolean hasNext()
-  {
+  @Override
+  public boolean hasNext() {
     return (_index < _countLengthMinusOne);
   }
 
   /*
    * (non-Javadoc)
-   * 
    * @see java.util.Iterator#next()
    */
-  public String next()
-  {
-    if ((_index >= 0) && (_index >= _countLengthMinusOne))
-      throw new NoSuchElementException("No more facets in this iteration");
+  @Override
+  public String next() {
+    if ((_index >= 0) && (_index >= _countLengthMinusOne)) throw new NoSuchElementException(
+        "No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count.get(_index);
@@ -94,13 +81,12 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
 
   /*
    * (non-Javadoc)
-   * 
    * @see com.browseengine.bobo.api.FloatFacetIterator#nextFloat()
    */
-  public float nextFloat()
-  {
-    if (_index >= _countLengthMinusOne)
-      throw new NoSuchElementException("No more facets in this iteration");
+  @Override
+  public float nextFloat() {
+    if (_index >= _countLengthMinusOne) throw new NoSuchElementException(
+        "No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count.get(_index);
@@ -109,26 +95,21 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
 
   /*
    * (non-Javadoc)
-   * 
    * @see java.util.Iterator#remove()
    */
-  public void remove()
-  {
-    throw new UnsupportedOperationException(
-        "remove() method not supported for Facet Iterators");
+  @Override
+  public void remove() {
+    throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
   }
 
   /*
    * (non-Javadoc)
-   * 
    * @see com.browseengine.bobo.api.FacetIterator#next(int)
    */
-  public String next(int minHits)
-  {
-    while (++_index < _countlength)
-    {
-      if (_count.get(_index) >= minHits)
-      {
+  @Override
+  public String next(int minHits) {
+    while (++_index < _countlength) {
+      if (_count.get(_index) >= minHits) {
         facet = _valList.getPrimitiveValue(_index);
         count = _count.get(_index);
         return _valList.format(facet);
@@ -141,15 +122,12 @@ public class DefaultFloatFacetIterator extends FloatFacetIterator
 
   /*
    * (non-Javadoc)
-   * 
    * @see com.browseengine.bobo.api.FloatFacetIterator#nextFloat(int)
    */
-  public float nextFloat(int minHits)
-  {
-    while (++_index < _countlength)
-    {
-      if (_count.get(_index) >= minHits)
-      {
+  @Override
+  public float nextFloat(int minHits) {
+    while (++_index < _countlength) {
+      if (_count.get(_index) >= minHits) {
         facet = _valList.getPrimitiveValue(_index);
         count = _count.get(_index);
         return facet;

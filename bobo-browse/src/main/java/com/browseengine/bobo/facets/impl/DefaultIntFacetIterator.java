@@ -4,101 +4,109 @@ import java.util.NoSuchElementException;
 
 import com.browseengine.bobo.api.IntFacetIterator;
 import com.browseengine.bobo.facets.data.TermIntList;
-import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigSegmentedArray;
 
-public class DefaultIntFacetIterator extends IntFacetIterator
-{
+public class DefaultIntFacetIterator extends IntFacetIterator {
 
   public TermIntList _valList;
-  private BigSegmentedArray _count;
-  private int _countlength;
-  private int _countLengthMinusOne;
+  private final BigSegmentedArray _count;
+  private final int _countlength;
+  private final int _countLengthMinusOne;
   private int _index;
 
-  public DefaultIntFacetIterator(TermIntList valList, BigSegmentedArray countarray, int countlength, boolean zeroBased)
-  {
+  public DefaultIntFacetIterator(TermIntList valList, BigSegmentedArray countarray,
+      int countlength, boolean zeroBased) {
     _valList = valList;
     _count = countarray;
     _countlength = countlength;
-    _countLengthMinusOne = countlength-1;
+    _countLengthMinusOne = countlength - 1;
     _index = -1;
-    if(!zeroBased)
-      _index++;
+    if (!zeroBased) _index++;
     facet = TermIntList.VALUE_MISSING;
     count = 0;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacet()
    */
   public String getFacet() {
     if (facet == -1) return null;
     return _valList.format(facet);
   }
-  public String format(int val)
-  {
+
+  @Override
+  public String format(int val) {
     return _valList.format(val);
   }
-  public String format(Object val)
-  {
+
+  @Override
+  public String format(Object val) {
     return _valList.format(val);
   }
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#getFacetCount()
    */
   public int getFacetCount() {
     return count;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see java.util.Iterator#hasNext()
    */
+  @Override
   public boolean hasNext() {
     return (_index < _countLengthMinusOne);
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see java.util.Iterator#next()
    */
+  @Override
   public String next() {
-    if((_index >= 0) && (_index >= _countLengthMinusOne))
-      throw new NoSuchElementException("No more facets in this iteration");
+    if ((_index >= 0) && (_index >= _countLengthMinusOne)) throw new NoSuchElementException(
+        "No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count.get(_index);
     return _valList.get(_index);
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see com.browseengine.bobo.api.IntFacetIterator#nextInt()
    */
-  public int nextInt()
-  {
-    if(_index >= _countLengthMinusOne)
-      throw new NoSuchElementException("No more facets in this iteration");
+  @Override
+  public int nextInt() {
+    if (_index >= _countLengthMinusOne) throw new NoSuchElementException(
+        "No more facets in this iteration");
     _index++;
     facet = _valList.getPrimitiveValue(_index);
     count = _count.get(_index);
     return facet;
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see java.util.Iterator#remove()
    */
+  @Override
   public void remove() {
     throw new UnsupportedOperationException("remove() method not supported for Facet Iterators");
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
    * @see com.browseengine.bobo.api.FacetIterator#next(int)
    */
-  public String next(int minHits)
-  {
-    while(++_index < _countlength)
-    {
-      if(_count.get(_index) >= minHits)
-      {
+  @Override
+  public String next(int minHits) {
+    while (++_index < _countlength) {
+      if (_count.get(_index) >= minHits) {
         facet = _valList.getPrimitiveValue(_index);
         count = _count.get(_index);
         return _valList.format(facet);
@@ -106,17 +114,17 @@ public class DefaultIntFacetIterator extends IntFacetIterator
     }
     facet = TermIntList.VALUE_MISSING;
     count = 0;
-    return null;    
+    return null;
   }
-  /* (non-Javadoc)
+
+  /*
+   * (non-Javadoc)
    * @see com.browseengine.bobo.api.IntFacetIterator#nextInt(int)
    */
-  public int nextInt(int minHits)
-  {
-    while(++_index < _countlength)
-    {
-      if(_count.get(_index) >= minHits)
-      {
+  @Override
+  public int nextInt(int minHits) {
+    while (++_index < _countlength) {
+      if (_count.get(_index) >= minHits) {
         facet = _valList.getPrimitiveValue(_index);
         count = _count.get(_index);
         return facet;
@@ -124,6 +132,6 @@ public class DefaultIntFacetIterator extends IntFacetIterator
     }
     facet = TermIntList.VALUE_MISSING;
     count = 0;
-    return facet;    
+    return facet;
   }
 }

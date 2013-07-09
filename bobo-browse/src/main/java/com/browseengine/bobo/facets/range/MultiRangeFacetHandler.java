@@ -7,8 +7,8 @@ import java.util.Properties;
 
 import org.apache.lucene.index.Term;
 
-import com.browseengine.bobo.api.BoboIndexReader;
-import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
+import com.browseengine.bobo.api.BoboSegmentReader;
+import com.browseengine.bobo.api.BoboSegmentReader.WorkArea;
 import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.FacetCountCollector;
@@ -39,11 +39,12 @@ public class MultiRangeFacetHandler extends RangeFacetHandler {
 
   @Override
   public DocComparatorSource getDocComparatorSource() {
-    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(getName(), _indexFieldName));
+    return new MultiValueFacetDataCache.MultiFacetDocComparatorSource(new MultiDataCacheBuilder(
+        getName(), _indexFieldName));
   }
 
   @Override
-  public String[] getFieldValues(BoboIndexReader reader, int id) {
+  public String[] getFieldValues(BoboSegmentReader reader, int id) {
     MultiValueFacetDataCache dataCache = getFacetData(reader);
     if (dataCache != null) {
       return dataCache._nestedArray.getTranslatedData(id, dataCache.valArray);
@@ -52,7 +53,7 @@ public class MultiRangeFacetHandler extends RangeFacetHandler {
   }
 
   @Override
-  public Object[] getRawFieldValues(BoboIndexReader reader, int id) {
+  public Object[] getRawFieldValues(BoboSegmentReader reader, int id) {
 
     MultiValueFacetDataCache dataCache = getFacetData(reader);
     if (dataCache != null) {
@@ -61,24 +62,28 @@ public class MultiRangeFacetHandler extends RangeFacetHandler {
     return new String[0];
   }
 
-  public MultiValueFacetDataCache getFacetData(BoboIndexReader reader) {
+  @Override
+  public MultiValueFacetDataCache getFacetData(BoboSegmentReader reader) {
     return (MultiValueFacetDataCache) reader.getFacetData(_name);
   }
 
   @Override
-  public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop) throws IOException {
+  public RandomAccessFilter buildRandomAccessFilter(String value, Properties prop)
+      throws IOException {
     return new FacetRangeFilter(this, value);
   }
 
   @Override
-  public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel, final FacetSpec ospec) {
+  public FacetCountCollectorSource getFacetCountCollectorSource(final BrowseSelection sel,
+      final FacetSpec ospec) {
     return new FacetCountCollectorSource() {
 
       @Override
-      public FacetCountCollector getFacetCountCollector(BoboIndexReader reader, int docBase) {
+      public FacetCountCollector getFacetCountCollector(BoboSegmentReader reader, int docBase) {
         MultiValueFacetDataCache dataCache = getFacetData(reader);
         final BigNestedIntArray _nestedArray = dataCache._nestedArray;
         return new RangeFacetCountCollector(_name, dataCache, docBase, ospec, _predefinedRanges) {
+          @Override
           public void collect(int docid) {
             _nestedArray.countNoReturn(docid, _count);
           }
@@ -88,20 +93,21 @@ public class MultiRangeFacetHandler extends RangeFacetHandler {
   }
 
   @Override
-  public BoboDocScorer getDocScorer(BoboIndexReader reader, FacetTermScoringFunctionFactory scoringFunctionFactory,
-      Map<String, Float> boostMap) {
+  public BoboDocScorer getDocScorer(BoboSegmentReader reader,
+      FacetTermScoringFunctionFactory scoringFunctionFactory, Map<String, Float> boostMap) {
     MultiValueFacetDataCache dataCache = getFacetData(reader);
     float[] boostList = BoboDocScorer.buildBoostList(dataCache.valArray, boostMap);
     return new MultiValueDocScorer(dataCache, scoringFunctionFactory, boostList);
   }
 
   @Override
-  public MultiValueFacetDataCache load(BoboIndexReader reader) throws IOException {
+  public MultiValueFacetDataCache load(BoboSegmentReader reader) throws IOException {
     return load(reader, new WorkArea());
   }
 
   @Override
-  public MultiValueFacetDataCache load(BoboIndexReader reader, WorkArea workArea) throws IOException {
+  public MultiValueFacetDataCache load(BoboSegmentReader reader, WorkArea workArea)
+      throws IOException {
     MultiValueFacetDataCache dataCache = new MultiValueFacetDataCache();
     dataCache.setMaxItems(maxItems);
     if (sizePayloadTerm == null) {

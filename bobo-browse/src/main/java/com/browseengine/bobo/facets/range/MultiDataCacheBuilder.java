@@ -4,7 +4,7 @@ import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.facets.data.MultiValueFacetDataCache;
 import com.browseengine.bobo.facets.filter.AdaptiveFacetFilter.FacetDataCacheBuilder;
 
-public class MultiDataCacheBuilder implements FacetDataCacheBuilder{
+public class MultiDataCacheBuilder implements FacetDataCacheBuilder {
   private final String name;
   private final String indexFieldName;
 

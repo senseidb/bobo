@@ -2,10 +2,9 @@ package com.browseengine.bobo.query.scoring;
 
 import java.util.Map;
 
-import com.browseengine.bobo.api.BoboIndexReader;
+import com.browseengine.bobo.api.BoboSegmentReader;
 
 public interface FacetScoreable {
-	 BoboDocScorer getDocScorer(BoboIndexReader reader,
-			 					FacetTermScoringFunctionFactory scoringFunctionFactory,
-			 					Map<String,Float> boostMap);
+  BoboDocScorer getDocScorer(BoboSegmentReader reader,
+      FacetTermScoringFunctionFactory scoringFunctionFactory, Map<String, Float> boostMap);
 }
