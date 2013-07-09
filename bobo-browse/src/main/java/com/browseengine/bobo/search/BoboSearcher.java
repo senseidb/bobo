@@ -263,7 +263,7 @@ public class BoboSearcher extends IndexSearcher {
             : (AtomicReaderContext) (indexReaderContext.children().get(i));
         int docStart = start;
         if (reader instanceof BoboMultiReader) {
-          docStart = start + ((BoboMultiReader)reader).subReaderBase(i);
+          docStart = start + ((BoboMultiReader) reader).subReaderBase(i);
         }
         collector.setNextReader(atomicContext);
         validator.setNextReader(_subReaders[i], docStart);
@@ -297,7 +297,7 @@ public class BoboSearcher extends IndexSearcher {
       if (filterDocIdSet == null) return; // shall we use return or continue here ??
       int docStart = start;
       if (reader instanceof BoboMultiReader) {
-        docStart = start + ((BoboMultiReader)reader).subReaderBase(i);
+        docStart = start + ((BoboMultiReader) reader).subReaderBase(i);
       }
       collector.setNextReader(atomicContext);
       validator.setNextReader(_subReaders[i], docStart);
