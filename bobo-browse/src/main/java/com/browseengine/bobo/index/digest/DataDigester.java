@@ -1,7 +1,7 @@
 /**
- * Bobo Browse Engine - High performance faceted/parametric search implementation 
+ * Bobo Browse Engine - High performance faceted/parametric search implementation
  * that handles various types of semi-structured data.  Written in Java.
- * 
+ *
  * Copyright (C) 2005-2006  John Wang
  *
  * This library is free software; you can redistribute it and/or
@@ -17,9 +17,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * To contact the project administrators for the bobo-browse project, 
- * please go to https://sourceforge.net/projects/bobo-browse/, or 
+ *
+ * To contact the project administrators for the bobo-browse project,
+ * please go to https://sourceforge.net/projects/bobo-browse/, or
  * send mail to owner@browseengine.com.
  */
 
@@ -29,38 +29,37 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
+import org.apache.lucene.document.StringField;
 
 import com.browseengine.bobo.facets.FacetHandler;
 
 public abstract class DataDigester {
 
-	public static interface DataHandler{
-		void handleDocument(Document doc) throws IOException;
-	}
-			
-	protected DataDigester() {
-		super();
-	}		
-	
-	//public static void populateDocument(Document doc,Map data,FieldConfiguration fConf){
-	public static void populateDocument(Document doc,Collection<FacetHandler<?>> handlers){
-		StringBuilder tokenBuffer=new StringBuilder();
-		
-		for (FacetHandler<?> handler : handlers){
-			String name = handler.getName();
-			String[] values=doc.getValues(name);
-			if (values!=null){
-				doc.removeFields(name);
-				for (String value : values){
-					doc.add(new Field(name, value,Store.NO, Index.NOT_ANALYZED));
-					tokenBuffer.append(' ').append(value);
-				}
-			}
-		}
-	}
+  public static interface DataHandler {
+    void handleDocument(Document doc) throws IOException;
+  }
 
-	public abstract void digest(DataHandler handler) throws IOException;
+  protected DataDigester() {
+    super();
+  }
+
+  // public static void populateDocument(Document doc,Map data,FieldConfiguration fConf){
+  public static void populateDocument(Document doc, Collection<FacetHandler<?>> handlers) {
+    StringBuilder tokenBuffer = new StringBuilder();
+
+    for (FacetHandler<?> handler : handlers) {
+      String name = handler.getName();
+      String[] values = doc.getValues(name);
+      if (values != null) {
+        doc.removeFields(name);
+        for (String value : values) {
+          doc.add(new StringField(name, value, Store.NO));
+          tokenBuffer.append(' ').append(value);
+        }
+      }
+    }
+  }
+
+  public abstract void digest(DataHandler handler) throws IOException;
 }

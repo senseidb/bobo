@@ -1,7 +1,7 @@
 /**
- * Bobo Browse Engine - High performance faceted/parametric search implementation 
+ * Bobo Browse Engine - High performance faceted/parametric search implementation
  * that handles various types of semi-structured data.  Written in Java.
- * 
+ *
  * Copyright (C) 2005-2006  John Wang
  *
  * This library is free software; you can redistribute it and/or
@@ -17,9 +17,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * To contact the project administrators for the bobo-browse project, 
- * please go to https://sourceforge.net/projects/bobo-browse/, or 
+ *
+ * To contact the project administrators for the bobo-browse project,
+ * please go to https://sourceforge.net/projects/bobo-browse/, or
  * send mail to owner@browseengine.com.
  */
 
@@ -30,34 +30,35 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 public abstract class FileDigester extends DataDigester {
-	private File _file;
-	private  Charset _charset;
-	private int maxDocs;
-	
-	public int getMaxDocs() {
-		return maxDocs;
-	}
+  private final File _file;
+  private Charset _charset;
+  private int maxDocs;
 
-	public void setMaxDocs(int maxDocs) {
-		this.maxDocs = maxDocs;
-	}
+  public int getMaxDocs() {
+    return maxDocs;
+  }
 
-	public FileDigester(File file) {
-		super();
-		_file=file;		
-	}
-	
-	public void setCharset(Charset charset){
-		_charset=charset;
-	}
-	
-	public File getDataFile(){
-		return _file;
-	}
-	
-	public Charset getCharset(){
-		return _charset;
-	}
+  public void setMaxDocs(int maxDocs) {
+    this.maxDocs = maxDocs;
+  }
 
-	abstract public void digest(DataHandler handler) throws IOException;
+  public FileDigester(File file) {
+    super();
+    _file = file;
+  }
+
+  public void setCharset(Charset charset) {
+    _charset = charset;
+  }
+
+  public File getDataFile() {
+    return _file;
+  }
+
+  public Charset getCharset() {
+    return _charset;
+  }
+
+  @Override
+  abstract public void digest(DataHandler handler) throws IOException;
 }
