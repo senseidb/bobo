@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,286 +52,284 @@ import com.kamikaze.docidset.impl.AndDocIdSet;
 
 public class BoboFacetComponent extends SearchComponent {
 
-	private static final String THREAD_POOL_SIZE_PARAM = "thread_pool_size";
+  private static final String THREAD_POOL_SIZE_PARAM = "thread_pool_size";
 
-	private static final String MAX_SHARD_COUNT_PARAM = "max_shard_count";
-	
-    private ExecutorService _threadPool = null;
-	
-	private static Logger logger=Logger.getLogger(BoboFacetComponent.class);
-	
-	public BoboFacetComponent() {
-		// TODO Auto-generated constructor stub
-	}
-	
-	public void init(NamedList params) {
-		int threadPoolSize;
-		try{
-			threadPoolSize = Integer.parseInt((String)params.get(THREAD_POOL_SIZE_PARAM));
-		}
-		catch(Exception e){
-			threadPoolSize = 100;
-		}
-		
-		int shardCount;
-		try{
-			shardCount = Integer.parseInt((String)params.get(MAX_SHARD_COUNT_PARAM));
-		}
-		catch(Exception e){
-			shardCount = 10;
-		}
-		
-		_threadPool = Executors.newFixedThreadPool(threadPoolSize * shardCount);
-	}
+  private static final String MAX_SHARD_COUNT_PARAM = "max_shard_count";
 
-	@Override
-	public String getDescription() {
-		return "Handle Bobo Faceting";
-	}
+  private ExecutorService _threadPool = null;
 
-	@Override
-	public String getSource() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  private static Logger logger = Logger.getLogger(BoboFacetComponent.class);
 
-	@Override
-	public String getSourceId() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  public BoboFacetComponent() {
+    // TODO Auto-generated constructor stub
+  }
 
-	@Override
-	public String getVersion() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  @SuppressWarnings("rawtypes")
+  public void init(NamedList params) {
+    int threadPoolSize;
+    try {
+      threadPoolSize = Integer.parseInt((String) params.get(THREAD_POOL_SIZE_PARAM));
+    } catch (Exception e) {
+      threadPoolSize = 100;
+    }
 
-	@Override
-	public void prepare(ResponseBuilder rb) throws IOException {
-	    if (rb.req.getParams().getBool(FacetParams.FACET,false)) {
-	      rb.setNeedDocSet( true );
-	      rb.doFacets = true;
-	    }
-	}
+    int shardCount;
+    try {
+      shardCount = Integer.parseInt((String) params.get(MAX_SHARD_COUNT_PARAM));
+    } catch (Exception e) {
+      shardCount = 10;
+    }
 
-	@Override
-	public void process(ResponseBuilder rb) throws IOException {
-		rb.stage = ResponseBuilder.STAGE_START;
-		SolrParams params = rb.req.getParams();
-		// Set field flags
-	    String fl = params.get(CommonParams.FL);
-	    int fieldFlags = 0;
-	    if (fl != null) {
-	      fieldFlags |= SolrPluginUtils.setReturnFields(fl, rb.rsp);
-	    }
-	    rb.setFieldFlags( fieldFlags );
+    _threadPool = Executors.newFixedThreadPool(threadPoolSize * shardCount);
+  }
 
-	    String defType = params.get(QueryParsing.DEFTYPE);
-	    defType = defType==null ? QParserPlugin.DEFAULT_QTYPE : defType;
+  @Override
+  public String getDescription() {
+    return "Handle Bobo Faceting";
+  }
 
-	    String qString = params.get( CommonParams.Q );
-	    if (qString == null || qString.length()==0){
-	    	qString="*:*";
-	    }
-	    if (rb.getQueryString() == null) {
-	      rb.setQueryString( qString);
-	    }
+  @Override
+  public String getSource() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	    try {
-	      QParser parser = QParser.getParser(rb.getQueryString(), defType, rb.req);
-	      rb.setQuery( parser.getQuery() );
-	      rb.setSortSpec( parser.getSort(true) );
-	      rb.setQparser(parser);
+  @Override
+  public String getSourceId() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	      
-	      String[] fqs = params.getParams(CommonParams.FQ);
-	      if (fqs!=null && fqs.length!=0) {
-	        List<Query> filters = rb.getFilters();
-	        if (filters==null) {
-	          filters = new ArrayList<Query>();
-	          rb.setFilters( filters );
-	        }
-	        for (String fq : fqs) {
-	          if (fq != null && fq.trim().length()!=0) {
-	            QParser fqp = QParser.getParser(fq, null, rb.req);
-	            filters.add(fqp.getQuery());
-	          }
-	        }
-	      }  
-	    } catch (ParseException e) {
-	      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, e);
-	    }
-		
-		Query query = rb.getQuery();
-	    SortSpec sortspec = rb.getSortSpec();
-	    Sort sort = null;
-	    if (sortspec!=null){
-	    	sort = sortspec.getSort();
-	    }
+  @Override
+  public String getVersion() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-	    SolrParams solrParams = rb.req.getParams();
+  @Override
+  public void prepare(ResponseBuilder rb) throws IOException {
+    if (rb.req.getParams().getBool(FacetParams.FACET, false)) {
+      rb.setNeedDocSet(true);
+      rb.doFacets = true;
+    }
+  }
 
-		String shardsVal = solrParams.get(ShardParams.SHARDS, null);
-		
-	    BrowseRequest br = null;
-	    try{
-	    	br=BoboRequestBuilder.buildRequest(solrParams,query,sort);
-	    }
-	    catch(Exception e){
-	    	throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, e);
-	    }
-	    BrowseResult res = null;
-	    if (shardsVal == null && !solrParams.getBool(ShardParams.IS_SHARD, false))
-		{
+  @Override
+  public void process(ResponseBuilder rb) throws IOException {
+    rb.stage = ResponseBuilder.STAGE_START;
+    SolrParams params = rb.req.getParams();
+    // Set field flags
+    String fl = params.get(CommonParams.FL);
+    int fieldFlags = 0;
+    if (fl != null) {
+      fieldFlags |= SolrPluginUtils.setReturnFields(fl, rb.rsp);
+    }
+    rb.setFieldFlags(fieldFlags);
 
-			SolrIndexSearcher searcher=rb.req.getSearcher();
-			
-			SolrIndexReader solrReader = searcher.getReader();
-			BoboIndexReader reader = (BoboIndexReader)solrReader.getWrappedReader();
-			
-			if (reader instanceof BoboIndexReader){
-			    try {
-				    List<Query> filters = rb.getFilters();
-				    if (filters!=null){
-				    	final ArrayList<DocIdSet> docsets = new ArrayList<DocIdSet>(filters.size());
-				        for (Query filter : filters){
-				        	Weight weight = filter.createWeight(rb.req.getSearcher());
-				        	final Scorer scorer = weight.scorer(reader, false, true);
-				        	docsets.add(new DocIdSet(){
-								@Override
-								public DocIdSetIterator iterator() throws IOException {
-									return scorer;
-								}
-				        		
-				        	});
-				        }
-				        
-				        if (docsets.size()>0){
-				        	br.setFilter(
-				        		new Filter(){
-								@Override
-								public DocIdSet getDocIdSet(IndexReader reader)
-										throws IOException {
-									return new AndDocIdSet(docsets);
-								}
-				        	});
-				        }
-				    }
-			        
-				    Set<String> facetNames = reader.getFacetNames();
-				    Set<String> returnFields = rb.rsp.getReturnFields();
-				    Set<String> storedFields = new HashSet<String>();
-				    if (returnFields!=null){
-				      for (String fld : returnFields){
-				    	if (!facetNames.contains(fld)){
-				    		storedFields.add(fld);
-				    	}
-				      }
-				      br.setFetchStoredFields(!storedFields.isEmpty());
-				    }
-				    
-				    
-	                BoboBrowser browser = new BoboBrowser(reader);
-	                
-					res=browser.browse(br);
-					
-				} catch (Exception e) {
-					logger.error(e.getMessage(),e);
-					throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,e.getMessage(),e);
-				}
-			   
-			}
-			else{
-		        throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,"invalid reader, please make sure BoboIndexReaderFactory is set.");
-			}
-		}
-		else{
-			// multi sharded request
-			String[] shards = shardsVal.split(",");
-			res = DispatchUtil.broadcast(_threadPool, solrParams, br, shards, 5);
-		}
-	    
-	    SolrDocumentList docList = new SolrDocumentList();
-	    
-	    
-	    docList.setNumFound(res.getNumHits());
-	    docList.setStart(br.getOffset());
-	    
-	    rb.stage = ResponseBuilder.STAGE_GET_FIELDS;
-	    boolean returnScores = (rb.getFieldFlags() & SolrIndexSearcher.GET_SCORES) != 0;
-	    
-	    BrowseHit[] hits = res.getHits();
-	    if (hits!=null){
-	      for (BrowseHit hit : hits){
-	    	SolrDocument doc = convert(hit,rb.rsp.getReturnFields());
-	    	if (doc!=null){
-	    		if (returnScores){
-	    			doc.addField("score", hit.getScore());
-	    		}
-	    		docList.add(doc);
-	    	}
-	      }
-	    }
-	    
-	    rb.rsp.add("response", docList);
-	    
-	    if (rb.doFacets) {
-		  fillResponse(br,res,rb.rsp);
-		}
-	    
-	    rb.stage = ResponseBuilder.STAGE_DONE;
-	}
-	
-	private static SolrDocument convert(BrowseHit hit,Set<String> returnFields){
-		SolrDocument doc = new SolrDocument();
-		if (returnFields!=null){
-		  for (String fld : returnFields){
-			String[] fv = hit.getFields(fld);
-			if (fv==null){
-			  Document storedFields = hit.getStoredFields();
-			  if (storedFields!=null){
-				  fv = storedFields.getValues(fld);
-			  }
-			}
-			if (fv!=null){
-				doc.addField(fld, fv);
-			}
-		  }
-		}
-		return doc;
-	}
+    String defType = params.get(QueryParsing.DEFTYPE);
+    defType = defType == null ? QParserPlugin.DEFAULT_QTYPE : defType;
 
-	@Override
-	public void finishStage(ResponseBuilder rb) {
-	}
+    String qString = params.get(CommonParams.Q);
+    if (qString == null || qString.length() == 0) {
+      qString = "*:*";
+    }
+    if (rb.getQueryString() == null) {
+      rb.setQueryString(qString);
+    }
 
-    private static void fillResponse(BrowseRequest req,BrowseResult res,SolrQueryResponse solrRsp){
-		
-		NamedList facetFieldList = new SimpleOrderedMap();
-		Map<String,FacetAccessible> facetMap = res.getFacetMap();
-		
-		Set<Entry<String,FacetAccessible>> entries = facetMap.entrySet();
-		for (Entry<String,FacetAccessible> entry : entries){
-			
-			NamedList facetList = new NamedList();
-			facetFieldList.add(entry.getKey(), facetList);
-			FacetAccessible facetAccessbile = entry.getValue();
-			List<BrowseFacet> facets = facetAccessbile.getFacets();
-			for (BrowseFacet facet : facets){
-				facetList.add(facet.getValue(),facet.getFacetValueHitCount());
-			}
-		}
-		
-		NamedList facetResList = new SimpleOrderedMap();
-		
-		facetResList.add("facet_fields", facetFieldList);
-		
-		NamedList facetQueryList = new SimpleOrderedMap();
-		
-		facetResList.add("facet_queries", facetQueryList);
-		solrRsp.add( "facet_counts", facetResList );
-		
-	}
-	
+    try {
+      QParser parser = QParser.getParser(rb.getQueryString(), defType, rb.req);
+      rb.setQuery(parser.getQuery());
+      rb.setSortSpec(parser.getSort(true));
+      rb.setQparser(parser);
+
+      String[] fqs = params.getParams(CommonParams.FQ);
+      if (fqs != null && fqs.length != 0) {
+        List<Query> filters = rb.getFilters();
+        if (filters == null) {
+          filters = new ArrayList<Query>();
+          rb.setFilters(filters);
+        }
+        for (String fq : fqs) {
+          if (fq != null && fq.trim().length() != 0) {
+            QParser fqp = QParser.getParser(fq, null, rb.req);
+            filters.add(fqp.getQuery());
+          }
+        }
+      }
+    } catch (ParseException e) {
+      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, e);
+    }
+
+    Query query = rb.getQuery();
+    SortSpec sortspec = rb.getSortSpec();
+    Sort sort = null;
+    if (sortspec != null) {
+      sort = sortspec.getSort();
+    }
+
+    SolrParams solrParams = rb.req.getParams();
+
+    String shardsVal = solrParams.get(ShardParams.SHARDS, null);
+
+    BrowseRequest br = null;
+    try {
+      br = BoboRequestBuilder.buildRequest(solrParams, query, sort);
+    } catch (Exception e) {
+      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, e);
+    }
+    BrowseResult res = null;
+    if (shardsVal == null && !solrParams.getBool(ShardParams.IS_SHARD, false)) {
+
+      SolrIndexSearcher searcher = rb.req.getSearcher();
+
+      SolrIndexReader solrReader = searcher.getReader();
+      BoboIndexReader reader = (BoboIndexReader) solrReader.getWrappedReader();
+
+      if (reader instanceof BoboIndexReader) {
+        try {
+          List<Query> filters = rb.getFilters();
+          if (filters != null) {
+            final ArrayList<DocIdSet> docsets = new ArrayList<DocIdSet>(filters.size());
+            for (Query filter : filters) {
+              Weight weight = filter.createWeight(rb.req.getSearcher());
+              final Scorer scorer = weight.scorer(reader, false, true);
+              docsets.add(new DocIdSet() {
+                @Override
+                public DocIdSetIterator iterator() throws IOException {
+                  return scorer;
+                }
+
+              });
+            }
+
+            if (docsets.size() > 0) {
+              br.setFilter(new Filter() {
+                /**
+                 *
+                 */
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
+                  return new AndDocIdSet(docsets);
+                }
+              });
+            }
+          }
+
+          Set<String> facetNames = reader.getFacetNames();
+          Set<String> returnFields = rb.rsp.getReturnFields();
+          Set<String> storedFields = new HashSet<String>();
+          if (returnFields != null) {
+            for (String fld : returnFields) {
+              if (!facetNames.contains(fld)) {
+                storedFields.add(fld);
+              }
+            }
+            br.setFetchStoredFields(!storedFields.isEmpty());
+          }
+
+          BoboBrowser browser = new BoboBrowser(reader);
+
+          res = browser.browse(br);
+
+        } catch (Exception e) {
+          logger.error(e.getMessage(), e);
+          throw new SolrException(SolrException.ErrorCode.SERVER_ERROR, e.getMessage(), e);
+        }
+
+      } else {
+        throw new SolrException(SolrException.ErrorCode.SERVER_ERROR,
+            "invalid reader, please make sure BoboIndexReaderFactory is set.");
+      }
+    } else {
+      // multi sharded request
+      String[] shards = shardsVal.split(",");
+      res = DispatchUtil.broadcast(_threadPool, solrParams, br, shards, 5);
+    }
+
+    SolrDocumentList docList = new SolrDocumentList();
+
+    docList.setNumFound(res.getNumHits());
+    docList.setStart(br.getOffset());
+
+    rb.stage = ResponseBuilder.STAGE_GET_FIELDS;
+    boolean returnScores = (rb.getFieldFlags() & SolrIndexSearcher.GET_SCORES) != 0;
+
+    BrowseHit[] hits = res.getHits();
+    if (hits != null) {
+      for (BrowseHit hit : hits) {
+        SolrDocument doc = convert(hit, rb.rsp.getReturnFields());
+        if (doc != null) {
+          if (returnScores) {
+            doc.addField("score", hit.getScore());
+          }
+          docList.add(doc);
+        }
+      }
+    }
+
+    rb.rsp.add("response", docList);
+
+    if (rb.doFacets) {
+      fillResponse(br, res, rb.rsp);
+    }
+
+    rb.stage = ResponseBuilder.STAGE_DONE;
+  }
+
+  private static SolrDocument convert(BrowseHit hit, Set<String> returnFields) {
+    SolrDocument doc = new SolrDocument();
+    if (returnFields != null) {
+      for (String fld : returnFields) {
+        String[] fv = hit.getFields(fld);
+        if (fv == null) {
+          Document storedFields = hit.getStoredFields();
+          if (storedFields != null) {
+            fv = storedFields.getValues(fld);
+          }
+        }
+        if (fv != null) {
+          doc.addField(fld, fv);
+        }
+      }
+    }
+    return doc;
+  }
+
+  @Override
+  public void finishStage(ResponseBuilder rb) {
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private static void fillResponse(BrowseRequest req, BrowseResult res, SolrQueryResponse solrRsp) {
+
+    NamedList facetFieldList = new SimpleOrderedMap();
+    Map<String, FacetAccessible> facetMap = res.getFacetMap();
+
+    Set<Entry<String, FacetAccessible>> entries = facetMap.entrySet();
+    for (Entry<String, FacetAccessible> entry : entries) {
+
+      NamedList facetList = new NamedList();
+      facetFieldList.add(entry.getKey(), facetList);
+      FacetAccessible facetAccessbile = entry.getValue();
+      List<BrowseFacet> facets = facetAccessbile.getFacets();
+      for (BrowseFacet facet : facets) {
+        facetList.add(facet.getValue(), facet.getFacetValueHitCount());
+      }
+    }
+
+    NamedList facetResList = new SimpleOrderedMap();
+
+    facetResList.add("facet_fields", facetFieldList);
+
+    NamedList facetQueryList = new SimpleOrderedMap();
+
+    facetResList.add("facet_queries", facetQueryList);
+    solrRsp.add("facet_counts", facetResList);
+
+  }
+
 }

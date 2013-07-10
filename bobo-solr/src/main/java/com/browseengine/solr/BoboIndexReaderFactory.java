@@ -11,25 +11,25 @@ import com.browseengine.bobo.api.BoboIndexReader;
 import com.browseengine.bobo.api.BoboIndexReader.WorkArea;
 
 public class BoboIndexReaderFactory extends IndexReaderFactory {
-	public void init(NamedList conf) {
-	}
+  @Override
+  @SuppressWarnings("rawtypes")
+  public void init(NamedList conf) {
+  }
 
-	@Override
-	public IndexReader newReader(Directory indexDir, boolean readOnly)
-			throws IOException {
-		IndexReader reader=IndexReader.open(indexDir,null,readOnly,termInfosIndexDivisor);
-		BoboIndexReader boboReader=null;
-		try{
-			WorkArea workArea = new WorkArea();
-			workArea.put(getClass().getClassLoader());
-			boboReader=BoboIndexReader.getInstance(reader,workArea);
-			return boboReader;
-		}
-		catch(IOException e){
-			if (reader!=null){
-				reader.close();
-			}
-			throw e;
-		}
-	}
+  @Override
+  public IndexReader newReader(Directory indexDir, boolean readOnly) throws IOException {
+    IndexReader reader = IndexReader.open(indexDir, null, readOnly, termInfosIndexDivisor);
+    BoboIndexReader boboReader = null;
+    try {
+      WorkArea workArea = new WorkArea();
+      workArea.put(getClass().getClassLoader());
+      boboReader = BoboIndexReader.getInstance(reader, workArea);
+      return boboReader;
+    } catch (IOException e) {
+      if (reader != null) {
+        reader.close();
+      }
+      throw e;
+    }
+  }
 }
