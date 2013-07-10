@@ -74,7 +74,7 @@ public class BoboMultiReader extends FilterDirectoryReader {
   protected BoboMultiReader(DirectoryReader reader, Collection<FacetHandler<?>> facetHandlers)
       throws IOException {
     super(reader, new BoboSubReaderWrapper(facetHandlers));
-    _subReaders = (List<BoboSegmentReader>)getSequentialSubReaders();
+    _subReaders = (List<BoboSegmentReader>) getSequentialSubReaders();
   }
 
   protected void facetInit() throws IOException {

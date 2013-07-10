@@ -95,7 +95,7 @@ public class CombinedFacetAccessible implements FacetAccessible {
     return sum;
   }
 
-  @SuppressWarnings({"unchecked","rawtypes"})
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public List<BrowseFacet> getFacets() {
     if (_closed) {

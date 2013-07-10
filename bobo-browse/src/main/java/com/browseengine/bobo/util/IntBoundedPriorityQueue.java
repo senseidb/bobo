@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.browseengine.bobo.util;
 
@@ -15,25 +15,22 @@ import java.util.PriorityQueue;
  * @author "Xiaoyang Gu<xgu@linkedin.com>"
  *
  */
-public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
-{
+public class IntBoundedPriorityQueue extends PriorityQueue<Integer> {
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
-  private final int             _capacity;
-  private final int[]             _items;
-  private int                   _size = 0;
-  private IntComparator _comp;
+  private final int _capacity;
+  private final int[] _items;
+  private int _size = 0;
+  private final IntComparator _comp;
   private final int _forbiddenValue;
 
   /**
    * @param capacity the maximum number of items the queue accepts
-   * @param comparator a comparator that is used to order the items. 
+   * @param comparator a comparator that is used to order the items.
    */
-  @SuppressWarnings("unchecked")
-  public IntBoundedPriorityQueue(IntComparator comparator, int capacity, int forbiddenValue)
-  {
+  public IntBoundedPriorityQueue(IntComparator comparator, int capacity, int forbiddenValue) {
     _capacity = capacity;
     _comp = comparator;
     _items = new int[capacity];// java.lang.reflect.Array.newInstance(, capacity);
@@ -43,20 +40,17 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
   /**
    * {@inheritDoc} Retrieves, but does not remove, the head of this queue. This
    * implementation returns the result of peek unless the queue is empty.
-   * 
+   *
    * @see java.util.Queue#element()
    */
-  public Integer element() throws NoSuchElementException
-  {
-    if (_size == 0)
-      throw new NoSuchElementException("empty queue");
+  @Override
+  public Integer element() throws NoSuchElementException {
+    if (_size == 0) throw new NoSuchElementException("empty queue");
     return _items[0];
   }
 
-  public int intElement() throws NoSuchElementException
-  {
-    if (_size == 0)
-      throw new NoSuchElementException("empty queue");
+  public int intElement() throws NoSuchElementException {
+    if (_size == 0) throw new NoSuchElementException("empty queue");
     return _items[0];
   }
 
@@ -64,45 +58,40 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
    * Returns an iterator over the elements in this collection. There are no guarantees
    * concerning the order in which the elements are returned (unless this collection is an
    * instance of some class that provides a guarantee).
-   * 
+   *
    * @see java.util.AbstractCollection#iterator()
    */
   @Override
-  public IntIterator iterator()
-  {
-    return new IntIterator()
-    {
+  public IntIterator iterator() {
+    return new IntIterator() {
       private int i = 0;
 
-      public boolean hasNext()
-      {
+      @Override
+      public boolean hasNext() {
         return i < _size;
       }
 
-      public Integer next() throws NoSuchElementException
-      {
-        if (i >= _size)
-          throw new NoSuchElementException("last element reached in queue");
+      @Override
+      public Integer next() throws NoSuchElementException {
+        if (i >= _size) throw new NoSuchElementException("last element reached in queue");
         return _items[i++];
       }
 
-      public int nextInt() throws NoSuchElementException
-      {
-        if (i >= _size)
-          throw new NoSuchElementException("last element reached in queue");
+      @Override
+      public int nextInt() throws NoSuchElementException {
+        if (i >= _size) throw new NoSuchElementException("last element reached in queue");
         return _items[i++];
       }
 
-      public void remove()
-      {
+      @Override
+      public void remove() {
         throw new UnsupportedOperationException("not supported");
       }
 
     };
   }
-  
-  public interface IntIterator extends Iterator<Integer>
-  {
+
+  public interface IntIterator extends Iterator<Integer> {
     public int nextInt();
   }
 
@@ -114,11 +103,11 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
    * may impose insertion restrictions (for example capacity bounds), method offer is
    * generally preferable to method Collection.add, which can fail to insert an element
    * only by throwing an exception.
-   * 
+   *
    * @see java.util.Queue#offer(java.lang.Object)
    */
-  public boolean offer(Integer item)
-  {
+  @Override
+  public boolean offer(Integer item) {
     int itm = item;
     return offer(itm);
   }
@@ -131,70 +120,61 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
    * may impose insertion restrictions (for example capacity bounds), method offer is
    * generally preferable to method Collection.add, which can fail to insert an element
    * only by throwing an exception.
-   * 
+   *
    * @see java.util.Queue#offer(java.lang.Object)
    */
-  public boolean offer(int item)
-  {
-    if (_size < _capacity)
-    {
+  public boolean offer(int item) {
+    if (_size < _capacity) {
       _items[_size] = item;
       percolateUp(_size);
       _size++;
-      //    System.out.println("adding  to queue " + item + "  \t  " +Thread.currentThread().getClass()+Thread.currentThread().getId() );
+      // System.out.println("adding  to queue " + item + "  \t  "
+      // +Thread.currentThread().getClass()+Thread.currentThread().getId() );
       return true;
-    } else
-    {
-      if (_items[0]<item)
-      {
+    } else {
+      if (_items[0] < item) {
         _items[0] = item;
         percolateDown();
         return true;
-      } else
-        return false;
+      } else return false;
     }
   }
 
   /**
    * Retrieves, but does not remove, the head of this queue, returning null if this queue
    * is empty.
-   * 
+   *
    * @see java.util.Queue#peek()
    */
-  public Integer peek()
-  {
-    if (_size == 0)
-      return null;
+  @Override
+  public Integer peek() {
+    if (_size == 0) return null;
     return _items[0];
   }
 
   /**
    * Retrieves, but does not remove, the head of this queue, returning the <b>forbidden value</b>
    * if the queue is empty.
-   * @return 
+   * @return
    */
-  public int peekInt()
-  {
-    if (_size == 0)
-      return _forbiddenValue;
+  public int peekInt() {
+    if (_size == 0) return _forbiddenValue;
     return _items[0];
   }
 
   /**
    * Retrieves and removes the head of this queue, or null if this queue is empty.
-   * 
+   *
    * @see java.util.Queue#poll()
    */
-  public Integer poll()
-  {
-    if (_size == 0)
-      return null;
+  @Override
+  public Integer poll() {
+    if (_size == 0) return null;
     int ret = _items[0];
     _size--;
     _items[0] = _items[_size];
     _items[_size] = 0;
-    if (_size > 1)
-      percolateDown();
+    if (_size > 1) percolateDown();
     return ret;
   }
 
@@ -202,78 +182,62 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer>
    * Retrieves and removes the head of this queue, or the <b>forbidden value</b> if this queue is empty.
    * @return
    */
-  public int pollInt()
-  {
-    if (_size == 0)
-      return _forbiddenValue;
+  public int pollInt() {
+    if (_size == 0) return _forbiddenValue;
     int ret = _items[0];
     _size--;
     _items[0] = _items[_size];
     _items[_size] = 0;
-    if (_size > 1)
-      percolateDown();
+    if (_size > 1) percolateDown();
     return ret;
   }
 
   /**
    * Returns the number of elements in this collection.
-   * 
+   *
    * @see java.util.AbstractCollection#size()
    */
   @Override
-  public int size()
-  {
+  public int size() {
     return _size;
   }
 
-  private void percolateDown()
-  {
+  private void percolateDown() {
     int temp = _items[0];
     int index = 0;
-    while (true)
-    {
+    while (true) {
       int left = (index << 1) + 1;
 
       int right = left + 1;
-      if (right < _size)
-      {
+      if (right < _size) {
         left = _comp.compare(_items[left], _items[right]) < 0 ? left : right;
-      }
-      else if (left >= _size)
-      {
+      } else if (left >= _size) {
         _items[index] = temp;
         break;
       }
-      if (_comp.compare(_items[left], temp) < 0)
-      {
+      if (_comp.compare(_items[left], temp) < 0) {
         _items[index] = _items[left];
         index = left;
-      }
-      else
-      {
+      } else {
         _items[index] = temp;
         break;
       }
     }
   }
 
-  private void percolateUp(int index)
-  {
+  private void percolateUp(int index) {
     int i;
     int temp = _items[index];
-    while ((i = ((index - 1) >> 1)) >= 0 && _comp.compare(temp, _items[i]) < 0)
-    {
+    while ((i = ((index - 1) >> 1)) >= 0 && _comp.compare(temp, _items[i]) < 0) {
       _items[index] = _items[i];
       index = i;
     }
     _items[index] = temp;
   }
-  
-  public static abstract class IntComparator implements Comparator<Integer>
-  {
-    public int compare(int int1, int int2)
-    {
-      return compare((Integer)int1, (Integer)int2);
+
+  public static abstract class IntComparator implements Comparator<Integer> {
+    public int compare(int int1, int int2) {
+      return compare((Integer) int1, (Integer) int2);
     }
   }
 }

@@ -14,7 +14,7 @@ public class QueriesSupport {
       BooleanClause[] clauses = null;
       // check if we can split the query into clauses
       boolean splittable = (query instanceof BooleanQuery);
-      if(splittable){
+      if (splittable) {
         BooleanQuery bq = (BooleanQuery) query;
         splittable = bq.isCoordDisabled();
         clauses = bq.getClauses();
@@ -22,7 +22,7 @@ public class QueriesSupport {
           splittable = (clauses[j].getOccur() == BooleanClause.Occur.MUST);
         }
       }
-      if(splittable){
+      if (splittable) {
         for (int j = 0; j < clauses.length; j++) {
           uniques.add(clauses[j].getQuery());
         }
@@ -31,8 +31,8 @@ public class QueriesSupport {
       }
     }
     // optimization: if we have just one query, just return it
-    if(uniques.size() == 1){
-        return uniques.iterator().next();
+    if (uniques.size() == 1) {
+      return uniques.iterator().next();
     }
     BooleanQuery result = new BooleanQuery(true);
     for (final Query query : uniques)

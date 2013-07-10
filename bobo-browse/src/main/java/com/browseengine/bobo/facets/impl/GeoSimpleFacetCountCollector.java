@@ -34,6 +34,7 @@ public class GeoSimpleFacetCountCollector implements FacetCountCollector {
   private final BigSegmentedArray _longOrderArray;
   private final FacetDataCache<?> _longDataCache;
   private int[][] _longPredefinedRangeIndexes;
+
   protected GeoSimpleFacetCountCollector(String name, FacetDataCache<?> latDataCache,
       FacetDataCache<?> longDataCache, int docBase, FacetSpec spec, List<String> predefinedRanges) {
     _name = name;

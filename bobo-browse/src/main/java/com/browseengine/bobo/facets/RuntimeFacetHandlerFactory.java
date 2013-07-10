@@ -3,7 +3,6 @@
  */
 package com.browseengine.bobo.facets;
 
-
 /**
  * This interface is intended for using with RuntimeFacetHandler, which typically
  * have local data that make them not only NOT thread safe but also dependent on
@@ -12,8 +11,7 @@ package com.browseengine.bobo.facets;
  * @author xiaoyang
  *
  */
-public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerParam, F extends RuntimeFacetHandler<?>>
-{
+public interface RuntimeFacetHandlerFactory<P extends FacetHandlerInitializerParam, F extends RuntimeFacetHandler<?>> {
   /**
    * @return the facet name of the RuntimeFacetHandler it creates.
    */

@@ -6,195 +6,152 @@ import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.List;
 
-public class TermShortList extends TermNumberList<Short>
-{
+public class TermShortList extends TermNumberList<Short> {
   private short[] _elements = null;
   private boolean withDummy = true;
   public static final short VALUE_MISSING = Short.MIN_VALUE;
-  private static short parse(String s)
-  {
-    if (s == null || s.length() == 0)
-    {
+
+  private static short parse(String s) {
+    if (s == null || s.length() == 0) {
       return (short) 0;
-    } else
-    {
+    } else {
       return Short.parseShort(s);
     }
   }
 
-  public TermShortList()
-  {
+  public TermShortList() {
     super();
   }
 
-  public TermShortList(String formatString)
-  {
+  public TermShortList(String formatString) {
     super(formatString);
   }
 
-  public TermShortList(int capacity, String formatString)
-  {
+  public TermShortList(int capacity, String formatString) {
     super(capacity, formatString);
   }
 
   @Override
-  public boolean add(String o)
-  {
-    if (_innerList.size() == 0 && o!=null) withDummy = false; // the first value added is not null
+  public boolean add(String o) {
+    if (_innerList.size() == 0 && o != null) withDummy = false; // the first value added is not null
     short item = parse(o);
     return ((ShortArrayList) _innerList).add(item);
   }
 
   @Override
-  public void clear()
-  {
+  public void clear() {
     super.clear();
   }
 
   @Override
-  public String get(int index)
-  {
+  public String get(int index) {
     DecimalFormat formatter = _formatter.get();
-    if (formatter == null)
-      return String.valueOf(_elements[index]);
+    if (formatter == null) return String.valueOf(_elements[index]);
     return formatter.format(_elements[index]);
   }
 
-  public short getPrimitiveValue(int index)
-  {
-    if (index < _elements.length)
-      return _elements[index];
-    else
-      return VALUE_MISSING;
+  public short getPrimitiveValue(int index) {
+    if (index < _elements.length) return _elements[index];
+    else return VALUE_MISSING;
   }
 
   @Override
-  protected List<?> buildPrimitiveList(int capacity)
-  {
+  protected List<?> buildPrimitiveList(int capacity) {
     _type = Short.class;
     return capacity > 0 ? new ShortArrayList(capacity) : new ShortArrayList();
   }
 
   @Override
-  public int indexOf(Object o)
-  {
-    if (withDummy)
-    {
-      if (o==null) return -1;
+  public int indexOf(Object o) {
+    if (withDummy) {
+      if (o == null) return -1;
       short val;
-      if (o instanceof String)
-        val = parse((String) o);
-      else
-        val = (Short)o;
+      if (o instanceof String) val = parse((String) o);
+      else val = (Short) o;
       return Arrays.binarySearch(_elements, 1, _elements.length, val);
-    } else
-    {
+    } else {
       short val;
-      if (o instanceof String)
-        val = parse((String) o);
-      else
-        val = (Short)o;
+      if (o instanceof String) val = parse((String) o);
+      else val = (Short) o;
       return Arrays.binarySearch(_elements, val);
     }
   }
-  public int indexOf(Short val)
-  {
-    if (withDummy)
-    {
-      if (val==null) return -1;
-      return Arrays.binarySearch(_elements, 1, _elements.length, val.shortValue());
-    } else
-    {
-      return Arrays.binarySearch(_elements, val.shortValue());
-    }
-  }
 
-  public int indexOf(short val)
-  {
-    if (withDummy)
-      return Arrays.binarySearch(_elements, 1, _elements.length, val);
-    else
-      return Arrays.binarySearch(_elements, val);
-  }
-
-  @Override
-  public int indexOfWithType(Short val)
-  {
-    if (withDummy)
-    {
+  public int indexOf(Short val) {
+    if (withDummy) {
       if (val == null) return -1;
       return Arrays.binarySearch(_elements, 1, _elements.length, val.shortValue());
-    } else
-    {
+    } else {
       return Arrays.binarySearch(_elements, val.shortValue());
     }
   }
 
-  public int indexOfWithType(short val)
-  {
-    if (withDummy)
-    {
+  public int indexOf(short val) {
+    if (withDummy) return Arrays.binarySearch(_elements, 1, _elements.length, val);
+    else return Arrays.binarySearch(_elements, val);
+  }
+
+  @Override
+  public int indexOfWithType(Short val) {
+    if (withDummy) {
+      if (val == null) return -1;
+      return Arrays.binarySearch(_elements, 1, _elements.length, val.shortValue());
+    } else {
+      return Arrays.binarySearch(_elements, val.shortValue());
+    }
+  }
+
+  public int indexOfWithType(short val) {
+    if (withDummy) {
       return Arrays.binarySearch(_elements, 1, _elements.length, val);
-    } else
-    {
+    } else {
       return Arrays.binarySearch(_elements, val);
     }
   }
 
   @Override
-  public void seal()
-  {
+  public void seal() {
     ((ShortArrayList) _innerList).trim();
     _elements = ((ShortArrayList) _innerList).elements();
     int negativeIndexCheck = withDummy ? 1 : 0;
-    //reverse negative elements, because string order and numeric orders are completely opposite
+    // reverse negative elements, because string order and numeric orders are completely opposite
     if (_elements.length > negativeIndexCheck && _elements[negativeIndexCheck] < 0) {
       int endPosition = indexOfWithType((short) 0);
       if (endPosition < 0) {
-        endPosition = -1 *endPosition - 1;
+        endPosition = -1 * endPosition - 1;
       }
       short tmp;
-      for (int i = 0;  i < (endPosition - negativeIndexCheck) / 2; i++) {
-         tmp = _elements[i + negativeIndexCheck];
-         _elements[i + negativeIndexCheck] = _elements[endPosition -i -1];
-         _elements[endPosition -i -1] = tmp;
+      for (int i = 0; i < (endPosition - negativeIndexCheck) / 2; i++) {
+        tmp = _elements[i + negativeIndexCheck];
+        _elements[i + negativeIndexCheck] = _elements[endPosition - i - 1];
+        _elements[endPosition - i - 1] = tmp;
       }
     }
   }
 
   @Override
-  protected Object parseString(String o)
-  {
+  protected Object parseString(String o) {
     return parse(o);
   }
 
-  public boolean contains(short val)
-  {
-    if (withDummy)
-      return Arrays.binarySearch(_elements,1, _elements.length, val) >= 0;
-    else
-      return Arrays.binarySearch(_elements, val) >= 0;
+  public boolean contains(short val) {
+    if (withDummy) return Arrays.binarySearch(_elements, 1, _elements.length, val) >= 0;
+    else return Arrays.binarySearch(_elements, val) >= 0;
   }
 
   @Override
-  public boolean containsWithType(Short val)
-  {
-    if (withDummy)
-    {
+  public boolean containsWithType(Short val) {
+    if (withDummy) {
       if (val == null) return false;
-      return Arrays.binarySearch(_elements,1, _elements.length, val.shortValue()) >= 0;
-    } else
-    {
+      return Arrays.binarySearch(_elements, 1, _elements.length, val.shortValue()) >= 0;
+    } else {
       return Arrays.binarySearch(_elements, val.shortValue()) >= 0;
     }
   }
 
-  public boolean containsWithType(short val)
-  {
-    if (withDummy)
-      return Arrays.binarySearch(_elements,1, _elements.length, val) >= 0;
-    else
-      return Arrays.binarySearch(_elements, val) >= 0;
+  public boolean containsWithType(short val) {
+    if (withDummy) return Arrays.binarySearch(_elements, 1, _elements.length, val) >= 0;
+    else return Arrays.binarySearch(_elements, val) >= 0;
   }
 
   public short[] getElements() {

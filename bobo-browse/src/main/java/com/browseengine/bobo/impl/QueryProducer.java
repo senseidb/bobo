@@ -34,11 +34,11 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.util.Version;
 
-
 public class QueryProducer {
   public static final String CONTENT_FIELD = "contents";
 
-  public static Query convert(String queryString, String defaultField) throws ParseException, org.apache.lucene.queryparser.classic.ParseException {
+  public static Query convert(String queryString, String defaultField) throws ParseException,
+      org.apache.lucene.queryparser.classic.ParseException {
     if (queryString == null || queryString.length() == 0) {
       return null;
     } else {
@@ -50,7 +50,8 @@ public class QueryProducer {
 
   final static SortField[] DEFAULT_SORT = new SortField[] { SortField.FIELD_SCORE };
 
-  public Query buildQuery(String query) throws ParseException, org.apache.lucene.queryparser.classic.ParseException {
+  public Query buildQuery(String query) throws ParseException,
+      org.apache.lucene.queryparser.classic.ParseException {
     return convert(query, CONTENT_FIELD);
   }
 }

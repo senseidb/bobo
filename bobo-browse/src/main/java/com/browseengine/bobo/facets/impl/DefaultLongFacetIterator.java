@@ -9,7 +9,6 @@ import com.browseengine.bobo.api.LongFacetIterator;
 import com.browseengine.bobo.facets.data.TermLongList;
 import com.browseengine.bobo.util.BigSegmentedArray;
 
-
 public class DefaultLongFacetIterator extends LongFacetIterator {
 
   public TermLongList _valList;

@@ -152,14 +152,6 @@ public abstract class SortCollector extends Collector {
   private static DocComparatorSource getNonFacetComparatorSource(SortField sf) {
     String fieldname = sf.getField();
 
-    // TODO getLocale
-    /**
-    Locale locale = sf.getLocale();
-    if (locale != null) {
-      return new DocComparatorSource.StringLocaleComparatorSource(fieldname, locale);
-    }
-    */
-
     SortField.Type type = sf.getType();
 
     switch (type) {

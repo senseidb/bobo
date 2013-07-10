@@ -15,7 +15,7 @@ import com.browseengine.bobo.facets.impl.DefaultFacetCountCollector;
 import com.browseengine.bobo.util.BigIntArray;
 import com.browseengine.bobo.util.BigNestedIntArray;
 
-public  final class AttributesFacetCountCollector extends DefaultFacetCountCollector {
+public final class AttributesFacetCountCollector extends DefaultFacetCountCollector {
   public final BigNestedIntArray _array;
   private List<BrowseFacet> cachedFacets;
   private final int numFacetsPerKey;
@@ -24,41 +24,44 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
   private String[] values;
 
   @SuppressWarnings("rawtypes")
-  public AttributesFacetCountCollector(AttributesFacetHandler attributesFacetHandler, String name, MultiValueFacetDataCache dataCache, int docBase, BrowseSelection browseSelection, FacetSpec ospec, int numFacetsPerKey, char separator){
-    super(name,dataCache,docBase,browseSelection,ospec);
+  public AttributesFacetCountCollector(AttributesFacetHandler attributesFacetHandler, String name,
+      MultiValueFacetDataCache dataCache, int docBase, BrowseSelection browseSelection,
+      FacetSpec ospec, int numFacetsPerKey, char separator) {
+    super(name, dataCache, docBase, browseSelection, ospec);
     this.dataCache = dataCache;
     this.numFacetsPerKey = numFacetsPerKey;
     this.separator = separator;
     _array = dataCache._nestedArray;
-    if (browseSelection != null){
+    if (browseSelection != null) {
       values = browseSelection.getValues();
     }
   }
 
   @Override
   public final void collect(int docid) {
-      dataCache._nestedArray.countNoReturn(docid, _count);
+    dataCache._nestedArray.countNoReturn(docid, _count);
   }
 
   @Override
-  public final void collectAll()
-  {
+  public final void collectAll() {
     _count = BigIntArray.fromArray(_dataCache.freqs);
   }
+
   @Override
   public List<BrowseFacet> getFacets() {
     if (cachedFacets == null) {
-    int max = _ospec.getMaxCount();
-    _ospec.setMaxCount(max * 10);
-    List<BrowseFacet> facets = super.getFacets();
-    _ospec.setMaxCount(max);
-    filterByKeys(facets,  separator, numFacetsPerKey, values);
-    cachedFacets = facets;
+      int max = _ospec.getMaxCount();
+      _ospec.setMaxCount(max * 10);
+      List<BrowseFacet> facets = super.getFacets();
+      _ospec.setMaxCount(max);
+      filterByKeys(facets, separator, numFacetsPerKey, values);
+      cachedFacets = facets;
     }
     return cachedFacets;
   }
 
-  private void filterByKeys(List<BrowseFacet> facets, char separator, int numFacetsPerKey, String[] values) {
+  private void filterByKeys(List<BrowseFacet> facets, char separator, int numFacetsPerKey,
+      String[] values) {
     Map<String, AtomicInteger> keyOccurences = new HashMap<String, AtomicInteger>();
     Iterator<BrowseFacet> iterator = facets.iterator();
     String separatorString = String.valueOf(separator);
@@ -69,7 +72,7 @@ public  final class AttributesFacetCountCollector extends DefaultFacetCountColle
         iterator.remove();
         continue;
       }
-      if (values !=null && values.length > 0) {
+      if (values != null && values.length > 0) {
         boolean belongsToKeys = false;
         for (String val : values) {
           if (value.startsWith(val)) {

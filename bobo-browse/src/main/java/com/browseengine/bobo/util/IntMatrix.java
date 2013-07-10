@@ -29,57 +29,57 @@ import java.lang.reflect.Array;
 
 public class IntMatrix extends PrimitiveMatrix {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
 
-	public IntMatrix(int[] sizes) {
-		super(int.class, sizes);
-	}
+  public IntMatrix(int[] sizes) {
+    super(int.class, sizes);
+  }
 
-	public IntMatrix() {
-		super(int.class);
-	}
+  public IntMatrix() {
+    super(int.class);
+  }
 
-	public synchronized void set(int x,int y,int n){		
-		ensureCapacity(x,y);		
-		// get the row
-		Object row=Array.get(_matrix, x);
-		if (row==null){
-			throw new ArrayIndexOutOfBoundsException("index out of bounds: "+x);
-		}
-		Array.setInt(row, y, n);
-		_rowCount=Math.max(x, _rowCount);
-		_colCount=Math.max(y, _colCount);
-	}
-	
-	public int get(int r,int c){
-		Object row=Array.get(_matrix, r);
-		if (row==null){
-			throw new ArrayIndexOutOfBoundsException("index out of bounds: "+r);
-		}
-		return Array.getInt(row, c);
-	}
-	
-	public synchronized int[][] toArray(){		
-		int[][] ret=new int[_rowCount][_colCount];
-		for (int i=0;i<_rowCount;++i){
-			Object row=Array.get(_matrix, i);
-			System.arraycopy(row,0,ret[i],0,_colCount);
-		}
-		return ret;		
-	}
-	
-	public static void main(String[] args) {
-		IntMatrix matrix=new IntMatrix(new int[]{2,4});
-		matrix.set(0, 0, 5);
-		//matrix.set(1, 1, 6);
-		//matrix.set(2, 2, 7);
-		matrix.set(100, 100, 9);
-		System.out.println(matrix);
-		matrix.seal();
-		System.out.println(matrix);
-		
-	}
+  public synchronized void set(int x, int y, int n) {
+    ensureCapacity(x, y);
+    // get the row
+    Object row = Array.get(_matrix, x);
+    if (row == null) {
+      throw new ArrayIndexOutOfBoundsException("index out of bounds: " + x);
+    }
+    Array.setInt(row, y, n);
+    _rowCount = Math.max(x, _rowCount);
+    _colCount = Math.max(y, _colCount);
+  }
+
+  public int get(int r, int c) {
+    Object row = Array.get(_matrix, r);
+    if (row == null) {
+      throw new ArrayIndexOutOfBoundsException("index out of bounds: " + r);
+    }
+    return Array.getInt(row, c);
+  }
+
+  public synchronized int[][] toArray() {
+    int[][] ret = new int[_rowCount][_colCount];
+    for (int i = 0; i < _rowCount; ++i) {
+      Object row = Array.get(_matrix, i);
+      System.arraycopy(row, 0, ret[i], 0, _colCount);
+    }
+    return ret;
+  }
+
+  public static void main(String[] args) {
+    IntMatrix matrix = new IntMatrix(new int[] { 2, 4 });
+    matrix.set(0, 0, 5);
+    // matrix.set(1, 1, 6);
+    // matrix.set(2, 2, 7);
+    matrix.set(100, 100, 9);
+    System.out.println(matrix);
+    matrix.seal();
+    System.out.println(matrix);
+
+  }
 }

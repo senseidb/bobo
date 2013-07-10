@@ -1,8 +1,6 @@
 package com.browseengine.bobo.sort;
 
 import java.io.IOException;
-import java.text.Collator;
-import java.util.Locale;
 
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.BinaryDocValues;
@@ -53,48 +51,6 @@ public abstract class DocComparatorSource {
         @Override
         public Integer value(ScoreDoc doc) {
           return values.get(doc.doc);
-        }
-      };
-    }
-  }
-
-  public static class StringLocaleComparatorSource extends DocComparatorSource {
-    private final String field;
-    private final Collator _collator;
-
-    public StringLocaleComparatorSource(String field, Locale locale) {
-      this.field = field;
-      _collator = Collator.getInstance(locale);
-    }
-
-    @Override
-    public DocComparator getComparator(AtomicReader reader, int docbase) throws IOException {
-
-      final BinaryDocValues values = FieldCache.DEFAULT.getTerms(reader, field);
-
-      return new DocComparator() {
-        @Override
-        public int compare(ScoreDoc doc1, ScoreDoc doc2) {
-          BytesRef result1 = new BytesRef();
-          BytesRef result2 = new BytesRef();
-          values.get(doc1.doc, result1);
-          values.get(doc2.doc, result2);
-          if (result1.length == 0) {
-            if (result2.length == 0) {
-              return 0;
-            }
-            return -1;
-          } else if (result2.length == 0) {
-            return 1;
-          }
-          return _collator.compare(result1.utf8ToString(), result2.utf8ToString());
-        }
-
-        @Override
-        public String value(ScoreDoc doc) {
-          BytesRef result = new BytesRef();
-          values.get(doc.doc, result);
-          return result.utf8ToString();
         }
       };
     }
