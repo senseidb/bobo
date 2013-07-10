@@ -42,7 +42,6 @@
     <module>bobo-browse</module>
     <module>bobo-solr</module>
     <module>cardemo</module>
-    <module>bobo-contrib</module>
   </modules>
 
   <build>
