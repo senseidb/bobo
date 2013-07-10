@@ -38,18 +38,18 @@ import com.browseengine.bobo.util.test.SparseFloatArrayTest;
  *
  */
 public class StressTestSuite {
-	public static Test suite(){
-		TestSuite suite=new TestSuite();
-          
-		suite.addTestSuite(SparseFloatArrayTest.class); // 91.9 seconds
-		return suite;
-	}
-  
+  public static Test suite() {
+    TestSuite suite = new TestSuite();
+
+    suite.addTestSuite(SparseFloatArrayTest.class); // 91.9 seconds
+    return suite;
+  }
+
   /**
    * @param args
    */
   public static void main(String[] args) {
-          TestRunner.run(suite());
+    TestRunner.run(suite());
   }
 
 }
