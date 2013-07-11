@@ -39,7 +39,6 @@
 	<modules>
 		<module>bobo-parent</module>
 		<module>bobo-browse</module>
-		<module>bobo-solr</module>
 		<module>cardemo</module>
 	</modules>
 
