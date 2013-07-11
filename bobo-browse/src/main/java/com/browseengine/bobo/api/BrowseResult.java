@@ -103,7 +103,7 @@ public class BrowseResult implements Serializable {
 
   /**
    * Set the group accessible.
-   * @param groupAccessible the group accessible.
+   * @param groupAccessibles the group accessible.
    */
   public BrowseResult setGroupAccessibles(FacetAccessible[] groupAccessibles) {
     _groupAccessibles = groupAccessibles;

@@ -287,7 +287,6 @@ public final class BigNestedIntArray {
    * @param id
    * @param idx
    * @param defaultValue
-   * @return
    */
   public final int getData(int id, int idx, int defaultValue) {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -308,7 +307,6 @@ public final class BigNestedIntArray {
    * gets an int data at [id]
    * @param id
    * @param buf
-   * @param defaultValue
    * @return length
    */
   public final int getData(int id, int[] buf) {
@@ -331,11 +329,8 @@ public final class BigNestedIntArray {
 
   /**
    * translates the int value using the val list
-   * @param <T>
-   * @param array
    * @param id
    * @param valarray
-   * @return
    */
   public final String[] getTranslatedData(int id, TermValueList<?> valarray) {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -364,11 +359,8 @@ public final class BigNestedIntArray {
 
   /**
    * translates the int value using the val list
-   * @param <T>
-   * @param array
    * @param id
    * @param valarray
-   * @return
    */
   public final Object[] getRawData(int id, TermValueList<?> valarray) {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -513,7 +505,6 @@ public final class BigNestedIntArray {
    * @param id - documentID
    * @param startValueId - inclusive
    * @param endValueId - exclusive
-   * @return
    */
   public final boolean containsValueInRange(int id, int startValueId, int endValueId) {
     final int[] page = _list[id >> PAGEID_SHIFT];
@@ -776,7 +767,6 @@ public final class BigNestedIntArray {
   /**
    * returns the number data items for id
    * @param id
-   * @return
    */
   public final int getNumItems(int id) {
     final int[] page = _list[id >> PAGEID_SHIFT];

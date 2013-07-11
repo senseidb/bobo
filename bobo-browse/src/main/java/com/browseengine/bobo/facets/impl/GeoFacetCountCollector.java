@@ -71,7 +71,7 @@ public class GeoFacetCountCollector implements FacetCountCollector {
    * @param name 				name of the Geo Facet
    * @param dataCache			The data cache for the Geo Facet
    * @param docBase			the base doc id
-   * @param spec				the facet spec for this facet
+   * @param fspec				the facet spec for this facet
    * @param predefinedRanges	List of ranges, where each range looks like <lat, lon: rad>
    * @param miles        variable to specify if the geo distance calculations are in miles. False indicates distance calculation is in kilometers
    */

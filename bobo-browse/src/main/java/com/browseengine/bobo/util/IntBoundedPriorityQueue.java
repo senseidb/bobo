@@ -155,7 +155,6 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer> {
   /**
    * Retrieves, but does not remove, the head of this queue, returning the <b>forbidden value</b>
    * if the queue is empty.
-   * @return
    */
   public int peekInt() {
     if (_size == 0) return _forbiddenValue;
@@ -180,7 +179,6 @@ public class IntBoundedPriorityQueue extends PriorityQueue<Integer> {
 
   /**
    * Retrieves and removes the head of this queue, or the <b>forbidden value</b> if this queue is empty.
-   * @return
    */
   public int pollInt() {
     if (_size == 0) return _forbiddenValue;

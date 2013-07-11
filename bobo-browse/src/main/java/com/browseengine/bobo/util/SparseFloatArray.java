@@ -132,7 +132,6 @@ public class SparseFloatArray {
    * internal representation.  doing anything other than READING these values 
    * results in UNDEFINED operations on this, from that point on.
    * 
-   * @return
    */
   public float[] expand() {
     if (null == _bits) {

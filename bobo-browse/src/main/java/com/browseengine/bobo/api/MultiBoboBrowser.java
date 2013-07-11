@@ -217,7 +217,6 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
    *
    * @param docid
    * @return sub-browser instance
-   * @see MultiSearcher#subSearcher(int)
    */
   public Browsable subBrowser(int docid) {
     int i = readerIndex(docid);

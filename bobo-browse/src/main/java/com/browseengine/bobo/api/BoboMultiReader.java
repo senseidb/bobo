@@ -65,9 +65,6 @@ public class BoboMultiReader extends FilterDirectoryReader {
   /**
    * @param reader
    * @param facetHandlers
-   * @param facetHandlerFactories
-   * @param workArea
-   * the inner reader. false => we use the given reader as the inner reader.
    * @throws IOException
    */
   @SuppressWarnings("unchecked")

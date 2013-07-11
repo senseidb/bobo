@@ -11,8 +11,7 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.browseengine.bobo</groupId>
@@ -105,6 +104,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
+    		    <version>2.1</version>
 				<configuration>
 					<source>${maven.compile.source}</source>
 					<target>${maven.compile.target}</target>
@@ -114,6 +114,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+			    <version>2.1.2</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -126,6 +127,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -156,34 +158,34 @@
 	</distributionManagement>
 
 	<profiles>
-	            <profile>
-	                <id>release-sign-artifacts</id>
-	                <activation>
-	                    <property>
-	                        <name>performRelease</name>
-	                        <value>true</value>
-	                    </property>
-	                </activation>
-	                <build>
-	                    <plugins>
-	                        <plugin>
-	                            <groupId>org.apache.maven.plugins</groupId>
-	                            <artifactId>maven-gpg-plugin</artifactId>
-	                            <version>1.1</version>
-	                            <executions>
-	                                <execution>
-	                                    <id>sign-artifacts</id>
-	                                    <phase>verify</phase>
-	                                    <goals>
-	                                        <goal>sign</goal>
-	                                    </goals>
-	                                </execution>
-	                            </executions>
-	                        </plugin>
-	                    </plugins>
-	                </build>
-	            </profile>
-	        </profiles> 
-	
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 
 </project>

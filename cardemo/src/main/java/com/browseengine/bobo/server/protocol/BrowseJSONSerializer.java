@@ -60,9 +60,6 @@ public class BrowseJSONSerializer {
 
   /**
    * TODO: need to add support for multiple values.
-   * @param doc
-   * @return
-   * @throws JSONException
    */
   public static JSONObject serializeValues(Map<String, String[]> values) throws JSONException {
     JSONObject obj = new JSONObject();

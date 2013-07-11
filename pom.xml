@@ -11,54 +11,54 @@
   OF ANY KIND, either express or implied. See the License for the specific 
   language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.browseengine.bobo</groupId>
-    <artifactId>bobo-parent</artifactId>
-    <version>3.2.1-SNAPSHOT</version>
-    <relativePath>bobo-parent/pom.xml</relativePath>
-  </parent>
+	<parent>
+		<groupId>com.browseengine.bobo</groupId>
+		<artifactId>bobo-parent</artifactId>
+		<version>3.2.1-SNAPSHOT</version>
+		<relativePath>bobo-parent/pom.xml</relativePath>
+	</parent>
 
-  <artifactId>bobo-project</artifactId>
-  <packaging>pom</packaging>
-  <name>Bobo</name>
-  <url>http://senseidb.github.com/bobo</url>
+	<artifactId>bobo-project</artifactId>
+	<packaging>pom</packaging>
+	<name>Bobo</name>
+	<url>http://senseidb.github.com/bobo</url>
 
-  <scm>
-    <connection>
+	<scm>
+		<connection>
       scm:git://github.com/senseidb/bobo.git
     </connection>
-    <developerConnection>
+		<developerConnection>
       scm:git@github.com:senseidb/bobo.git
     </developerConnection>
-    <url>https://github.com/senseidb/bobo</url>
-  </scm>
+		<url>https://github.com/senseidb/bobo</url>
+	</scm>
 
-  <modules>
-    <module>bobo-parent</module>
-    <module>bobo-browse</module>
-    <module>bobo-solr</module>
-    <module>cardemo</module>
-  </modules>
+	<modules>
+		<module>bobo-parent</module>
+		<module>bobo-browse</module>
+		<module>bobo-solr</module>
+		<module>cardemo</module>
+	</modules>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.1</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -71,6 +71,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8.1</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -80,43 +81,19 @@
 					</execution>
 				</executions>
 			</plugin>
-      <plugin>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <configuration>
-          <skip>true</skip> <!-- No need to deploy the reactor -->
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <version>2.2</version>
-        <configuration>
-          <encoding>UTF-8</encoding>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>attach-javadocs</id>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip> <!-- No need to deploy the reactor -->
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

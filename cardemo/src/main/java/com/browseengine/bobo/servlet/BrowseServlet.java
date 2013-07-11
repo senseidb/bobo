@@ -1,7 +1,7 @@
 /**
- * Bobo Browse Engine - High performance faceted/parametric search implementation 
+ * Bobo Browse Engine - High performance faceted/parametric search implementation
  * that handles various types of semi-structured data.  Written in Java.
- * 
+ *
  * Copyright (C) 2005-2006  John Wang
  *
  * This library is free software; you can redistribute it and/or
@@ -17,9 +17,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * To contact the project administrators for the bobo-browse project, 
- * please go to https://sourceforge.net/projects/bobo-browse/, or 
+ *
+ * To contact the project administrators for the bobo-browse project,
+ * please go to https://sourceforge.net/projects/bobo-browse/, or
  * send mail to owner@browseengine.com.
  */
 
@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.queryParser.ParseException;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
@@ -58,7 +57,7 @@ import com.browseengine.solr.BoboRequestBuilder;
 public class BrowseServlet extends HttpServlet {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(BrowseServlet.class);
