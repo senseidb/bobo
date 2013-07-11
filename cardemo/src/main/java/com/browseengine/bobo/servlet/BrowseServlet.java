@@ -55,145 +55,137 @@ import com.browseengine.bobo.service.BrowseService;
 import com.browseengine.bobo.service.BrowseServiceFactory;
 import com.browseengine.solr.BoboRequestBuilder;
 
-public class BrowseServlet
-	extends HttpServlet{
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private static Logger logger=Logger.getLogger(BrowseServlet.class);
-	
-	private static class BoboDefaultQueryBuilder{
+public class BrowseServlet extends HttpServlet {
 
-		BoboDefaultQueryBuilder(){
-			
-		}
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+  private static Logger logger = Logger.getLogger(BrowseServlet.class);
 
-		public Query parseQuery(String query, String defaultField) {
-			try {
-				return QueryProducer.convert(query,defaultField);
-			} catch (ParseException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		
-		 private static Pattern sortSep = Pattern.compile(",");
+  private static class BoboDefaultQueryBuilder {
 
-		public Sort parseSort(String sortSpec) {
-			if (sortSpec==null || sortSpec.length()==0) return null;
+    BoboDefaultQueryBuilder() {
 
-		    String[] parts = sortSep.split(sortSpec.trim());
-		    if (parts.length == 0) return null;
+    }
 
-		    SortField[] lst = new SortField[parts.length];
-		    for( int i=0; i<parts.length; i++ ) {
-		      String part = parts[i].trim();
-		      boolean top=true;
-		        
-		      int idx = part.indexOf( ' ' );
-		      if( idx > 0 ) {
-		        String order = part.substring( idx+1 ).trim();
-		    	if( "desc".equals( order ) || "top".equals(order) ) {
-		    	  top = true;
-		    	}
-		    	else if ("asc".equals(order) || "bottom".equals(order)) {
-		    	  top = false;
-		    	}
-		    	else {
-		    	  throw new IllegalArgumentException("Unknown sort order: "+order);
-		    	}
-		    	part = part.substring( 0, idx ).trim();
-		      }
-		      else {
-				throw new IllegalArgumentException("Missing sort order." );
-		      }
-		    	
-		      if( "score".equals(part) ) {
-		        if (top) {
-		          // If thre is only one thing in the list, just do the regular thing...
-		          if( parts.length == 1 ) {
-		            return null; // do normal scoring...
-		          }
-		          lst[i] = SortField.FIELD_SCORE;
-		        }
-		        else {
-		          lst[i] = new SortField(null, SortField.SCORE, true);
-		        }
-		      } 
-		      else {
-		        lst[i] = new SortField(part,SortField.STRING,top);
-		      }
-		    }
-		    return new Sort(lst);
-		}
-		
-		
-	}
-	
-	private BrowseService _svc;
-	public BrowseServlet() {
-		super();
-	}
-	
-	
-	
-	@Override
-	public void init(ServletConfig config) throws ServletException {
-		super.init(config);
-		_svc=getServiceInstance(config);
-	}
+    public Query parseQuery(String query, String defaultField) {
+      try {
+        return QueryProducer.convert(query, defaultField);
+      } catch (ParseException e) {
+        e.printStackTrace();
+        return null;
+      }
+    }
 
-	protected BrowseService getServiceInstance(ServletConfig config) throws ServletException{
-	  
-		String indexDir=config.getServletContext().getInitParameter("index.dir");
-		
-		if (null == indexDir || indexDir.length() == 0)
-			throw new ServletException("No index directory configured");
-	
-		try {
-			return BrowseServiceFactory.createBrowseService(new File(indexDir));
-		} catch (BrowseException e) {
-			throw new ServletException(e.getMessage(),e.getCause());
-		}
-	}
-	
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-		SolrParams params = new BoboHttpRequestParam(req);
-		String qstring = params.get(CommonParams.Q);
-		String df = params.get(CommonParams.DF);
-		String sortString = params.get(CommonParams.SORT);
-		BoboDefaultQueryBuilder qbuilder = new BoboDefaultQueryBuilder();
-		Query query = qbuilder.parseQuery(qstring, df);
-		Sort sort = qbuilder.parseSort(sortString);
-		BrowseRequest br = null; 
-		try {
-			br=BoboRequestBuilder.buildRequest(params,query,sort);
-			BrowseResult result=_svc.browse(br);
-			res.setCharacterEncoding("UTF-8");
-			Writer writer=res.getWriter();
-			
-				try{
-				  String val=BrowseJSONSerializer.serialize(result);
-				  writer.write(val);
-				}
-				catch(JSONException je){
-					throw new IOException(je.getMessage());
-				}
-		} catch (BrowseException e) {
-			throw new ServletException(e.getMessage(),e);
-		}
-	}
-	
-	@Override
-	public void destroy() {
-		super.destroy();
-		try {
-			_svc.close();
-		} catch (BrowseException e) {
-			logger.warn("Problem shutting down browse engine.",e);
-		}
-	}
+    private static Pattern sortSep = Pattern.compile(",");
+
+    public Sort parseSort(String sortSpec) {
+      if (sortSpec == null || sortSpec.length() == 0) return null;
+
+      String[] parts = sortSep.split(sortSpec.trim());
+      if (parts.length == 0) return null;
+
+      SortField[] lst = new SortField[parts.length];
+      for (int i = 0; i < parts.length; i++) {
+        String part = parts[i].trim();
+        boolean top = true;
+
+        int idx = part.indexOf(' ');
+        if (idx > 0) {
+          String order = part.substring(idx + 1).trim();
+          if ("desc".equals(order) || "top".equals(order)) {
+            top = true;
+          } else if ("asc".equals(order) || "bottom".equals(order)) {
+            top = false;
+          } else {
+            throw new IllegalArgumentException("Unknown sort order: " + order);
+          }
+          part = part.substring(0, idx).trim();
+        } else {
+          throw new IllegalArgumentException("Missing sort order.");
+        }
+
+        if ("score".equals(part)) {
+          if (top) {
+            // If thre is only one thing in the list, just do the regular thing...
+            if (parts.length == 1) {
+              return null; // do normal scoring...
+            }
+            lst[i] = SortField.FIELD_SCORE;
+          } else {
+            lst[i] = new SortField(null, SortField.SCORE, true);
+          }
+        } else {
+          lst[i] = new SortField(part, SortField.STRING, top);
+        }
+      }
+      return new Sort(lst);
+    }
+
+  }
+
+  private BrowseService _svc;
+
+  public BrowseServlet() {
+    super();
+  }
+
+  @Override
+  public void init(ServletConfig config) throws ServletException {
+    super.init(config);
+    _svc = getServiceInstance(config);
+  }
+
+  protected BrowseService getServiceInstance(ServletConfig config) throws ServletException {
+
+    String indexDir = config.getServletContext().getInitParameter("index.dir");
+
+    if (null == indexDir || indexDir.length() == 0) throw new ServletException(
+        "No index directory configured");
+
+    try {
+      return BrowseServiceFactory.createBrowseService(new File(indexDir));
+    } catch (BrowseException e) {
+      throw new ServletException(e.getMessage(), e.getCause());
+    }
+  }
+
+  @Override
+  protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException,
+      IOException {
+    SolrParams params = new BoboHttpRequestParam(req);
+    String qstring = params.get(CommonParams.Q);
+    String df = params.get(CommonParams.DF);
+    String sortString = params.get(CommonParams.SORT);
+    BoboDefaultQueryBuilder qbuilder = new BoboDefaultQueryBuilder();
+    Query query = qbuilder.parseQuery(qstring, df);
+    Sort sort = qbuilder.parseSort(sortString);
+    BrowseRequest br = null;
+    try {
+      br = BoboRequestBuilder.buildRequest(params, query, sort);
+      BrowseResult result = _svc.browse(br);
+      res.setCharacterEncoding("UTF-8");
+      Writer writer = res.getWriter();
+
+      try {
+        String val = BrowseJSONSerializer.serialize(result);
+        writer.write(val);
+      } catch (JSONException je) {
+        throw new IOException(je.getMessage());
+      }
+    } catch (BrowseException e) {
+      throw new ServletException(e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public void destroy() {
+    super.destroy();
+    try {
+      _svc.close();
+    } catch (BrowseException e) {
+      logger.warn("Problem shutting down browse engine.", e);
+    }
+  }
 }

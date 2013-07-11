@@ -29,18 +29,18 @@ package com.browseengine.bobo.serialize;
  * Marker interface
  */
 public interface JSONSerializable {
-	public static class JSONSerializationException extends Exception{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
+  public static class JSONSerializationException extends Exception {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-		public JSONSerializationException(String msg,Throwable cause){
-			super(msg,cause);
-		}
-		
-		public JSONSerializationException(String msg){
-			super(msg);
-		}
-	}
+    public JSONSerializationException(String msg, Throwable cause) {
+      super(msg, cause);
+    }
+
+    public JSONSerializationException(String msg) {
+      super(msg);
+    }
+  }
 }
