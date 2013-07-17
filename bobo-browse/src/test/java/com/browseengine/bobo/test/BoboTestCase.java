@@ -55,6 +55,7 @@ import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.tokenattributes.PayloadAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -159,6 +160,7 @@ public class BoboTestCase extends TestCase {
     super(testName);
     String confdir = System.getProperty("conf.dir");
     if (confdir == null) confdir = "./resource";
+    System.setProperty("log.home", ".");
     org.apache.log4j.PropertyConfigurator.configure(confdir + "/log4j.properties");
     _fconf = buildFieldConf();
     _indexDir = createIndex();
@@ -190,6 +192,7 @@ public class BoboTestCase extends TestCase {
     private boolean returnToken = false;
 
     private final PayloadAttribute payloadAttr;
+    private final CharTermAttribute termAttr;
 
     MetaTokenStream(Term term, int size) {
       byte[] buffer = new byte[4];
@@ -199,6 +202,8 @@ public class BoboTestCase extends TestCase {
       buffer[3] = (byte) (size >> 24);
       payloadAttr = addAttribute(PayloadAttribute.class);
       payloadAttr.setPayload(new BytesRef(buffer));
+      termAttr = addAttribute(CharTermAttribute.class);
+      termAttr.append(term.text());
       returnToken = true;
     }
 
@@ -258,7 +263,6 @@ public class BoboTestCase extends TestCase {
     ft.setTokenized(true);
     ft.setStoreTermVectors(true);
     Field tvf = new Field("tv", "bobo bobo lucene lucene lucene test", ft);
-
     d1.add(tvf);
 
     Document d2 = new Document();
@@ -427,11 +431,6 @@ public class BoboTestCase extends TestCase {
     d7.add(buildMetaField("longitude", "-60"));
     d7.add(buildMetaField("salary", "28500"));
 
-    Document d8 = new Document();
-    d8.add(buildMetaField("latitude", "35"));
-    d8.add(buildMetaField("longitude", "120"));
-    d8.add(buildMetaField("salary", "00120"));
-
     dataList.add(d1);
     dataList.add(d2);
     dataList.add(d3);
@@ -439,8 +438,6 @@ public class BoboTestCase extends TestCase {
     dataList.add(d5);
     dataList.add(d6);
     dataList.add(d7);
-    dataList.add(d8);
-
     return dataList.toArray(new Document[dataList.size()]);
   }
 
@@ -502,7 +499,6 @@ public class BoboTestCase extends TestCase {
           public Object fetch(BoboSegmentReader reader, int doc) {
             FacetDataCache sourceCache = (FacetDataCache) reader.getFacetData("number");
             if (sourceCache == null) return null;
-
             return sourceCache.valArray.getRawValue(sourceCache.orderArray.get(doc));
           }
 
@@ -662,23 +658,29 @@ public class BoboTestCase extends TestCase {
    */
   private void doTest(BrowseResult result, BrowseRequest req, int numHits,
       HashMap<String, List<BrowseFacet>> choiceMap, String[] ids) {
-    if (!check(result, numHits, choiceMap, ids))
-    // if (!checkBucket(result,numHits,"salaryBucket", choiceMap,ids))
-    {
+    if (!check(result, numHits, choiceMap, ids)) {
       StringBuilder buffer = new StringBuilder();
       buffer.append("Test: ").append(getName()).append("\n");
       buffer.append("Result check failed: \n");
       buffer.append("expected: \n");
       buffer.append(numHits).append(" hits\n");
-      buffer.append(choiceMap).append('\n');
       buffer.append(Arrays.toString(ids)).append('\n');
+      buffer.append("choiceMap: \n");
+      buffer.append(choiceMap).append('\n');
       buffer.append("gotten: \n");
       buffer.append(result.getNumHits()).append(" hits\n");
+      BrowseHit[] hits = result.getHits();
+      String[] resultIds = new String[hits.length];
+      for (int i = 0; i < hits.length; ++i) {
+        resultIds[i] = hits[i].getField("id");
+      }
+      buffer.append(Arrays.toString(resultIds)).append('\n');
 
       Map<String, FacetAccessible> map = result.getFacetMap();
 
       Set<Entry<String, FacetAccessible>> entries = map.entrySet();
 
+      buffer.append("choiceMap: \n");
       buffer.append("{");
       for (Entry<String, FacetAccessible> entry : entries) {
         String name = entry.getKey();
@@ -688,7 +690,6 @@ public class BoboTestCase extends TestCase {
       }
       buffer.append("}").append('\n');
 
-      BrowseHit[] hits = result.getHits();
       for (int i = 0; i < hits.length; ++i) {
         if (i != 0) {
           buffer.append('\n');
@@ -862,7 +863,6 @@ public class BoboTestCase extends TestCase {
 
       assertEquals("test", tv.terms.get(2));
       assertEquals(1, tv.freqs.get(2).intValue());
-
     } catch (BrowseException e) {
       e.printStackTrace();
       fail(e.getMessage());
@@ -894,6 +894,7 @@ public class BoboTestCase extends TestCase {
 
       result = boboBrowser.browse(br);
       assertEquals(7, result.getNumHits());
+
       BrowseHit hit = result.getHits()[0];
       assertEquals(0, hit.getDocid());
       Object lowDate = hit.getRawField("date");
@@ -905,7 +906,6 @@ public class BoboTestCase extends TestCase {
       Object highDate = hit.getRawField("date");
       date = dateFormatter.parse("2007/08/01");
       assertTrue(highDate.equals(date.getTime()));
-
     } catch (BrowseException e) {
       e.printStackTrace();
       fail(e.getMessage());
@@ -1053,9 +1053,7 @@ public class BoboTestCase extends TestCase {
     sel.setSelectionOperation(ValueOperation.ValueOperationOr);
     sel.addNotValue("multinum:003");
     br.addSelection(sel);
-
     doTest(br, 2, null, new String[] { "2", "5" });
-
   }
 
   /**
@@ -1082,8 +1080,7 @@ public class BoboTestCase extends TestCase {
       "distance",
       Arrays.asList(new BrowseFacet[] { new BrowseFacet("30,70:5", 2),
           new BrowseFacet("60,120:1", 2) }));
-    doTest(br, 4, answer, null);
-
+    doTest(br, 4, answer, new String[] { "1", "3", "4", "5" });
     // testing for selection of facet <60,120,1> and verifying that 2 documents match this facet.
     BrowseRequest br2 = new BrowseRequest();
     br2.setCount(10);
@@ -2009,8 +2006,6 @@ public class BoboTestCase extends TestCase {
   }
 
   public void testBrowseWithDeletes() {
-    BoboMultiReader reader = null;
-
     BrowseRequest br = new BrowseRequest();
     br.setCount(10);
     br.setOffset(0);
@@ -2022,14 +2017,15 @@ public class BoboTestCase extends TestCase {
 
     doTest(br, 3, answer, new String[] { "1", "2", "7" });
 
+    BoboMultiReader reader = null;
     try {
-      reader = newIndexReader();
       Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_43);
       IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, analyzer);
-      IndexWriter idxWriter = new IndexWriter(reader.directory(), config);
+      IndexWriter idxWriter = new IndexWriter(_indexDir, config);
       idxWriter.deleteDocuments(new Term("id", "1"));
       idxWriter.deleteDocuments(new Term("id", "2"));
       idxWriter.commit();
+      reader = newIndexReader();
 
       br = new BrowseRequest();
       br.setCount(10);
@@ -2040,7 +2036,7 @@ public class BoboTestCase extends TestCase {
       br.addSelection(sel);
       answer = new HashMap<String, List<BrowseFacet>>();
 
-      doTest(new BoboBrowser(reader), br, 1, answer, null);
+      doTest(new BoboBrowser(reader), br, 1, answer, new String[] { "7" });
     } catch (IOException ioe) {
       fail(ioe.getMessage());
     } finally {
@@ -2052,7 +2048,6 @@ public class BoboTestCase extends TestCase {
         }
       }
     }
-
     br = new BrowseRequest();
     br.setCount(10);
     br.setOffset(0);
@@ -2062,7 +2057,7 @@ public class BoboTestCase extends TestCase {
     br.addSelection(sel);
     answer = new HashMap<String, List<BrowseFacet>>();
 
-    doTest(br, 1, answer, null);
+    doTest(br, 1, answer, new String[] { "7" });
   }
 
   public void testNotSupport() {
@@ -2887,15 +2882,6 @@ public class BoboTestCase extends TestCase {
     answer = new HashMap<String, List<BrowseFacet>>();
     answer.put("groups", Arrays.asList(answerBucketFacets));
     doTest(br, 5, answer, null);
-
-  }
-
-  public static void main(String[] args) throws Exception {
-    // BoboTestCase test=new BoboTestCase("testSimpleGroupbyFacetHandler");
-    BoboTestCase test = new BoboTestCase("testFacetRangeQuery");
-    test.setUp();
-    test.testFacetRangeQuery();
-    test.tearDown();
   }
 
   public void testVirtual() throws Exception {

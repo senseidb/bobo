@@ -24,8 +24,6 @@ public class BoboFacetIteratorTest extends TestCase {
 
   public BoboFacetIteratorTest(String testName) {
     super(testName);
-    String confdir = System.getProperty("conf.dir");
-    org.apache.log4j.PropertyConfigurator.configure(confdir + "/log4j.properties");
   }
 
   public void testTermStringListAddWrongOrder() {

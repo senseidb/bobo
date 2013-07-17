@@ -91,37 +91,40 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     _overflow = false;
 
     Terms terms = reader.terms(field);
-    TermsEnum termsEnum = terms.iterator(null);
-    BytesRef text;
-    while ((text = termsEnum.next()) != null) {
-      String strText = text.utf8ToString();
-      list.add(strText);
+    if (terms != null) {
+      TermsEnum termsEnum = terms.iterator(null);
+      BytesRef text;
+      while ((text = termsEnum.next()) != null) {
+        String strText = text.utf8ToString();
+        list.add(strText);
 
-      Term term = new Term(field, strText);
-      DocsEnum docsEnum = reader.termDocsEnum(term);
-      // freqList.add(tenum.docFreq()); // removed because the df doesn't take into account
-      // the num of deletedDocs
-      int df = 0;
-      int minID = -1;
-      int maxID = -1;
-      int docID = -1;
-      int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
-      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-        df++;
-        if (!loader.add(docID, valId)) logOverflow(fieldName);
-        minID = docID;
-        bitset.fastSet(docID);
+        Term term = new Term(field, strText);
+        DocsEnum docsEnum = reader.termDocsEnum(term);
+        // freqList.add(tenum.docFreq()); // removed because the df doesn't take into account
+        // the num of deletedDocs
+        int df = 0;
+        int minID = -1;
+        int maxID = -1;
+        int docID = -1;
+        int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
         while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
           df++;
           if (!loader.add(docID, valId)) logOverflow(fieldName);
+          minID = docID;
           bitset.fastSet(docID);
+          while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+            docID = docsEnum.docID();
+            df++;
+            if (!loader.add(docID, valId)) logOverflow(fieldName);
+            bitset.fastSet(docID);
+          }
+          maxID = docID;
         }
-        maxID = docID;
+        freqList.add(df);
+        minIDList.add(minID);
+        maxIDList.add(maxID);
+        t++;
       }
-      freqList.add(df);
-      minIDList.add(minID);
-      maxIDList.add(maxID);
-      t++;
     }
 
     list.seal();
@@ -138,22 +141,6 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
-
-    int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
-      ++doc;
-    }
-    if (doc <= maxdoc) {
-      this.minIDs[0] = doc;
-      doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
-        --doc;
-      }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
-    }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 
   /**
@@ -196,39 +183,39 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     _overflow = false;
 
     Terms terms = reader.terms(field);
-    TermsEnum termsEnum = terms.iterator(null);
-    BytesRef text;
-    while ((text = termsEnum.next()) != null) {
-      String strText = text.utf8ToString();
-      list.add(strText);
+    if (terms != null) {
+      TermsEnum termsEnum = terms.iterator(null);
+      BytesRef text;
+      while ((text = termsEnum.next()) != null) {
+        String strText = text.utf8ToString();
+        list.add(strText);
 
-      Term term = new Term(field, strText);
-      DocsEnum docsEnum = reader.termDocsEnum(term);
+        Term term = new Term(field, strText);
+        DocsEnum docsEnum = reader.termDocsEnum(term);
 
-      list.add(strText);
-
-      int df = 0;
-      int minID = -1;
-      int maxID = -1;
-      int docID = -1;
-      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-        df++;
-
-        if (!_nestedArray.addData(docID, t)) logOverflow(fieldName);
-        minID = docID;
-        bitset.fastSet(docID);
-        int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
+        int df = 0;
+        int minID = -1;
+        int maxID = -1;
+        int docID = -1;
         while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
           df++;
-          if (!_nestedArray.addData(docID, valId)) logOverflow(fieldName);
+          if (!_nestedArray.addData(docID, t)) logOverflow(fieldName);
+          minID = docID;
           bitset.fastSet(docID);
+          int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
+          while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+            docID = docsEnum.docID();
+            df++;
+            if (!_nestedArray.addData(docID, valId)) logOverflow(fieldName);
+            bitset.fastSet(docID);
+          }
+          maxID = docID;
         }
-        maxID = docID;
+        freqList.add(df);
+        minIDList.add(minID);
+        maxIDList.add(maxID);
+        t++;
       }
-      freqList.add(df);
-      minIDList.add(minID);
-      maxIDList.add(maxID);
-      t++;
     }
 
     list.seal();
@@ -237,22 +224,6 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
-
-    int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
-      ++doc;
-    }
-    if (doc <= maxdoc) {
-      this.minIDs[0] = doc;
-      doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
-        --doc;
-      }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
-    }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 
   protected void logOverflow(String fieldName) {

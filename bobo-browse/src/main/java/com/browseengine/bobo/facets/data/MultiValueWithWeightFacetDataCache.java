@@ -68,60 +68,69 @@ public class MultiValueWithWeightFacetDataCache<T> extends MultiValueFacetDataCa
     int valId = 0;
 
     Terms terms = reader.terms(field);
-    TermsEnum termsEnum = terms.iterator(null);
-    BytesRef text;
-    while ((text = termsEnum.next()) != null) {
-      String strText = text.utf8ToString();
-      list.add(strText);
-
-      int weight = 0;
-      String[] split = strText.split("\u0000");
-      if (split.length > 1) {
-        strText = split[0];
-        weight = Integer.parseInt(split[split.length - 1]);
-      }
-      if (pre == null || !strText.equals(pre)) {
-        if (pre != null) {
-          freqList.add(df);
-          minIDList.add(minID);
-          maxIDList.add(maxID);
+    if (terms != null) {
+      TermsEnum termsEnum = terms.iterator(null);
+      BytesRef text;
+      while ((text = termsEnum.next()) != null) {
+        String strText = text.utf8ToString();
+        String val = null;
+        int weight = 0;
+        String[] split = strText.split("\u0000");
+        if (split.length > 1) {
+          val = split[0];
+          weight = Integer.parseInt(split[split.length - 1]);
+        } else {
+          continue;
         }
 
-        list.add(strText);
-
-        df = 0;
-        minID = -1;
-        maxID = -1;
-        valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
-        t++;
-      }
-
-      Term term = new Term(field, strText);
-      DocsEnum docsEnum = reader.termDocsEnum(term);
-      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-        df++;
-
-        if (!loader.add(docID, valId)) logOverflow(fieldName);
-        else weightLoader.add(docID, weight);
-
-        if (docID < minID) minID = docID;
-        bitset.fastSet(docID);
-        while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-          df++;
-
-          if (!loader.add(docID, valId)) logOverflow(fieldName);
-          else weightLoader.add(docID, weight);
-
-          bitset.fastSet(docID);
+        if (pre == null || !val.equals(pre)) {
+          if (pre != null) {
+            freqList.add(df);
+            minIDList.add(minID);
+            maxIDList.add(maxID);
+          }
+          list.add(val);
+          df = 0;
+          minID = -1;
+          maxID = -1;
+          valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
+          t++;
         }
-        if (docID > maxID) maxID = docID;
+
+        Term term = new Term(field, strText);
+        DocsEnum docsEnum = reader.termDocsEnum(term);
+        if (docsEnum != null) {
+          while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
+            df++;
+
+            if (!loader.add(docID, valId)) {
+              logOverflow(fieldName);
+            } else {
+              weightLoader.add(docID, weight);
+            }
+
+            if (docID < minID) minID = docID;
+            bitset.fastSet(docID);
+            while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+              docID = docsEnum.docID();
+              df++;
+              if (!loader.add(docID, valId)) {
+                logOverflow(fieldName);
+              } else {
+                weightLoader.add(docID, weight);
+              }
+              bitset.fastSet(docID);
+            }
+            if (docID > maxID) maxID = docID;
+          }
+        }
+        pre = val;
       }
-      pre = strText;
-    }
-    if (pre != null) {
-      freqList.add(df);
-      minIDList.add(minID);
-      maxIDList.add(maxID);
+      if (pre != null) {
+        freqList.add(df);
+        minIDList.add(minID);
+        maxIDList.add(maxID);
+      }
     }
 
     list.seal();
@@ -139,21 +148,5 @@ public class MultiValueWithWeightFacetDataCache<T> extends MultiValueFacetDataCa
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
-
-    int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
-      ++doc;
-    }
-    if (doc <= maxdoc) {
-      this.minIDs[0] = doc;
-      doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
-        --doc;
-      }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
-    }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 }

@@ -275,6 +275,7 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
         if (weight == null) {
           Query query = req.getQuery();
           weight = createNormalizedWeight(query);
+          req.setWeight(weight);
         }
         search(weight, finalFilter, collector, start, req.getMapReduceWrapper());
       } finally {
@@ -310,10 +311,10 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
 
   @Override
   public SortCollector getSortCollector(SortField[] sort, Query q, int offset, int count,
-      boolean fetchStoredFields, Set<String> termVectorsToFetch, boolean forceScoring,
-      String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
-    return SortCollector.buildSortCollector(this, q, sort, offset, count, forceScoring,
-      fetchStoredFields, termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
+      boolean fetchStoredFields, Set<String> termVectorsToFetch, int maxPerGroup,
+      boolean collectDocIdCache) {
+    return SortCollector.buildSortCollector(this, q, sort, offset, count, fetchStoredFields,
+      termVectorsToFetch, maxPerGroup, collectDocIdCache);
   }
 
   /**
@@ -332,10 +333,20 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
     long start = System.currentTimeMillis();
 
     SortCollector collector = getSortCollector(req.getSort(), req.getQuery(), req.getOffset(),
-      req.getCount(), req.isFetchStoredFields(), req.getTermVectorsToFetch(), false,
-      req.getGroupBy(), req.getMaxPerGroup(), req.getCollectDocIdCache());
+      req.getCount(), req.isFetchStoredFields(), req.getTermVectorsToFetch(), req.getMaxPerGroup(),
+      req.getCollectDocIdCache());
 
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
+
+    try {
+      Query q = req.getQuery();
+      if (q == null) {
+        q = new MatchAllDocsQuery();
+      }
+      req.setQuery(q);
+    } catch (Exception ioe) {
+      throw new BrowseException(ioe.getMessage(), ioe);
+    }
     browse(req, collector, facetCollectors, 0);
     BrowseHit[] hits = null;
 
@@ -346,14 +357,10 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
       hits = new BrowseHit[0];
     }
 
-    Query q = req.getQuery();
-    if (q == null) {
-      q = new MatchAllDocsQuery();
-    }
     if (req.isShowExplanation()) {
       for (BrowseHit hit : hits) {
         try {
-          Explanation expl = explain(q, hit.getDocid());
+          Explanation expl = explain(req.getQuery(), hit.getDocid());
           hit.setExplanation(expl);
         } catch (IOException e) {
           logger.error(e.getMessage(), e);

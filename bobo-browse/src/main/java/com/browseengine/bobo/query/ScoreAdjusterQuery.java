@@ -46,13 +46,12 @@ public class ScoreAdjusterQuery extends Query {
 
     @Override
     public float getValueForNormalization() throws IOException {
-      // TODO Auto-generated method stub
-      return 0;
+      return _innerWeight.getValueForNormalization();
     }
 
     @Override
     public void normalize(float norm, float topLevelBoost) {
-      // TODO Auto-generated method stub
+      _innerWeight.normalize(norm, topLevelBoost);
     }
   }
 

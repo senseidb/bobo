@@ -36,19 +36,20 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler {
 
   @Override
   public FacetDataCache<?> load(BoboSegmentReader reader) throws IOException {
-    int doc = -1;
     TreeMap<Object, LinkedList<Integer>> dataMap = null;
     LinkedList<Integer> docList = null;
 
     int nullMinId = -1;
     int nullMaxId = -1;
     int nullFreq = 0;
+    int doc = -1;
 
     Bits liveDocs = reader.getLiveDocs();
     for (int i = 0; i < reader.maxDoc(); ++i) {
       if (liveDocs != null && !liveDocs.get(i)) {
         continue;
       }
+      doc = i;
       Object val = _facetDataFetcher.fetch(reader, doc);
       if (val == null) {
         if (nullMinId < 0) nullMinId = doc;
@@ -130,7 +131,7 @@ public class VirtualSimpleFacetHandler extends SimpleFacetHandler {
         minIDs[i] = docList.get(0);
         while ((docId = docList.poll()) != null) {
           doc = docId;
-          order.add(doc, i);
+          order.add(docId, i);
         }
         maxIDs[i] = doc;
         ++i;

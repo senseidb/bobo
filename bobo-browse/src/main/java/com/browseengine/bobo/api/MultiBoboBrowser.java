@@ -58,9 +58,8 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
     // index empty
     if (_subBrowsers == null || _subBrowsers.length == 0) return;
 
-    Query q = null;
     try {
-      q = req.getQuery();
+      Query q = req.getQuery();
       MatchAllDocsQuery matchAllDocsQuery = new MatchAllDocsQuery();
       if (q == null) {
         q = matchAllDocsQuery;
@@ -70,6 +69,7 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
         matchAllDocsQuery.setBoost(0f);
         q = QueriesSupport.combineAnd(matchAllDocsQuery, q);
       }
+      req.setQuery(q);
     } catch (Exception ioe) {
       throw new BrowseException(ioe.getMessage(), ioe);
     }
@@ -140,8 +140,8 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
           + count);
     }
     SortCollector collector = getSortCollector(req.getSort(), req.getQuery(), offset, count,
-      req.isFetchStoredFields(), req.getTermVectorsToFetch(), false, req.getGroupBy(),
-      req.getMaxPerGroup(), req.getCollectDocIdCache());
+      req.isFetchStoredFields(), req.getTermVectorsToFetch(), req.getMaxPerGroup(),
+      req.getCollectDocIdCache());
 
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors, 0);
@@ -266,14 +266,14 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
 
   @Override
   public SortCollector getSortCollector(SortField[] sort, Query q, int offset, int count,
-      boolean fetchStoredFields, Set<String> termVectorsToFetch, boolean forceScoring,
-      String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
+      boolean fetchStoredFields, Set<String> termVectorsToFetch, int maxPerGroup,
+      boolean collectDocIdCache) {
     if (_subBrowsers.length == 1) {
       return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchStoredFields,
-        termVectorsToFetch, forceScoring, groupBy, maxPerGroup, collectDocIdCache);
+        termVectorsToFetch, maxPerGroup, collectDocIdCache);
     }
-    return SortCollector.buildSortCollector(this, q, sort, offset, count, forceScoring,
-      fetchStoredFields, termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
+    return SortCollector.buildSortCollector(this, q, sort, offset, count, fetchStoredFields,
+      termVectorsToFetch, maxPerGroup, collectDocIdCache);
   }
 
   @Override

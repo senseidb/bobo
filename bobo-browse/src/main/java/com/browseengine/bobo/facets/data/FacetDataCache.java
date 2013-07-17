@@ -125,50 +125,49 @@ public class FacetDataCache<T> implements Serializable {
         : listFactory.createTermList();
     int negativeValueCount = getNegativeValueCount(reader, field);
 
-    Terms terms = reader.terms(field);
-    TermsEnum termsEnum = terms.iterator(null);
     int t = 0; // current term number
-
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
-    int totalFreq = 0;
     t++;
-
-    BytesRef text;
-    while ((text = termsEnum.next()) != null) {
-      // store term text
-      // we expect that there is at most one term per document
-      if (t >= length) throw new RuntimeException("there are more terms than "
-          + "documents in field \"" + field + "\", but it's impossible to sort on "
-          + "tokenized fields");
-      String strText = text.utf8ToString();
-      list.add(strText);
-      Term term = new Term(field, strText);
-      DocsEnum docsEnum = reader.termDocsEnum(term);
-      // freqList.add(termEnum.docFreq()); // doesn't take into account
-      // deldocs
-      int minID = -1;
-      int maxID = -1;
-      int docID = -1;
-      int df = 0;
-      int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
-      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-        df++;
-        order.add(docID, valId);
-        minID = docID;
+    Terms terms = reader.terms(field);
+    if (terms != null) {
+      TermsEnum termsEnum = terms.iterator(null);
+      BytesRef text;
+      while ((text = termsEnum.next()) != null) {
+        // store term text
+        // we expect that there is at most one term per document
+        if (t >= length) throw new RuntimeException("there are more terms than "
+            + "documents in field \"" + field + "\", but it's impossible to sort on "
+            + "tokenized fields");
+        String strText = text.utf8ToString();
+        list.add(strText);
+        Term term = new Term(field, strText);
+        DocsEnum docsEnum = reader.termDocsEnum(term);
+        // freqList.add(termEnum.docFreq()); // doesn't take into account
+        // deldocs
+        int minID = -1;
+        int maxID = -1;
+        int docID = -1;
+        int df = 0;
+        int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
         while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
           df++;
           order.add(docID, valId);
+          minID = docID;
+          while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+            docID = docsEnum.docID();
+            df++;
+            order.add(docID, valId);
+          }
+          maxID = docID;
         }
-        maxID = docID;
+        freqList.add(df);
+        minIDList.add(minID);
+        maxIDList.add(maxID);
+        t++;
       }
-      freqList.add(df);
-      totalFreq += df;
-      minIDList.add(minID);
-      maxIDList.add(maxID);
-      t++;
     }
 
     list.seal();
@@ -176,23 +175,6 @@ public class FacetDataCache<T> implements Serializable {
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
-
-    int doc = 0;
-    while (doc <= maxDoc && order.get(doc) != 0) {
-      ++doc;
-    }
-    if (doc <= maxDoc) {
-      this.minIDs[0] = doc;
-      // Try to get the max
-      doc = maxDoc;
-      while (doc > 0 && order.get(doc) != 0) {
-        --doc;
-      }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
-    }
-    this.freqs[0] = maxDoc + 1 - totalFreq;
   }
 
   private static int[] convertString(FacetDataCache<?> dataCache, String[] vals) {

@@ -201,47 +201,49 @@ public class CompactMultiValueFacetHandler extends FacetHandler<FacetDataCache<?
     IntArrayList maxIDList = new IntArrayList();
     IntArrayList freqList = new IntArrayList();
 
-    Terms terms = reader.terms(_indexFieldName);
-    TermsEnum termsEnum = terms.iterator(null);
     int t = 0; // current term number
     mterms.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
     t++;
-    BytesRef text;
-    while ((text = termsEnum.next()) != null) {
-
-      // store term text
-      // we expect that there is at most one term per document
-      if (t > MAX_VAL_COUNT) {
-        throw new IOException("maximum number of value cannot exceed: " + MAX_VAL_COUNT);
-      }
-      String val = text.utf8ToString();
-      mterms.add(val);
-      int bit = (0x00000001 << (t - 1));
-      Term term = new Term(_indexFieldName, val);
-      DocsEnum docsEnum = reader.termDocsEnum(term);
-      // freqList.add(termEnum.docFreq()); // removed because the df doesn't take into account the
-      // num of deletedDocs
-      int df = 0;
-      int minID = -1;
-      int maxID = -1;
-      int docID = -1;
-      while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
-        df++;
-        order.add(docID, order.get(docID) | bit);
-        minID = docID;
+    Terms terms = reader.terms(_indexFieldName);
+    if (terms != null) {
+      TermsEnum termsEnum = terms.iterator(null);
+      BytesRef text;
+      while ((text = termsEnum.next()) != null) {
+        // store term text
+        // we expect that there is at most one term per document
+        if (t > MAX_VAL_COUNT) {
+          throw new IOException("maximum number of value cannot exceed: " + MAX_VAL_COUNT);
+        }
+        String val = text.utf8ToString();
+        mterms.add(val);
+        int bit = (0x00000001 << (t - 1));
+        Term term = new Term(_indexFieldName, val);
+        DocsEnum docsEnum = reader.termDocsEnum(term);
+        // freqList.add(termEnum.docFreq()); // removed because the df doesn't take into account the
+        // num of deletedDocs
+        int df = 0;
+        int minID = -1;
+        int maxID = -1;
+        int docID = -1;
         while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
           df++;
           order.add(docID, order.get(docID) | bit);
+          minID = docID;
+          while (docsEnum.nextDoc() != DocsEnum.NO_MORE_DOCS) {
+            docID = docsEnum.docID();
+            df++;
+            order.add(docID, order.get(docID) | bit);
+          }
+          maxID = docID;
         }
-        maxID = docID;
+        freqList.add(df);
+        minIDList.add(minID);
+        maxIDList.add(maxID);
+        t++;
       }
-      freqList.add(df);
-      minIDList.add(minID);
-      maxIDList.add(maxID);
-      t++;
     }
 
     mterms.seal();

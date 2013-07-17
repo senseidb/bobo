@@ -40,12 +40,6 @@ import org.apache.lucene.search.Weight;
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 
-/**
- * Browse Request.
- * @author jwang
- * @version 1.0
- * @since 1.0
- */
 public class BrowseRequest implements Serializable {
 
   private static final long serialVersionUID = 3172092238778154933L;
@@ -81,8 +75,6 @@ public class BrowseRequest implements Serializable {
   private boolean _fetchStoredFields;
   private Filter _filter;
   private boolean _showExplanation;
-  private String _groupBy; // TODO: Leave here for backward compatible reason, will remove it later.
-  private String[] _groupByMulti;
   private int _maxPerGroup;
   private boolean _collectDocIdCache;
   private Set<String> _termVectorsToFetch;
@@ -185,8 +177,6 @@ public class BrowseRequest implements Serializable {
     _facetHandlerDataMap = new HashMap<String, FacetHandlerInitializerParam>();
     _filter = null;
     _fetchStoredFields = false;
-    _groupBy = null;
-    _groupByMulti = null;
     _maxPerGroup = 0;
     _collectDocIdCache = false;
   }
@@ -202,19 +192,6 @@ public class BrowseRequest implements Serializable {
 
   public BrowseRequest setFetchStoredFields(boolean fetchStoredFields) {
     _fetchStoredFields = fetchStoredFields;
-    return this;
-  }
-
-  public String[] getGroupBy() {
-    if (_groupByMulti == null && _groupBy != null) _groupByMulti = new String[] { _groupBy };
-
-    return _groupByMulti;
-  }
-
-  public BrowseRequest setGroupBy(String[] groupBy) {
-    _groupByMulti = groupBy;
-    if (_groupByMulti != null && _groupByMulti.length != 0) _groupBy = _groupByMulti[0];
-
     return this;
   }
 
@@ -323,6 +300,8 @@ public class BrowseRequest implements Serializable {
    */
   public BrowseRequest setQuery(Query query) {
     _query = query;
+    // clear weight, since weight is generated from query on demand
+    _weight = null;
     return this;
   }
 
@@ -441,7 +420,6 @@ public class BrowseRequest implements Serializable {
     buf.append("selections: ").append(_selections).append('\n');
     buf.append("facet spec: ").append(_facetSpecMap).append('\n');
     buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
-    buf.append("group by: ").append(_groupBy);
     return buf.toString();
   }
 }

@@ -7,12 +7,12 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.Bits;
 
 public class MatchAllDocIdSetIterator extends DocIdSetIterator {
-  private final Bits _liveDocs;
+  private final Bits _acceptDocs;
   private final int _maxDoc;
   private int _docID;
 
-  public MatchAllDocIdSetIterator(AtomicReader reader) throws IOException {
-    _liveDocs = reader.getLiveDocs();
+  public MatchAllDocIdSetIterator(AtomicReader reader, Bits acceptDocs) throws IOException {
+    _acceptDocs = acceptDocs;
     _maxDoc = reader.maxDoc();
     _docID = -1;
   }
@@ -21,7 +21,7 @@ public class MatchAllDocIdSetIterator extends DocIdSetIterator {
   public int advance(int target) throws IOException {
     _docID = target;
     while (_docID < _maxDoc) {
-      if (_liveDocs == null || _liveDocs.get(_docID)) {
+      if (_acceptDocs == null || _acceptDocs.get(_docID)) {
         return _docID;
       }
       _docID++;

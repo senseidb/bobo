@@ -110,7 +110,6 @@ public class SectionSearchQuery extends Query {
     public int advance(int target) throws IOException {
       if (_curDoc < DocIdSetIterator.NO_MORE_DOCS) {
         if (target <= _curDoc) target = _curDoc + 1;
-
         return _plan.fetch(target);
       }
       return _curDoc;

@@ -138,26 +138,27 @@ public class FacetTermQuery extends Query {
     }
 
     private final DocIdSetIterator buildIterator(final RandomAccessDocIdSet docset,
-        final BoboSegmentReader reader) {
+        final BoboSegmentReader reader, final Bits acceptDocs) {
       return new DocIdSetIterator() {
-        private int doc = DocIdSetIterator.NO_MORE_DOCS;
+        private int doc = -1;
+        private final int maxDoc = reader.maxDoc();
 
         @Override
         public int advance(int target) throws IOException {
-          Bits liveDocs = reader.getLiveDocs();
           doc = target;
-          while (doc < reader.maxDoc()) {
-            if (liveDocs == null || liveDocs.get(doc)) {
-              break;
+          while (doc < maxDoc) {
+            if (acceptDocs != null && !acceptDocs.get(doc)) {
+              ++doc;
+              continue;
             }
-            doc++;
+            if (!docset.get(doc)) {
+              ++doc;
+              continue;
+            }
+            break;
           }
-          if (doc == reader.maxDoc()) {
+          if (doc >= maxDoc) {
             doc = DocIdSetIterator.NO_MORE_DOCS;
-            return doc;
-          }
-          if (!docset.get(doc)) {
-            return nextDoc();
           }
           return doc;
         }
@@ -169,27 +170,19 @@ public class FacetTermQuery extends Query {
 
         @Override
         public int nextDoc() throws IOException {
-          doc++;
-          Bits liveDocs = reader.getLiveDocs();
-          while (doc < reader.maxDoc()) {
-            if (liveDocs == null || liveDocs.get(doc)) {
-              break;
+          ++doc;
+          while (doc < maxDoc) {
+            if (acceptDocs != null && !acceptDocs.get(doc)) {
+              ++doc;
+              continue;
             }
-            doc++;
-          }
-          if (doc == reader.maxDoc()) {
-            doc = DocIdSetIterator.NO_MORE_DOCS;
-            return doc;
-          }
-          while (!docset.get(doc)) {
-            if (++doc == reader.maxDoc()) {
-              return doc;
+            if (!docset.get(doc)) {
+              ++doc;
+              continue;
             }
-            if (liveDocs == null || liveDocs.get(doc)) {
-              break;
-            }
+            break;
           }
-          if (doc == reader.maxDoc()) {
+          if (doc >= maxDoc) {
             doc = DocIdSetIterator.NO_MORE_DOCS;
           }
           return doc;
@@ -217,11 +210,11 @@ public class FacetTermQuery extends Query {
           if (filter != null) {
             RandomAccessDocIdSet docset = filter.getRandomAccessDocIdSet(boboReader);
             if (docset != null) {
-              dociter = buildIterator(docset, boboReader);
+              dociter = buildIterator(docset, boboReader, acceptDocs);
             }
           }
           if (dociter == null) {
-            dociter = new MatchAllDocIdSetIterator(reader);
+            dociter = new MatchAllDocIdSetIterator(reader, acceptDocs);
           }
           BoboDocScorer scorer = null;
           if (fhandler instanceof FacetScoreable) {

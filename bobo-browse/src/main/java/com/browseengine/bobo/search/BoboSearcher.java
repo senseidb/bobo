@@ -268,7 +268,7 @@ public class BoboSearcher extends IndexSearcher {
         collector.setNextReader(atomicContext);
         validator.setNextReader(_subReaders[i], docStart);
 
-        Scorer scorer = weight.scorer(atomicContext, true, true, null);
+        Scorer scorer = weight.scorer(atomicContext, true, true, _subReaders[i].getLiveDocs());
         if (scorer != null) {
           collector.setScorer(scorer);
           target = scorer.nextDoc();
@@ -301,7 +301,7 @@ public class BoboSearcher extends IndexSearcher {
       }
       collector.setNextReader(atomicContext);
       validator.setNextReader(_subReaders[i], docStart);
-      Scorer scorer = weight.scorer(atomicContext, true, false, null);
+      Scorer scorer = weight.scorer(atomicContext, true, false, _subReaders[i].getLiveDocs());
       if (scorer != null) {
         collector.setScorer(scorer);
         DocIdSetIterator filterDocIdIterator = filterDocIdSet.iterator(); // CHECKME: use
