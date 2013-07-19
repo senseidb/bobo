@@ -12,6 +12,7 @@ import junit.framework.TestCase;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -84,6 +85,9 @@ public class FacetHandlerTest extends TestCase {
       Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_43);
       IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_43, analyzer);
       IndexWriter idxWriter = new IndexWriter(_ramDir, config);
+      // Add one empty document, so that Directory reader will have one sub reader
+      Document doc = new Document();
+      idxWriter.addDocument(doc);
       idxWriter.close();
     } catch (Exception ioe) {
       fail("unable to load test");

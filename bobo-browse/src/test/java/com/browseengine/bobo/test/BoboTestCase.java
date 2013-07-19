@@ -1760,7 +1760,7 @@ public class BoboTestCase extends TestCase {
 
   public void testQueryWithScore() throws Exception {
     BrowseRequest br = new BrowseRequest();
-    br.setShowExplanation(false); // default
+    br.setShowExplanation(false);
     QueryParser parser = new QueryParser(Version.LUCENE_43, "color", new StandardAnalyzer(
         Version.LUCENE_43));
     br.setQuery(parser.parse("color:red OR shape:square"));
@@ -1778,6 +1778,7 @@ public class BoboTestCase extends TestCase {
     br.setShowExplanation(true);
     res = doTest(br, 4, null, new String[] { "1", "7", "2", "5" });
     hits = res.getHits();
+
     for (BrowseHit hit : hits) {
       assertNotNull(hit.getExplanation());
     }
@@ -1800,7 +1801,6 @@ public class BoboTestCase extends TestCase {
       assertNotNull(hit.getExplanation());
       System.out.println(hit.getExplanation());
     }
-
   }
 
   public void testBrowseWithQuery() {

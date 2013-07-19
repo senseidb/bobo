@@ -11,7 +11,6 @@ import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermIntList;
-import com.browseengine.bobo.facets.data.TermValueList;
 import com.browseengine.bobo.facets.impl.SimpleFacetHandler.SimpleFacetCountCollector;
 import com.browseengine.bobo.util.BigIntArray;
 
@@ -111,23 +110,4 @@ public class FacetMergePerf {
         .println("average time: " + timeCounter.get() / numIters / nThreads / 1000000 + " ms");
 
   }
-
-  public static void main1(String[] args) {
-    DecimalFormat formatter = new DecimalFormat("0000000000");
-
-    int count = 500000;
-    TermValueList<?> list = new TermIntList(count, "0000000000");
-    for (int i = 0; i < count; ++i) {
-      list.add(formatter.format(i));
-    }
-    System.out.println("start");
-    long s = System.currentTimeMillis();
-    for (int i = 0; i < count; ++i) {
-      list.getRawValue(i);
-    }
-    long e = System.currentTimeMillis();
-
-    System.out.println("timeL: " + (e - s));
-  }
-
 }

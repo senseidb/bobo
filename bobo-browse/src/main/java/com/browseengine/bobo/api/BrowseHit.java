@@ -284,7 +284,7 @@ public class BrowseHit implements Serializable {
   @Override
   public String toString() {
     StringBuffer buffer = new StringBuffer();
-    buffer.append("docid: ").append(docid).append('\n');;
+    buffer.append("docid: ").append(docid).append('\n');
     buffer.append("score: ").append(score).append('\n');
     buffer.append("field values: ").append(toString(_fieldValues)).append('\n');
     return buffer.toString();

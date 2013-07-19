@@ -1,7 +1,7 @@
 /**
- * Bobo Browse Engine - High performance faceted/parametric search implementation 
+ * Bobo Browse Engine - High performance faceted/parametric search implementation
  * that handles various types of semi-structured data.  Written in Java.
- * 
+ *
  * Copyright (C) 2005-2007  spackle
  *
  * This library is free software; you can redistribute it and/or
@@ -17,9 +17,9 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
- * 
- * To contact the project administrators for the bobo-browse project, 
- * please go to https://sourceforge.net/projects/bobo-browse/, or 
+ *
+ * To contact the project administrators for the bobo-browse project,
+ * please go to https://sourceforge.net/projects/bobo-browse/, or
  * contact owner@browseengine.com.
  */
 
@@ -33,14 +33,13 @@ import com.browseengine.bobo.util.test.SparseFloatArrayTest;
 
 /**
  * For tests which take a while.
- * 
+ *
  * @author spackle
  *
  */
 public class StressTestSuite {
   public static Test suite() {
     TestSuite suite = new TestSuite();
-
     suite.addTestSuite(SparseFloatArrayTest.class); // 91.9 seconds
     return suite;
   }
@@ -51,5 +50,4 @@ public class StressTestSuite {
   public static void main(String[] args) {
     TestRunner.run(suite());
   }
-
 }

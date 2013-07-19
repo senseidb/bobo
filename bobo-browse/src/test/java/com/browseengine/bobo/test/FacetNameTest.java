@@ -82,10 +82,10 @@ public class FacetNameTest extends TestCase {
   public FacetNameTest(String testName) {
     super(testName);
     _facetHandlers = createFacetHandlers();
-
     _documentSize = 10;
     String confdir = System.getProperty("conf.dir");
     if (confdir == null) confdir = "./resource";
+    System.setProperty("log.home", ".");
     org.apache.log4j.PropertyConfigurator.configure(confdir + "/log4j.properties");
   }
 

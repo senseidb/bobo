@@ -19,11 +19,11 @@ public class MemoryUtil {
     return array;
   }
 
-  private static class RunnerThread2 extends Thread {
+  private static class RunnerThread extends Thread {
     private final int[] array;
     private final BigIntArray bigarray;
 
-    RunnerThread2(int[] a, BigIntArray b) {
+    RunnerThread(int[] a, BigIntArray b) {
       array = a;
       bigarray = b;
     }
@@ -39,46 +39,11 @@ public class MemoryUtil {
     }
   }
 
-  static void time1(final int[][] array) {
+  static void time1(final int[][] array) throws InterruptedException {
     int iter = array.length;
     final BigIntArray bigArray = new BigIntArray(max);
     Thread[] threads = new Thread[iter];
 
-    for (int i = 0; i < iter; ++i) {
-      threads[i] = new RunnerThread2(array[i], bigArray);
-    }
-
-    for (Thread t : threads) {
-      t.start();
-    }
-  }
-
-  private static class RunnerThread extends Thread {
-    private final int[] array;
-    private final int[] bigarray;
-
-    RunnerThread(int[] a, int[] b) {
-      array = a;
-      bigarray = b;
-    }
-
-    @Override
-    public void run() {
-      long start = System.currentTimeMillis();
-      for (int val : array) {
-        @SuppressWarnings("unused")
-        int x = bigarray[val];
-      }
-
-      long end = System.currentTimeMillis();
-      System.out.println("time: " + (end - start));
-    }
-  }
-
-  static void time2(final int[][] array) {
-    int iter = array.length;
-    final int[] bigArray = new int[max];
-    Thread[] threads = new Thread[iter];
     for (int i = 0; i < iter; ++i) {
       threads[i] = new RunnerThread(array[i], bigArray);
     }
@@ -86,12 +51,16 @@ public class MemoryUtil {
     for (Thread t : threads) {
       t.start();
     }
+    for (Thread t : threads) {
+      t.join();
+    }
   }
 
   /**
    * @param args
+   * @throws InterruptedException
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
     int threadCount = 10;
     int numIter = 1000000;
     int[][] indexesPerThread = new int[threadCount][];
@@ -99,6 +68,7 @@ public class MemoryUtil {
       indexesPerThread[i] = getIndex(numIter);
     }
     time1(indexesPerThread);
+    System.out.println("Test completed.");
   }
 
 }

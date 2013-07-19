@@ -4,6 +4,7 @@
 package com.browseengine.bobo.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -14,22 +15,21 @@ public class BoboBrowser extends MultiBoboBrowser {
    * @param reader BoboMultiReader
    * @throws IOException
    */
-  public BoboBrowser(BoboSegmentReader reader) throws IOException {
-    super(createBrowsables(reader));
-  }
-
   public BoboBrowser(BoboMultiReader reader) throws IOException {
-    super(createBrowsables(reader));
+    super(createBrowsables(reader.getSubReaders()));
   }
 
-  public static Browsable[] createBrowsables(BoboSegmentReader reader) {
-    BoboSubBrowser[] browsables = new BoboSubBrowser[1];
-    browsables[0] = new BoboSubBrowser(reader);
-    return browsables;
+  public static List<BoboSegmentReader> gatherSubReaders(List<BoboMultiReader> readerList) {
+    List<BoboSegmentReader> subReaderList = new ArrayList<BoboSegmentReader>();
+    for (BoboMultiReader reader : readerList) {
+      for (BoboSegmentReader subReader : reader.getSubReaders()) {
+        subReaderList.add(subReader);
+      }
+    }
+    return subReaderList;
   }
 
-  public static Browsable[] createBrowsables(BoboMultiReader reader) {
-    List<BoboSegmentReader> readerList = reader.getSubReaders();
+  public static Browsable[] createBrowsables(List<BoboSegmentReader> readerList) {
     BoboSubBrowser[] browsables = new BoboSubBrowser[readerList.size()];
     for (int i = 0; i < readerList.size(); ++i) {
       browsables[i] = new BoboSubBrowser(readerList.get(i));
@@ -44,11 +44,17 @@ public class BoboBrowser extends MultiBoboBrowser {
    */
   @Override
   public Set<String> getFacetNames() {
+    if (_subBrowsers.length == 0) {
+      return null;
+    }
     return _subBrowsers[0].getFacetNames();
   }
 
   @Override
   public FacetHandler<?> getFacetHandler(String name) {
+    if (_subBrowsers.length == 0) {
+      return null;
+    }
     return _subBrowsers[0].getFacetHandler(name);
   }
 }

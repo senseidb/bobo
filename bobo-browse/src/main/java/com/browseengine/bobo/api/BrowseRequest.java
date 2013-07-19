@@ -35,7 +35,6 @@ import java.util.Set;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.facets.FacetHandlerInitializerParam;
 import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
@@ -69,7 +68,6 @@ public class BrowseRequest implements Serializable {
   private Map<String, FacetSpec> _facetSpecMap;
   private Map<String, FacetHandlerInitializerParam> _facetHandlerDataMap;
   private Query _query;
-  private Weight _weight;
   private int _offset;
   private int _count;
   private boolean _fetchStoredFields;
@@ -300,8 +298,6 @@ public class BrowseRequest implements Serializable {
    */
   public BrowseRequest setQuery(Query query) {
     _query = query;
-    // clear weight, since weight is generated from query on demand
-    _weight = null;
     return this;
   }
 
@@ -312,14 +308,6 @@ public class BrowseRequest implements Serializable {
    */
   public Query getQuery() {
     return _query;
-  }
-
-  public void setWeight(Weight weight) {
-    _weight = weight;
-  }
-
-  public Weight getWeight() {
-    return _weight;
   }
 
   /**

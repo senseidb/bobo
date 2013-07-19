@@ -60,14 +60,12 @@ public class SectionSearchQuery extends Query {
 
     @Override
     public float getValueForNormalization() throws IOException {
-      // TODO Auto-generated method stub
-      return 0;
+      return _weight.getValueForNormalization();
     }
 
     @Override
     public void normalize(float norm, float topLevelBoost) {
-      // TODO Auto-generated method stub
-
+      _weight.normalize(norm, topLevelBoost);
     }
 
   }

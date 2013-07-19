@@ -16,7 +16,6 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
-import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -271,13 +270,9 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
       setFacetHitCollectorList(facetHitCollectorList);
 
       try {
-        Weight weight = req.getWeight();
-        if (weight == null) {
           Query query = req.getQuery();
-          weight = createNormalizedWeight(query);
-          req.setWeight(weight);
-        }
-        search(weight, finalFilter, collector, start, req.getMapReduceWrapper());
+          Weight weight = createNormalizedWeight(query);
+          search(weight, finalFilter, collector, start, req.getMapReduceWrapper());
       } finally {
         for (FacetHitCollector facetCollector : facetHitCollectorList) {
           String name = facetCollector.facetHandler.getName();
@@ -325,58 +320,8 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
    * @return browse result
    */
   @Override
-  public BrowseResult browse(BrowseRequest req) throws BrowseException {
-    if (_reader == null) return new BrowseResult();
-
-    final BrowseResult result = new BrowseResult();
-
-    long start = System.currentTimeMillis();
-
-    SortCollector collector = getSortCollector(req.getSort(), req.getQuery(), req.getOffset(),
-      req.getCount(), req.isFetchStoredFields(), req.getTermVectorsToFetch(), req.getMaxPerGroup(),
-      req.getCollectDocIdCache());
-
-    Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
-
-    try {
-      Query q = req.getQuery();
-      if (q == null) {
-        q = new MatchAllDocsQuery();
-      }
-      req.setQuery(q);
-    } catch (Exception ioe) {
-      throw new BrowseException(ioe.getMessage(), ioe);
-    }
-    browse(req, collector, facetCollectors, 0);
-    BrowseHit[] hits = null;
-
-    try {
-      hits = collector.topDocs();
-    } catch (IOException e) {
-      logger.error(e.getMessage(), e);
-      hits = new BrowseHit[0];
-    }
-
-    if (req.isShowExplanation()) {
-      for (BrowseHit hit : hits) {
-        try {
-          Explanation expl = explain(req.getQuery(), hit.getDocid());
-          hit.setExplanation(expl);
-        } catch (IOException e) {
-          logger.error(e.getMessage(), e);
-        }
-      }
-    }
-    result.setHits(hits);
-    result.setNumHits(collector.getTotalHits());
-    result.setNumGroups(collector.getTotalGroups());
-    result.setGroupAccessibles(collector.getGroupAccessibles());
-    result.setSortCollector(collector);
-    result.setTotalDocs(_reader.numDocs());
-    result.addAll(facetCollectors);
-    long end = System.currentTimeMillis();
-    result.setTime(end - start);
-    return result;
+  public BrowseResult browse(BrowseRequest req) {
+    throw new UnsupportedOperationException();
   }
 
   public Map<String, FacetHandler<?>> getRuntimeFacetHandlerMap() {

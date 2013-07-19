@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.similarities.Similarity;
@@ -43,4 +44,6 @@ public interface Browsable {
       boolean collectDocIdCache);
 
   void doClose() throws IOException;
+
+  Explanation explain(Query q, int deBasedDoc) throws IOException;
 }

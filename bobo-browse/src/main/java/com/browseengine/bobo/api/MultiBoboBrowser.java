@@ -11,7 +11,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.search.Collector;
@@ -19,7 +18,6 @@ import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.Similarity;
 
 import com.browseengine.bobo.facets.FacetHandler;
@@ -56,7 +54,9 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   public void browse(BrowseRequest req, final Collector hc, Map<String, FacetAccessible> facetMap,
       int start) throws BrowseException {
     // index empty
-    if (_subBrowsers == null || _subBrowsers.length == 0) return;
+    if (_subBrowsers == null || _subBrowsers.length == 0) {
+      return;
+    }
 
     try {
       Query q = req.getQuery();
@@ -161,7 +161,10 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
     if (req.isShowExplanation()) {
       for (BrowseHit hit : hits) {
         try {
-          Explanation expl = explain(req.getWeight(), q, hit.getDocid());
+          int doc = hit.getDocid();
+          int idx = readerIndex(doc);
+          int deBasedDoc = doc - readerBase(idx);
+          Explanation expl = _subBrowsers[idx].explain(q, deBasedDoc);
           hit.setExplanation(expl);
         } catch (IOException e) {
           logger.error(e.getMessage(), e);
@@ -289,10 +292,8 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
     return this;
   }
 
-  public Explanation explain(Weight w, Query q, int docid) throws IOException {
-    int n = readerIndex(docid);
-    int deBasedDoc = docid - readerBase(n);
-    final AtomicReaderContext ctx = getContext().leaves().get(n);
-    return w.explain(ctx, deBasedDoc);
+  @Override
+  public Explanation explain(Query q, int deBasedDoc) throws IOException {
+    throw new UnsupportedOperationException();
   }
 }
