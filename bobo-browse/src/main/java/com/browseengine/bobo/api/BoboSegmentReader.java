@@ -360,4 +360,8 @@ public class BoboSegmentReader extends FilterAtomicReader {
     return copy;
   }
 
+  public AtomicReader getInnerReader() {
+    return in;
+  }
+
 }
