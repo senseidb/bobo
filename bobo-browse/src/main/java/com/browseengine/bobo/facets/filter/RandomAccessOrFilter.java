@@ -9,7 +9,6 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
-import com.kamikaze.docidset.impl.OrDocIdSet;
 
 public class RandomAccessOrFilter extends RandomAccessFilter {
   protected final List<RandomAccessFilter> _filters;

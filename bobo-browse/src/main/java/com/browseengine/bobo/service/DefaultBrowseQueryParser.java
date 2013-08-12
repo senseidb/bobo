@@ -5,12 +5,14 @@ import java.util.Arrays;
 
 import org.apache.lucene.search.DocIdSet;
 
-import com.kamikaze.docidset.impl.AndDocIdSet;
-import com.kamikaze.docidset.impl.NotDocIdSet;
-import com.kamikaze.docidset.impl.OrDocIdSet;
+import com.browseengine.bobo.facets.filter.AndDocIdSet;
+import com.browseengine.bobo.facets.filter.NotDocIdSet;
+import com.browseengine.bobo.facets.filter.OrDocIdSet;
+
 
 public class DefaultBrowseQueryParser implements BrowseQueryParser {
 
+  @Override
   public DocIdSet parse(SelectionNode[] selectionNodes, SelectionNode[] notSelectionNodes,
       int maxDoc) {
     DocIdSet docSet = null;

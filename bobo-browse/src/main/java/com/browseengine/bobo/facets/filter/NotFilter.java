@@ -7,8 +7,6 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.util.Bits;
 
-import com.kamikaze.docidset.impl.NotDocIdSet;
-
 public class NotFilter extends Filter {
 
   private final Filter _innerFilter;
