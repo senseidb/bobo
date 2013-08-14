@@ -141,6 +141,22 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
+
+    int doc = 0;
+    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
+      ++doc;
+    }
+    if (doc <= maxdoc) {
+      this.minIDs[0] = doc;
+      doc = maxdoc;
+      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
+        --doc;
+      }
+      if (doc > 0) {
+        this.maxIDs[0] = doc;
+      }
+    }
+    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 
   /**
@@ -224,6 +240,22 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();
     this.maxIDs = maxIDList.toIntArray();
+
+    int doc = 0;
+    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
+      ++doc;
+    }
+    if (doc <= maxdoc) {
+      this.minIDs[0] = doc;
+      doc = maxdoc;
+      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
+        --doc;
+      }
+      if (doc > 0) {
+        this.maxIDs[0] = doc;
+      }
+    }
+    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
   }
 
   protected void logOverflow(String fieldName) {

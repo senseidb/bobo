@@ -293,7 +293,7 @@ public class BoboSearcher extends IndexSearcher {
       AtomicReaderContext atomicContext = indexReaderContext.children() == null ? (AtomicReaderContext) indexReaderContext
           : (AtomicReaderContext) (indexReaderContext.children().get(i));
 
-      DocIdSet filterDocIdSet = filter.getDocIdSet(atomicContext, null);
+      DocIdSet filterDocIdSet = filter.getDocIdSet(atomicContext, _subReaders[i].getLiveDocs());
       if (filterDocIdSet == null) return; // shall we use return or continue here ??
       int docStart = start;
       if (reader instanceof BoboMultiReader) {
