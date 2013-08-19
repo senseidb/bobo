@@ -1,6 +1,7 @@
 package com.browseengine.bobo.api;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Explanation;
 
 /**
@@ -26,6 +28,162 @@ public class BrowseHit implements Serializable {
     public TermFrequencyVector(List<String> terms, List<Integer> freqs) {
       this.terms = terms;
       this.freqs = freqs;
+    }
+  }
+
+  public static class SerializableField implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+    private final String name;
+
+    /** Field's value */
+    private Object fieldsData;
+
+    public SerializableField(IndexableField field) {
+      name = field.name();
+      if (field.numericValue() != null) {
+        fieldsData = field.numericValue();
+      } else if (field.stringValue() != null) {
+        fieldsData = field.stringValue();
+      } else if (field.binaryValue() != null) {
+        fieldsData = field.binaryValue().bytes;
+      } else {
+        throw new UnsupportedOperationException("Doesn't support this field type so far");
+      }
+    }
+
+    public String name() {
+      return name;
+    }
+
+    public String stringValue() {
+      if (fieldsData instanceof String || fieldsData instanceof Number) {
+        return fieldsData.toString();
+      } else {
+        return null;
+      }
+    }
+
+    public Number numericValue() {
+      if (fieldsData instanceof Number) {
+        return (Number) fieldsData;
+      } else {
+        return null;
+      }
+    }
+
+    public byte[] binaryValue() {
+      if (fieldsData instanceof byte[]) {
+        return (byte[]) fieldsData;
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof SerializableField)) {
+        return false;
+      }
+      SerializableField other = (SerializableField) o;
+      if (!name.equals(other.name())) {
+        return false;
+      }
+      String value = stringValue();
+      if (value != null) {
+        if (value.equals(other.stringValue())) {
+          return true;
+        }
+        return false;
+      }
+      byte[] binValue = binaryValue();
+      if (binValue != null) {
+        return Arrays.equals(binValue, other.binaryValue());
+      }
+      return false;
+    }
+  }
+
+  public static class SerializableExplanation implements Serializable {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
+    private float value; // the value of this node
+    private String description;
+    private ArrayList<SerializableExplanation> details; // sub-explanations
+
+    public SerializableExplanation(Explanation explanation) {
+      setValue(explanation.getValue());
+      setDescription(explanation.getDescription());
+      Explanation []details = explanation.getDetails();
+      if (details == null) {
+        return;
+      }
+      for (Explanation exp : details) {
+        addDetail(new SerializableExplanation(exp));
+      }
+    }
+
+    /** The value assigned to this explanation node. */
+    public float getValue() {
+      return value;
+    }
+
+    /** Sets the value assigned to this explanation node. */
+    public void setValue(float value) {
+      this.value = value;
+    }
+
+    /** A description of this explanation node. */
+    public String getDescription() {
+      return description;
+    }
+
+    /** Sets the description of this explanation node. */
+    public void setDescription(String description) {
+      this.description = description;
+    }
+
+    /** The sub-nodes of this explanation node. */
+    public SerializableExplanation[] getDetails() {
+      if (details == null) {
+        return null;
+      }
+      return details.toArray(new SerializableExplanation[0]);
+    }
+
+    /** Adds a sub-node to this explanation node. */
+    public void addDetail(SerializableExplanation detail) {
+      if (details == null) {
+        details = new ArrayList<SerializableExplanation>();
+      }
+      details.add(detail);
+    }
+
+    @Override
+    public String toString() {
+      return toString(0);
+    }
+
+    protected String toString(int depth) {
+      StringBuilder buffer = new StringBuilder();
+      for (int i = 0; i < depth; i++) {
+        buffer.append("  ");
+      }
+      buffer.append(getValue() + " = " + getDescription());
+      buffer.append("\n");
+
+      SerializableExplanation[] details = getDetails();
+      if (details != null) {
+        for (int i = 0 ; i < details.length; i++) {
+          buffer.append(details[i].toString(depth+1));
+        }
+      }
+
+      return buffer.toString();
     }
   }
 
@@ -94,14 +252,14 @@ public class BrowseHit implements Serializable {
   private Map<String, String[]> _fieldValues;
   private Map<String, Object[]> _rawFieldValues;
   private transient Comparable<?> _comparable;
-  private Document _storedFields;
+  private List<SerializableField> _storedFields;
   private int _groupPosition; // the position of the _groupField inside groupBy request.
   private String _groupField;
   private String _groupValue;
   private Object _rawGroupValue;
   private int _groupHitsCount;
   private BrowseHit[] _groupHits;
-  private Explanation _explanation;
+  private SerializableExplanation _explanation;
 
   private Map<String, TermFrequencyVector> _termFreqMap = new HashMap<String, TermFrequencyVector>();
 
@@ -168,12 +326,17 @@ public class BrowseHit implements Serializable {
     return this;
   }
 
-  public Explanation getExplanation() {
+  public SerializableExplanation getExplanation() {
     return _explanation;
   }
 
-  public BrowseHit setExplanation(Explanation explanation) {
+  public BrowseHit setExplanation(SerializableExplanation explanation) {
     _explanation = explanation;
+    return this;
+  }
+
+  public BrowseHit setExplanation(Explanation explanation) {
+    _explanation = new SerializableExplanation(explanation);
     return this;
   }
 
@@ -258,12 +421,49 @@ public class BrowseHit implements Serializable {
   }
 
   public BrowseHit setStoredFields(Document doc) {
-    _storedFields = doc;
+    if (doc == null) {
+      _storedFields = null;
+      return this;
+    }
+    _storedFields = new ArrayList<SerializableField>();
+    Iterator<IndexableField> it = doc.iterator();
+    while (it.hasNext()) {
+      _storedFields.add(new SerializableField(it.next()));
+    }
     return this;
   }
 
-  public Document getStoredFields() {
+  public BrowseHit setStoredFields(List<SerializableField> fields) {
+    _storedFields = fields;
+    return this;
+  }
+
+  public List<SerializableField> getStoredFields() {
     return _storedFields;
+  }
+
+  public byte[] getFieldBinaryValue(String fieldName) {
+    if (_storedFields == null) {
+      return null;
+    }
+    for (SerializableField field : _storedFields) {
+      if (fieldName.equals(field.name())) {
+        return field.binaryValue();
+      }
+    }
+    return null;
+  }
+
+  public String getFieldStringValue(String fieldName) {
+    if (_storedFields == null) {
+      return null;
+    }
+    for (SerializableField field : _storedFields) {
+      if (fieldName.equals(field.name())) {
+        return field.stringValue();
+      }
+    }
+    return null;
   }
 
   public String toString(Map<String, String[]> map) {

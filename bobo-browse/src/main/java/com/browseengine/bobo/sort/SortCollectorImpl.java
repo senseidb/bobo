@@ -370,11 +370,6 @@ public class SortCollectorImpl extends SortCollector {
 
         Object rawGroupValue = null;
 
-        // if (_facetCountCollector != null)
-        // {
-        // collectTotalGroups();
-        // _facetCountCollector = null;
-        // }
         if (_facetAccessibleLists != null) {
           _groupAccessibles = new CombinedFacetAccessible[_facetAccessibleLists.length];
           for (int i = 0; i < _facetAccessibleLists.length; ++i)

@@ -89,6 +89,7 @@ import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.SerializableField;
 import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
@@ -733,10 +734,17 @@ public class BoboTestCase extends TestCase {
       result = boboBrowser.browse(br);
       assertEquals(1, result.getNumHits());
       BrowseHit hit = result.getHits()[0];
-      Document storedFields = hit.getStoredFields();
+      List<SerializableField> storedFields = hit.getStoredFields();
       assertNotNull(storedFields);
 
-      String[] values = storedFields.getValues("testStored");
+      List<String> fieldValues = new ArrayList<String>();
+      for (SerializableField field : storedFields) {
+        if (field.name().equals("testStored") && field.stringValue() != null) {
+          fieldValues.add(field.stringValue());
+        }
+      }
+      String[] values = fieldValues.toArray(new String[fieldValues.size()]);
+
       assertNotNull(values);
       assertEquals(1, values.length);
       assertTrue("stored".equals(values[0]));
@@ -790,12 +798,8 @@ public class BoboTestCase extends TestCase {
       result = boboBrowser.browse(br);
       assertEquals(1, result.getNumHits());
       hit = result.getHits()[0];
-      Document storedFields = hit.getStoredFields();
-      assertNotNull(storedFields);
-
-      String stored = storedFields.get("testStored");
+      String stored = hit.getFieldStringValue("testStored");
       assertTrue("stored".equals(stored));
-
     } catch (BrowseException e) {
       e.printStackTrace();
       fail(e.getMessage());
