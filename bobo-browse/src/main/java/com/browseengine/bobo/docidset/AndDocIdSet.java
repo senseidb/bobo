@@ -1,4 +1,4 @@
-package com.browseengine.bobo.facets.filter;
+package com.browseengine.bobo.docidset;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -8,9 +8,6 @@ import java.util.List;
 
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
-
-import com.kamikaze.docidset.api.StatefulDSIterator;
-import com.kamikaze.docidset.impl.ImmutableDocSet;
 
 public class AndDocIdSet extends ImmutableDocSet implements Serializable {
   private static final long serialVersionUID = 1L;

@@ -9,6 +9,8 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.util.Bits;
 
+import com.browseengine.bobo.docidset.OrDocIdSet;
+
 public class OrFilter extends Filter {
   private final List<? extends Filter> _filters;
 

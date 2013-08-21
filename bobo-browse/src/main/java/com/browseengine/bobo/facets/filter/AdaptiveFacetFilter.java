@@ -14,6 +14,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.docidset.EmptyDocIdSet;
+import com.browseengine.bobo.docidset.OrDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.data.FacetDataCache;
 import com.browseengine.bobo.facets.data.TermValueList;

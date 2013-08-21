@@ -1,4 +1,4 @@
-package com.browseengine.bobo.facets.filter;
+package com.browseengine.bobo.docidset;
 
 import java.io.IOException;
 import java.util.List;

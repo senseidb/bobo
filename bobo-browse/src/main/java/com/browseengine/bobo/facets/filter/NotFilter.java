@@ -7,6 +7,8 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.util.Bits;
 
+import com.browseengine.bobo.docidset.NotDocIdSet;
+
 public class NotFilter extends Filter {
 
   private final Filter _innerFilter;

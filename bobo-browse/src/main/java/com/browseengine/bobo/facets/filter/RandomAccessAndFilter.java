@@ -8,6 +8,7 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 
 import com.browseengine.bobo.api.BoboSegmentReader;
+import com.browseengine.bobo.docidset.AndDocIdSet;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 
 public class RandomAccessAndFilter extends RandomAccessFilter {

@@ -5,10 +5,9 @@ import java.util.Arrays;
 
 import org.apache.lucene.search.DocIdSet;
 
-import com.browseengine.bobo.facets.filter.AndDocIdSet;
-import com.browseengine.bobo.facets.filter.NotDocIdSet;
-import com.browseengine.bobo.facets.filter.OrDocIdSet;
-
+import com.browseengine.bobo.docidset.AndDocIdSet;
+import com.browseengine.bobo.docidset.NotDocIdSet;
+import com.browseengine.bobo.docidset.OrDocIdSet;
 
 public class DefaultBrowseQueryParser implements BrowseQueryParser {
 
@@ -32,7 +31,7 @@ public class DefaultBrowseQueryParser implements BrowseQueryParser {
         if (selSetList.size() == 1) {
           selSet = selSetList.get(0);
         } else {
-          selSet = new AndDocIdSet(selSetList);
+          selSet = new com.browseengine.bobo.docidset.AndDocIdSet(selSetList);
         }
       }
     }
