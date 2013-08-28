@@ -3,6 +3,7 @@ package com.browseengine.bobo.geosearch.merge.impl;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import org.apache.lucene.index.SegmentInfo;
 import org.apache.lucene.index.SegmentReader;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.BitVector;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.junit.Before;
@@ -34,7 +36,11 @@ import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.BTree;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
+import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
+import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
+import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
 
 /**
@@ -129,7 +135,7 @@ public class BufferedGeoMergerTest {
             segmentStart += (segmentSize - deletedDocs);
         }
         
-        String newSegmentName = "newSegment";
+        newSegmentName = "newSegment";
         newSegment = LuceneUtils.buildSegmentInfo(newSegmentName, segmentStart, 0, dir);
     }
     
@@ -204,6 +210,10 @@ public class BufferedGeoMergerTest {
         if (!isVerifyOutputTreeAgainstExpected) {
             return;
         }
+        checkTreeAgainstExpected(outputTree);
+    }
+    
+    private void checkTreeAgainstExpected(BTree<CartesianGeoRecord> outputTree) throws IOException {
         assertEquals("trees sould be equal in size", expectedOutputTree.size(), outputTree.getArrayLength());
         Iterator<CartesianGeoRecord> outputIterator = outputTree.getIterator(CartesianGeoRecord.MIN_VALID_GEORECORD, CartesianGeoRecord.MAX_VALID_GEORECORD);
         Iterator<CartesianGeoRecord> expectedIterator = expectedOutputTree.iterator();
@@ -310,6 +320,8 @@ public class BufferedGeoMergerTest {
     }
     
     private Set<String> noGeoFileNames;
+
+    private String newSegmentName;
     
     private void initNoGeoFile() {
         
@@ -420,5 +432,41 @@ public class BufferedGeoMergerTest {
         setUpMergeObjects(docsPerSegment, deletedDocsPerSegment);
         
         doMerge();
+    }
+    
+    @Test
+    public void testIncorrectNewSegmentSize() throws IOException {
+        bufferedGeoMerger = new BufferedGeoMerger();
+        
+        int[] docsPerSegment = new int[] {10, 10};
+        int[] deletedDocsPerSegment = new int[] {0, 0};
+        setUpMergeObjects(docsPerSegment, deletedDocsPerSegment);
+        
+        context.checking(new Expectations() {
+            {
+                ignoring(geoMergeInfo).getDirectory();
+                will(returnValue(dir));
+                
+                atLeast(1).of(geoMergeInfo).getNewSegment();
+                will(returnValue(newSegment));
+            }
+        });
+        
+        
+        List<BTree<CartesianGeoRecord>> mergeInputBTrees = new ArrayList(inputTrees.values());
+        List<BitVector> deletedDocsList =  new ArrayList<BitVector>();
+        deletedDocsList.add(new BitVector(10));
+        deletedDocsList.add(new BitVector(10));
+        
+        int newSegmentSize = 21;
+        GeoSearchConfig config = geoConfig;
+        MappedFieldNameFilterConverter fieldNameFilterConverter = new MappedFieldNameFilterConverter();
+        fieldNameFilterConverter.addFieldBitMask("test", (byte) 1);
+        bufferedGeoMerger.buildMergedSegmentWithRetry(mergeInputBTrees, deletedDocsList, newSegmentSize, 
+                geoMergeInfo, config, fieldNameFilterConverter);
+        
+        GeoSegmentReader<CartesianGeoRecord> myTree = new GeoSegmentReader<CartesianGeoRecord>(dir, newSegmentName + ".geo", 20, 4096,
+                new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
+        checkTreeAgainstExpected(myTree);
     }
 }

@@ -42,7 +42,7 @@ public class GeoSegmentReaderTest {
     }
     
     @Test
-    public void test_WriteThenRead() {
+    public void test_WriteThenRead() throws InvalidTreeSizeException {
 
         for(int i = 0; i < 100; i++) {
             try {
@@ -60,8 +60,6 @@ public class GeoSegmentReaderTest {
                 String fileName = geoSegmentInfo.getSegmentName() + "." + geoConf.getGeoFileExtension();
                 GeoSegmentWriter<CartesianGeoRecord> geoOut = new GeoSegmentWriter<CartesianGeoRecord>(
                         tree, dir, fileName, geoSegmentInfo, geoRecordSerializer);
-                assertTrue("Not a full binary tree. ", 
-                        geoOut.getMaxIndex() < geoOut.getArrayLength());
                 geoOut.close();
                 
                 GeoSegmentReader<CartesianGeoRecord> geoRand = 
@@ -77,7 +75,7 @@ public class GeoSegmentReaderTest {
     }
     
     @Test
-    public void test_WriteThenRead_V1() throws IOException {
+    public void test_WriteThenRead_V1() throws IOException, InvalidTreeSizeException {
         int len = 100;
         int idBytes = 16;
         
@@ -105,8 +103,6 @@ public class GeoSegmentReaderTest {
         //write data
         GeoSegmentWriter<IDGeoRecord> geoOut = new GeoSegmentWriter<IDGeoRecord>(
                 tree, dir, fileName, geoSegmentInfo, geoRecordSerializer);
-        assertTrue("Not a full binary tree. ", 
-                geoOut.getMaxIndex() < geoOut.getArrayLength());
         geoOut.close();
         
         //read and verify data

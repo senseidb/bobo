@@ -22,6 +22,7 @@ import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
+import com.browseengine.bobo.geosearch.index.impl.InvalidTreeSizeException;
 import com.browseengine.bobo.geosearch.solo.bo.IDGeoRecord;
 import com.browseengine.bobo.geosearch.solo.bo.IndexTooLargeException;
 import com.browseengine.bobo.geosearch.solo.impl.IDGeoRecordComparator;
@@ -123,9 +124,13 @@ public class GeoOnlyIndexer {
     GeoSegmentWriter<IDGeoRecord> getGeoSegmentWriter(Set<IDGeoRecord> dataToFlush) throws IOException {
         String fileName = indexName + "." + config.getGeoFileExtension();
         
-        return new GeoSegmentWriter<IDGeoRecord>(
-                dataToFlush, directory, fileName, 
-                buildGeoSegmentInfo(indexName), geoRecordSerializer);
+        try {
+            return new GeoSegmentWriter<IDGeoRecord>(
+                    dataToFlush, directory, fileName, 
+                    buildGeoSegmentInfo(indexName), geoRecordSerializer);
+        } catch (InvalidTreeSizeException e) {
+            throw new IOException(e);
+        }
     }
 
     private void loadCurrentIndex() throws IOException {

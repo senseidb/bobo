@@ -27,6 +27,7 @@ import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
+import com.browseengine.bobo.geosearch.index.impl.InvalidTreeSizeException;
 import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
 import com.browseengine.bobo.geosearch.merge.IGeoMerger;
 
@@ -96,8 +97,9 @@ public class BufferedGeoMerger implements IGeoMerger {
             }
             
             int newSegmentSize = calculateMergedSegmentSize(deletedDocsList, mergeInputBTrees, geoConverter);
+            buildMergedSegmentWithRetry(mergeInputBTrees, deletedDocsList, newSegmentSize, 
+                    geoMergeInfo, config, fieldNameFilterConverter);
             
-            buildMergedSegment(mergeInputBTrees, deletedDocsList, newSegmentSize, geoMergeInfo, config, fieldNameFilterConverter);
             success = true;
             
         } finally {
@@ -106,6 +108,23 @@ public class BufferedGeoMerger implements IGeoMerger {
                 IOUtils.close(mergeInputBTrees);
             } else {
                 IOUtils.closeWhileHandlingException(mergeInputBTrees);
+            }
+        }
+    }
+    
+    protected void buildMergedSegmentWithRetry(List<BTree<CartesianGeoRecord>> mergeInputBTrees, List<BitVector> deletedDocsList, 
+            int newSegmentSize, IGeoMergeInfo geoMergeInfo, GeoSearchConfig config, IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+        try {
+            buildMergedSegment(mergeInputBTrees, deletedDocsList, newSegmentSize, geoMergeInfo, config, fieldNameFilterConverter);
+        } catch (InvalidTreeSizeException e) {
+            LOGGER.warn("Number of records does not match expected number of merged records.  Attempting to repair.", e);
+            
+            newSegmentSize = e.getRecordSize();
+            try {
+                buildMergedSegment(mergeInputBTrees, deletedDocsList, newSegmentSize, geoMergeInfo, config, fieldNameFilterConverter);
+            } catch (InvalidTreeSizeException e2) {
+                LOGGER.error("Unable to merge geo segments", e2);
+                throw new IOException(e2);
             }
         }
     }
@@ -139,7 +158,7 @@ public class BufferedGeoMerger implements IGeoMerger {
     private void buildMergedSegment(List<BTree<CartesianGeoRecord>> mergeInputBTrees, 
             List<BitVector> deletedDocsList, int newSegmentSize, 
             IGeoMergeInfo geoMergeInfo, GeoSearchConfig config, 
-            IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+            IFieldNameFilterConverter fieldNameFilterConverter) throws IOException, InvalidTreeSizeException {
         Directory directory = geoMergeInfo.getDirectory();
         IGeoConverter geoConverter = config.getGeoConverter();
         
@@ -176,7 +195,7 @@ public class BufferedGeoMerger implements IGeoMerger {
     }
 
     protected BTree<CartesianGeoRecord> getOutputBTree(int newSegmentSize, Iterator<CartesianGeoRecord> inputIterator, 
-            Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
+            Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException, InvalidTreeSizeException {
         return new GeoSegmentWriter<CartesianGeoRecord>(newSegmentSize, inputIterator, 
                 directory, outputFileName, geoSegmentInfo, geoRecordSerializer);
     }

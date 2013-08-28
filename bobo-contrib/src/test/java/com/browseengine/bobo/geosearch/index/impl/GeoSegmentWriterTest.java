@@ -1,5 +1,8 @@
 package com.browseengine.bobo.geosearch.index.impl;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.TreeSet;
@@ -83,43 +86,77 @@ public class GeoSegmentWriterTest {
     }
     
     @Test
-    public void createOutputBTree() throws IOException {
+    public void createOutputBTree() throws IOException, InvalidTreeSizeException {
         final int docsToAdd = 20;
-        
-        for (int i=0; i<docsToAdd; i++) {
-            long highOrder = 0;
-            int lowOrder = i;
-            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE; 
-            
-            CartesianGeoRecord record = new CartesianGeoRecord(highOrder, lowOrder, filterByte);
-            treeSet.add(record);
-        }
+        buildTreeSet(docsToAdd);
         
         doCreateAndTest(docsToAdd);
     }
     
     @Test
-    public void createOutputBTree_V2() throws IOException {
+    public void createOutputBTree_V2() throws IOException, InvalidTreeSizeException {
         final int docsToAdd = 20;
-        
-        for (int i=0; i<docsToAdd; i++) {
-            long highOrder = 0;
-            int lowOrder = i;
-            byte filterByte = CartesianGeoRecord.DEFAULT_FILTER_BYTE; 
-            
-            CartesianGeoRecord record = new CartesianGeoRecord(highOrder, lowOrder, filterByte);
-            treeSet.add(record);
-        }
+        buildTreeSet(docsToAdd);
         
         doCreateAndTest(docsToAdd, GeoVersion.VERSION_1);
     }
     
     @Test
-    public void createOutputBTree_WithValueMapping() throws IOException {
+    public void createOutputBTree_WithValueMapping() throws IOException, InvalidTreeSizeException {
         info.setFieldNameFilterConverter(fieldNameFilterConverter);
         
         final int docsToAdd = 20;
         
+        buildTreeSet(docsToAdd);
+        
+        doCreateAndTest(docsToAdd);
+    }
+    
+    @Test
+    public void treeTooLarge() throws IOException {
+        final int docsToAdd = 20;
+        int version = GeoVersion.VERSION_0;
+        buildTreeSet(docsToAdd);
+        
+        
+        buildWriteExpectations(docsToAdd, docsToAdd + 1, version);
+        
+        info.setGeoVersion(version);
+        String fileName = config.getGeoFileName(info.getSegmentName());
+        
+        try {
+            GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(docsToAdd + 1, treeSet.iterator(), 
+                    directory, fileName, info, geoRecordSerializer);
+            fail("Expected InvalidTreeSizeException but it did not occur");
+        } catch (InvalidTreeSizeException e) {
+            assertEquals("Expected tree size to be as specified", docsToAdd + 1, e.getTreeSize());
+            assertEquals("Expected recordSize to equal records in iterator", docsToAdd, e.getRecordSize());
+        }
+    }
+    
+    @Test
+    public void treeTooSmall() throws IOException {
+        final int docsToAdd = 20;
+        int version = GeoVersion.VERSION_0;
+        buildTreeSet(docsToAdd);
+        
+        
+        buildWriteExpectations(docsToAdd, docsToAdd - 1, version);
+        
+        info.setGeoVersion(version);
+        String fileName = config.getGeoFileName(info.getSegmentName());
+        
+        try {
+            GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(docsToAdd - 1, treeSet.iterator(), 
+                    directory, fileName, info, geoRecordSerializer);
+            fail("Expected InvalidTreeSizeException but it did not occur");
+        } catch (InvalidTreeSizeException e) {
+            assertEquals("Expected tree size to be as specified", docsToAdd -1, e.getTreeSize());
+            assertEquals("Expected recordSize to equal records in iterator", docsToAdd, e.getRecordSize());
+        }
+    }
+    
+    private void buildTreeSet(int docsToAdd) {
         for (int i=0; i<docsToAdd; i++) {
             long highOrder = 0;
             int lowOrder = i;
@@ -128,15 +165,31 @@ public class GeoSegmentWriterTest {
             CartesianGeoRecord record = new CartesianGeoRecord(highOrder, lowOrder, filterByte);
             treeSet.add(record);
         }
-        
-        doCreateAndTest(docsToAdd);
     }
     
-    private void doCreateAndTest(final int docsToAdd) throws IOException {
+    private void doCreateAndTest(final int docsToAdd) throws IOException, InvalidTreeSizeException {
         doCreateAndTest(docsToAdd, GeoVersion.VERSION_0);
     }
     
-    private void doCreateAndTest(final int docsToAdd, final int version) throws IOException {
+    private void doCreateAndTest(final int docsToAdd, final int version) throws IOException, InvalidTreeSizeException {
+        buildWriteExpectations(docsToAdd, docsToAdd, version);
+        
+        context.checking(new Expectations() {
+            {
+                //close
+                one(mockOutput).close();
+            }
+        });
+        
+        info.setGeoVersion(version);
+        String fileName = config.getGeoFileName(info.getSegmentName());
+        GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(treeSet, directory, 
+                fileName, info, geoRecordSerializer);
+        bTree.close();
+        context.assertIsSatisfied();
+    }
+    
+    private void buildWriteExpectations(final int docsToAdd, final int expectedDocs, final int version) throws IOException {
         final byte[] byteBuf = new byte[10];
         final Class<?> clazz = byteBuf.getClass();
         
@@ -156,7 +209,7 @@ public class GeoSegmentWriterTest {
                 inSequence(outputSequence);
                 one(mockOutput).writeInt(0);
                 inSequence(outputSequence);
-                one(mockOutput).writeVInt(docsToAdd);
+                one(mockOutput).writeVInt(expectedDocs);
                 inSequence(outputSequence);
                 if(version > GeoVersion.VERSION_0) {
                     one(mockOutput).writeVInt(GeoSegmentInfo.BYTES_PER_RECORD_V1);
@@ -185,24 +238,14 @@ public class GeoSegmentWriterTest {
                 inSequence(outputSequence);
                 
                 //write actual tree
-                for (int i = 0; i < docsToAdd; i++) {
+                for (int i = 0; i < Math.min(docsToAdd, expectedDocs); i++) {
                     
                     one(mockOutput).seek(with(any(Long.class)));
                     inSequence(outputSequence);
                     one(geoRecordSerializer).writeGeoRecord(with(mockOutput), with(any(CartesianGeoRecord.class)), with(any(Integer.class)));
                     inSequence(outputSequence);
                 }
-                
-                //close
-                one(mockOutput).close();
             }
         });
-        
-        info.setGeoVersion(version);
-        String fileName = config.getGeoFileName(info.getSegmentName());
-        GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(treeSet, directory, 
-                fileName, info, geoRecordSerializer);
-        bTree.close();
-        context.assertIsSatisfied();
     }
 }

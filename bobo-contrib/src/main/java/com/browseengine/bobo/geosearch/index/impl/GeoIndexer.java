@@ -89,8 +89,12 @@ public class GeoIndexer implements IGeoIndexer {
         boolean success = false;
         try {
             String fileName = config.getGeoFileName(segmentName);
-            geoRecordBTree = new GeoSegmentWriter<CartesianGeoRecord>(treeToFlush, directory, 
-                    fileName, geoSegmentInfo, geoRecordSerializer);
+            try {
+                geoRecordBTree = new GeoSegmentWriter<CartesianGeoRecord>(treeToFlush, directory, 
+                        fileName, geoSegmentInfo, geoRecordSerializer);
+            } catch (InvalidTreeSizeException e) {
+                throw new IOException(e);
+            }
             
             success = true;
         } finally {

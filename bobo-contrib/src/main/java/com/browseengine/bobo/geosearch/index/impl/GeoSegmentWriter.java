@@ -27,14 +27,13 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
     IGeoRecordSerializer<G> geoRecordSerializer;
     IndexOutput indexOutput;
     GeoSegmentInfo geoSegmentInfo;
-    int maxIndex;
     
     int arrayLength;
     long treeDataStart;
     
     public GeoSegmentWriter(Set<G> tree, Directory directory, String fileName, 
             GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) 
-    throws IOException {
+    throws IOException, InvalidTreeSizeException {
         super(tree.size(), false);
         this.arrayLength = tree.size();
         this.geoSegmentInfo = geoSegmentInfo;
@@ -44,12 +43,13 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         try {
             buildBTreeFromSet(tree);
         } catch (IOException e) {
-            close();
+            indexOutput.close();
+            throw e;
         }
     }
     
     public GeoSegmentWriter(int treeSize, Iterator<G> inputIterator, Directory directory, String fileName,
-            GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) throws IOException {
+            GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) throws IOException, InvalidTreeSizeException {
         super(treeSize, false);
         this.arrayLength = treeSize;
         this.geoSegmentInfo = geoSegmentInfo;
@@ -60,28 +60,33 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         try {
             buildBTreeFromIterator(inputIterator);
         } catch (IOException e) {
-            close();
+            indexOutput.close();
+            throw e;
         }
     }
     
-    private void buildBTreeFromIterator(Iterator<G> geoIter) throws IOException {
+    private void buildBTreeFromIterator(Iterator<G> geoIter) throws IOException, InvalidTreeSizeException {
         writeGeoInfo();
         
+        int recordCount = 0;
         int index = getLeftMostLeafIndex();
         ensureNotWritingPastEndOfFile(index);
         while (geoIter.hasNext()) {
-            setValueAtIndex(index, geoIter.next());
-            index = getNextIndex(index);
-            
-            if(index >= this.arrayLength) {
-                throw new IllegalArgumentException("Tree only created for " + arrayLength + " nodes but iterator contains more than that");
+            G nextValue = geoIter.next();
+            if (index != -1) {
+                setValueAtIndex(index, nextValue);
+                index = getNextIndex(index);
             }
+            
+            recordCount++;
         }
         
-        maxIndex = index;
+        if (arrayLength != recordCount) {
+            throw new InvalidTreeSizeException(arrayLength, recordCount);
+        }
     }
     
-    private void buildBTreeFromSet(Set<G> geoSet) throws IOException {
+    private void buildBTreeFromSet(Set<G> geoSet) throws IOException, InvalidTreeSizeException {
         buildBTreeFromIterator(geoSet.iterator());
     }
     
@@ -169,11 +174,6 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
     @Override
     public void close() throws IOException {
         indexOutput.close();
-    }
-    
-    // Test if full binary tree.
-    public int getMaxIndex() {
-        return maxIndex;
     }
     
 }
