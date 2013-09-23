@@ -155,8 +155,7 @@ public class GeoFacetFilter extends RandomAccessFilter {
       final float zl = z - _delta;
 
       int docid = _doc;
-      while (docid < _maxDoc) {
-        docid++;
+      while (++docid < _maxDoc) {
 
         float docX = _xvals.get(docid);
         if (docX > xu || docX < xl) continue;
@@ -178,7 +177,9 @@ public class GeoFacetFilter extends RandomAccessFilter {
 
     @Override
     final public int advance(int targetId) throws IOException {
-      if (_doc < targetId) _doc = targetId - 1;
+      if (_doc < targetId){
+        _doc = targetId - 1;
+      }
 
       final float x = _targetX;
       final float xu = x + _delta;
@@ -191,9 +192,7 @@ public class GeoFacetFilter extends RandomAccessFilter {
       final float zl = z - _delta;
 
       int docid = _doc;
-      while (docid < _maxDoc) {
-        docid++;
-
+      while (++docid < _maxDoc) {
         float docX = _xvals.get(docid);
         if (docX > xu || docX < xl) continue;
 

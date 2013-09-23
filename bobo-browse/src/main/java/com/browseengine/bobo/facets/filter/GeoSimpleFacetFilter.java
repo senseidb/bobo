@@ -72,8 +72,8 @@ public final class GeoSimpleFacetFilter extends RandomAccessFilter {
     final public int nextDoc() throws IOException {
       int latIndex;
       int longIndex;
-      while (_doc < _maxID) { // not yet reached end
-        latIndex = _latOrderArray.get(++_doc);
+      while (++_doc < _maxID) { // not yet reached end
+        latIndex = _latOrderArray.get(_doc);
         longIndex = _latOrderArray.get(_doc);
         if ((latIndex >= _latStart && latIndex <= _latEnd)
             && (longIndex >= _longStart && longIndex <= _longEnd)) return _doc;
@@ -88,11 +88,13 @@ public final class GeoSimpleFacetFilter extends RandomAccessFilter {
       }
       int latIndex;
       int longIndex;
-      while (_doc < _maxID) { // not yet reached end
-        latIndex = _latOrderArray.get(++_doc);
+      while (++_doc < _maxID) { // not yet reached end
+        latIndex = _latOrderArray.get(_doc);
         longIndex = _latOrderArray.get(_doc);
         if ((latIndex >= _latStart && latIndex <= _latEnd)
-            && (longIndex >= _longStart && longIndex <= _longEnd)) return _doc;
+            && (longIndex >= _longStart && longIndex <= _longEnd)) {
+          return _doc;
+        }
       }
       return DocIdSetIterator.NO_MORE_DOCS;
     }

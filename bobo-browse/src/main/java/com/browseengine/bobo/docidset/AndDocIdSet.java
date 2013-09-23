@@ -68,7 +68,9 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
     @Override
     public final int nextDoc() throws IOException {
 
-      if (lastReturn == DocIdSetIterator.NO_MORE_DOCS) return DocIdSetIterator.NO_MORE_DOCS;
+      if (lastReturn == DocIdSetIterator.NO_MORE_DOCS) {
+        return DocIdSetIterator.NO_MORE_DOCS;
+      }
 
       DocIdSetIterator dcit = iterators[0];
       int target = dcit.nextDoc();
@@ -91,15 +93,15 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
         }
         i++;
       }
-      // if(target != DocIdSetIterator.NO_MORE_DOCS)
-      // _interSectionResult.add(target);
       return (lastReturn = target);
     }
 
     @Override
     public final int advance(int target) throws IOException {
 
-      if (lastReturn == DocIdSetIterator.NO_MORE_DOCS) return DocIdSetIterator.NO_MORE_DOCS;
+      if (lastReturn == DocIdSetIterator.NO_MORE_DOCS) {
+        return DocIdSetIterator.NO_MORE_DOCS;
+      }
 
       DocIdSetIterator dcit = iterators[0];
       target = dcit.advance(target);
@@ -134,7 +136,6 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
   @Override
   public final DocIdSetIterator iterator() throws IOException {
     return new AndDocIdSetIterator();
-    // return new AndDocIdSetIterator2(sets);
   }
 
   /**
