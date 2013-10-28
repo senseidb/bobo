@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Fieldable;
-import org.apache.lucene.index.DocumentsWriter.DocState;
-import org.apache.lucene.index.DocumentsWriter.DocWriter;
+import org.apache.lucene.index.DocumentsWriterPerThread.DocState;
 
 import com.browseengine.bobo.geosearch.index.IGeoIndexer;
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;

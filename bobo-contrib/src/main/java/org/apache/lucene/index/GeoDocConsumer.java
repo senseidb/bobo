@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.lucene.index.FieldInfos.Builder;
+
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.index.IGeoIndexer;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexer;
@@ -27,16 +29,16 @@ public class GeoDocConsumer extends DocConsumer {
         this.geoIndexer = geoIndexer;
     }
     
-    @Override
-    DocConsumerPerThread addThread(DocumentsWriterThreadState perThread) throws IOException {
-        DocConsumerPerThread defaultDocConsumerPerThread = defaultDocConsumer.addThread(perThread);
-        return new GeoDocConsumerPerThread(defaultDocConsumerPerThread, perThread, geoIndexer);
-    }
+//    @Override
+//    DocConsumerPerThread addThread(DocumentsWriterThreadState perThread) throws IOException {
+//        DocConsumerPerThread defaultDocConsumerPerThread = defaultDocConsumer.addThread(perThread);
+//        return new GeoDocConsumerPerThread(defaultDocConsumerPerThread, perThread, geoIndexer);
+//    }
 
     @Override
     //TODO:  Do we need to do anything for documents that have not yet been flushed but are deleted
     //We should make sure to test this case and see if lucene keeps the document or not
-    void flush(Collection<DocConsumerPerThread> threads, SegmentWriteState state) throws IOException {
+    void flush(SegmentWriteState state) throws IOException {
         //flush synchronously for now, we may later wish to perform this two flushes Asynchronously
         
         //because Lucene's DocConsumer implementation performs an unchecked cast and relies on methods
@@ -55,7 +57,7 @@ public class GeoDocConsumer extends DocConsumer {
         }
         
         defaultDocConsumer.flush(defaultDocConsumerThreads, state);
-        geoIndexer.flush(state.directory, state.segmentName);
+        geoIndexer.flush(state.directory, state.s);
     }
 
     @Override
@@ -72,6 +74,24 @@ public class GeoDocConsumer extends DocConsumer {
 
     public DocConsumer getDefaultDocConsumer() {
         return defaultDocConsumer;
+    }
+
+    @Override
+    void processDocument(Builder fieldInfos) throws IOException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    void finishDocument() throws IOException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    void doAfterFlush() {
+        // TODO Auto-generated method stub
+        
     }
     
 }

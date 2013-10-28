@@ -1,6 +1,7 @@
 package org.apache.lucene.index;
 
-import org.apache.lucene.index.DocumentsWriter.IndexingChain;
+
+import org.apache.lucene.index.DocumentsWriterPerThread.IndexingChain;
 
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 
@@ -26,8 +27,9 @@ public class GeoIndexingChain extends IndexingChain {
     }
     
     @Override
-    DocConsumer getChain(DocumentsWriter documentsWriter) {
+    DocConsumer getChain(DocumentsWriterPerThread documentsWriter) {
         DocConsumer defaultDocConsumer = defaultIndexingChain.getChain(documentsWriter);
         return new GeoDocConsumer(config, defaultDocConsumer);
     }
+
 }
