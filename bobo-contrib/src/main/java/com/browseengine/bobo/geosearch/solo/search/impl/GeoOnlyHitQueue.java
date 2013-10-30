@@ -10,7 +10,7 @@ import org.apache.lucene.util.PriorityQueue;
 public class GeoOnlyHitQueue extends PriorityQueue<GeoOnlyHit> {
 
     public GeoOnlyHitQueue(int size) {
-        initialize(size);
+        super(size);
     }
     
     @Override

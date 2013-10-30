@@ -7,6 +7,7 @@ import java.util.Comparator;
 
 import org.apache.log4j.Logger;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
@@ -39,11 +40,11 @@ public class GeoSegmentReader<G extends IGeoRecord> extends BTree<G> implements 
         indexOutput.writeInt(geoRecord.lowOrder);
         indexOutput.writeByte(geoRecord.filterByte);
      */
-    public GeoSegmentReader(Directory dir, String fileName, int maxDoc, int bufferSize,
+    public GeoSegmentReader(Directory dir, String fileName, int maxDoc, IOContext context,
             IGeoRecordSerializer<G> geoRecordSerializer, Comparator<G> geoRecordComparator) throws IOException {
         this(0, maxDoc, geoRecordSerializer, geoRecordComparator);
         try {
-            this.indexInput = dir.openInput(fileName, bufferSize);
+            this.indexInput = dir.openInput(fileName, context);
             init();
         } catch (FileNotFoundException e) {
             LOGGER.warn("file not found: "+e+", treating this as no geoRecords");

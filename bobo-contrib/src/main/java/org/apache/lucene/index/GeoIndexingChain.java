@@ -29,7 +29,7 @@ public class GeoIndexingChain extends IndexingChain {
     @Override
     DocConsumer getChain(DocumentsWriterPerThread documentsWriter) {
         DocConsumer defaultDocConsumer = defaultIndexingChain.getChain(documentsWriter);
-        return new GeoDocConsumer(config, defaultDocConsumer);
+        return new GeoDocConsumer(config, defaultDocConsumer, documentsWriter);
     }
 
 }

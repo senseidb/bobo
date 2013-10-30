@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.util.BitVector;
+import org.apache.lucene.index.MergeState.DocMap;
 
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
@@ -36,30 +36,27 @@ public class ChainedConvertedGeoRecordIterator implements Iterator<CartesianGeoR
     
     public ChainedConvertedGeoRecordIterator(IGeoConverter geoConverter, 
             List<BTree<CartesianGeoRecord>> partitions,
-            List<BitVector> deletedDocsList, 
+            DocMap[] docMaps, int[] docOffset,
             int totalBufferCapacity) throws IOException {
         this.geoConverter = geoConverter;
         
         int numberOfPartitions = partitions.size();
-        if (numberOfPartitions != deletedDocsList.size()) {
+        if (numberOfPartitions != docMaps.length) {
             throw new RuntimeException("bad input, partitions.size() "
-                    + numberOfPartitions + ", deletedDocsList.size() " + deletedDocsList.size());
+                    + numberOfPartitions + ", deletedDocsList.size() " + docMaps.length);
         }
         
-        int docid = 0;
         int bufferCapacityPerIterator = totalBufferCapacity / numberOfPartitions;
         List<Iterator<CartesianGeoRecord>> mergedIterators = new ArrayList<Iterator<CartesianGeoRecord>>(partitions.size());
         
         for (int i = 0; i < partitions.size(); i++) {
             BTree<CartesianGeoRecord> partition = partitions.get(i);
-            BitVector deletedDocs = deletedDocsList.get(i);
             Iterator<CartesianGeoRecord> mergedIterator = 
                 new ConvertedGeoRecordIterator(geoConverter, partition, 
-                        docid, deletedDocs);
+                        docOffset[i], docMaps[i]);
             mergedIterator = new BufferedOrderedIterator<CartesianGeoRecord>(mergedIterator, 
                     geoRecordCompareByBitMag, bufferCapacityPerIterator);
             mergedIterators.add(mergedIterator);
-            docid += deletedDocs.size() - deletedDocs.count();
         }
 
         orderedIteratorChain = 

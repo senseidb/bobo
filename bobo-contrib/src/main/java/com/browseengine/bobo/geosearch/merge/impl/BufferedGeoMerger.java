@@ -8,11 +8,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.index.SegmentInfo;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.MergeState;
+import org.apache.lucene.index.MergeState.DocMap;
 import org.apache.lucene.index.SegmentReader;
+import org.apache.lucene.index.SegmentWriteState;
 import org.apache.lucene.store.DataInput;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.BitVector;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.util.IOUtils;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +31,6 @@ import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
 import com.browseengine.bobo.geosearch.index.impl.InvalidTreeSizeException;
-import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
 import com.browseengine.bobo.geosearch.merge.IGeoMerger;
 
 
@@ -54,36 +56,36 @@ public class BufferedGeoMerger implements IGeoMerger {
     
     @Override
     //TODO:  Handle more frequent checkAborts
-    public void merge(IGeoMergeInfo geoMergeInfo, GeoSearchConfig config) throws IOException {
+    public void merge(SegmentWriteState segmentWriteState, MergeState mergeState, GeoSearchConfig config) throws IOException {
         IGeoConverter geoConverter = config.getGeoConverter();
-        int bufferSizePerGeoReader = config.getBufferSizePerGeoSegmentReader();
         
-        Directory directory = geoMergeInfo.getDirectory();
-        List<SegmentReader> readers = geoMergeInfo.getReaders();
-        List<SegmentInfo> segments =  geoMergeInfo.getSegmentsToMerge();
+        Directory directory = segmentWriteState.directory;
+        List<AtomicReader> readers = mergeState.readers;
+        IOContext ioContext = segmentWriteState.context;
         
-        List<BTree<CartesianGeoRecord>> mergeInputBTrees =  new ArrayList<BTree<CartesianGeoRecord>>(segments.size());
-        List<BitVector> deletedDocsList =  new ArrayList<BitVector>(segments.size());
+        List<BTree<CartesianGeoRecord>> mergeInputBTrees =  new ArrayList<BTree<CartesianGeoRecord>>(readers.size());
+        DocMap[] docMaps = mergeState.docMaps;
         boolean success = false;
         try {
-            assert (readers.size() == segments.size());
+            assert (readers.size() == docMaps.length);
             
             IFieldNameFilterConverter fieldNameFilterConverter = config.getGeoConverter().makeFieldNameFilterConverter();
 
             boolean hasFieldNameFilterConverter = false;
-            for (SegmentReader reader : readers) {
-                String geoFileName = config.getGeoFileName(reader.getSegmentName());
+            for (AtomicReader reader : readers) {
+                //TODO:  Revisit if there's another way we can get a geo reader that corresponds to the passed in AtomicReader  
+                //As of lucene 4.3, all AtomicReaders created for merge are SegmentReaders but this could change.
+                SegmentReader segmentReader = (SegmentReader) reader;
+                String geoFileName = config.getGeoFileName(segmentReader.getSegmentName());
                 
                 BTree<CartesianGeoRecord> segmentBTree = 
-                    getInputBTree(directory, geoFileName, bufferSizePerGeoReader); 
+                    getInputBTree(directory, ioContext, geoFileName); 
                 mergeInputBTrees.add(segmentBTree);
-                
-                BitVector deletedDocs = buildDeletedDocsForSegment(reader);
-                deletedDocsList.add(deletedDocs);
                 
                 //just take the first fieldNameFilterConverter for now.  Don't worry about merging them.
                 if (!hasFieldNameFilterConverter) {
-                    hasFieldNameFilterConverter = loadFieldNameFilterConverter(directory, geoFileName, fieldNameFilterConverter);
+                    hasFieldNameFilterConverter = loadFieldNameFilterConverter(directory, geoFileName, fieldNameFilterConverter,
+                            ioContext);
                 }
             }
             
@@ -96,9 +98,9 @@ public class BufferedGeoMerger implements IGeoMerger {
                 return;
             }
             
-            int newSegmentSize = calculateMergedSegmentSize(deletedDocsList, mergeInputBTrees, geoConverter);
-            buildMergedSegmentWithRetry(mergeInputBTrees, deletedDocsList, newSegmentSize, 
-                    geoMergeInfo, config, fieldNameFilterConverter);
+            int newSegmentSize = calculateMergedSegmentSize(docMaps, mergeInputBTrees, geoConverter);
+            buildMergedSegmentWithRetry(mergeInputBTrees, mergeState, newSegmentSize, 
+                    segmentWriteState, config, fieldNameFilterConverter);
             
             success = true;
             
@@ -112,16 +114,17 @@ public class BufferedGeoMerger implements IGeoMerger {
         }
     }
     
-    protected void buildMergedSegmentWithRetry(List<BTree<CartesianGeoRecord>> mergeInputBTrees, List<BitVector> deletedDocsList, 
-            int newSegmentSize, IGeoMergeInfo geoMergeInfo, GeoSearchConfig config, IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+    protected void buildMergedSegmentWithRetry(List<BTree<CartesianGeoRecord>> mergeInputBTrees, MergeState mergeState, 
+            int newSegmentSize, SegmentWriteState segmentWriteState,
+            GeoSearchConfig config, IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
         try {
-            buildMergedSegment(mergeInputBTrees, deletedDocsList, newSegmentSize, geoMergeInfo, config, fieldNameFilterConverter);
+            buildMergedSegment(mergeInputBTrees, mergeState, newSegmentSize, segmentWriteState, config, fieldNameFilterConverter);
         } catch (InvalidTreeSizeException e) {
             LOGGER.warn("Number of records does not match expected number of merged records.  Attempting to repair.", e);
             
             newSegmentSize = e.getRecordSize();
             try {
-                buildMergedSegment(mergeInputBTrees, deletedDocsList, newSegmentSize, geoMergeInfo, config, fieldNameFilterConverter);
+                buildMergedSegment(mergeInputBTrees, mergeState, newSegmentSize, segmentWriteState, config, fieldNameFilterConverter);
             } catch (InvalidTreeSizeException e2) {
                 LOGGER.error("Unable to merge geo segments", e2);
                 throw new IOException(e2);
@@ -138,9 +141,9 @@ public class BufferedGeoMerger implements IGeoMerger {
      * @throws IOException
      */
     protected boolean loadFieldNameFilterConverter(Directory directory, String geoFileName,
-            IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+            IFieldNameFilterConverter fieldNameFilterConverter, IOContext ioContext) throws IOException {
         try {
-            DataInput input = directory.openInput(geoFileName);
+            DataInput input = directory.openInput(geoFileName, ioContext);
             input.readVInt();  //read version
             input.readInt();   //throw out tree position
             input.readVInt();  //throw out tree size
@@ -156,24 +159,24 @@ public class BufferedGeoMerger implements IGeoMerger {
     }
 
     private void buildMergedSegment(List<BTree<CartesianGeoRecord>> mergeInputBTrees, 
-            List<BitVector> deletedDocsList, int newSegmentSize, 
-            IGeoMergeInfo geoMergeInfo, GeoSearchConfig config, 
-            IFieldNameFilterConverter fieldNameFilterConverter) throws IOException, InvalidTreeSizeException {
-        Directory directory = geoMergeInfo.getDirectory();
+            MergeState mergeState, int newSegmentSize, SegmentWriteState segmentWriteState,
+            GeoSearchConfig config, IFieldNameFilterConverter fieldNameFilterConverter) throws IOException, InvalidTreeSizeException {
         IGeoConverter geoConverter = config.getGeoConverter();
         
-        String segmentName = geoMergeInfo.getNewSegment().name;
+        String segmentName = segmentWriteState.segmentInfo.name;
+        Directory directory = segmentWriteState.directory;
         String outputFileName = config.getGeoFileName(segmentName);
         
         GeoSegmentInfo geoSegmentInfo = buildGeoSegmentInfo(segmentName, fieldNameFilterConverter);
         
         Iterator<CartesianGeoRecord> inputIterator = 
-            new ChainedConvertedGeoRecordIterator(geoConverter, mergeInputBTrees, deletedDocsList, BUFFER_CAPACITY);
+            new ChainedConvertedGeoRecordIterator(geoConverter, mergeInputBTrees, mergeState.docMaps, mergeState.docBase, BUFFER_CAPACITY);
         
         BTree<CartesianGeoRecord> mergeOutputBTree = null;
         boolean success = false;
         try {
-            mergeOutputBTree = getOutputBTree(newSegmentSize, inputIterator, directory, outputFileName, geoSegmentInfo);
+            mergeOutputBTree = getOutputBTree(newSegmentSize, inputIterator, directory, segmentWriteState.context, 
+                    outputFileName, geoSegmentInfo);
             
             success = true;
         } finally {
@@ -195,35 +198,33 @@ public class BufferedGeoMerger implements IGeoMerger {
     }
 
     protected BTree<CartesianGeoRecord> getOutputBTree(int newSegmentSize, Iterator<CartesianGeoRecord> inputIterator, 
-            Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException, InvalidTreeSizeException {
+            Directory directory, IOContext context, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException, InvalidTreeSizeException {
         return new GeoSegmentWriter<CartesianGeoRecord>(newSegmentSize, inputIterator, 
-                directory, outputFileName, geoSegmentInfo, geoRecordSerializer);
+                directory, context, outputFileName, geoSegmentInfo, geoRecordSerializer);
     }
     
-    protected BTree<CartesianGeoRecord> getInputBTree(Directory directory, String geoFileName, 
-            int bufferSizePerGeoReader) throws IOException {
-        return new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, -1, bufferSizePerGeoReader,
+    protected BTree<CartesianGeoRecord> getInputBTree(Directory directory, IOContext context, String geoFileName) throws IOException {
+        return new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, -1, context,
                 geoRecordSerializer, geoComparator); 
     }
     
-    private int calculateMergedSegmentSize(List<BitVector> deletedDocsList,
+    private int calculateMergedSegmentSize(DocMap[] docMaps,
             List<BTree<CartesianGeoRecord>> mergeInputBTrees, IGeoConverter geoConverter) throws IOException {
         int newSegmentSize = 0;
         
         for (int i = 0; i < mergeInputBTrees.size(); i++) {
             BTree<CartesianGeoRecord> mergeInputBTree =  mergeInputBTrees.get(i);
-            BitVector deletedDocs = deletedDocsList.get(i);
             
-            newSegmentSize += calculateSegmentToMergeSize(mergeInputBTree, deletedDocs, geoConverter);
+            newSegmentSize += calculateSegmentToMergeSize(mergeInputBTree, docMaps[i], geoConverter);
         }
         
         return newSegmentSize;
     }
 
     private int calculateSegmentToMergeSize(BTree<CartesianGeoRecord> mergeInputBTree, 
-            BitVector deletedDocs, IGeoConverter geoConverter) throws IOException {
+            DocMap docMap, IGeoConverter geoConverter) throws IOException {
         Iterator<CartesianGeoRecord> treeIter = new ConvertedGeoRecordIterator(geoConverter, mergeInputBTree, 
-                0, deletedDocs);
+                0, docMap);
         
         int numRecordsToMerge = 0;
         while (treeIter.hasNext()) {
@@ -234,15 +235,4 @@ public class BufferedGeoMerger implements IGeoMerger {
         return numRecordsToMerge;
     }
  
-    private BitVector buildDeletedDocsForSegment(SegmentReader reader) {
-        BitVector deletedDocs = new BitVector(reader.maxDoc());
-        for (int i = 0; i < deletedDocs.size(); i++) {
-            if (reader.isDeleted(i)) {
-                deletedDocs.set(i);
-            }
-        }
-        
-        return deletedDocs;
-    }
-    
 }

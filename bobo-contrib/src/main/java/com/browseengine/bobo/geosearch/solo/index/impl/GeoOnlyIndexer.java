@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.Lock;
 import org.apache.lucene.store.LockObtainFailedException;
 
@@ -126,7 +127,7 @@ public class GeoOnlyIndexer {
         
         try {
             return new GeoSegmentWriter<IDGeoRecord>(
-                    dataToFlush, directory, fileName, 
+                    dataToFlush, directory, IOContext.DEFAULT, fileName, 
                     buildGeoSegmentInfo(indexName), geoRecordSerializer);
         } catch (InvalidTreeSizeException e) {
             throw new IOException(e);
@@ -171,7 +172,7 @@ public class GeoOnlyIndexer {
         
         return new GeoSegmentReader<IDGeoRecord>(
                 directory, fileName, -1, 
-                config.getBufferSizePerGeoSegmentReader(), geoRecordSerializer, 
+                IOContext.READ, geoRecordSerializer, 
                 geoComparator); 
     }
     

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.lucene.index.FilterIndexReader;
 import org.apache.lucene.index.GeoIndexWriter;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.SegmentReader;

@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.util.BitVector;
+import org.apache.lucene.index.MergeState.DocMap;
 
 import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
 import com.browseengine.bobo.geosearch.IGeoConverter;
@@ -36,8 +36,8 @@ public class ConvertedGeoRecordIterator implements Iterator<CartesianGeoRecord> 
     private static final Logger LOGGER = Logger.getLogger(ConvertedGeoRecordIterator.class);
 
     private final IGeoConverter geoConverter;
-    private final  int absoluteDocidOffset;
-    private final  BitVector deletedDocsThisPartition;
+    private final int absoluteDocidOffset;
+    private final DocMap docMap;
 
     private CartesianGeoRecord next;
 
@@ -47,12 +47,12 @@ public class ConvertedGeoRecordIterator implements Iterator<CartesianGeoRecord> 
             IGeoConverter geoConverter,
             BTree<CartesianGeoRecord> geoRecords,
             int absoluteDocidOffset,
-            BitVector deletedDocsThisPartition) throws IOException {
+            DocMap docMap) throws IOException {
         this.absoluteDocidOffset = absoluteDocidOffset;
 
         this.geoConverter = geoConverter;
 
-        this.deletedDocsThisPartition = deletedDocsThisPartition;
+        this.docMap = docMap;
 
         // we need to shift docid from what is requested for the merged partition 
         // and what we know in this tree
@@ -87,7 +87,7 @@ public class ConvertedGeoRecordIterator implements Iterator<CartesianGeoRecord> 
                 candidate = iteratorWithOriginalDocIds.next();
                 if (null != candidate) {
                     CartesianCoordinateDocId rawInOriginalDocId = geoConverter.toCartesianCoordinateDocId(candidate);
-                    if (deletedDocsThisPartition.get(rawInOriginalDocId.docid)) {
+                    if (docMap.get(rawInOriginalDocId.docid) == -1) {
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("skipping deleted docid before merge for raw "+rawInOriginalDocId);
                         }
@@ -115,10 +115,7 @@ public class ConvertedGeoRecordIterator implements Iterator<CartesianGeoRecord> 
             CartesianCoordinateDocId rawInOriginalDocId) {
         // translate into merged space
         CartesianCoordinateDocId merged = rawInOriginalDocId.clone();
-        int mergedDocId =
-            findDocIdInMergedIndex(absoluteDocidOffset,
-                    merged.docid, 
-                deletedDocsThisPartition);
+        int mergedDocId = docMap.get(merged.docid) + absoluteDocidOffset;
         if (mergedDocId >= 0) {
             merged.docid = mergedDocId;
             return geoConverter.toCartesianGeoRecord(merged, candidate.filterByte);
@@ -146,31 +143,5 @@ public class ConvertedGeoRecordIterator implements Iterator<CartesianGeoRecord> 
         throw new UnsupportedOperationException();
     }
         
-    
-    private int findDocIdInMergedIndex(int absoluteDocidOffset,
-            int docIdInThisPartition, 
-            BitVector deletedDocsThisPartition) {
-        if (0 == deletedDocsThisPartition.count()) {
-            // base case
-            return absoluteDocidOffset + docIdInThisPartition;
-        }
-        if (deletedDocsThisPartition.get(docIdInThisPartition)) {
-            // the current document has been deleted
-            return -1;
-        }
-        int countOfDeletedDocs = countDeletedDocs(docIdInThisPartition, deletedDocsThisPartition);
-        return absoluteDocidOffset + docIdInThisPartition - countOfDeletedDocs;
-    }
-    
-    private int countDeletedDocs(int toThisDocid, BitVector deletedDocsThisPartition) {
-        int count = 0;
-        for (int i = 0; i < toThisDocid; i++) {
-            if (deletedDocsThisPartition.get(i)) {
-                count++;
-            }
-        }
-        return count;
-    }
-
 
 }

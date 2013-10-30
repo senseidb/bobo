@@ -79,10 +79,6 @@ public class GeoSearchConfig {
         return name + "." + getGeoFileExtension();
     }
     
-    public int getBufferSizePerGeoSegmentReader() {
-        return 16*1024;
-    }
-
     /**
      * The extension that we should pair off of by delete.  When any extension in this list
      * is deleted by Lucene for any reason, geo search will also delete the corresponding

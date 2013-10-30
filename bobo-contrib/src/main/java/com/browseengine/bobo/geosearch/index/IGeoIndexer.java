@@ -2,7 +2,7 @@ package com.browseengine.bobo.geosearch.index;
 
 import java.io.IOException;
 
-import org.apache.lucene.store.Directory;
+import org.apache.lucene.index.SegmentWriteState;
 
 import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 
@@ -11,5 +11,5 @@ public interface IGeoIndexer {
 
     void abort();
 
-    void flush(Directory directory, String segmentName) throws IOException;
+    void flush(SegmentWriteState state) throws IOException;
 }

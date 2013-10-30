@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
@@ -31,7 +32,7 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
     int arrayLength;
     long treeDataStart;
     
-    public GeoSegmentWriter(Set<G> tree, Directory directory, String fileName, 
+    public GeoSegmentWriter(Set<G> tree, Directory directory, IOContext context, String fileName, 
             GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) 
     throws IOException, InvalidTreeSizeException {
         super(tree.size(), false);
@@ -39,7 +40,7 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         this.geoSegmentInfo = geoSegmentInfo;
         this.geoRecordSerializer = geoRecordSerializer;
         
-        indexOutput = directory.createOutput(fileName);
+        indexOutput = directory.createOutput(fileName, context);
         try {
             buildBTreeFromSet(tree);
         } catch (IOException e) {
@@ -48,14 +49,14 @@ public class GeoSegmentWriter<G extends IGeoRecord> extends BTree<G> implements 
         }
     }
     
-    public GeoSegmentWriter(int treeSize, Iterator<G> inputIterator, Directory directory, String fileName,
+    public GeoSegmentWriter(int treeSize, Iterator<G> inputIterator, Directory directory, IOContext context, String fileName,
             GeoSegmentInfo geoSegmentInfo, IGeoRecordSerializer<G> geoRecordSerializer) throws IOException, InvalidTreeSizeException {
         super(treeSize, false);
         this.arrayLength = treeSize;
         this.geoSegmentInfo = geoSegmentInfo;
         this.geoRecordSerializer = geoRecordSerializer;
         
-        indexOutput = directory.createOutput(fileName);
+        indexOutput = directory.createOutput(fileName, context);
         
         try {
             buildBTreeFromIterator(inputIterator);

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianCoordinateUUID;
@@ -59,7 +60,7 @@ public class GeoOnlySearcher {
     GeoSegmentReader<IDGeoRecord> getGeoSegmentReader() throws IOException {
         String fileName = indexName + "." + config.getGeoFileExtension();
         GeoSegmentReader<IDGeoRecord> segmentReader = new GeoSegmentReader<IDGeoRecord>(
-                directory, fileName, Integer.MAX_VALUE, config.getBufferSizePerGeoSegmentReader(), 
+                directory, fileName, Integer.MAX_VALUE, IOContext.READ, 
                 geoRecordSerializer, geoComparator);
         return segmentReader;
     }

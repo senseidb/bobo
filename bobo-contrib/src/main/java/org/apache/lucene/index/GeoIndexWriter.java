@@ -6,9 +6,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.LockObtainFailedException;
 
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
-import com.browseengine.bobo.geosearch.index.impl.DeletePairedExtensionDirectory;
-import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
-import com.browseengine.bobo.geosearch.merge.IGeoMerger;
+import com.browseengine.bobo.geosearch.codec.GeoCodec;
 
 
 /**
@@ -24,33 +22,15 @@ public class GeoIndexWriter extends IndexWriter {
     
     public GeoIndexWriter(Directory d, IndexWriterConfig indexWriterConfig, GeoSearchConfig geoConfig) throws CorruptIndexException, LockObtainFailedException,
             IOException {
-        super(buildGeoDirectory(d, geoConfig), setIndexingChain(indexWriterConfig, geoConfig));
+        super(d, initializeConfig(indexWriterConfig, geoConfig));
         
         this.geoConfig = geoConfig;
     }
 
-    public static Directory buildGeoDirectory(Directory dir, GeoSearchConfig geoConfig) {
-        DeletePairedExtensionDirectory pairedDirectory = new DeletePairedExtensionDirectory(dir);
-        for (String pairedExtension: geoConfig.getPairedExtensionsForDelete()) {
-            pairedDirectory.addExtensionPairing(pairedExtension, geoConfig.getGeoFileExtension());
-        }
+    public static IndexWriterConfig initializeConfig(IndexWriterConfig indexWriterConfig, GeoSearchConfig geoConfig) {
         
-        return pairedDirectory;
-    }
-    
-    public static IndexWriterConfig setIndexingChain(IndexWriterConfig indexWriterConfig, GeoSearchConfig geoConfig) {
-        return indexWriterConfig.setIndexingChain(new GeoIndexingChain(geoConfig, indexWriterConfig.getIndexingChain()));
-    }
-    
-    @Override
-    public void beforeMergeAfterSetup(MergePolicy.OneMerge merge) throws IOException {
-        merge.checkAborted(getDirectory());
-        
-        IGeoMergeInfo geoMergeInfo = new GeoMergeInfo(merge, getDirectory());
-
-        IGeoMerger geoMerger = geoConfig.getGeoMerger();
-        
-        geoMerger.merge(geoMergeInfo, geoConfig);
+        return indexWriterConfig.setIndexingChain(new GeoIndexingChain(geoConfig, indexWriterConfig.getIndexingChain()))
+                .setCodec(new GeoCodec(geoConfig));
     }
     
 }

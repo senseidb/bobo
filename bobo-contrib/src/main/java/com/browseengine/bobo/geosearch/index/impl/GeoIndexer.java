@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.lucene.store.Directory;
+import org.apache.lucene.index.SegmentWriteState;
 import org.apache.lucene.util.IOUtils;
 
 import com.browseengine.bobo.geosearch.GeoVersion;
@@ -71,7 +71,7 @@ public class GeoIndexer implements IGeoIndexer {
     }
 
     @Override
-    public void flush(Directory directory, String segmentName) throws IOException {
+    public void flush(SegmentWriteState state) throws IOException {
         Set<CartesianGeoRecord> treeToFlush;
         Set<String> fieldNamesToFlush;
         synchronized (treeLock) {
@@ -81,7 +81,8 @@ public class GeoIndexer implements IGeoIndexer {
             treeToFlush = fieldTree;
             fieldTree = geoUtil.getBinaryTreeOrderedByBitMag();
         }
-        
+
+        String segmentName = state.segmentInfo.name;
         GeoSegmentWriter<CartesianGeoRecord> geoRecordBTree = null;
         
         GeoSegmentInfo geoSegmentInfo = buildGeoSegmentInfo(fieldNamesToFlush, segmentName);
@@ -90,8 +91,8 @@ public class GeoIndexer implements IGeoIndexer {
         try {
             String fileName = config.getGeoFileName(segmentName);
             try {
-                geoRecordBTree = new GeoSegmentWriter<CartesianGeoRecord>(treeToFlush, directory, 
-                        fileName, geoSegmentInfo, geoRecordSerializer);
+                geoRecordBTree = new GeoSegmentWriter<CartesianGeoRecord>(treeToFlush, state.directory, 
+                        state.context, fileName, geoSegmentInfo, geoRecordSerializer);
             } catch (InvalidTreeSizeException e) {
                 throw new IOException(e);
             }
