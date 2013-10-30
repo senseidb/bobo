@@ -10,15 +10,14 @@ import java.util.Map.Entry;
 
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.util.Bits;
 
 import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
-import com.browseengine.bobo.geosearch.IDeletedDocs;
 import com.browseengine.bobo.geosearch.IGeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.DocsSortedByDocId;
 import com.browseengine.bobo.geosearch.bo.GeRecordAndCartesianDocId;
-import com.browseengine.bobo.geosearch.impl.DeletedDocs;
 import com.browseengine.bobo.geosearch.impl.GeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
@@ -54,7 +53,7 @@ public class GeoScorer extends Scorer {
     private DocsSortedByDocId currentBlockScoredDocs;
     private Entry<Integer, Collection<GeRecordAndCartesianDocId>> currentDoc;
     
-    private IDeletedDocs wholeIndexDeletedDocs;
+    private Bits acceptDocs;
     
     
     public static void main(String args[]) {
@@ -63,7 +62,7 @@ public class GeoScorer extends Scorer {
     
     public GeoScorer(Weight weight,
                      List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder, 
-                     IDeletedDocs wholeIndexDeletedDocs, 
+                     Bits acceptDocs, 
                      double centroidLatitude, 
                      double centroidLongitude,
                      float rangeInKm) {
@@ -75,6 +74,7 @@ public class GeoScorer extends Scorer {
         this.geoBlockOfHitsProvider = new GeoBlockOfHitsProvider(geoConverter);
         
         this.segmentsInOrder = segmentsInOrder;
+        this.acceptDocs = acceptDocs;
         
         this.centroidX = geoConverter.getXFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
         this.centroidY = geoConverter.getYFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
@@ -257,14 +257,13 @@ public class GeoScorer extends Scorer {
     private void pullBlockInMemory(int seekDocid) throws IOException {
         int offsetDocidWithinPartition = seekDocid - startDocidOfCurrentPartition;
         
-        IDeletedDocs deletedDocsWithinSegment = new DeletedDocs(wholeIndexDeletedDocs, 
-                startDocidOfCurrentPartition);
         int blockNumber = offsetDocidWithinPartition / BLOCK_SIZE;
         int minimumDocidInPartition = offsetDocidWithinPartition - blockNumber * BLOCK_SIZE;
         int maxDocInPartition = currentSegment.getMaxDoc();
         int maximumDocidInPartition = Math.min(maxDocInPartition, 
                 (blockNumber + 1) * BLOCK_SIZE);
-        currentBlockScoredDocs = geoBlockOfHitsProvider.getBlock(currentSegment, deletedDocsWithinSegment,
+        currentBlockScoredDocs = geoBlockOfHitsProvider.getBlock(currentSegment, 
+                startDocidOfCurrentPartition, acceptDocs,
                 cartesianBoundingBox[0], cartesianBoundingBox[1], cartesianBoundingBox[2],
                 cartesianBoundingBox[3], cartesianBoundingBox[4], cartesianBoundingBox[5],
                 minimumDocidInPartition, maximumDocidInPartition);
@@ -292,5 +291,23 @@ public class GeoScorer extends Scorer {
         
         fillBlockContainingAndSeekTo(docid + 1);
         return docid;
+    }
+
+    @Override
+    public int freq() throws IOException {
+        return 1;
+    }
+
+    @Override
+    public long cost() {
+        //We do not currently have a good heuristic of the expected number of matching docs.  
+        //We can give items in the tree as a rough estimate although you can have multiple 
+        //coordinates per document
+        int cost = 0;
+        for (GeoSegmentReader<CartesianGeoRecord> segmentReader : segmentsInOrder) {
+            segmentReader.getArrayLength();
+        }
+        
+        return cost;
     }
 }

@@ -5,8 +5,8 @@ package com.browseengine.bobo.geosearch.query;
 
 import java.io.IOException;
 
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
@@ -85,7 +85,7 @@ public class GeoQuery extends Query {
      * {@inheritDoc}
      */
     @Override
-    public Weight createWeight(Searcher searcher) throws IOException {
+    public Weight createWeight(IndexSearcher searcher) throws IOException {
         return new GeoWeight(this);
     }
 

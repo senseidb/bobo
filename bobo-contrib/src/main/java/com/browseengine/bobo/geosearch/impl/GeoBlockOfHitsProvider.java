@@ -6,8 +6,9 @@ package com.browseengine.bobo.geosearch.impl;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.apache.lucene.util.Bits;
+
 import com.browseengine.bobo.geosearch.CartesianCoordinateDocId;
-import com.browseengine.bobo.geosearch.IDeletedDocs;
 import com.browseengine.bobo.geosearch.IGeoBlockOfHitsProvider;
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
@@ -33,7 +34,8 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
      *
      */
     @Override
-    public DocsSortedByDocId getBlock(GeoSegmentReader<CartesianGeoRecord> geoSegmentReader, IDeletedDocs deletedDocsWithinSegment,
+    public DocsSortedByDocId getBlock(GeoSegmentReader<CartesianGeoRecord> geoSegmentReader, 
+            int segmentStartDocId, Bits acceptDocs,
             int minX, int maxX, int minY, int maxY, int minZ, int maxZ, int mindocid, int maxdocid)
             throws IOException {
 
@@ -47,7 +49,9 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
         while (iterator.hasNext()) {
             CartesianGeoRecord geoRecord = iterator.next();
             CartesianCoordinateDocId ccd  = geoConverter.toCartesianCoordinateDocId(geoRecord);
-            if(minX <= ccd.x  && ccd.x <= maxX && minY <= ccd.y  && ccd.y <= maxY && minZ <= ccd.z  && ccd.z <= maxZ && mindocid <= ccd.docid  && ccd.docid <= maxdocid) {
+            if(minX <= ccd.x  && ccd.x <= maxX && minY <= ccd.y  && ccd.y <= maxY && minZ <= ccd.z  
+                    && ccd.z <= maxZ && mindocid <= ccd.docid  && ccd.docid <= maxdocid
+                    && acceptDocs.get(segmentStartDocId + ccd.docid)) {
                 GeRecordAndCartesianDocId both = new GeRecordAndCartesianDocId(geoRecord, ccd);
                 docs.add(ccd.docid, both);
             }

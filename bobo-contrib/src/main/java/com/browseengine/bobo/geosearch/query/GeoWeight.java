@@ -4,17 +4,19 @@
 package com.browseengine.bobo.geosearch.query;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.util.Bits;
 
-import com.browseengine.bobo.geosearch.IDeletedDocs;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.impl.IndexReaderDeletedDocs;
+import com.browseengine.bobo.geosearch.index.impl.GeoAtomicReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 
@@ -43,71 +45,58 @@ public class GeoWeight extends Weight {
      * {@inheritDoc}
      */
     @Override
-    public Explanation explain(IndexReader reader, int doc) throws IOException {
-        // TODO: improve this to provide the actual distance component of the score, 
-        // and explain how we take smoothed 1/distance^2.
-        return new Explanation(doc, geoQuery.toString()+", queryNorm: "+queryNorm);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public Query getQuery() {
         return geoQuery;
     }
     
     /**
      * {@inheritDoc}
-     * 
-     * The GeoScorer.nextDoc() should give you the capability
-     *  to go through all the documents that are within 'rangeInMiles'
-     *   of the centroid by increasing order of document id.
      */
     @Override
-    public Scorer scorer(IndexReader reader, boolean scoreDocsInOrder,
-            boolean topScorer) throws IOException {
-        if (!(reader instanceof GeoIndexReader)) {
-            throw new RuntimeException("attempt to create a "
-                    +GeoScorer.class+" with a reader that was not a "
-                    +GeoIndexReader.class);
-        }
-        GeoIndexReader geoIndexReader = (GeoIndexReader) reader;
-        List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder = geoIndexReader.getGeoSegmentReaders();
-        IDeletedDocs wholeIndexDeletedDocs = new IndexReaderDeletedDocs(reader);
-        
-        return new GeoScorer(this, segmentsInOrder, wholeIndexDeletedDocs, 
-                geoQuery.getCentroidLatitude(), geoQuery.getCentroidLongitude(), geoQuery.rangeInKm);
-    }
-    
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public float getValue() {
-        return value;
+    public Explanation explain(AtomicReaderContext context, int doc) throws IOException {
+        return new Explanation(doc, geoQuery.toString()+", queryNorm: "+queryNorm);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public void normalize(float queryNorm) {
-        this.queryNorm = queryNorm;
+    public float getValueForNormalization() throws IOException {
+        // idf is effectively 1
+        queryWeight = geoQuery.getBoost();
+        return queryWeight * queryWeight;
+    }
+
+    @Override
+    public void normalize(float norm, float topLevelBoost) {
+        this.queryNorm = queryNorm * topLevelBoost;
         queryWeight *= queryNorm;                   // normalize query weight
         // idf is effectively 1
         value = queryWeight;                  // idf for document
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    public float sumOfSquaredWeights() throws IOException {
-        // idf is effectively 1
-        queryWeight = geoQuery.getBoost();
-        return queryWeight * queryWeight;
+    public Scorer scorer(AtomicReaderContext context, boolean scoreDocsInOrder, 
+            boolean topScorer, Bits acceptDocs)
+            throws IOException {
+        //TODO: Should we be behaving differently if topScorer is true
+        List<AtomicReaderContext> leaves = context.leaves();
+        
+        List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder = 
+                new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(leaves.size());
+        
+        for (AtomicReaderContext leafContext : leaves) {
+            AtomicReader reader = leafContext.reader();
+            if (!(reader instanceof GeoAtomicReader)) {
+                throw new RuntimeException("attempt to create a "
+                        +GeoScorer.class+" with a reader that was not a "
+                        +GeoIndexReader.class);
+            }
+            
+            GeoAtomicReader geoIndexReader = (GeoAtomicReader) reader;
+            segmentsInOrder.add(geoIndexReader.getGeoSegmentReader());
+        }
+        
+        
+        return new GeoScorer(this, segmentsInOrder, acceptDocs, 
+                geoQuery.getCentroidLatitude(), geoQuery.getCentroidLongitude(), geoQuery.rangeInKm);
     }
-    
     
 }

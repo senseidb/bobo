@@ -5,6 +5,8 @@ package com.browseengine.bobo.geosearch;
 
 import java.io.IOException;
 
+import org.apache.lucene.util.Bits;
+
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.bo.DocsSortedByDocId;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
@@ -39,7 +41,8 @@ public interface IGeoBlockOfHitsProvider {
      * @return
      * @throws IOException
      */
-    DocsSortedByDocId getBlock(GeoSegmentReader<CartesianGeoRecord> geoSegmentReader, IDeletedDocs deletedDocsWithinSegment,
+    DocsSortedByDocId getBlock(GeoSegmentReader<CartesianGeoRecord> geoSegmentReader, 
+            int segmentStartDocId, Bits acceptDocs,
             int minX, int minY, int minZ, int minimumDocid, 
             int maxX, int maxY, int maxZ, int maximumDocid) throws IOException;
 }
