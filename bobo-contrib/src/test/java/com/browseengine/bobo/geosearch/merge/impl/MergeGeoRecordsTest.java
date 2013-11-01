@@ -159,15 +159,13 @@ public class MergeGeoRecordsTest {
         int deletes = 0;
         for (int docid = 0; docid < maxDoc; docid++) {
             boolean survives = true;
-            if (docid > 0 && deletionRatio > 0f) {
-                double deleteValue = random.nextDouble();
-                if (deleteValue <= deletionRatio) {
-                    survives = false;
-                    deletes++;
-                    bitVector.add(-1);
-                } else {
-                    bitVector.add(docid - deletes);
-                }
+            double deleteValue = random.nextDouble();
+            if (docid > 0 && deleteValue <= deletionRatio) {
+                survives = false;
+                deletes++;
+                bitVector.add(-1);
+            } else {
+                bitVector.add(docid - deletes);
             }
             int numberOfSources = 1;
             if (docid > 0) {
