@@ -10,7 +10,7 @@ public class GeoCodec extends FilterCodec {
     private GeoPostingsFormat geoPostingsFormat;
     
     public GeoCodec(GeoSearchConfig geoConfig) {
-        super("bobo-geo", Codec.getDefault());
+        super("GeoBobo", Codec.getDefault());
         
         PostingsFormat defaultPostingsFormat = super.postingsFormat();
         geoPostingsFormat = new GeoPostingsFormat(geoConfig, defaultPostingsFormat);

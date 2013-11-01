@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.TreeSet;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public class GeoSegmentReaderTest {
         Directory ramDir = new RAMDirectory();
         String fileName = "abc.geo";
         GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = 
-            new GeoSegmentReader<CartesianGeoRecord>(ramDir, fileName, -1, 16*1024, 
+            new GeoSegmentReader<CartesianGeoRecord>(ramDir, fileName, -1, IOContext.READ, 
                     new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
         CartesianGeoRecord minValue = CartesianGeoRecord.MIN_VALID_GEORECORD;
         CartesianGeoRecord maxValue = CartesianGeoRecord.MAX_VALID_GEORECORD;
@@ -59,11 +60,11 @@ public class GeoSegmentReaderTest {
                 RAMDirectory dir = new RAMDirectory();
                 String fileName = geoSegmentInfo.getSegmentName() + "." + geoConf.getGeoFileExtension();
                 GeoSegmentWriter<CartesianGeoRecord> geoOut = new GeoSegmentWriter<CartesianGeoRecord>(
-                        tree, dir, fileName, geoSegmentInfo, geoRecordSerializer);
+                        tree, dir, IOContext.DEFAULT, fileName, geoSegmentInfo, geoRecordSerializer);
                 geoOut.close();
                 
                 GeoSegmentReader<CartesianGeoRecord> geoRand = 
-                    new GeoSegmentReader<CartesianGeoRecord>(dir, fileName, -1, 16*1024,
+                    new GeoSegmentReader<CartesianGeoRecord>(dir, fileName, -1, IOContext.READ,
                             new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
                 validate_IteratorFunctionality(geoRand);
                 validate_CompleteTreeIsOrderedCorrectly(geoRand);
@@ -102,12 +103,12 @@ public class GeoSegmentReaderTest {
         
         //write data
         GeoSegmentWriter<IDGeoRecord> geoOut = new GeoSegmentWriter<IDGeoRecord>(
-                tree, dir, fileName, geoSegmentInfo, geoRecordSerializer);
+                tree, dir, IOContext.DEFAULT, fileName, geoSegmentInfo, geoRecordSerializer);
         geoOut.close();
         
         //read and verify data
         GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = 
-            new GeoSegmentReader<CartesianGeoRecord>(dir, fileName, -1, 16*1024,
+            new GeoSegmentReader<CartesianGeoRecord>(dir, fileName, -1, IOContext.READ,
                     new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
         validate_IteratorFunctionality(geoSegmentReader);
         validate_CompleteTreeIsOrderedCorrectly(geoSegmentReader);

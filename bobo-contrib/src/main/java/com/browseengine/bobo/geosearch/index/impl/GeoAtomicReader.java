@@ -15,24 +15,23 @@ import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 
 public class GeoAtomicReader extends FilterAtomicReader {
 
-    private final CartesianGeoRecordSerializer geoRecordSerializer;
-    private final Comparator<CartesianGeoRecord> geoRecordComparator;
-    private GeoSearchConfig geoSearchConfig;
     
     private final GeoSegmentReader<CartesianGeoRecord> geoSegmentReader;
     
     public GeoAtomicReader(AtomicReader in, GeoSearchConfig geoSearchConfig) throws IOException {
+        this(in, buildGeoSegmentReader(in, geoSearchConfig));
+    }
+    
+    public GeoAtomicReader(AtomicReader in, GeoSegmentReader<CartesianGeoRecord> geoSegmentReader) {
         super(in);
-        this.geoSearchConfig = geoSearchConfig;
-        
-        geoRecordSerializer = new CartesianGeoRecordSerializer();
-        geoRecordComparator = new CartesianGeoRecordComparator();
-        
-        geoSegmentReader = buildGeoSegmentReader(in);
+        this.geoSegmentReader = geoSegmentReader;
     }
 
-    private GeoSegmentReader<CartesianGeoRecord> buildGeoSegmentReader(AtomicReader in) throws IOException {
+    private static GeoSegmentReader<CartesianGeoRecord> buildGeoSegmentReader(AtomicReader in, GeoSearchConfig geoSearchConfig) throws IOException {
         if (in instanceof SegmentReader) {
+            CartesianGeoRecordSerializer geoRecordSerializer = new CartesianGeoRecordSerializer();
+            Comparator<CartesianGeoRecord> geoRecordComparator = new CartesianGeoRecordComparator();
+            
             SegmentReader segmentReader = (SegmentReader) in;
             int maxDoc = segmentReader.maxDoc();
             String segmentName = segmentReader.getSegmentName();

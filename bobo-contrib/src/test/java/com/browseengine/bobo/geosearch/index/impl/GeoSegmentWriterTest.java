@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.TreeSet;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -126,7 +127,7 @@ public class GeoSegmentWriterTest {
         
         try {
             GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(docsToAdd + 1, treeSet.iterator(), 
-                    directory, fileName, info, geoRecordSerializer);
+                    directory, IOContext.DEFAULT, fileName, info, geoRecordSerializer);
             fail("Expected InvalidTreeSizeException but it did not occur");
         } catch (InvalidTreeSizeException e) {
             assertEquals("Expected tree size to be as specified", docsToAdd + 1, e.getTreeSize());
@@ -148,7 +149,7 @@ public class GeoSegmentWriterTest {
         
         try {
             GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(docsToAdd - 1, treeSet.iterator(), 
-                    directory, fileName, info, geoRecordSerializer);
+                    directory, IOContext.DEFAULT, fileName, info, geoRecordSerializer);
             fail("Expected InvalidTreeSizeException but it did not occur");
         } catch (InvalidTreeSizeException e) {
             assertEquals("Expected tree size to be as specified", docsToAdd -1, e.getTreeSize());
@@ -184,7 +185,7 @@ public class GeoSegmentWriterTest {
         info.setGeoVersion(version);
         String fileName = config.getGeoFileName(info.getSegmentName());
         GeoSegmentWriter<CartesianGeoRecord> bTree = new GeoSegmentWriter<CartesianGeoRecord>(treeSet, directory, 
-                fileName, info, geoRecordSerializer);
+                IOContext.DEFAULT, fileName, info, geoRecordSerializer);
         bTree.close();
         context.assertIsSatisfied();
     }
@@ -200,7 +201,7 @@ public class GeoSegmentWriterTest {
                 will(returnValue(1L));
                 
                 //get output
-                one(directory).createOutput(info.getSegmentName() + "." + config.getGeoFileExtension());
+                one(directory).createOutput(info.getSegmentName() + "." + config.getGeoFileExtension(), IOContext.DEFAULT);
                 will(returnValue(mockOutput));
                 inSequence(outputSequence);
 

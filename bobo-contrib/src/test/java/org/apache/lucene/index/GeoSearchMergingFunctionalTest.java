@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.lucene.index.IndexReader.FieldOption;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
@@ -54,7 +53,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         }
         
         //now merge
-        writer.optimize();
+        writer.forceMerge(1);
     }
     
     @After

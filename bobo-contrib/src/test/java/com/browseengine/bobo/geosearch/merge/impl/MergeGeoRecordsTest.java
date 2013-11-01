@@ -13,7 +13,8 @@ import java.util.Random;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.util.BitVector;
+import org.apache.lucene.index.DocMapExposer;
+import org.apache.lucene.index.MergeState.DocMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,9 +53,9 @@ public class MergeGeoRecordsTest {
     private CartesianGeoRecord[] originalGeoRecordsSortedArrayB;
     
     private GeoRecordBTree a;
-    private BitVector aDelete;
+    private DocMapExposer aDelete;
     private GeoRecordBTree b;
-    private BitVector bDelete;
+    private DocMapExposer bDelete;
     
     @Before
     public void setUp() throws Exception {
@@ -93,14 +94,23 @@ public class MergeGeoRecordsTest {
     
     private void setUpA() throws IOException {
         a = getGeoRecordBTreeAsArray(originalGeoRecordsSortedArrayA);
-        aDelete = new BitVector(a.getArrayLength());
+        aDelete = buildNoDeletesDocMap(a.getArrayLength());
     }
     
     private void setUpB() throws IOException {
         b = getGeoRecordBTreeAsArray(originalGeoRecordsSortedArrayB);
-        bDelete = new BitVector(b.getArrayLength());
+        bDelete = buildNoDeletesDocMap(b.getArrayLength());
     }
 
+    private DocMapExposer buildNoDeletesDocMap(int size) {
+        List<Integer> docMapList = new ArrayList<Integer>(size);
+        for (int i = 0; i < size; i++) {
+            docMapList.add(i);
+        }
+        
+        return new DocMapExposer(docMapList, 0);
+    }
+    
     Random random ;
     
     private static final int MAX_NUMBER_OF_SOURCES_PER_DOCUMENT = 5;
@@ -108,7 +118,6 @@ public class MergeGeoRecordsTest {
     private int bNumberOfRecordsSurvivingDeletion;
     private int aNumberOfRecordsSurvivingDeletion;
     
-    int absoluteDocIdOffsetInMergedPartition = 0;
     TreeSet<CartesianGeoRecord> expectedTreeSetInMergedPartition = null;
     Iterator<CartesianGeoRecord> expectedGeoRecordIteratorInMergedPartition = null;
     
@@ -128,12 +137,11 @@ public class MergeGeoRecordsTest {
     
     private static class PreMergedState {
         GeoRecordBTree geoRecordBTreeAsArray;
-        BitVector deletionVector;
+        DocMapExposer deletionVector;
         int numberOfRecordsSurvivingDeletion;
         
         public PreMergedState(GeoRecordBTree geoRecordBTreeAsArray,
-        BitVector deletionVector,
-        int numberOfRecordsSurvivingDeletion) {
+                DocMapExposer deletionVector, int numberOfRecordsSurvivingDeletion) {
             this.geoRecordBTreeAsArray = geoRecordBTreeAsArray;
             this.deletionVector = deletionVector;
             this.numberOfRecordsSurvivingDeletion = numberOfRecordsSurvivingDeletion;
@@ -141,24 +149,30 @@ public class MergeGeoRecordsTest {
     }
     
     private final long SEED = 746606409241482554L;
+
+    private int absoluteDocIdOffsetInMergedPartition;
     
     private PreMergedState randomGeoRecordBTreeAsArray(int maxDoc, float deletionRatio) throws IOException {
-        BitVector bitVector = new BitVector(maxDoc);
+        List<Integer> bitVector = new ArrayList<Integer>(maxDoc);
         int numberOfRecordsSurvivingDeletion = 0;
         TreeSet<CartesianGeoRecord> treeSet = new TreeSet<CartesianGeoRecord>(comparator);
+        int deletes = 0;
         for (int docid = 0; docid < maxDoc; docid++) {
+            boolean survives = true;
             if (docid > 0 && deletionRatio > 0f) {
                 double deleteValue = random.nextDouble();
                 if (deleteValue <= deletionRatio) {
-                    // delete
-                    bitVector.set(docid);
+                    survives = false;
+                    deletes++;
+                    bitVector.add(-1);
+                } else {
+                    bitVector.add(docid - deletes);
                 }
             }
             int numberOfSources = 1;
             if (docid > 0) {
                 numberOfSources = random.nextInt(MAX_NUMBER_OF_SOURCES_PER_DOCUMENT);
             }
-            boolean survives = !bitVector.get(docid);
             for (int sourceNumber = 0; sourceNumber < numberOfSources; sourceNumber++) {
                 if (survives) {
                     numberOfRecordsSurvivingDeletion++;
@@ -172,7 +186,8 @@ public class MergeGeoRecordsTest {
         }
         
         GeoRecordBTree geoRecordBTreeAsArray = new GeoRecordBTree(treeSet);
-        PreMergedState preMergedState = new PreMergedState(geoRecordBTreeAsArray, bitVector, numberOfRecordsSurvivingDeletion);
+        DocMapExposer docMap = new DocMapExposer(bitVector, deletes);
+        PreMergedState preMergedState = new PreMergedState(geoRecordBTreeAsArray, docMap, numberOfRecordsSurvivingDeletion);
         return preMergedState;
     }
     
@@ -240,14 +255,20 @@ public class MergeGeoRecordsTest {
     
     private void setUpMergedGeoRecords() throws IOException  {
         List<BTree<CartesianGeoRecord>> partitionList = new ArrayList<BTree<CartesianGeoRecord>>(2);
-        List<BitVector> partitionDeletionList = new ArrayList<BitVector>(2);
+        DocMap[] docMaps = new DocMap[2];
+        int[] docOffset = new int[2];
+                
         partitionList.add(a);
-        partitionDeletionList.add(aDelete);
+        docMaps[0]  = aDelete;
         partitionList.add(b);
-        partitionDeletionList.add(bDelete);
+        docMaps[1] = bDelete;
         int totalBufferCapacity = 10000;
+        
+        docOffset[0] = 0;
+        docOffset[1] = docMaps[0].numDocs();
+        
         mergeGeoRecords = new ChainedConvertedGeoRecordIterator(geoConverter, 
-                partitionList, partitionDeletionList, totalBufferCapacity);
+                partitionList, docMaps, docOffset, totalBufferCapacity);
     }
     
     private static GeoRecordBTree getGeoRecordBTreeAsArray(
@@ -386,7 +407,7 @@ public class MergeGeoRecordsTest {
     }
     
     private PreMergedState getDensePartition(int maxDoc) throws IOException {
-        BitVector bitVector = new BitVector(maxDoc);
+        DocMapExposer bitVector = buildNoDeletesDocMap(maxDoc);
         int numberOfRecordsSurvivingDeletion = maxDoc;
         TreeSet<CartesianGeoRecord> treeSet = new TreeSet<CartesianGeoRecord>(comparator);
         final boolean survives = true;
@@ -457,8 +478,8 @@ public class MergeGeoRecordsTest {
     public void test_iteratorA_withDeletions() throws IOException {
         setUpA();
         
-        aDelete.set(3);
-        aDelete.set(5);
+        aDelete.delete(3);
+        aDelete.delete(5);
         Iterator<CartesianGeoRecord> iteratorA = 
             new ConvertedGeoRecordIterator(geoConverter, a, 0, aDelete);
         assertTrue("iteratorA.hasNext() was false", iteratorA.hasNext());
@@ -490,9 +511,9 @@ public class MergeGeoRecordsTest {
     public void test_iteratorA_withDeletions3() throws IOException {
         setUpA();
         
-        aDelete.set(3);
-        aDelete.set(4);
-        aDelete.set(5);
+        aDelete.delete(3);
+        aDelete.delete(4);
+        aDelete.delete(5);
         Iterator<CartesianGeoRecord> iteratorA = 
             new ConvertedGeoRecordIterator(geoConverter, a, 0, aDelete);
         assertTrue("iteratorA.hasNext() was false", iteratorA.hasNext());
@@ -554,6 +575,8 @@ public class MergeGeoRecordsTest {
             , 877, 881, 883, 887, 907, 911, 919, 929, 937, 941 
             , 947, 953, 967, 971, 977, 983, 991, 997, 1009, 1013 
  };
+
+    private int numberOfRecordsSurvivingDeletion;
 
     private void verifyRandom(int numDocsInB) throws IOException {
         setUpRandomB(numDocsInB, 0f);
@@ -776,4 +799,5 @@ public class MergeGeoRecordsTest {
         
         System.out.println("successful merge of "+expectedCount+" simulated");
     }
+    
 }

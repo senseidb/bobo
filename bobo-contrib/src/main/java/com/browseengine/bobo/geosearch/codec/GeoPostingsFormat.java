@@ -20,7 +20,7 @@ public class GeoPostingsFormat extends PostingsFormat {
     private PostingsFormat defaultPostingsFormat;
 
     protected GeoPostingsFormat(GeoSearchConfig geoConfig, PostingsFormat defaultPostingsFormat) {
-        super("bobo-geo");
+        super("BoboGeoPosting");
         this.geoConfig = geoConfig;
         this.defaultPostingsFormat = defaultPostingsFormat;
     }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.RAMDirectory;
@@ -48,11 +49,11 @@ public abstract class IGeoRecordSerializerTezt<T extends IGeoRecord> {
     public void serializeAndDeserialize(T expectedRecord, int byteCount) throws IOException {
         String fileName = UUID.randomUUID().toString();
         
-        IndexOutput output = directory.createOutput(fileName);
+        IndexOutput output = directory.createOutput(fileName, IOContext.DEFAULT);
         geoRecordSerializer.writeGeoRecord(output, expectedRecord, byteCount);
         output.close();
         
-        IndexInput input = directory.openInput(fileName);
+        IndexInput input = directory.openInput(fileName, IOContext.READ);
         T actualRecord = geoRecordSerializer.readGeoRecord(input, byteCount);
         input.close();
         

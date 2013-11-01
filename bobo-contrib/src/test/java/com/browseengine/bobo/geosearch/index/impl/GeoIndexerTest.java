@@ -7,7 +7,10 @@ import java.util.Comparator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.lucene.index.SegmentInfo;
+import org.apache.lucene.index.SegmentWriteState;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.RAMDirectory;
 import org.jmock.Expectations;
@@ -101,7 +104,7 @@ public class GeoIndexerTest {
                 one(mockConverter).makeFieldNameFilterConverter();
                 will(returnValue(mockFieldNameFilterConverter));
                 
-                ignoring(directory).createOutput(segmentName + "." + config.getGeoFileExtension());
+                ignoring(directory).createOutput(segmentName + "." + config.getGeoFileExtension(), IOContext.DEFAULT);
                 will(returnValue(mockOutput));
                 
                 ignoring(mockOutput).getFilePointer();
@@ -119,7 +122,18 @@ public class GeoIndexerTest {
             }
         });
         
-        geoIndexer.flush(directory, segmentName);
+        SegmentWriteState segmentWriteState = buildSegmentWriteState(directory);
+        geoIndexer.flush(segmentWriteState);
+    }
+
+    private SegmentWriteState buildSegmentWriteState(Directory directory) {
+        SegmentInfo segmentInfo = new SegmentInfo(directory, "lucene_43", segmentName, 10, 
+                true, null, null, null);
+        SegmentWriteState segmentWriteState = new SegmentWriteState(
+                null, directory, segmentInfo, null, 
+                0, null, IOContext.DEFAULT);
+        
+        return segmentWriteState;
     }
     
     @Test
@@ -225,7 +239,8 @@ public class GeoIndexerTest {
         latch.await(500, TimeUnit.MILLISECONDS);
         assertEquals("not all threads compeleted", 0, latch.getCount());
         
-        geoIndexerNoMocks.flush(ramDirectory, segmentName);
+        SegmentWriteState segmentWriteState = buildSegmentWriteState(ramDirectory);
+        geoIndexerNoMocks.flush(segmentWriteState);
         
         readAndVerifyGeoIndex(ramDirectory, segmentName, 
                 docsToAddPerThread * numThreads);
@@ -236,11 +251,13 @@ public class GeoIndexerTest {
         String geoFileName = config.getGeoFileName(segmentName);
         
         BTree<CartesianGeoRecord> segmentBTree = 
-            new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, -1, 500, 
+            new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, -1, IOContext.READ, 
                     geoRecordSerializer, geoComparator);
         
         assertEquals("Incorrect number of documents in geo index", totalDocs, 
                 segmentBTree.getArrayLength());
+        
+        segmentBTree.close();
     }
 
     /**
@@ -266,7 +283,7 @@ public class GeoIndexerTest {
                 ignoring(mockOutput).getFilePointer();
                 
                 //get output
-                one(directory).createOutput(segmentName + "." + config.getGeoFileExtension());
+                one(directory).createOutput(segmentName + "." + config.getGeoFileExtension(), IOContext.DEFAULT);
                 will(returnValue(mockOutput));
 
                 //write file header
@@ -311,7 +328,8 @@ public class GeoIndexerTest {
             }
         });
         
-        geoIndexer.flush(directory, segmentName);
+        SegmentWriteState segmentWriteState = buildSegmentWriteState(directory);
+        geoIndexer.flush(segmentWriteState);
         context.assertIsSatisfied();
     }
     

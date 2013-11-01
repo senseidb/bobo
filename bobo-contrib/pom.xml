@@ -127,11 +127,6 @@
         <version>1.2.16</version>
     </dependency>
   	<dependency>
-  		<groupId>org.apache.lucene</groupId>
-  		<artifactId>lucene-core</artifactId>
-  		<version>4.3.0</version>
-  	</dependency>
-  	<dependency>
   		<groupId>org.objenesis</groupId>
   		<artifactId>objenesis</artifactId>
   		<version>1.0</version>
@@ -140,6 +135,16 @@
   		<groupId>org.springframework</groupId>
   		<artifactId>spring-context</artifactId>
   		<version>3.0.5.RELEASE</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.apache.lucene</groupId>
+  		<artifactId>lucene-core</artifactId>
+  		<version>4.3.0</version>
+  	</dependency>
+  	<dependency>
+  		<groupId>org.apache.lucene</groupId>
+  		<artifactId>lucene-analyzers-common</artifactId>
+  		<version>4.3.0</version>
   	</dependency>
   </dependencies>
   

@@ -13,15 +13,15 @@ import java.util.TreeSet;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.Version;
 import org.junit.After;
 import org.junit.Before;
@@ -29,14 +29,14 @@ import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.IGeoConverter;
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoConverter;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
-import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
+import com.browseengine.bobo.geosearch.index.impl.GeoAtomicReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
+import com.browseengine.bobo.geosearch.util.StubAtomicReader;
 
 /**
  * @author Ken McCracken
@@ -47,9 +47,8 @@ public class GeoScorerTest {
     private IGeoConverter geoConverter;
     double centroidLongitude; double centroidLatitude; Float rangeInKm;
     private GeoQuery geoQuery;
-    private Searcher searcher;
+    private IndexSearcher searcher;
     private Weight geoWeight;
-    private GeoIndexReader geoIndexReader;
     private Scorer scorer;
     private List<GeoSegmentReader<CartesianGeoRecord>> geoSubReaders;
     private GeoSegmentReader<CartesianGeoRecord> geoSegmentReader;
@@ -195,24 +194,16 @@ public class GeoScorerTest {
         
         Directory directory = buildEmptyDirectory();
         
-        geoIndexReader = new GeoIndexReader(directory, new GeoSearchConfig()) {
-            @Override
-            public List<GeoSegmentReader<CartesianGeoRecord>> getGeoSegmentReaders() {
-                return geoSubReaders;
-            }
-            
-            @Override
-            public IndexReader[] getSequentialSubReaders() {
-                return null;
-            }
-        };
-
+        
+        GeoAtomicReader geoIndexReader = new GeoAtomicReader(new StubAtomicReader("_0"), geoSegmentReader);
+        
         geoQuery = new GeoQuery(centroidLatitude, centroidLongitude, rangeInKm);
         geoWeight = geoQuery.createWeight(searcher);
         boolean scoreDocsInOrder = true;
         boolean topScorer = true;
         
-        scorer = geoWeight.scorer(geoIndexReader, scoreDocsInOrder, topScorer);
+        scorer = geoWeight.scorer(geoIndexReader.getContext(), scoreDocsInOrder, topScorer, 
+                new Bits.MatchAllBits(maxDoc + maxDoc2 + maxDoc3));
       
     }
     

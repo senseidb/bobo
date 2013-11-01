@@ -4,7 +4,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -13,11 +12,11 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Bits;
 import org.apache.lucene.util.Version;
 import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
-import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
 import com.browseengine.bobo.geosearch.bo.LatitudeLongitudeDocId;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
@@ -29,11 +28,10 @@ import com.browseengine.bobo.geosearch.query.GeoScorer;
 import com.browseengine.bobo.geosearch.query.GeoWeight;
 import com.browseengine.bobo.geosearch.score.impl.Conversions;
 import com.browseengine.bobo.geosearch.score.impl.HaversineComputeDistance;
+import com.browseengine.bobo.geosearch.util.StubAtomicReader;
 
 
 public class GeoQueryTest {
-    private GeoIndexReader geoIndexReader;
-    List<GeoSegmentReader<CartesianGeoRecord>> geoSubReaders;
     private static class MyGeoSegmentReader extends GeoSegmentReader<CartesianGeoRecord> {
         private final GeoRecordBTree tree;
         
@@ -67,17 +65,16 @@ public class GeoQueryTest {
         TreeSet<CartesianGeoRecord> treeSet = arrayListToTreeSet(indexedDocument); 
         GeoRecordBTree geoRecordBTree = new GeoRecordBTree(treeSet); 
         MyGeoSegmentReader geoSegmentReader = new MyGeoSegmentReader(geoRecordBTree, indexedDocument.size());
-        geoSubReaders = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(); 
-        geoSubReaders.add(geoSegmentReader);
         
         GeoQuery geoQuery = new GeoQuery(gcord.getLatitude(), gcord.getLongitude(), rangeInKm);
         GeoWeight geoWeight = (GeoWeight)geoQuery.createWeight(null);
-        Directory directory = buildEmptyDirectory();
-        geoIndexReader = new GeoIndexReader(directory, new GeoSearchConfig());
-        geoIndexReader.setGeoSegmentReaders(geoSubReaders);
         boolean scoreInOrder = true, topScorer = true; 
-        GeoScorer geoScorer = (GeoScorer)geoWeight.scorer(geoIndexReader, scoreInOrder, topScorer);
+        
+        GeoAtomicReader geoAtomicReader = new GeoAtomicReader(new StubAtomicReader(), geoSegmentReader);
+        GeoScorer geoScorer = (GeoScorer)geoWeight.scorer(geoAtomicReader.getContext(), scoreInOrder, topScorer, 
+                new Bits.MatchAllBits(indexedDocument.size()));
         test_Scorer(rangeInMiles, geoScorer, gcord, indexedDocument);
+        geoAtomicReader.close();
     }
     
     private void printAllDocIdsInRange(float rangeInMiles, ArrayList<LatitudeLongitudeDocId> indexedDocument,
@@ -138,7 +135,7 @@ public class GeoQueryTest {
     private Directory buildEmptyDirectory() throws IOException {
         RAMDirectory directory = new RAMDirectory();
         Version version = Version.LUCENE_CURRENT;
-        Analyzer analyzer =  new StandardAnalyzer(version);
+        Analyzer analyzer =  new StandardAnalyzer(version, StandardAnalyzer.STOP_WORDS_SET);
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig(version, analyzer);
         IndexWriter writer = new IndexWriter(directory, indexWriterConfig);
         writer.close();

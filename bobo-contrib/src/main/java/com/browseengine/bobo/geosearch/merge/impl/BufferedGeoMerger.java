@@ -73,11 +73,8 @@ public class BufferedGeoMerger implements IGeoMerger {
 
             boolean hasFieldNameFilterConverter = false;
             for (AtomicReader reader : readers) {
-                //TODO:  Revisit if there's another way we can get a geo reader that corresponds to the passed in AtomicReader  
-                //As of lucene 4.3, all AtomicReaders created for merge are SegmentReaders but this could change.
-                SegmentReader segmentReader = (SegmentReader) reader;
-                String geoFileName = config.getGeoFileName(segmentReader.getSegmentName());
-                
+                String segmentName = getSegmentName(reader);
+                String geoFileName = config.getGeoFileName(segmentName);
                 BTree<CartesianGeoRecord> segmentBTree = 
                     getInputBTree(directory, ioContext, geoFileName); 
                 mergeInputBTrees.add(segmentBTree);
@@ -233,6 +230,13 @@ public class BufferedGeoMerger implements IGeoMerger {
         }
         
         return numRecordsToMerge;
+    }
+    
+    protected String getSegmentName(AtomicReader reader) {
+        //TODO:  Revisit if there's another way we can get a geo reader that corresponds to the passed in AtomicReader  
+        //As of lucene 4.3, all AtomicReaders created for merge are SegmentReaders but this could change.
+        SegmentReader segmentReader = (SegmentReader) reader;
+        return segmentReader.getSegmentName();
     }
  
 }

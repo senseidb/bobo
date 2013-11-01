@@ -13,14 +13,20 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.apache.lucene.index.AtomicReader;
+import org.apache.lucene.index.DocMapExposer;
 import org.apache.lucene.index.LuceneUtils;
+import org.apache.lucene.index.MergePolicy;
+import org.apache.lucene.index.MergeState;
+import org.apache.lucene.index.MergeState.CheckAbort;
+import org.apache.lucene.index.MergeState.DocMap;
+import org.apache.lucene.index.MergeStateExposer;
 import org.apache.lucene.index.SegmentInfo;
-import org.apache.lucene.index.SegmentReader;
+import org.apache.lucene.index.SegmentWriteState;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
+import org.apache.lucene.store.IOContext.Context;
 import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.BitVector;
-import org.jmock.Expectations;
-import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +47,7 @@ import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
 import com.browseengine.bobo.geosearch.impl.GeoRecordBTree;
 import com.browseengine.bobo.geosearch.impl.MappedFieldNameFilterConverter;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
-import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
+import com.browseengine.bobo.geosearch.util.StubAtomicReader;
 
 /**
  * 
@@ -52,19 +58,17 @@ import com.browseengine.bobo.geosearch.merge.IGeoMergeInfo;
 @ContextConfiguration( { "/TEST-servlet.xml" }) 
 @IfProfileValue(name = "test-suite", values = { "unit", "all" })
 public class BufferedGeoMergerTest {
-    Mockery context = new Mockery(); 
     
     private static final String SEGMENT_BASE_NAME = "segment";
     
     Directory dir;
     
     GeoSearchConfig geoConfig;
-    IGeoMergeInfo geoMergeInfo;
     
     BufferedGeoMerger bufferedGeoMerger;
     
     List<SegmentInfo> segmentsToMerge;
-    List<SegmentReader> segmentReaders;
+    List<AtomicReader> segmentReaders;
     Map<String, GeoRecordBTree> inputTrees; 
     SegmentInfo newSegment;
     
@@ -78,7 +82,6 @@ public class BufferedGeoMergerTest {
     @Before
     public void setUp() {
         geoConfig = new GeoSearchConfig();
-        geoMergeInfo = context.mock(IGeoMergeInfo.class);
         
         dir = new RAMDirectory();
         geoConverter = geoConfig.getGeoConverter();
@@ -86,22 +89,26 @@ public class BufferedGeoMergerTest {
         
         bufferedGeoMerger = new BufferedGeoMerger() {
             @Override
-            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, String geoFileName, 
-                    int bufferSizePerGeoReader) {
+            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, IOContext ioContext, String geoFileName) {
                 return inputTrees.get(geoFileName);
             }
             
             @Override
             public BTree<CartesianGeoRecord> getOutputBTree(int newSegmentSize, Iterator<CartesianGeoRecord> inputIterator,
-                    Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
+                    Directory directory, IOContext ioContext, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
                 outputTree = new GeoRecordBTree(newSegmentSize, inputIterator, directory, outputFileName, geoSegmentInfo);
                 return outputTree;
             }
             
             @Override
             public boolean loadFieldNameFilterConverter(Directory directory, String geoFileName,
-                    IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+                    IFieldNameFilterConverter fieldNameFilterConverter, IOContext ioContext) throws IOException {
                 return true;
+            }
+            
+            @Override
+            public String getSegmentName(AtomicReader reader) {
+                return ((StubAtomicReader)reader).getSegmentName();
             }
         };
         
@@ -113,20 +120,27 @@ public class BufferedGeoMergerTest {
                 docsPerSegment.length, deletedDocsPerSegment.length);
         
         segmentsToMerge = new Vector<SegmentInfo>();
-        segmentReaders = new Vector<SegmentReader>();
+        segmentReaders = new Vector<AtomicReader>();
         inputTrees = new HashMap<String, GeoRecordBTree>();
         
         int segmentStart = 0;
+        DocMap[] docMaps = new DocMap[docsPerSegment.length];
+        int[] docBase = new int[docsPerSegment.length];
+        int previousDocBase = 0;
         for (int i = 0; i < docsPerSegment.length; i++) {
             final int segmentSize = docsPerSegment[i];
             final int deletedDocs = deletedDocsPerSegment[i]; 
             final String name = SEGMENT_BASE_NAME + i;
             
-            SegmentReader reader = buildSegmentReader(name, segmentSize, deletedDocs);
-            segmentReaders.add(reader);
-            
-            SegmentInfo segment = LuceneUtils.buildSegmentInfo(name, segmentSize, deletedDocs, dir);
+            SegmentInfo segment = LuceneUtils.buildSegmentInfo(name, segmentSize, geoConfig, dir);
             segmentsToMerge.add(segment);
+
+            docMaps[i] = buildDocMap(segmentSize, deletedDocs);
+            docBase[i] = previousDocBase;
+            previousDocBase += segmentSize - deletedDocs;
+            
+            AtomicReader reader = buildSegmentReader(segment.name);
+            segmentReaders.add(reader);
             
             GeoRecordBTree inputTree = buildInputTree(segmentStart, segmentSize, deletedDocsPerSegment[i]);
             String fileName = geoConfig.getGeoFileName(name);
@@ -135,27 +149,25 @@ public class BufferedGeoMergerTest {
             segmentStart += (segmentSize - deletedDocs);
         }
         
-        newSegmentName = "newSegment";
-        newSegment = LuceneUtils.buildSegmentInfo(newSegmentName, segmentStart, 0, dir);
-    }
-    
-    private SegmentReader buildSegmentReader(final String name, final int segmentSize, final int deletedDocs) {
-        SegmentReader reader = new SegmentReader() {
+        CheckAbort checkAbort = new CheckAbort(null, dir) {
             @Override
-            public synchronized boolean isDeleted(int n) {
-                return isIdDeleted(n, deletedDocs, segmentSize);
-            }
-            
-            @Override 
-            public String getSegmentName() {
-                return name;
-            }
-            
-            @Override 
-            public int maxDoc() {
-                return segmentSize;
+            public void work(double units) throws MergePolicy.MergeAbortedException {
+                //do nothing
             }
         };
+        
+        
+        newSegmentName = "newSegment";
+        newSegment = LuceneUtils.buildSegmentInfo(newSegmentName, segmentStart, geoConfig, dir);
+        mergeState = new MergeStateExposer(segmentReaders, newSegment, null, checkAbort);
+        mergeState.docMaps = docMaps;
+        mergeState.docBase = docBase;
+        
+        segmentWriteState = new SegmentWriteState(null, dir, newSegment, null, 1, null, new IOContext(Context.MERGE));
+    }
+    
+    private AtomicReader buildSegmentReader(String segmentName) throws IOException {
+        AtomicReader reader = new StubAtomicReader(segmentName);
         
         return reader;
     }
@@ -189,6 +201,21 @@ public class BufferedGeoMergerTest {
         }
         
         return new GeoRecordBTree(tree);
+    }
+    
+    private DocMap buildDocMap(final int segmentSize, final int numberOfDeletes) {
+        final List<Integer> docMap = new ArrayList<Integer>();
+        int del = 0;
+        for (int i = 0; i < segmentSize; ++i) {
+            if (isIdDeleted(i, numberOfDeletes, segmentSize)) {
+                docMap.add(-1);
+                ++del;
+            } else {
+                docMap.add(i - del);
+            }
+        }
+        
+        return new DocMapExposer(docMap, del);
     }
     
     private boolean isIdDeleted(int id, int numberOfDeletes, int totalDocs) {
@@ -232,54 +259,10 @@ public class BufferedGeoMergerTest {
         }
     }
     
-    private boolean isNoGeoFiles = false;
-    
     private void doMerge() throws IOException {
-        if (isNoGeoFiles) {
-            context.checking(new Expectations() {
-                {
-                    atLeast(1).of(geoMergeInfo).getSegmentsToMerge();
-                    will(returnValue(segmentsToMerge));
-                    
-                    ignoring(geoMergeInfo).checkAborted(dir);
-                    
-                    // the expectation is that if there are no geo files,
-                    // getNewSegment() will not be called.
-                    //atLeast(1).of(geoMergeInfo).getNewSegment();
-                    //will(returnValue(newSegment));
-                    
-                    ignoring(geoMergeInfo).getDirectory();
-                    will(returnValue(dir));
-                    
-                    atLeast(1).of(geoMergeInfo).getReaders();
-                    will(returnValue(segmentReaders));
-                }
-            });
-
-        } else {
-            context.checking(new Expectations() {
-                {
-                    atLeast(1).of(geoMergeInfo).getSegmentsToMerge();
-                    will(returnValue(segmentsToMerge));
-                
-                    ignoring(geoMergeInfo).checkAborted(dir);
-                
-                    atLeast(1).of(geoMergeInfo).getNewSegment();
-                    will(returnValue(newSegment));
-                
-                    ignoring(geoMergeInfo).getDirectory();
-                    will(returnValue(dir));
-                
-                    atLeast(1).of(geoMergeInfo).getReaders();
-                    will(returnValue(segmentReaders));
-                }
-            });
-        }
-        
-        bufferedGeoMerger.merge(geoMergeInfo, geoConfig);
+        bufferedGeoMerger.merge(segmentWriteState, mergeState, geoConfig);
         checkOutputTreeAgainstExpected();
         
-        context.assertIsSatisfied();
     }
     
     @Test
@@ -300,8 +283,6 @@ public class BufferedGeoMergerTest {
     
     @Test
     public void testMerge_no_GeoFiles() throws IOException {
-        isNoGeoFiles = true;
-        
         noGeoFileNames = new HashSet<String>();
         noGeoFileNames.add("segment0.geo");
         noGeoFileNames.add("segment1.geo");
@@ -322,13 +303,17 @@ public class BufferedGeoMergerTest {
     private Set<String> noGeoFileNames;
 
     private String newSegmentName;
-    
+
+    private SegmentWriteState segmentWriteState;
+
+    private MergeState mergeState;
+
     private void initNoGeoFile() {
         
         bufferedGeoMerger = new BufferedGeoMerger() {
             @Override
-            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, String geoFileName, 
-                    int bufferSizePerGeoReader) throws IOException {
+            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, IOContext ioContext,
+                    String geoFileName) throws IOException {
                 if (noGeoFileNames.contains(geoFileName)) {
                     // empty TreeSet<GeoRecord> tree
                     return new GeoRecordBTree(new TreeSet<CartesianGeoRecord>());
@@ -338,15 +323,21 @@ public class BufferedGeoMergerTest {
             
             @Override
             public BTree<CartesianGeoRecord> getOutputBTree(int newSegmentSize, Iterator<CartesianGeoRecord> inputIterator,
-                    Directory directory, String outputFileName, GeoSegmentInfo geoSegmentInfo) throws IOException {
+                    Directory directory, IOContext ioContext, String outputFileName, GeoSegmentInfo geoSegmentInfo) 
+                            throws IOException {
                 outputTree = new GeoRecordBTree(newSegmentSize, inputIterator, directory, outputFileName, geoSegmentInfo);
                 return outputTree;
             }
             
             @Override
             public boolean loadFieldNameFilterConverter(Directory directory, String geoFileName,
-                    IFieldNameFilterConverter fieldNameFilterConverter) throws IOException {
+                    IFieldNameFilterConverter fieldNameFilterConverter, IOContext ioContext) throws IOException {
                 return !noGeoFileNames.contains(geoFileName);
+            }
+            
+            @Override
+            public String getSegmentName(AtomicReader reader) {
+                return ((StubAtomicReader)reader).getSegmentName();
             }
         };
 
@@ -442,31 +433,21 @@ public class BufferedGeoMergerTest {
         int[] deletedDocsPerSegment = new int[] {0, 0};
         setUpMergeObjects(docsPerSegment, deletedDocsPerSegment);
         
-        context.checking(new Expectations() {
-            {
-                ignoring(geoMergeInfo).getDirectory();
-                will(returnValue(dir));
-                
-                atLeast(1).of(geoMergeInfo).getNewSegment();
-                will(returnValue(newSegment));
-            }
-        });
-        
         
         List<BTree<CartesianGeoRecord>> mergeInputBTrees = new ArrayList(inputTrees.values());
-        List<BitVector> deletedDocsList =  new ArrayList<BitVector>();
-        deletedDocsList.add(new BitVector(10));
-        deletedDocsList.add(new BitVector(10));
         
         int newSegmentSize = 21;
         GeoSearchConfig config = geoConfig;
         MappedFieldNameFilterConverter fieldNameFilterConverter = new MappedFieldNameFilterConverter();
         fieldNameFilterConverter.addFieldBitMask("test", (byte) 1);
-        bufferedGeoMerger.buildMergedSegmentWithRetry(mergeInputBTrees, deletedDocsList, newSegmentSize, 
-                geoMergeInfo, config, fieldNameFilterConverter);
+        bufferedGeoMerger.buildMergedSegmentWithRetry(mergeInputBTrees, mergeState, newSegmentSize, 
+                segmentWriteState, config, fieldNameFilterConverter);
         
-        GeoSegmentReader<CartesianGeoRecord> myTree = new GeoSegmentReader<CartesianGeoRecord>(dir, newSegmentName + ".geo", 20, 4096,
+        GeoSegmentReader<CartesianGeoRecord> myTree = new GeoSegmentReader<CartesianGeoRecord>(dir,
+                newSegmentName + ".geo", 20, new IOContext(Context.MERGE),
                 new CartesianGeoRecordSerializer(), new CartesianGeoRecordComparator());
         checkTreeAgainstExpected(myTree);
     }
+    
+    
 }
