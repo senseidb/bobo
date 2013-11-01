@@ -1,7 +1,9 @@
 package org.apache.lucene.index;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.lucene.index.DocumentsWriterPerThread.DocState;
@@ -61,11 +63,16 @@ public class GeoDocConsumer extends DocConsumer {
         
         List<GeoCoordinateField> geoFields = new Vector<GeoCoordinateField>();
         
+        Set<String> geoFieldNames = new HashSet<String>();
         for (IndexableField field: docState.doc) {
             if (field instanceof GeoCoordinateField) {
                 geoFields.add((GeoCoordinateField)field);
-            } else {
-                FieldInfo fieldInfo = fieldInfos.fieldInfo(field.name()); 
+                geoFieldNames.add(field.name());
+            } 
+        }
+        
+        for (FieldInfo fieldInfo : fieldInfos.finish()) {
+            if (!geoFieldNames.contains(fieldInfo.name)) {
                 unconsumedFields.add(fieldInfo);
             }
         }
