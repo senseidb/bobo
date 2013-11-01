@@ -59,7 +59,6 @@ public class GeoDocConsumer extends DocConsumer {
     void processDocument(Builder fieldInfos) throws IOException {
         //this is where we process the geo-search components of the document
         int docID = docState.docID;
-        Builder unconsumedFields = new Builder();
         
         List<GeoCoordinateField> geoFields = new Vector<GeoCoordinateField>();
         
@@ -71,19 +70,12 @@ public class GeoDocConsumer extends DocConsumer {
             } 
         }
         
-        for (FieldInfo fieldInfo : fieldInfos.finish()) {
-            if (!geoFieldNames.contains(fieldInfo.name)) {
-                unconsumedFields.add(fieldInfo);
-            }
-        }
-
         for (GeoCoordinateField geoField: geoFields) {
             //process field into GeoIndex here
             geoIndexer.index(docID, geoField);
         }
         
         defaultDocConsumer.processDocument(fieldInfos);
-//        defaultDocConsumer.processDocument(unconsumedFields);
     }
 
     @Override
