@@ -39,6 +39,7 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 @RunWith(SpringJUnit4ClassRunner.class) 
 @ContextConfiguration( { "/TEST-servlet.xml" }) 
 @IfProfileValue(name = "test-suite", values = { "unit", "functional", "all" }) 
+//TODO:  Add tests using CFS
 public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     @Before
     public void setUp() throws CorruptIndexException, LockObtainFailedException, IOException {

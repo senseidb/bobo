@@ -4,14 +4,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +40,7 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 @RunWith(SpringJUnit4ClassRunner.class) 
 @ContextConfiguration( { "/TEST-servlet.xml" }) 
 @IfProfileValue(name = "test-suite", values = { "unit", "functional", "all" })
+//TODO:  Add tests using CFS
 public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     int numberOfSegments;
     
@@ -79,7 +82,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         assertTrue(directory.fileExists(geoFileName));
         
         GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
-                geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
+                geoFileName, maxDocs, IOContext.READ, geoRecordSerializer, geoComparator);
         
         assertEquals(maxDocs * 2, reader.getArrayLength());
         
@@ -98,7 +101,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
 
         assertEquals(1, segmentInfos.size());
         
-        SegmentInfo segmentInfo = segmentInfos.info(0);
+        SegmentInfo segmentInfo = segmentInfos.info(0).info;
         
         String geoFileName = geoConfig.getGeoFileName(segmentInfo.name);
         
@@ -119,17 +122,22 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
      * are not
      */
     public void testLuceneFieldNames() throws CorruptIndexException, IOException {
-        IndexSearcher searcher = new IndexSearcher(directory);
-        Collection<String> fieldNames = searcher.getIndexReader().getFieldNames(FieldOption.ALL);
+        IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
+        Set<String> fieldNames = new HashSet<String>();
+        for (AtomicReaderContext readerContext : searcher.getIndexReader().getContext().leaves()) {
+            for (FieldInfo field : readerContext.reader().getFieldInfos()) {
+                fieldNames.add(field.name);
+            }
+        }
         
-        assertEquals("Expected exactly 2 fieldNames, got: " + fieldNames.toString(), 2, fieldNames.size());
+        assertEquals("Expected exactly 4 fieldNames, got: " + fieldNames.toString(), 4, fieldNames.size());
         assertTrue("Expected text to be a lucene field", fieldNames.contains("text"));
         assertTrue("Expected title to be a lucene field", fieldNames.contains("title"));
     }
     
     @Test
     public void testFreeTextSearch() throws IOException {
-        IndexSearcher searcher = new IndexSearcher(directory);
+        IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Term term = new Term("text", "man");
         TermQuery query = new TermQuery(term);
         
@@ -150,7 +158,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     public void testOldIndicesDeleted() throws IOException {
         writer.close();
         
-        assertEquals(1, countExtensions(directory, "cfs"));
+        assertEquals(1, countExtensions(directory, "pos"));
         assertEquals(1, countExtensions(directory, "geo"));
     }
     
@@ -160,12 +168,12 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
         writer.deleteDocuments(deleteTerm);
         writer.commit();
         
-        writer.optimize();
+        writer.forceMerge(1);
         
         int maxDocs = numberOfSegments * titles.length - numberOfSegments;
         verifySegment(maxDocs);
         
-        IndexSearcher searcher = new IndexSearcher(directory);
+        IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Term term = new Term(TEXT_FIELD, "man");
         TermQuery query = new TermQuery(term);
         
