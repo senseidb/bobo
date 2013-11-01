@@ -5,6 +5,7 @@ import java.io.Reader;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.miscellaneous.EmptyTokenStream;
 import org.apache.lucene.index.FieldInfo.DocValuesType;
 import org.apache.lucene.index.FieldInfo.IndexOptions;
 import org.apache.lucene.index.IndexableField;
@@ -78,7 +79,7 @@ public class GeoCoordinateField implements IndexableField {
 
     @Override
     public TokenStream tokenStream(Analyzer analyzer) throws IOException {
-        return null;
+        return new EmptyTokenStream();
     }
 
     private class GeoCoordinateFieldType implements IndexableFieldType {

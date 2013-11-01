@@ -800,4 +800,4 @@ public class MergeGeoRecordsTest {
         System.out.println("successful merge of "+expectedCount+" simulated");
     }
     
-}
+    }

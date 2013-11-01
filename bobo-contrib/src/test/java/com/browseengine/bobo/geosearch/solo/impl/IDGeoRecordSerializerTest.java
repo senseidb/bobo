@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
 import org.junit.Test;
@@ -64,7 +65,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
         
         IDGeoRecord geoRecord = new IDGeoRecord(Long.MAX_VALUE, 0, id);
         
-        IndexOutput output = directory.createOutput(testFileName);
+        IndexOutput output = directory.createOutput(testFileName, IOContext.DEFAULT);
         try {
             geoRecordSerializer.writeGeoRecord(output, geoRecord, byteCount + IDGeoRecordSerializer.INTERLACE_BYTES);
         } finally {
@@ -82,7 +83,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
         
         IDGeoRecord geoRecord = new IDGeoRecord(Long.MAX_VALUE, 0, id);
 
-        IndexOutput output = directory.createOutput(testFileName);
+        IndexOutput output = directory.createOutput(testFileName, IOContext.DEFAULT);
         try {
             geoRecordSerializer.writeGeoRecord(output, geoRecord, byteCount  + IDGeoRecordSerializer.INTERLACE_BYTES);
         } finally {
@@ -93,7 +94,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
     @Test
     public void testSerializeAndDeserialize_multipleRecords() throws IOException {
         int byteCount = 1 + IDGeoRecordSerializer.INTERLACE_BYTES;
-        IndexOutput output = directory.createOutput(testFileName);
+        IndexOutput output = directory.createOutput(testFileName, IOContext.DEFAULT);
         
         for (long highIdx = 0; highIdx < 10; highIdx++) {
             for (int lowIdx = 0; lowIdx < 10; lowIdx++) {
@@ -107,7 +108,7 @@ public class IDGeoRecordSerializerTest extends IGeoRecordSerializerTezt<IDGeoRec
         
         output.close();
         
-        IndexInput input = directory.openInput(testFileName);
+        IndexInput input = directory.openInput(testFileName, IOContext.READ);
         
         for (long highIdx = 0; highIdx < 10; highIdx++) {
             for (int lowIdx = 0; lowIdx < 10; lowIdx++) {

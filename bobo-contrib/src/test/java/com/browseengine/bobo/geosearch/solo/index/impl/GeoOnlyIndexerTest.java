@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexOutput;
 import org.apache.lucene.store.Lock;
 import org.apache.lucene.store.LockFactory;
@@ -159,7 +160,7 @@ public class GeoOnlyIndexerTest {
     }
     
     private void createIndexFileDummyData() throws IOException {
-        IndexOutput output = directory.createOutput(indexName + ".geo");
+        IndexOutput output = directory.createOutput(indexName + ".geo", IOContext.DEFAULT);
         output.writeString("dummyData");
         output.flush();
     }

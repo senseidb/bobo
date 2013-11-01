@@ -40,7 +40,7 @@ public class GeoDocConsumer extends DocConsumer {
     //We should make sure to test this case and see if lucene keeps the document or not
     void flush(SegmentWriteState state) throws IOException {
         //flush synchronously for now, we may later wish to perform this two flushes Asynchronously
-        
+
         defaultDocConsumer.flush(state);
         geoIndexer.flush(state);
     }
@@ -82,12 +82,13 @@ public class GeoDocConsumer extends DocConsumer {
             geoIndexer.index(docID, geoField);
         }
         
-        defaultDocConsumer.processDocument(unconsumedFields);
+        defaultDocConsumer.processDocument(fieldInfos);
+//        defaultDocConsumer.processDocument(unconsumedFields);
     }
 
     @Override
     void finishDocument() throws IOException {
-        
+        defaultDocConsumer.finishDocument();
     }
 
     @Override

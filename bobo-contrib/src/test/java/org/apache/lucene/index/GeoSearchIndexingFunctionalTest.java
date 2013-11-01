@@ -5,14 +5,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
-import org.apache.lucene.index.IndexReader.FieldOption;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +42,13 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     @Before
     public void setUp() throws CorruptIndexException, LockObtainFailedException, IOException {
+//        ClassLoader classLoader = new ClassLoader() {
+//            public String getSystemProperty(String propertyName) { 
+//                super.getSystemResource(name)
+//            }
+//            
+//        };
+        
         
         
         buildGeoIndexWriter(); 
@@ -60,8 +68,9 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
         String geoFileName = getGeoFileName();
         
         GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
-                geoFileName, maxDoc, 1024, geoRecordSerializer, geoComparator);
+                geoFileName, maxDoc, IOContext.READ, geoRecordSerializer, geoComparator);
         assertEquals("Expected 2 locations per doc * 10 docs", 2 * maxDoc, reader.getArrayLength());
+        reader.close();
     }
     
     @Test
@@ -95,21 +104,25 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     
     @Test
     /**
-     * Verified that the non-geo fields are passed to lucene and that the geo fields
-     * are not
+     * In the new setup geo fields are passed to lucene as well
      */
     public void testLuceneFieldNames() throws CorruptIndexException, IOException {
-        IndexSearcher searcher = new IndexSearcher(directory);
-        Collection<String> fieldNames = searcher.getIndexReader().getFieldNames(FieldOption.ALL);
+        IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
+        Set<String> fieldNames = new HashSet<String>();
+        for (AtomicReaderContext readerContext : searcher.getIndexReader().getContext().leaves()) {
+            for (FieldInfo field : readerContext.reader().getFieldInfos()) {
+                fieldNames.add(field.name);
+            }
+        }
         
-        assertEquals("Expected exactly 2 fieldNames, got: " + fieldNames.toString(), 2, fieldNames.size());
+        assertEquals("Expected exactly 4 fieldNames, got: " + fieldNames.toString(), 4, fieldNames.size());
         assertTrue("Expected text to be a lucene field", fieldNames.contains("text"));
         assertTrue("Expected title to be a lucene field", fieldNames.contains("title"));
     }
     
     @Test
     public void testFreeTextSearch() throws IOException {
-        IndexSearcher searcher = new IndexSearcher(directory);
+        IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Term term = new Term(TEXT_FIELD, "man");
         TermQuery query = new TermQuery(term);
         

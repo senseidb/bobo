@@ -41,6 +41,8 @@ import com.browseengine.bobo.geosearch.util.StubAtomicReader;
 /**
  * @author Ken McCracken
  *
+ * TODO:  Much of this test assumes that the scorer will be receiving a reader over multiple segments.  
+ * In lucene 4 the scorer receives an AtomicReader so this appears to be a bad assumption.  This test could use some clean up 
  */
 public class GeoScorerTest {
 
@@ -49,7 +51,9 @@ public class GeoScorerTest {
     private GeoQuery geoQuery;
     private IndexSearcher searcher;
     private Weight geoWeight;
-    private Scorer scorer;
+    private Scorer scorer1;
+    private Scorer scorer2;
+    private Scorer scorer3;
     private List<GeoSegmentReader<CartesianGeoRecord>> geoSubReaders;
     private GeoSegmentReader<CartesianGeoRecord> geoSegmentReader;
     
@@ -173,6 +177,9 @@ public class GeoScorerTest {
     }
     
     int maxDoc;
+    private GeoAtomicReader geoIndexReader1;
+    private GeoAtomicReader geoIndexReader2;
+    private GeoAtomicReader geoIndexReader3;
     
     private void setupOneTree() throws Exception {
         
@@ -195,15 +202,21 @@ public class GeoScorerTest {
         Directory directory = buildEmptyDirectory();
         
         
-        GeoAtomicReader geoIndexReader = new GeoAtomicReader(new StubAtomicReader("_0"), geoSegmentReader);
-        
         geoQuery = new GeoQuery(centroidLatitude, centroidLongitude, rangeInKm);
         geoWeight = geoQuery.createWeight(searcher);
         boolean scoreDocsInOrder = true;
         boolean topScorer = true;
-        
-        scorer = geoWeight.scorer(geoIndexReader.getContext(), scoreDocsInOrder, topScorer, 
-                new Bits.MatchAllBits(maxDoc + maxDoc2 + maxDoc3));
+
+       
+        geoIndexReader1 = new GeoAtomicReader(new StubAtomicReader("_0"), geoSegmentReader);
+        scorer1 = geoWeight.scorer(geoIndexReader1.getContext(), scoreDocsInOrder, topScorer, 
+                new Bits.MatchAllBits(maxDoc));
+        geoIndexReader2 = new GeoAtomicReader(new StubAtomicReader("_1"), geoSegmentReader2);
+        scorer2 = geoWeight.scorer(geoIndexReader2.getContext(), scoreDocsInOrder, topScorer, 
+                new Bits.MatchAllBits(maxDoc2));
+        geoIndexReader3 = new GeoAtomicReader(new StubAtomicReader("_3"), geoSegmentReader3);
+        scorer3 = geoWeight.scorer(geoIndexReader3.getContext(), scoreDocsInOrder, topScorer, 
+                new Bits.MatchAllBits(maxDoc3));
       
     }
     
@@ -222,6 +235,9 @@ public class GeoScorerTest {
     
     @After
     public void tearDown() throws Exception {
+        geoIndexReader1.close();
+        geoIndexReader2.close();
+        geoIndexReader3.close();
     }
     
     
@@ -357,7 +373,7 @@ public class GeoScorerTest {
     @Test
     public void test_noSegments() throws Exception {
         setupQuerySearcherReaderScorer();
-        verifyEndNextDoc();
+        verifyEndNextDoc(scorer1);
     }
     
     @Test
@@ -391,13 +407,13 @@ public class GeoScorerTest {
         float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
 
-        int advanceTo = maxDoc + maxDoc2 + SF_CENTER.docid;
+        int advanceTo = SF_CENTER.docid;
         
-        int expectedDocid = maxDoc + maxDoc2 + HIT4_CLOSE.docid;
-        docid = scorer.advance(advanceTo);
+        int expectedDocid =  HIT4_CLOSE.docid;
+        docid = scorer3.advance(advanceTo);
         assertTrue("expectedDocid "+expectedDocid+", got actual docid "+docid, expectedDocid == docid);
         
-        score = scorer.score();
+        score = scorer3.score();
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
@@ -406,24 +422,24 @@ public class GeoScorerTest {
     private void verifyAdvanceAndScore_1segment() throws Exception {
         // advance to second hit docid=3
         
-        docid = scorer.advance(3);
+        docid = scorer1.advance(3);
         
         int expectedDocid = HIT_EXACT.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer1.score();
         float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
         
         // third hit should be docid=4
-         docid = scorer.advance(4);
+         docid = scorer1.advance(4);
         
         expectedDocid = HIT1_CLOSE.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer1.score();
          expectedScoreLowerBound = 0.00001f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
@@ -433,7 +449,7 @@ public class GeoScorerTest {
         int expectedDocid;
         for (int i = 0; i < 10; i++) {
             // no more hits
-            docid = scorer.advance(advanceTo);
+            docid = advanceTo(advanceTo);
         
             expectedDocid = DocIdSetIterator.NO_MORE_DOCS;
             assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
@@ -441,9 +457,24 @@ public class GeoScorerTest {
 
     }
     
+    private int advanceTo(int advanceTo) throws IOException {
+        if (advanceTo < maxDoc) {
+            return scorer1.advance(advanceTo);
+        } 
+
+        advanceTo -= maxDoc;
+        
+        if (advanceTo < maxDoc2) {
+            return scorer2.advance(advanceTo);
+        }
+        
+        advanceTo -= maxDoc2;
+        return scorer3.advance(advanceTo);
+    }
+    
     private void verifyNextDocAndScore() throws Exception {
         verifyNextDocAndScore_1segment();
-        verifyEndNextDoc();
+        verifyEndNextDoc(scorer1);
 
     }
     
@@ -455,73 +486,75 @@ public class GeoScorerTest {
         float expectedScoreUpperBound = 1f;
         
         // next hit should be on segment 3
-         docid = scorer.nextDoc();
+        verifyEndNextDoc(scorer1);
+        verifyEndNextDoc(scorer2);
+         docid = scorer3.nextDoc();
         
-         expectedDocid = HIT3_CLOSE.docid + maxDoc + maxDoc2;
+         expectedDocid = HIT3_CLOSE.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer3.score();
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound
                 +", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
         
         // next hit is HIT4.
-        docid = scorer.nextDoc();
+        docid = scorer3.nextDoc();
        
-       expectedDocid = HIT4_CLOSE.docid + maxDoc + maxDoc2;
+       expectedDocid = HIT4_CLOSE.docid;
        assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
        
-        score = scorer.score();
+        score = scorer3.score();
        assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound
                +", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
        // no more hits
-       verifyEndNextDoc();
+       verifyEndNextDoc(scorer3);
     }
     
     private void verifyNextDocAndScore_1segment() throws Exception {
         // first hit should be docid=1
-         docid = scorer.nextDoc();
+         docid = scorer1.nextDoc();
         
         int expectedDocid = HIT0_CLOSE.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer1.score();
         float expectedScoreLowerBound = 0.00001f;
         float expectedScoreUpperBound = 1f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
         
         // second hit should be docid=3
-         docid = scorer.nextDoc();
+         docid = scorer1.nextDoc();
         
         expectedDocid = HIT_EXACT.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer1.score();
          expectedScoreLowerBound = 0.99f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
         // third hit should be docid=4
-         docid = scorer.nextDoc();
+         docid = scorer1.nextDoc();
         
         expectedDocid = HIT1_CLOSE.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer1.score();
          expectedScoreLowerBound = 0.00001f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
         // fourth hit should be docid=5
-         docid = scorer.nextDoc();
+         docid = scorer1.nextDoc();
         
         expectedDocid = HIT2_CLOSE.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer1.score();
          expectedScoreLowerBound = 0.00001f;
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound+", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
@@ -534,41 +567,41 @@ public class GeoScorerTest {
         float expectedScoreUpperBound = 1f;
 
         // next hit should be SF_CENTER
-        docid = scorer.nextDoc();
-        expectedDocid = SF_CENTER.docid + maxDoc + maxDoc2;
+        docid = scorer3.nextDoc();
+        expectedDocid = SF_CENTER.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer3.score();
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound
                 +", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
         
         // next hit should be SF_OTHER1
-        docid = scorer.nextDoc();
-        expectedDocid = SF_OTHER1.docid + maxDoc + maxDoc2;
+        docid = scorer3.nextDoc();
+        expectedDocid = SF_OTHER1.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer3.score();
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound
                 +", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
         // next hit should be SF_OTHER2
-        docid = scorer.nextDoc();
-        expectedDocid = SF_OTHER2.docid + maxDoc + maxDoc2;
+        docid = scorer3.nextDoc();
+        expectedDocid = SF_OTHER2.docid;
         assertTrue("expectedDocid "+expectedDocid+", got docid "+docid, expectedDocid == docid);
         
-         score = scorer.score();
+         score = scorer3.score();
         assertTrue("docid "+docid+", expectedScoreLowerBound "+expectedScoreLowerBound
                 +", expectedScoreUpperBound "+expectedScoreUpperBound+", actual score "+score, 
                 expectedScoreLowerBound <= score && score <= expectedScoreUpperBound);
 
 
-        verifyEndNextDoc();
+        verifyEndNextDoc(scorer3);
     }
 
     
-    private void verifyEndNextDoc() throws Exception {
+    private void verifyEndNextDoc(Scorer scorer) throws Exception {
         int expectedDocid;
         
         for (int i = 0; i < 10; i++) {

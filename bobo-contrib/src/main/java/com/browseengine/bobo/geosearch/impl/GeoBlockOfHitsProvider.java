@@ -51,7 +51,7 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
             CartesianCoordinateDocId ccd  = geoConverter.toCartesianCoordinateDocId(geoRecord);
             if(minX <= ccd.x  && ccd.x <= maxX && minY <= ccd.y  && ccd.y <= maxY && minZ <= ccd.z  
                     && ccd.z <= maxZ && mindocid <= ccd.docid  && ccd.docid <= maxdocid
-                    && acceptDocs.get(segmentStartDocId + ccd.docid)) {
+                    && acceptDoc(segmentStartDocId + ccd.docid, acceptDocs)) {
                 GeRecordAndCartesianDocId both = new GeRecordAndCartesianDocId(geoRecord, ccd);
                 docs.add(ccd.docid, both);
             }
@@ -60,5 +60,7 @@ public class GeoBlockOfHitsProvider implements IGeoBlockOfHitsProvider {
         return docs;
     }
 
-    
+    private boolean acceptDoc(int docid, Bits acceptDoc) {
+        return acceptDoc == null || acceptDoc.get(docid);
+    }
 }

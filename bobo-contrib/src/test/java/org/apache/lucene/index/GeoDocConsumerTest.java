@@ -1,18 +1,16 @@
 package org.apache.lucene.index;
 
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
+import org.apache.lucene.store.IOContext.Context;
 import org.apache.lucene.util.Version;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -22,7 +20,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.browseengine.bobo.geosearch.bo.GeoSearchConfig;
+import com.browseengine.bobo.geosearch.codec.GeoCodec;
 import com.browseengine.bobo.geosearch.index.IGeoIndexer;
+import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
+import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 
 /**
  * @author Geoff Cooney
@@ -36,13 +37,12 @@ public class GeoDocConsumerTest {
     }};
     
     private DocConsumer mockDocConsumer;
-    private DocConsumerPerThread mockDocConsumerPerThread;
     
     private IGeoIndexer mockGeoIndexer;
     
     private GeoDocConsumer geoDocConsumer;
 
-    DocumentsWriterThreadState documentsWriterThreadState;
+    DocumentsWriterPerThread documentsWriterPerThread;
     DocumentsWriter documentsWriter;
     
     final int docID = 10; 
@@ -52,7 +52,7 @@ public class GeoDocConsumerTest {
     Analyzer analyzer = new StandardAnalyzer(matchVersion);
     Directory directory;
     IndexWriter writer;
-    FieldInfos fieldInfos;
+    FieldInfos.Builder fieldInfos;
     BufferedDeletesStream bufferedDeletesStream;
 
     //@Resource(type = GeoSearchConfig.class)
@@ -61,14 +61,15 @@ public class GeoDocConsumerTest {
     @Before
     public void setUp() throws IOException {
         mockDocConsumer = context.mock(DocConsumer.class);
-        mockDocConsumerPerThread = context.mock(DocConsumerPerThread.class);
         
         mockGeoIndexer = context.mock(IGeoIndexer.class);
-        
-        geoDocConsumer = new GeoDocConsumer(config, mockDocConsumer);
-        geoDocConsumer.setGeoIndexer(mockGeoIndexer);
-        
+
         documentsWriter = buildDocumentsWriter();
+        DocumentsWriterPerThread documentsWriterPerThread = new DocumentsWriterPerThread(directory, 
+                documentsWriter, fieldInfos, DocumentsWriterPerThread.defaultIndexingChain);
+        
+        geoDocConsumer = new GeoDocConsumer(config, mockDocConsumer, documentsWriterPerThread);
+        geoDocConsumer.setGeoIndexer(mockGeoIndexer);
         
         document = buildDocument();
         
@@ -105,19 +106,70 @@ public class GeoDocConsumerTest {
     }
     
     @Test
-    public void testAddThread() throws IOException {
+    public void testProcessDocument_NoGeoFields() throws IOException {
         context.checking(new Expectations() {
             {
-                one(mockDocConsumer).addThread(documentsWriterThreadState);
-                will(returnValue(mockDocConsumerPerThread));
+                one(mockDocConsumer).processDocument();
+                will(returnValue(mockDocWriter));
+                
+                never(mockGeoIndexer);
             }
         });
         
-        DocConsumerPerThread docConsumerPerThread = geoDocConsumer.addThread(documentsWriterThreadState);
-        assertTrue("Expected a GeoDocConsumerPerThread", docConsumerPerThread instanceof GeoDocConsumerPerThread);
-        GeoDocConsumerPerThread geoDocConsumer = (GeoDocConsumerPerThread)docConsumerPerThread;
-        assertSame("GeoDocConsumerPerThread's default consumerPerThread was not set correctly", 
-                mockDocConsumerPerThread, geoDocConsumer.getDefaultDocConsumerPerThread());
+        assertSame("Expected defaultDocConsumerPerThread's DocWriter as return", 
+                mockDocWriter, geoDocConsumerPerThread.processDocument());
+    }
+      
+    
+    @Test
+    public void testProcessDocument_TwoGeoFields() throws IOException {
+        final String geoFieldName1 = "location1";
+        final GeoCoordinate geoCoordinate1 = new GeoCoordinate(45.0f, 45.0f);
+        final GeoCoordinateField geoField1 = new GeoCoordinateField(geoFieldName1, geoCoordinate1); 
+        document.add(geoField1);
+        
+        final String geoFieldName2 = "location2";
+        final GeoCoordinate geoCoordinate2 = new GeoCoordinate(45.0f, 45.0f);
+        final GeoCoordinateField geoField2 = new GeoCoordinateField(geoFieldName2, geoCoordinate2);
+        document.add(geoField2);
+        
+        context.checking(new Expectations() {
+            {
+                one(mockDocConsumerPerThread).processDocument();
+                will(returnValue(mockDocWriter));
+                
+                one(mockGeoIndexer).index(docID, geoField1);
+                one(mockGeoIndexer).index(docID, geoField2);
+            }
+        });
+        
+        assertSame("Expected defaultDocConsumerPerThread's DocWriter as return", 
+                mockDocWriter, geoDocConsumerPerThread.processDocument());
+    }
+    
+    @Test
+    public void testProcessDocument_TwoGeoFields_SameName() throws IOException {
+        final String geoFieldName1 = "location1";
+        final GeoCoordinate geoCoordinate1 = new GeoCoordinate(45.0f, 45.0f);
+        final GeoCoordinateField geoField1 = new GeoCoordinateField(geoFieldName1, geoCoordinate1); 
+        document.add(geoField1);
+        
+        final GeoCoordinate geoCoordinate2 = new GeoCoordinate(45.0f, 45.0f);
+        final GeoCoordinateField geoField2 = new GeoCoordinateField(geoFieldName1, geoCoordinate2);
+        document.add(geoField2);
+        
+        context.checking(new Expectations() {
+            {
+                one(mockDocConsumerPerThread).processDocument();
+                will(returnValue(mockDocWriter));
+                
+                one(mockGeoIndexer).index(docID, geoField1);
+                one(mockGeoIndexer).index(docID, geoField2);
+            }
+        });
+        
+        assertSame("Expected defaultDocConsumerPerThread's DocWriter as return", 
+                mockDocWriter, geoDocConsumerPerThread.processDocument());
     }
     
     @Test
@@ -137,41 +189,19 @@ public class GeoDocConsumerTest {
     public void testFlush() throws IOException {
         final String segmentName = "segmentA";
         BufferedDeletes bufferedDeletes = new BufferedDeletes();
-        final SegmentWriteState segmentWriteState = new SegmentWriteState(null, directory, segmentName, fieldInfos, 10, 0, bufferedDeletes );
-        final Collection<DocConsumerPerThread> threads = Collections.emptyList();
+        SegmentInfo segmentInfo = new SegmentInfo(directory, "v1", segmentName, 10, 
+                true, new GeoCodec(new GeoSearchConfig()), null, null);
+        final SegmentWriteState segmentWriteState = new SegmentWriteState(null, directory, segmentInfo , fieldInfos, 
+                0, bufferedDeletes, new IOContext(Context.FLUSH));
         context.checking(new Expectations() {
             {
-                one(mockDocConsumer).flush(buildDefaultPerThreadCollection(threads), segmentWriteState);
+                one(mockDocConsumer).flush(segmentWriteState);
                 
-                one(mockGeoIndexer).flush(directory, segmentName);
+                one(mockGeoIndexer).flush(segmentWriteState);
             }
         });
         
-        geoDocConsumer.flush(threads, segmentWriteState);
+        geoDocConsumer.flush(segmentWriteState);
     }
     
-    private Collection<DocConsumerPerThread> buildDefaultPerThreadCollection(Collection<DocConsumerPerThread> threads) {
-        Collection<DocConsumerPerThread> defaultDocConsumerThreads = 
-            new HashSet<DocConsumerPerThread>(threads.size());
-        
-        for (DocConsumerPerThread thread: threads) {
-            GeoDocConsumerPerThread geoThread = (GeoDocConsumerPerThread)thread;
-            defaultDocConsumerThreads.add(geoThread.getDefaultDocConsumerPerThread());
-        }
-        
-        return defaultDocConsumerThreads;
-    }
-    
-    @Test
-    public void testFreeRAM() throws IOException {
-        context.checking(new Expectations() {
-            {
-                one(mockDocConsumer).freeRAM();
-                will(returnValue(true));
-            }
-        });
-        
-        assertTrue("Expected success at freeing RAM in defaultDocConsumer to result in true being " +
-        		"returned from geoDocConsumer as well", geoDocConsumer.freeRAM());
-    }
 }

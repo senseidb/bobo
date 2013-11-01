@@ -1,7 +1,5 @@
 package org.apache.lucene.index;
 
-import static org.junit.Assert.assertSame;
-
 import java.io.IOException;
 
 import org.apache.lucene.analysis.Analyzer;
@@ -22,8 +20,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.browseengine.bobo.geosearch.index.IGeoIndexer;
-import com.browseengine.bobo.geosearch.index.bo.GeoCoordinate;
-import com.browseengine.bobo.geosearch.index.bo.GeoCoordinateField;
 
 /**
  * @author Geoff Cooney
@@ -100,73 +96,6 @@ public class GeoDocConsumerPerThreadTest {
         document.add(new Field("title", "A good title".getBytes()));
         
         return document;
-    }
-    
-    @Test
-    public void testAddThread_NoGeoFields() throws IOException {
-        context.checking(new Expectations() {
-            {
-                one(mockDocConsumerPerThread).processDocument();
-                will(returnValue(mockDocWriter));
-                
-                never(mockGeoIndexer);
-            }
-        });
-        
-        assertSame("Expected defaultDocConsumerPerThread's DocWriter as return", 
-                mockDocWriter, geoDocConsumerPerThread.processDocument());
-    }
-      
-    
-    @Test
-    public void testAddThread_TwoGeoFields() throws IOException {
-        final String geoFieldName1 = "location1";
-        final GeoCoordinate geoCoordinate1 = new GeoCoordinate(45.0f, 45.0f);
-        final GeoCoordinateField geoField1 = new GeoCoordinateField(geoFieldName1, geoCoordinate1); 
-        document.add(geoField1);
-        
-        final String geoFieldName2 = "location2";
-        final GeoCoordinate geoCoordinate2 = new GeoCoordinate(45.0f, 45.0f);
-        final GeoCoordinateField geoField2 = new GeoCoordinateField(geoFieldName2, geoCoordinate2);
-        document.add(geoField2);
-        
-        context.checking(new Expectations() {
-            {
-                one(mockDocConsumerPerThread).processDocument();
-                will(returnValue(mockDocWriter));
-                
-                one(mockGeoIndexer).index(docID, geoField1);
-                one(mockGeoIndexer).index(docID, geoField2);
-            }
-        });
-        
-        assertSame("Expected defaultDocConsumerPerThread's DocWriter as return", 
-                mockDocWriter, geoDocConsumerPerThread.processDocument());
-    }
-    
-    @Test
-    public void testAddThread_TwoGeoFields_SameName() throws IOException {
-        final String geoFieldName1 = "location1";
-        final GeoCoordinate geoCoordinate1 = new GeoCoordinate(45.0f, 45.0f);
-        final GeoCoordinateField geoField1 = new GeoCoordinateField(geoFieldName1, geoCoordinate1); 
-        document.add(geoField1);
-        
-        final GeoCoordinate geoCoordinate2 = new GeoCoordinate(45.0f, 45.0f);
-        final GeoCoordinateField geoField2 = new GeoCoordinateField(geoFieldName1, geoCoordinate2);
-        document.add(geoField2);
-        
-        context.checking(new Expectations() {
-            {
-                one(mockDocConsumerPerThread).processDocument();
-                will(returnValue(mockDocWriter));
-                
-                one(mockGeoIndexer).index(docID, geoField1);
-                one(mockGeoIndexer).index(docID, geoField2);
-            }
-        });
-        
-        assertSame("Expected defaultDocConsumerPerThread's DocWriter as return", 
-                mockDocWriter, geoDocConsumerPerThread.processDocument());
     }
     
     @Test

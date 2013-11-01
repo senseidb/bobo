@@ -3,7 +3,7 @@ package org.apache.lucene.index;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import org.apache.lucene.index.DocumentsWriter.IndexingChain;
+import org.apache.lucene.index.DocumentsWriterPerThread.IndexingChain;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -54,7 +54,7 @@ public class GeoIndexingChainTest {
     public void testGetChain() {
         context.checking(new Expectations() {
             {
-                one(mockIndexingChain).getChain(with(aNull(DocumentsWriter.class)));
+                one(mockIndexingChain).getChain(with(aNull(DocumentsWriterPerThread.class)));
                 will(returnValue(mockDocConsumer));
             }
         });

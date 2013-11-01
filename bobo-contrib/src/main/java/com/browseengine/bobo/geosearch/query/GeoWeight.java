@@ -76,25 +76,20 @@ public class GeoWeight extends Weight {
     public Scorer scorer(AtomicReaderContext context, boolean scoreDocsInOrder, 
             boolean topScorer, Bits acceptDocs)
             throws IOException {
+        
         //TODO: Should we be behaving differently if topScorer is true
-        List<AtomicReaderContext> leaves = context.leaves();
-        
-        List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder = 
-                new ArrayList<GeoSegmentReader<CartesianGeoRecord>>(leaves.size());
-        
-        for (AtomicReaderContext leafContext : leaves) {
-            AtomicReader reader = leafContext.reader();
-            if (!(reader instanceof GeoAtomicReader)) {
-                throw new RuntimeException("attempt to create a "
-                        +GeoScorer.class+" with a reader that was not a "
-                        +GeoIndexReader.class);
-            }
-            
-            GeoAtomicReader geoIndexReader = (GeoAtomicReader) reader;
-            segmentsInOrder.add(geoIndexReader.getGeoSegmentReader());
+        AtomicReader reader = context.reader();
+        if (!(reader instanceof GeoAtomicReader)) {
+            throw new RuntimeException("attempt to create a "
+                    +GeoScorer.class+" with a reader that was not a "
+                    +GeoIndexReader.class);
         }
         
+        GeoAtomicReader geoIndexReader = (GeoAtomicReader) reader;
+        List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>();
+        segmentsInOrder.add(geoIndexReader.getGeoSegmentReader());
         
+        //TODO:  Refactor to support only one geoSegment at a time
         return new GeoScorer(this, segmentsInOrder, acceptDocs, 
                 geoQuery.getCentroidLatitude(), geoQuery.getCentroidLongitude(), geoQuery.rangeInKm);
     }

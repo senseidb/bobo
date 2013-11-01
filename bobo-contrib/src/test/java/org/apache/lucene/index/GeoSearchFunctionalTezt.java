@@ -10,14 +10,13 @@ import java.util.Vector;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.Field.Index;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.Fieldable;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.DataInput;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
@@ -138,14 +137,14 @@ public class GeoSearchFunctionalTezt {
     Document buildDocument(String text, String title, int index, int maxIndex) {
         Document document = new Document();
         
-        Fieldable textField = new Field(TEXT_FIELD, text, Store.NO, Index.ANALYZED);
-        Fieldable titleField = new Field(TITLE_FIELD, title, Store.YES, Index.ANALYZED);
+        IndexableField textField = new TextField(TEXT_FIELD, text, Store.NO);
+        IndexableField titleField = new TextField(TITLE_FIELD, title, Store.YES);
         
         GeoCoordinate geoCoordinate = calculateGeoCoordinate(2 * index, 2 * maxIndex + 1); 
-        Fieldable locationField = new GeoCoordinateField(LOCATION_FIELD, geoCoordinate);
+        GeoCoordinateField locationField = new GeoCoordinateField(LOCATION_FIELD, geoCoordinate);
         
         GeoCoordinate imageGeoCoordinate = calculateGeoCoordinate(2 * index + 1, 2 * maxIndex + 1); 
-        Fieldable imageLocationField = new GeoCoordinateField(IMAGE_LOCATION_FIELD, imageGeoCoordinate);
+        GeoCoordinateField imageLocationField = new GeoCoordinateField(IMAGE_LOCATION_FIELD, imageGeoCoordinate);
         
         document.add(textField);
         document.add(titleField);
@@ -203,7 +202,7 @@ public class GeoSearchFunctionalTezt {
         int countLocationFiltered = 0;
         
         GeoSegmentReader<CartesianGeoRecord> reader = new GeoSegmentReader<CartesianGeoRecord>(directory, 
-                geoFileName, maxDocs, 1024, geoRecordSerializer, geoComparator);
+                geoFileName, maxDocs, IOContext.READ, geoRecordSerializer, geoComparator);
         Iterator<CartesianGeoRecord> geoIter = reader.getIterator(CartesianGeoRecord.MIN_VALID_GEORECORD, CartesianGeoRecord.MAX_VALID_GEORECORD);
         while (geoIter.hasNext()) {
             CartesianGeoRecord geoRecord = geoIter.next();
@@ -221,9 +220,10 @@ public class GeoSearchFunctionalTezt {
     }
     
     protected MappedFieldNameFilterConverter buildFieldNameConverter(String geoFileName, int maxDoc) throws IOException {
-        GeoSegmentReader<CartesianGeoRecord> segmentReader = new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, maxDoc, 1024, geoRecordSerializer, geoComparator);
+        GeoSegmentReader<CartesianGeoRecord> segmentReader = new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, maxDoc, 
+                IOContext.READ, geoRecordSerializer, geoComparator);
         
-        DataInput input = directory.openInput(geoFileName);
+        DataInput input = directory.openInput(geoFileName, IOContext.READ);
         input.readVInt(); //throw out version
         input.readInt();   //throw out tree position
         input.readVInt();  //throw out the data size
@@ -242,20 +242,25 @@ public class GeoSearchFunctionalTezt {
      */
     private class MergeOnOptimizeOnly extends MergePolicy {
         @Override
-        public boolean useCompoundFile(SegmentInfos segments, SegmentInfo newSegment) throws IOException {
-            return true;
-        }
-        
-        @Override
         public MergeSpecification findForcedDeletesMerges(SegmentInfos segmentInfos) throws CorruptIndexException,
                 IOException {
             return null;
         }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public MergeSpecification findMerges(MergeTrigger mergeTrigger, SegmentInfos segmentInfos) throws IOException {
+            return null;
+        }
+
         @Override
         public MergeSpecification findForcedMerges(SegmentInfos segmentInfos, int maxSegmentCount,
-                Map<SegmentInfo, Boolean> segmentsToMerge) throws CorruptIndexException, IOException {
-            List<SegmentInfo> activeSegmentsToOptimize = new Vector<SegmentInfo>();
-            for (SegmentInfo segmentInfo: segmentInfos) {
+                Map<SegmentInfoPerCommit, Boolean> segmentsToMerge) throws IOException {
+            List<SegmentInfoPerCommit> activeSegmentsToOptimize = new Vector<SegmentInfoPerCommit>();
+            for (SegmentInfoPerCommit segmentInfo: segmentInfos) {
                 if (segmentsToMerge.get(segmentInfo)) {
                     activeSegmentsToOptimize.add(segmentInfo);
                 }
@@ -270,14 +275,11 @@ public class GeoSearchFunctionalTezt {
         
             return mergeSpec;
         }
-        
+
         @Override
-        public MergeSpecification findMerges(SegmentInfos segmentInfos) throws CorruptIndexException, IOException {
-            return null;
-        }
-        
-        @Override
-        public void close() {
+        public boolean useCompoundFile(SegmentInfos segments, SegmentInfoPerCommit newSegment) throws IOException {
+            // TODO Auto-generated method stub
+            return false;
         }
     }
 }
