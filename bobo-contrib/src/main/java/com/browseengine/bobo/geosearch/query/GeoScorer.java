@@ -5,7 +5,6 @@ package com.browseengine.bobo.geosearch.query;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.lucene.search.Scorer;
@@ -39,7 +38,7 @@ public class GeoScorer extends Scorer {
 
     private final IGeoConverter geoConverter;
     private final IGeoBlockOfHitsProvider geoBlockOfHitsProvider;
-    private final List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder;
+    private final GeoSegmentReader<CartesianGeoRecord> geoReader;
     private final int centroidX;
     private final int centroidY;
     private final int centroidZ;
@@ -49,7 +48,6 @@ public class GeoScorer extends Scorer {
     private int docid = DOCID_CURSOR_NONE_YET; 
     private int indexOfCurrentPartition = DOCID_CURSOR_NONE_YET;
     private int startDocidOfCurrentPartition;
-    private GeoSegmentReader<CartesianGeoRecord> currentSegment = null;
     private DocsSortedByDocId currentBlockScoredDocs;
     private Entry<Integer, Collection<GeRecordAndCartesianDocId>> currentDoc;
     
@@ -61,7 +59,7 @@ public class GeoScorer extends Scorer {
     }
     
     public GeoScorer(Weight weight,
-                     List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder, 
+                     GeoSegmentReader<CartesianGeoRecord> geoReader, 
                      Bits acceptDocs, 
                      double centroidLatitude, 
                      double centroidLongitude,
@@ -73,7 +71,7 @@ public class GeoScorer extends Scorer {
         this.geoConverter = new GeoConverter();
         this.geoBlockOfHitsProvider = new GeoBlockOfHitsProvider(geoConverter);
         
-        this.segmentsInOrder = segmentsInOrder;
+        this.geoReader = geoReader;
         this.acceptDocs = acceptDocs;
         
         this.centroidX = geoConverter.getXFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
@@ -163,41 +161,23 @@ public class GeoScorer extends Scorer {
         return docid;
     }
     
-    private boolean doesCurrentTreeContain(int seekDocid) {
-        if (currentSegment == null) {
-            return false;
-        }
-        int maxDocAbsoluteCurrentPartition = startDocidOfCurrentPartition 
-            + currentSegment.getMaxDoc();
-        return seekDocid < maxDocAbsoluteCurrentPartition;
-    }
-    
     /**
      * 
      * @param seekDocid
      */
     private void seekToTree(int seekDocid) {
-        while (!doesCurrentTreeContain(seekDocid)) {
-            if (indexOfCurrentPartition == NO_MORE_DOCS) {
-                return;
-            } else if (indexOfCurrentPartition == DOCID_CURSOR_NONE_YET && segmentsInOrder.size() > 0) {
-                indexOfCurrentPartition++;
-                startDocidOfCurrentPartition = 0;
-            } else {
-                indexOfCurrentPartition++;
-                if (indexOfCurrentPartition < segmentsInOrder.size()) {
-                    startDocidOfCurrentPartition += segmentsInOrder.get(indexOfCurrentPartition-1).getMaxDoc();
-                } else {
-                    // we are past the end
-                    indexOfCurrentPartition = NO_MORE_DOCS;
-                    startDocidOfCurrentPartition = NO_MORE_DOCS;
-                    docid = NO_MORE_DOCS;
-                    return;
-                }
-            }
-            currentSegment = segmentsInOrder.get(indexOfCurrentPartition);
+        if (indexOfCurrentPartition == NO_MORE_DOCS) {
+            return;
+        } else if (indexOfCurrentPartition == DOCID_CURSOR_NONE_YET && geoReader != null) {
+            indexOfCurrentPartition++;
+            startDocidOfCurrentPartition = 0;
+        } else {
+            // we are past the end
+            indexOfCurrentPartition = NO_MORE_DOCS;
+            startDocidOfCurrentPartition = NO_MORE_DOCS;
+            docid = NO_MORE_DOCS;
+            return;
         }
-
     }
     
     private boolean isBlockInMemoryAlreadyAndSeekWithinBlock(int seekDocid) {
@@ -259,10 +239,10 @@ public class GeoScorer extends Scorer {
         
         int blockNumber = offsetDocidWithinPartition / BLOCK_SIZE;
         int minimumDocidInPartition = offsetDocidWithinPartition - blockNumber * BLOCK_SIZE;
-        int maxDocInPartition = currentSegment.getMaxDoc();
+        int maxDocInPartition = geoReader.getMaxDoc();
         int maximumDocidInPartition = Math.min(maxDocInPartition, 
                 (blockNumber + 1) * BLOCK_SIZE);
-        currentBlockScoredDocs = geoBlockOfHitsProvider.getBlock(currentSegment, 
+        currentBlockScoredDocs = geoBlockOfHitsProvider.getBlock(geoReader, 
                 startDocidOfCurrentPartition, acceptDocs,
                 cartesianBoundingBox[0], cartesianBoundingBox[1], cartesianBoundingBox[2],
                 cartesianBoundingBox[3], cartesianBoundingBox[4], cartesianBoundingBox[5],
@@ -303,11 +283,6 @@ public class GeoScorer extends Scorer {
         //We do not currently have a good heuristic of the expected number of matching docs.  
         //We can give items in the tree as a rough estimate although you can have multiple 
         //coordinates per document
-        int cost = 0;
-        for (GeoSegmentReader<CartesianGeoRecord> segmentReader : segmentsInOrder) {
-            segmentReader.getArrayLength();
-        }
-        
-        return cost;
+        return geoReader.getArrayLength();
     }
 }

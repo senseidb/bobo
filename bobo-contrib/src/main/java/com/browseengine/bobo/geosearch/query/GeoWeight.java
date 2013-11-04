@@ -4,8 +4,6 @@
 package com.browseengine.bobo.geosearch.query;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
@@ -15,10 +13,8 @@ import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 import org.apache.lucene.util.Bits;
 
-import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
 import com.browseengine.bobo.geosearch.index.impl.GeoAtomicReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoIndexReader;
-import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
 
 /**
  * @author Shane Detsch
@@ -86,11 +82,8 @@ public class GeoWeight extends Weight {
         }
         
         GeoAtomicReader geoIndexReader = (GeoAtomicReader) reader;
-        List<GeoSegmentReader<CartesianGeoRecord>> segmentsInOrder = new ArrayList<GeoSegmentReader<CartesianGeoRecord>>();
-        segmentsInOrder.add(geoIndexReader.getGeoSegmentReader());
         
-        //TODO:  Refactor to support only one geoSegment at a time
-        return new GeoScorer(this, segmentsInOrder, acceptDocs, 
+        return new GeoScorer(this, geoIndexReader.getGeoSegmentReader(), acceptDocs, 
                 geoQuery.getCentroidLatitude(), geoQuery.getCentroidLongitude(), geoQuery.rangeInKm);
     }
     
