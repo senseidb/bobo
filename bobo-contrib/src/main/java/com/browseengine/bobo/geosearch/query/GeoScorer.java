@@ -46,8 +46,6 @@ public class GeoScorer extends Scorer {
     
     // current pointers
     private int docid = DOCID_CURSOR_NONE_YET; 
-    private int indexOfCurrentPartition = DOCID_CURSOR_NONE_YET;
-    private int startDocidOfCurrentPartition;
     private DocsSortedByDocId currentBlockScoredDocs;
     private Entry<Integer, Collection<GeRecordAndCartesianDocId>> currentDoc;
     
@@ -77,8 +75,6 @@ public class GeoScorer extends Scorer {
         this.centroidX = geoConverter.getXFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
         this.centroidY = geoConverter.getYFromRadians(centroidLatitudeRadians, centroidLongitudeRadians);
         this.centroidZ = geoConverter.getZFromRadians(centroidLatitudeRadians);
-        
-        startDocidOfCurrentPartition = -1;
         
         CartesianCoordinateDocId minccd = buildMinCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
         CartesianCoordinateDocId maxccd = buildMaxCoordinate(rangeInKm, centroidX, centroidY, centroidZ, 0);
@@ -161,25 +157,6 @@ public class GeoScorer extends Scorer {
         return docid;
     }
     
-    /**
-     * 
-     * @param seekDocid
-     */
-    private void seekToTree(int seekDocid) {
-        if (indexOfCurrentPartition == NO_MORE_DOCS) {
-            return;
-        } else if (indexOfCurrentPartition == DOCID_CURSOR_NONE_YET && geoReader != null) {
-            indexOfCurrentPartition++;
-            startDocidOfCurrentPartition = 0;
-        } else {
-            // we are past the end
-            indexOfCurrentPartition = NO_MORE_DOCS;
-            startDocidOfCurrentPartition = NO_MORE_DOCS;
-            docid = NO_MORE_DOCS;
-            return;
-        }
-    }
-    
     private boolean isBlockInMemoryAlreadyAndSeekWithinBlock(int seekDocid) {
         if (DOCID_CURSOR_NONE_YET == currentBlockGlobalMaxDoc) {
             return false;
@@ -199,7 +176,7 @@ public class GeoScorer extends Scorer {
 
     private void nextDocidAndCurrentDocFromBlockInMemory() {
         Entry<Integer, Collection<GeRecordAndCartesianDocId>> doc = currentBlockScoredDocs.pollFirst();
-        docid = doc.getKey() + startDocidOfCurrentPartition;
+        docid = doc.getKey();
         // docid is now translated into the whole-index docid value
         currentDoc = doc;
     }
@@ -217,16 +194,19 @@ public class GeoScorer extends Scorer {
             // so we should seek past the current block if not already doing so.
             seekDocid = Math.max(currentBlockGlobalMaxDoc, seekDocid);
         }
-        seekToTree(seekDocid);
         
-        if (NO_MORE_DOCS == docid) {
+
+        if (NO_MORE_DOCS == docid || geoReader == null) {
+            docid = NO_MORE_DOCS;
+            
             return;
         }
         
         pullBlockInMemory(seekDocid);
         
         if (currentBlockScoredDocs.size() == 0) {
-            fillBlockContainingAndSeekTo(currentBlockGlobalMaxDoc);
+            docid = NO_MORE_DOCS;
+            return;
         } else if (NO_MORE_DOCS == docid) {
             return;
         } else {
@@ -235,7 +215,7 @@ public class GeoScorer extends Scorer {
     }
     
     private void pullBlockInMemory(int seekDocid) throws IOException {
-        int offsetDocidWithinPartition = seekDocid - startDocidOfCurrentPartition;
+        int offsetDocidWithinPartition = seekDocid;
         
         int blockNumber = offsetDocidWithinPartition / BLOCK_SIZE;
         int minimumDocidInPartition = offsetDocidWithinPartition - blockNumber * BLOCK_SIZE;
@@ -243,11 +223,11 @@ public class GeoScorer extends Scorer {
         int maximumDocidInPartition = Math.min(maxDocInPartition, 
                 (blockNumber + 1) * BLOCK_SIZE);
         currentBlockScoredDocs = geoBlockOfHitsProvider.getBlock(geoReader, 
-                startDocidOfCurrentPartition, acceptDocs,
+                0, acceptDocs,
                 cartesianBoundingBox[0], cartesianBoundingBox[1], cartesianBoundingBox[2],
                 cartesianBoundingBox[3], cartesianBoundingBox[4], cartesianBoundingBox[5],
                 minimumDocidInPartition, maximumDocidInPartition);
-        currentBlockGlobalMaxDoc = startDocidOfCurrentPartition + maximumDocidInPartition;
+        currentBlockGlobalMaxDoc =  maximumDocidInPartition;
     }
     
     /**
