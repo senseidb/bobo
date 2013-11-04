@@ -10,7 +10,6 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.FieldInfos.FieldNumbers;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IOContext;
-import org.apache.lucene.store.IOContext.Context;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.jmock.Expectations;
@@ -187,7 +186,7 @@ public class GeoDocConsumerTest {
         SegmentInfo segmentInfo = new SegmentInfo(directory, "v1", segmentName, 10, 
                 true, new GeoCodec(new GeoSearchConfig()), null, null);
         final SegmentWriteState segmentWriteState = new SegmentWriteState(null, directory, segmentInfo , fieldInfos.finish(), 
-                0, bufferedDeletes, new IOContext(Context.FLUSH));
+                0, bufferedDeletes, IOContext.DEFAULT);
         context.checking(new Expectations() {
             {
                 one(mockDocConsumer).flush(segmentWriteState);
