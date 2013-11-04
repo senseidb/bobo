@@ -34,9 +34,9 @@ public class DocMapExposer extends DocMap {
         docMap.set(index, -1);
         
         for (int i = index + 1; i < docMap.size(); i++) {
-            int currentValue = docMap.get(index);
+            int currentValue = docMap.get(i);
             if (currentValue > 0) {
-                docMap.set(index, currentValue - 1);
+                docMap.set(i, currentValue - 1);
             }
         }
     }
