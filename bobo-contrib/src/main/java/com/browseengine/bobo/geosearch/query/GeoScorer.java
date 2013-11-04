@@ -263,6 +263,6 @@ public class GeoScorer extends Scorer {
         //We do not currently have a good heuristic of the expected number of matching docs.  
         //We can give items in the tree as a rough estimate although you can have multiple 
         //coordinates per document
-        return geoReader.getArrayLength();
+        return geoReader.getMaxDoc();
     }
 }

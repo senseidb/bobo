@@ -5,7 +5,10 @@ import java.util.Comparator;
 
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.FilterAtomicReader;
+import org.apache.lucene.index.IndexFileNames;
 import org.apache.lucene.index.SegmentReader;
+import org.apache.lucene.store.CompoundFileDirectory;
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IOContext;
 
 import com.browseengine.bobo.geosearch.bo.CartesianGeoRecord;
@@ -35,9 +38,15 @@ public class GeoAtomicReader extends FilterAtomicReader {
             SegmentReader segmentReader = (SegmentReader) in;
             int maxDoc = segmentReader.maxDoc();
             String segmentName = segmentReader.getSegmentName();
+            
+            Directory dir = segmentReader.directory();
+            if (segmentReader.getSegmentInfo().info.getUseCompoundFile()) {
+                String compoundFileName = IndexFileNames.segmentFileName(segmentName, "", IndexFileNames.COMPOUND_FILE_EXTENSION);
+                dir = new CompoundFileDirectory(dir, compoundFileName , IOContext.READ, false);
+            }
             String geoSegmentName = geoSearchConfig.getGeoFileName(segmentName);
             GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = new GeoSegmentReader<CartesianGeoRecord>(
-                    segmentReader.directory(), geoSegmentName, maxDoc, IOContext.READ,
+                    dir, geoSegmentName, maxDoc, IOContext.READ,
                     geoRecordSerializer, geoRecordComparator);
             return geoSegmentReader;
         } 
