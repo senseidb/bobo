@@ -39,11 +39,7 @@ public class GeoAtomicReader extends FilterAtomicReader {
             int maxDoc = segmentReader.maxDoc();
             String segmentName = segmentReader.getSegmentName();
             
-            Directory dir = segmentReader.directory();
-            if (segmentReader.getSegmentInfo().info.getUseCompoundFile()) {
-                String compoundFileName = IndexFileNames.segmentFileName(segmentName, "", IndexFileNames.COMPOUND_FILE_EXTENSION);
-                dir = new CompoundFileDirectory(dir, compoundFileName , IOContext.READ, false);
-            }
+            Directory dir = getDirectory(in, geoSearchConfig);
             String geoSegmentName = geoSearchConfig.getGeoFileName(segmentName);
             GeoSegmentReader<CartesianGeoRecord> geoSegmentReader = new GeoSegmentReader<CartesianGeoRecord>(
                     dir, geoSegmentName, maxDoc, IOContext.READ,
@@ -52,6 +48,18 @@ public class GeoAtomicReader extends FilterAtomicReader {
         } 
         
         return null;
+    }
+    
+    public static Directory getDirectory(AtomicReader in, GeoSearchConfig geoSearchConfig) throws IOException {
+        SegmentReader segmentReader = (SegmentReader) in;
+        Directory dir = segmentReader.directory();
+        String segmentName = segmentReader.getSegmentName();
+        if (segmentReader.getSegmentInfo().info.getUseCompoundFile()) {
+            String compoundFileName = IndexFileNames.segmentFileName(segmentName, "", IndexFileNames.COMPOUND_FILE_EXTENSION);
+            dir = new CompoundFileDirectory(dir, compoundFileName , IOContext.READ, false);
+        }
+        
+        return dir;
     }
     
     public GeoSegmentReader<CartesianGeoRecord> getGeoSegmentReader() {

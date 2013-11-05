@@ -59,7 +59,6 @@ public class BufferedGeoMerger implements IGeoMerger {
     public void merge(SegmentWriteState segmentWriteState, MergeState mergeState, GeoSearchConfig config) throws IOException {
         IGeoConverter geoConverter = config.getGeoConverter();
         
-        Directory directory = segmentWriteState.directory;
         List<AtomicReader> readers = mergeState.readers;
         IOContext ioContext = segmentWriteState.context;
         
@@ -75,13 +74,13 @@ public class BufferedGeoMerger implements IGeoMerger {
             for (AtomicReader reader : readers) {
                 String segmentName = getSegmentName(reader);
                 String geoFileName = config.getGeoFileName(segmentName);
-                BTree<CartesianGeoRecord> segmentBTree = 
-                    getInputBTree(reader, config); 
+                BTree<CartesianGeoRecord> segmentBTree = getInputBTree(reader, config); 
                 mergeInputBTrees.add(segmentBTree);
                 
                 //just take the first fieldNameFilterConverter for now.  Don't worry about merging them.
                 if (!hasFieldNameFilterConverter) {
-                    hasFieldNameFilterConverter = loadFieldNameFilterConverter(directory, geoFileName, fieldNameFilterConverter,
+                    Directory segmentDirectory = GeoAtomicReader.getDirectory(reader, config);
+                    hasFieldNameFilterConverter = loadFieldNameFilterConverter(segmentDirectory, geoFileName, fieldNameFilterConverter,
                             ioContext);
                 }
             }
