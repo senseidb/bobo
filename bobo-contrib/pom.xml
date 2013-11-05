@@ -20,7 +20,7 @@
     <relativePath>../bobo-parent/pom.xml</relativePath>
   </parent>  
   <artifactId>bobo-contrib</artifactId>
-  <version>3.2.1-SNAPSHOT</version>
+  <version>3.2.2-SNAPSHOT</version>
   <name>bobo contrib</name>
   
   <description>Bobo is a Faceted Search implementation written purely in Java, an extension of Apache Lucene</description>
