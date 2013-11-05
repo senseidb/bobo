@@ -89,8 +89,8 @@ public class BufferedGeoMergerTest {
         
         bufferedGeoMerger = new BufferedGeoMerger() {
             @Override
-            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, IOContext ioContext, String geoFileName) {
-                return inputTrees.get(geoFileName);
+            public BTree<CartesianGeoRecord> getInputBTree(AtomicReader reader, GeoSearchConfig config) {
+                return inputTrees.get(getSegmentName(reader) + "." + config.getGeoFileExtension());
             }
             
             @Override
@@ -312,8 +312,8 @@ public class BufferedGeoMergerTest {
         
         bufferedGeoMerger = new BufferedGeoMerger() {
             @Override
-            public BTree<CartesianGeoRecord> getInputBTree(Directory directory, IOContext ioContext,
-                    String geoFileName) throws IOException {
+            public BTree<CartesianGeoRecord> getInputBTree(AtomicReader reader, GeoSearchConfig config) throws IOException {
+                String geoFileName = getSegmentName(reader) + "." + config.getGeoFileExtension();
                 if (noGeoFileNames.contains(geoFileName)) {
                     // empty TreeSet<GeoRecord> tree
                     return new GeoRecordBTree(new TreeSet<CartesianGeoRecord>());

@@ -28,7 +28,7 @@ import com.browseengine.bobo.geosearch.bo.GeoSegmentInfo;
 import com.browseengine.bobo.geosearch.impl.BTree;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordComparator;
 import com.browseengine.bobo.geosearch.impl.CartesianGeoRecordSerializer;
-import com.browseengine.bobo.geosearch.index.impl.GeoSegmentReader;
+import com.browseengine.bobo.geosearch.index.impl.GeoAtomicReader;
 import com.browseengine.bobo.geosearch.index.impl.GeoSegmentWriter;
 import com.browseengine.bobo.geosearch.index.impl.InvalidTreeSizeException;
 import com.browseengine.bobo.geosearch.merge.IGeoMerger;
@@ -76,7 +76,7 @@ public class BufferedGeoMerger implements IGeoMerger {
                 String segmentName = getSegmentName(reader);
                 String geoFileName = config.getGeoFileName(segmentName);
                 BTree<CartesianGeoRecord> segmentBTree = 
-                    getInputBTree(directory, ioContext, geoFileName); 
+                    getInputBTree(reader, config); 
                 mergeInputBTrees.add(segmentBTree);
                 
                 //just take the first fieldNameFilterConverter for now.  Don't worry about merging them.
@@ -200,9 +200,9 @@ public class BufferedGeoMerger implements IGeoMerger {
                 directory, context, outputFileName, geoSegmentInfo, geoRecordSerializer);
     }
     
-    protected BTree<CartesianGeoRecord> getInputBTree(Directory directory, IOContext context, String geoFileName) throws IOException {
-        return new GeoSegmentReader<CartesianGeoRecord>(directory, geoFileName, -1, context,
-                geoRecordSerializer, geoComparator); 
+    protected BTree<CartesianGeoRecord> getInputBTree(AtomicReader atomicReader, GeoSearchConfig geoSearchConfig) 
+            throws IOException {
+        return new GeoAtomicReader(atomicReader, geoSearchConfig).getGeoSegmentReader();
     }
     
     private int calculateMergedSegmentSize(DocMap[] docMaps,
