@@ -110,6 +110,11 @@ public class BufferedGeoMergerTest {
             public String getSegmentName(AtomicReader reader) {
                 return ((StubAtomicReader)reader).getSegmentName();
             }
+            
+            @Override
+            public Directory getDirectory(AtomicReader reader, GeoSearchConfig config) throws IOException {
+                return dir;
+            }
         };
         
         expectedOutputTree = geoUtil.getBinaryTreeOrderedByBitMag();
@@ -338,6 +343,11 @@ public class BufferedGeoMergerTest {
             @Override
             public String getSegmentName(AtomicReader reader) {
                 return ((StubAtomicReader)reader).getSegmentName();
+            }
+            
+            @Override
+            public Directory getDirectory(AtomicReader reader, GeoSearchConfig config) throws IOException {
+                return dir;
             }
         };
 

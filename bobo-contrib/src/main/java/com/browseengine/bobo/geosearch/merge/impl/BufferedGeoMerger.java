@@ -79,7 +79,7 @@ public class BufferedGeoMerger implements IGeoMerger {
                 
                 //just take the first fieldNameFilterConverter for now.  Don't worry about merging them.
                 if (!hasFieldNameFilterConverter) {
-                    Directory segmentDirectory = GeoAtomicReader.getDirectory(reader, config);
+                    Directory segmentDirectory = getDirectory(reader, config);
                     hasFieldNameFilterConverter = loadFieldNameFilterConverter(segmentDirectory, geoFileName, fieldNameFilterConverter,
                             ioContext);
                 }
@@ -229,6 +229,10 @@ public class BufferedGeoMerger implements IGeoMerger {
         }
         
         return numRecordsToMerge;
+    }
+    
+    protected Directory getDirectory(AtomicReader reader, GeoSearchConfig config) throws IOException {
+        return GeoAtomicReader.getDirectory(reader, config);
     }
     
     protected String getSegmentName(AtomicReader reader) {
