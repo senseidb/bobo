@@ -54,9 +54,16 @@ public class GeoAtomicReader extends FilterAtomicReader {
         SegmentReader segmentReader = (SegmentReader) in;
         Directory dir = segmentReader.directory();
         String segmentName = segmentReader.getSegmentName();
+        String geoFileName = IndexFileNames.segmentFileName(segmentName, "", geoSearchConfig.getGeoFileExtension());
         if (segmentReader.getSegmentInfo().info.getUseCompoundFile()) {
             String compoundFileName = IndexFileNames.segmentFileName(segmentName, "", IndexFileNames.COMPOUND_FILE_EXTENSION);
-            dir = new CompoundFileDirectory(dir, compoundFileName , IOContext.READ, false);
+            Directory compoundDir = new CompoundFileDirectory(dir, compoundFileName , IOContext.READ, false);
+            
+            //In order to read geo segments written against lucene3.x, we only use the CompoundFileReader if the geo file exist 
+            //in the cfs file.  Otherwise, we run the risk of ignoring a .geo file created outside of a .cfs.
+            if (compoundDir.fileExists(geoFileName)) {
+                dir = compoundDir;
+            }
         }
         
         return dir;
