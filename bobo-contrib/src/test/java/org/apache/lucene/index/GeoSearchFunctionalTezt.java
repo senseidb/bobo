@@ -99,13 +99,19 @@ public class GeoSearchFunctionalTezt {
     }
     
     void buildGeoIndexWriter(boolean useCompoundFileFormat) throws CorruptIndexException, LockObtainFailedException, IOException {
+        buildGeoIndexWriter(useCompoundFileFormat, true);
+    }
+    
+    void buildGeoIndexWriter(boolean useCompoundFileFormat, boolean initDirectory) throws CorruptIndexException, LockObtainFailedException, IOException {
         geoComparator = new CartesianGeoRecordComparator();
         geoRecordSerializer = new CartesianGeoRecordSerializer();
         
-        directory = new RAMDirectory();
+        if(initDirectory) {
+            initDirectory();
+        }
         
-        config = new IndexWriterConfig(Version.LUCENE_CURRENT, 
-                new StandardAnalyzer(Version.LUCENE_CURRENT));
+        config = new IndexWriterConfig(Version.LUCENE_43, 
+                new StandardAnalyzer(Version.LUCENE_43));
         
         config.setMergePolicy(new MergeOnOptimizeOnly(useCompoundFileFormat));
         
@@ -116,6 +122,10 @@ public class GeoSearchFunctionalTezt {
         writer = new GeoIndexWriter(directory, config, geoConfig);
     }
     
+    void initDirectory() {
+        directory = new RAMDirectory();
+    }
+
     public static GeoSearchConfig getGeoSearchConfig() {
         GeoSearchConfig geoConfig = new GeoSearchConfig();
         
