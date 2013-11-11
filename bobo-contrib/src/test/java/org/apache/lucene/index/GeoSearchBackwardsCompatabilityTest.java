@@ -22,7 +22,7 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 public class GeoSearchBackwardsCompatabilityTest extends GeoSearchFunctionalTezt {
     @Before
     public void setUp() throws IOException {
-        initDirectory();
+        initDirectory(true);
         
         Directory fsDirectory = FSDirectory.open(new File("/usr/local/scbe/bobo/bobo-contrib/src/test/resources/lucene3xIndex"));
         
@@ -31,16 +31,18 @@ public class GeoSearchBackwardsCompatabilityTest extends GeoSearchFunctionalTezt
             fsDirectory.copy(directory, file, file, IOContext.DEFAULT);
         }
         
-        buildGeoIndexWriter(true, false);
     }
 
     @After
     public void tearDown() throws IOException {
-        writer.close();
+        if (writer != null) {
+            writer.close();
+        }
     }
     
     @Test
     public void testGeoSearch_merge() throws IOException {
+        buildGeoIndexWriter(true, false);
         writer.forceMerge(1);
         writer.commit();
         
@@ -63,7 +65,7 @@ public class GeoSearchBackwardsCompatabilityTest extends GeoSearchFunctionalTezt
     
     @Test
     public void testGeoSearch_addNewDocuments() throws IOException {
-
+        buildGeoIndexWriter(true, false);
         addDocuments();
         writer.commit();
         

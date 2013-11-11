@@ -102,13 +102,20 @@ public class GeoSearchFunctionalTezt {
         buildGeoIndexWriter(useCompoundFileFormat, true);
     }
     
-    void buildGeoIndexWriter(boolean useCompoundFileFormat, boolean initDirectory) throws CorruptIndexException, LockObtainFailedException, IOException {
+    void buildGeoIndexWriter(boolean useCompoundFileFormat, boolean initDirectoryAndConfig) throws CorruptIndexException, LockObtainFailedException, IOException {
+        
+        if(initDirectoryAndConfig) {
+            initDirectory(useCompoundFileFormat);
+        }
+        
+        writer = new GeoIndexWriter(directory, config, geoConfig);
+    }
+    
+    void initDirectory(boolean useCompoundFileFormat) {
         geoComparator = new CartesianGeoRecordComparator();
         geoRecordSerializer = new CartesianGeoRecordSerializer();
         
-        if(initDirectory) {
-            initDirectory();
-        }
+        directory = new RAMDirectory();
         
         config = new IndexWriterConfig(Version.LUCENE_43, 
                 new StandardAnalyzer(Version.LUCENE_43));
@@ -118,12 +125,6 @@ public class GeoSearchFunctionalTezt {
         geoConfig = getGeoSearchConfig();
         geoConfig.addFieldBitMask(LOCATION_FIELD, LOCATION_BIT_MASK);
         geoConfig.addFieldBitMask(IMAGE_LOCATION_FIELD, IMAGE_LOCATION_BIT_MASK);
-        
-        writer = new GeoIndexWriter(directory, config, geoConfig);
-    }
-    
-    void initDirectory() {
-        directory = new RAMDirectory();
     }
 
     public static GeoSearchConfig getGeoSearchConfig() {
