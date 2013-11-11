@@ -15,7 +15,6 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.LockObtainFailedException;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.IfProfileValue;
@@ -39,20 +38,9 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 @RunWith(SpringJUnit4ClassRunner.class) 
 @ContextConfiguration( { "/TEST-servlet.xml" }) 
 @IfProfileValue(name = "test-suite", values = { "unit", "functional", "all" }) 
-//TODO:  Add tests using CFS
 public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
-    @Before
-    public void setUp() throws CorruptIndexException, LockObtainFailedException, IOException {
-//        ClassLoader classLoader = new ClassLoader() {
-//            public String getSystemProperty(String propertyName) { 
-//                super.getSystemResource(name)
-//            }
-//            
-//        };
-        
-        
-        
-        buildGeoIndexWriter(); 
+    public void setUpIndex(boolean useCompoundFileFormat) throws CorruptIndexException, LockObtainFailedException, IOException {
+        buildGeoIndexWriter(useCompoundFileFormat); 
         try {
             addDocuments();
         } finally {
@@ -64,6 +52,7 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     
     @Test
     public void testGeoFileIsCorrectSize() throws IOException {
+        setUpIndex(false);
         int maxDoc = 10;
         
         String geoFileName = getGeoFileName();
@@ -76,6 +65,7 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     
     @Test
     public void testGeoFilter() throws IOException {
+        setUpIndex(false);
         int maxDocs = 10;
         
         String geoFileName = getGeoFileName(); 
@@ -100,6 +90,7 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     
     @Test
     public void testGeoFileExists() throws IOException {
+        setUpIndex(false);
         assertEquals(1, countExtensions(directory, "geo"));
     }
     
@@ -108,6 +99,7 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
      * In the new setup geo fields are passed to lucene as well
      */
     public void testLuceneFieldNames() throws CorruptIndexException, IOException {
+        setUpIndex(true);
         IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Set<String> fieldNames = new HashSet<String>();
         for (AtomicReaderContext readerContext : searcher.getIndexReader().getContext().leaves()) {
@@ -122,7 +114,8 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     @Test
-    public void testFreeTextSearch() throws IOException {
+    public void testFreeTextSearch_nocfs() throws IOException {
+        setUpIndex(false);
         IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Term term = new Term(TEXT_FIELD, "man");
         TermQuery query = new TermQuery(term);
@@ -137,7 +130,8 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
    
     
     @Test
-    public void testGeoSearch() throws IOException {
+    public void testGeoSearch_nocfs() throws IOException {
+        setUpIndex(false);
         GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
         IndexSearcher searcher = new IndexSearcher(reader);
         GeoCoordinate coordinate = calculateGeoCoordinate(3, 21);
@@ -154,7 +148,56 @@ public class GeoSearchIndexingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     @Test
-    public void testGeoSearch_onehit() throws IOException {
+    public void testGeoSearch_onehit_nocfs() throws IOException {
+        setUpIndex(false);
+        GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
+        IndexSearcher searcher = new IndexSearcher(reader);
+         
+        GeoQuery query = new GeoQuery(LATTITUDE_MIN_VALUE, LONGITUDE_MIN_VALUE, 0.0f);
+        TopDocs topDocs = searcher.search(query, 10);
+        
+        List<String> expectedResults = new Vector<String>();
+        expectedResults.add(titles[0]);
+        verifyExpectedResults(expectedResults, topDocs, searcher);
+    }
+    
+    @Test
+    public void testFreeTextSearch_cfs() throws IOException {
+        setUpIndex(true);
+        IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
+        Term term = new Term(TEXT_FIELD, "man");
+        TermQuery query = new TermQuery(term);
+        
+        TopDocs topDocs = searcher.search(query, 10);
+        
+        List<String> expectedResults = new Vector<String>();
+        expectedResults.add(titles[8]);
+        expectedResults.add(titles[1]);
+        verifyExpectedResults(expectedResults, topDocs, searcher);
+    }
+   
+    
+    @Test
+    public void testGeoSearch_cfs() throws IOException {
+        setUpIndex(true);
+        GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
+        IndexSearcher searcher = new IndexSearcher(reader);
+        GeoCoordinate coordinate = calculateGeoCoordinate(3, 21);
+        double longitude = coordinate.getLongitude();
+        double lattitude = coordinate.getLatitude();
+        float kilometers = Conversions.mi2km(500);
+         
+        GeoQuery query = new GeoQuery(lattitude, longitude, kilometers);
+        TopDocs topDocs = searcher.search(query, 10);
+        
+        List<String> expectedResults = new Vector<String>();
+        expectedResults.add(titles[1]);
+        verifyExpectedResults(expectedResults, topDocs, searcher);
+    }
+    
+    @Test
+    public void testGeoSearch_onehit_cfs() throws IOException {
+        setUpIndex(true);
         GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
         IndexSearcher searcher = new IndexSearcher(reader);
          

@@ -98,7 +98,7 @@ public class GeoSearchFunctionalTezt {
         }
     }
     
-    void buildGeoIndexWriter() throws CorruptIndexException, LockObtainFailedException, IOException {
+    void buildGeoIndexWriter(boolean useCompoundFileFormat) throws CorruptIndexException, LockObtainFailedException, IOException {
         geoComparator = new CartesianGeoRecordComparator();
         geoRecordSerializer = new CartesianGeoRecordSerializer();
         
@@ -107,7 +107,7 @@ public class GeoSearchFunctionalTezt {
         config = new IndexWriterConfig(Version.LUCENE_CURRENT, 
                 new StandardAnalyzer(Version.LUCENE_CURRENT));
         
-        config.setMergePolicy(new MergeOnOptimizeOnly());
+        config.setMergePolicy(new MergeOnOptimizeOnly(useCompoundFileFormat));
         
         geoConfig = getGeoSearchConfig();
         geoConfig.addFieldBitMask(LOCATION_FIELD, LOCATION_BIT_MASK);
@@ -241,6 +241,12 @@ public class GeoSearchFunctionalTezt {
      *
      */
     private class MergeOnOptimizeOnly extends MergePolicy {
+        private boolean useCompoundFileFormat;
+
+        public MergeOnOptimizeOnly(boolean useCompoundFileFormat) {
+            this.useCompoundFileFormat = useCompoundFileFormat;
+        }
+        
         @Override
         public MergeSpecification findForcedDeletesMerges(SegmentInfos segmentInfos) throws CorruptIndexException,
                 IOException {
@@ -278,8 +284,7 @@ public class GeoSearchFunctionalTezt {
 
         @Override
         public boolean useCompoundFile(SegmentInfos segments, SegmentInfoPerCommit newSegment) throws IOException {
-            // TODO Auto-generated method stub
-            return false;
+            return useCompoundFileFormat;
         }
     }
 }

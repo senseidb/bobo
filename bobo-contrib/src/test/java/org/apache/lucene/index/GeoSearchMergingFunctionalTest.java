@@ -16,7 +16,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.LockObtainFailedException;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.IfProfileValue;
@@ -44,11 +43,10 @@ import com.browseengine.bobo.geosearch.score.impl.Conversions;
 public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     int numberOfSegments;
     
-    @Before
-    public void setUp() throws CorruptIndexException, LockObtainFailedException, IOException {
+    public void setUpIndex(boolean useCompoundFileFormat) throws CorruptIndexException, LockObtainFailedException, IOException {
         numberOfSegments = 10;
         
-        buildGeoIndexWriter(); 
+        buildGeoIndexWriter(useCompoundFileFormat); 
         for (int i = 0; i < numberOfSegments; i++) { 
             addDocuments();
             //force a commit and thus a new segment
@@ -67,12 +65,14 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     @Test
-    public void testMergeHappened() {
+    public void testMergeHappened() throws IOException {
+        setUpIndex(false);
         assertEquals(1, writer.getSegmentCount());
     }
     
     @Test
     public void testConfirmMergedGeoFile() throws IOException {
+        setUpIndex(false);
         int maxDocs = numberOfSegments * titles.length;
         verifySegment(maxDocs);
     }
@@ -110,6 +110,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     
     @Test
     public void testFilter() throws IOException {
+        setUpIndex(false);
         int maxDocs = numberOfSegments * titles.length;
         String geoFileName = getMergedGeoFileName();
         
@@ -122,6 +123,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
      * are not
      */
     public void testLuceneFieldNames() throws CorruptIndexException, IOException {
+        setUpIndex(false);
         IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Set<String> fieldNames = new HashSet<String>();
         for (AtomicReaderContext readerContext : searcher.getIndexReader().getContext().leaves()) {
@@ -136,6 +138,17 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     @Test
+    public void testFreeTextSearch_nocfs() throws IOException {
+        setUpIndex(false);
+        testFreeTextSearch();
+    }
+    
+    @Test
+    public void testFreeTextSearch_cfs() throws IOException {
+        setUpIndex(true);
+        testFreeTextSearch();
+    }
+    
     public void testFreeTextSearch() throws IOException {
         IndexSearcher searcher = new IndexSearcher(DirectoryReader.open(directory));
         Term term = new Term("text", "man");
@@ -156,6 +169,7 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     
     @Test
     public void testOldIndicesDeleted() throws IOException {
+        setUpIndex(false);
         writer.close();
         
         assertEquals(1, countExtensions(directory, "pos"));
@@ -163,7 +177,8 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     @Test
-    public void testDeleteByTitle1() throws CorruptIndexException, IOException {
+    public void testDeleteByTitle() throws CorruptIndexException, IOException {
+        setUpIndex(false);
         Term deleteTerm = new Term(TITLE_FIELD, "pride");
         writer.deleteDocuments(deleteTerm);
         writer.commit();
@@ -188,6 +203,17 @@ public class GeoSearchMergingFunctionalTest extends GeoSearchFunctionalTezt {
     }
     
     @Test
+    public void testGeoSearch_nocfs() throws IOException {
+        setUpIndex(false);
+        testGeoSearch();
+    }
+    
+    @Test
+    public void testGeoSearch_cfs() throws IOException {
+        setUpIndex(true);
+        testGeoSearch();
+    }
+    
     public void testGeoSearch() throws IOException {
         GeoIndexReader reader = new GeoIndexReader(directory, geoConfig);
         IndexSearcher searcher = new IndexSearcher(reader);
