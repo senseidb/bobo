@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>com.browseengine.bobo</groupId>
 		<artifactId>bobo-parent</artifactId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0</version>
 		<relativePath>../bobo-parent/pom.xml</relativePath>
 	</parent>
 
