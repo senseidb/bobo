@@ -27,12 +27,8 @@
 	<url>http://senseidb.github.com/bobo</url>
 
 	<scm>
-		<connection>
-      scm:git://github.com/senseidb/bobo.git
-    </connection>
-		<developerConnection>
-      scm:git@github.com:senseidb/bobo.git
-    </developerConnection>
+		<connection>scm:git:git@github.com:senseidb/bobo.git</connection>
+		<developerConnection>scm:git:git@github.com:senseidb/bobo.git</developerConnection>
 		<url>https://github.com/senseidb/bobo</url>
 	</scm>
 
@@ -91,6 +87,19 @@
 				<configuration>
 					<encoding>UTF-8</encoding>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
