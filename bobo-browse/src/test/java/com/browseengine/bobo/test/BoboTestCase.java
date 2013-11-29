@@ -89,8 +89,8 @@ import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseException;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
+import com.browseengine.bobo.api.BrowseHit.BoboTerm;
 import com.browseengine.bobo.api.BrowseHit.SerializableField;
-import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
 import com.browseengine.bobo.api.BrowseRequest;
 import com.browseengine.bobo.api.BrowseResult;
 import com.browseengine.bobo.api.BrowseSelection;
@@ -263,7 +263,40 @@ public class BoboTestCase extends TestCase {
     ft.setIndexed(true);
     ft.setTokenized(true);
     ft.setStoreTermVectors(true);
+    ft.setStoreTermVectorPositions(false);
+    ft.setStoreTermVectorOffsets(false);
     Field tvf = new Field("tv", "bobo bobo lucene lucene lucene test", ft);
+    d1.add(tvf);
+
+    FieldType ftPositions = new FieldType();
+    ftPositions.setStored(false);
+    ftPositions.setIndexed(true);
+    ftPositions.setTokenized(true);
+    ftPositions.setStoreTermVectors(true);
+    ftPositions.setStoreTermVectorPositions(true);
+    ftPositions.setStoreTermVectorOffsets(false);
+    tvf = new Field("tvPositions", "bobo bobo lucene lucene lucene test", ftPositions);
+    d1.add(tvf);
+
+    FieldType ftOffsets = new FieldType();
+    ftOffsets.setStored(false);
+    ftOffsets.setIndexed(true);
+    ftOffsets.setTokenized(true);
+    ftOffsets.setStoreTermVectors(true);
+    ftOffsets.setStoreTermVectorPositions(false);
+    ftOffsets.setStoreTermVectorOffsets(true);
+    tvf = new Field("tvOffsets", "bobo bobo lucene lucene lucene test", ftOffsets);
+    d1.add(tvf);
+
+    FieldType ftPositionsAndOffsets = new FieldType();
+    ftPositionsAndOffsets.setStored(false);
+    ftPositionsAndOffsets.setIndexed(true);
+    ftPositionsAndOffsets.setTokenized(true);
+    ftPositionsAndOffsets.setStoreTermVectors(true);
+    ftPositionsAndOffsets.setStoreTermVectorPositions(true);
+    ftPositionsAndOffsets.setStoreTermVectorOffsets(true);
+    tvf = new Field("tvPositionsAndOffsets", "bobo bobo lucene lucene lucene test",
+        ftPositionsAndOffsets);
     d1.add(tvf);
 
     Document d2 = new Document();
@@ -835,7 +868,8 @@ public class BoboTestCase extends TestCase {
     sizeSel.addValue("[4 TO 4]");
     br.addSelection(sizeSel);
 
-    br.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(new String[] { "tv" })));
+    br.setTermVectorsToFetch(new HashSet<String>(Arrays.asList(new String[] { "tv", "tvPositions",
+        "tvOffsets", "tvPositionsAndOffsets" })));
 
     BrowseResult result = null;
     BoboBrowser boboBrowser = null;
@@ -851,22 +885,120 @@ public class BoboTestCase extends TestCase {
       result = boboBrowser.browse(br);
       assertEquals(1, result.getNumHits());
       hit = result.getHits()[0];
-      Map<String, TermFrequencyVector> tvMap = hit.getTermFreqMap();
+      Map<String, List<BoboTerm>> tvMap = hit.getTermVectorMap();
       assertNotNull(tvMap);
 
-      assertEquals(1, tvMap.size());
+      assertEquals(4, tvMap.size());
 
-      TermFrequencyVector tv = tvMap.get("tv");
+      List<BoboTerm> tv = tvMap.get("tv");
       assertNotNull(tv);
 
-      assertEquals("bobo", tv.terms.get(0));
-      assertEquals(2, tv.freqs.get(0).intValue());
+      assertEquals("bobo", tv.get(0).term);
+      assertEquals(2, tv.get(0).freq.intValue());
+      assertEquals(null, tv.get(0).positions);
+      assertEquals(null, tv.get(0).startOffsets);
+      assertEquals(null, tv.get(0).endOffsets);
 
-      assertEquals("lucene", tv.terms.get(1));
-      assertEquals(3, tv.freqs.get(1).intValue());
+      assertEquals("lucene", tv.get(1).term);
+      assertEquals(3, tv.get(1).freq.intValue());
+      assertEquals(null, tv.get(1).positions);
+      assertEquals(null, tv.get(1).startOffsets);
+      assertEquals(null, tv.get(1).endOffsets);
 
-      assertEquals("test", tv.terms.get(2));
-      assertEquals(1, tv.freqs.get(2).intValue());
+      assertEquals("test", tv.get(2).term);
+      assertEquals(1, tv.get(2).freq.intValue());
+      assertEquals(null, tv.get(2).positions);
+      assertEquals(null, tv.get(2).startOffsets);
+      assertEquals(null, tv.get(2).endOffsets);
+
+      tv = tvMap.get("tvPositions");
+      assertNotNull(tv);
+
+      assertEquals("bobo", tv.get(0).term);
+      assertEquals(2, tv.get(0).freq.intValue());
+      List<Integer> positions = new ArrayList<Integer>(Arrays.asList(0, 1));
+      assertEquals(positions, tv.get(0).positions);
+      List<Integer> startOffsets = new ArrayList<Integer>(Arrays.asList(-1, -1));
+      assertEquals(startOffsets, tv.get(0).startOffsets);
+      List<Integer> endOffsets = new ArrayList<Integer>(Arrays.asList(-1, -1));
+      assertEquals(endOffsets, tv.get(0).endOffsets);
+
+      assertEquals("lucene", tv.get(1).term);
+      assertEquals(3, tv.get(1).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(2, 3, 4));
+      assertEquals(positions, tv.get(1).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(-1, -1, -1));
+      assertEquals(startOffsets, tv.get(1).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(-1, -1, -1));
+      assertEquals(endOffsets, tv.get(1).endOffsets);
+
+      assertEquals("test", tv.get(2).term);
+      assertEquals(1, tv.get(2).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(5));
+      assertEquals(positions, tv.get(2).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(-1));
+      assertEquals(startOffsets, tv.get(2).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(-1));
+      assertEquals(endOffsets, tv.get(2).endOffsets);
+
+      tv = tvMap.get("tvOffsets");
+      assertNotNull(tv);
+
+      assertEquals("bobo", tv.get(0).term);
+      assertEquals(2, tv.get(0).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(-1, -1));
+      assertEquals(positions, tv.get(0).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(0, 5));
+      assertEquals(startOffsets, tv.get(0).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(4, 9));
+      assertEquals(endOffsets, tv.get(0).endOffsets);
+
+      assertEquals("lucene", tv.get(1).term);
+      assertEquals(3, tv.get(1).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(-1, -1, -1));
+      assertEquals(positions, tv.get(1).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(10, 17, 24));
+      assertEquals(startOffsets, tv.get(1).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(16, 23, 30));
+      assertEquals(endOffsets, tv.get(1).endOffsets);
+
+      assertEquals("test", tv.get(2).term);
+      assertEquals(1, tv.get(2).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(-1));
+      assertEquals(positions, tv.get(2).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(31));
+      assertEquals(startOffsets, tv.get(2).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(35));
+      assertEquals(endOffsets, tv.get(2).endOffsets);
+
+      tv = tvMap.get("tvPositionsAndOffsets");
+      assertNotNull(tv);
+      assertEquals("bobo", tv.get(0).term);
+      assertEquals(2, tv.get(0).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(0, 1));
+      assertEquals(positions, tv.get(0).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(0, 5));
+      assertEquals(startOffsets, tv.get(0).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(4, 9));
+      assertEquals(endOffsets, tv.get(0).endOffsets);
+
+      assertEquals("lucene", tv.get(1).term);
+      assertEquals(3, tv.get(1).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(2, 3, 4));
+      assertEquals(positions, tv.get(1).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(10, 17, 24));
+      assertEquals(startOffsets, tv.get(1).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(16, 23, 30));
+      assertEquals(endOffsets, tv.get(1).endOffsets);
+
+      assertEquals("test", tv.get(2).term);
+      assertEquals(1, tv.get(2).freq.intValue());
+      positions = new ArrayList<Integer>(Arrays.asList(5));
+      assertEquals(positions, tv.get(2).positions);
+      startOffsets = new ArrayList<Integer>(Arrays.asList(31));
+      assertEquals(startOffsets, tv.get(2).startOffsets);
+      endOffsets = new ArrayList<Integer>(Arrays.asList(35));
+      assertEquals(endOffsets, tv.get(2).endOffsets);
     } catch (BrowseException e) {
       e.printStackTrace();
       fail(e.getMessage());
@@ -2475,10 +2607,6 @@ public class BoboTestCase extends TestCase {
     BrowseResult r = b.browse(br);
 
     doTest(r, br, 7, null, new String[] { "7", "2", "1", "3", "4", "5", "6" });
-
-    // int firstDoc = r.getHits()[0].getDocid();
-    // Explanation expl = b.explain(q, firstDoc);
-    // System.out.println(">>> " + expl.toString());
   }
 
   public void testRuntimeFilteredDateRange() throws Exception {
@@ -2773,14 +2901,6 @@ public class BoboTestCase extends TestCase {
   }
 
   public void testBucketFacetHandlerForNumbers() throws Exception {
-    /*
-     * String[][] predefinedBuckets2 = new String[3][]; predefinedBuckets2[0] = new
-     * String[]{"2","3"}; predefinedBuckets2[1] = new String[]{"1","4"}; predefinedBuckets2[2] = new
-     * String[]{"7","8"}; Map<String,String[]> predefinedNumberSets = new
-     * HashMap<String,String[]>(); predefinedNumberSets.put("s1", predefinedBuckets2[0]);
-     * predefinedNumberSets.put("s2", predefinedBuckets2[1]); predefinedNumberSets.put("s3",
-     * predefinedBuckets2[2]);
-     */
     BrowseRequest br = new BrowseRequest();
     br.setCount(10);
     br.setOffset(0);

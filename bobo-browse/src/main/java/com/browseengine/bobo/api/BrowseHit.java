@@ -19,16 +19,13 @@ import org.apache.lucene.search.Explanation;
 public class BrowseHit implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  public static class TermFrequencyVector implements Serializable {
-
+  public static class BoboTerm implements Serializable {
     private static final long serialVersionUID = 1L;
-    public final List<String> terms;
-    public final List<Integer> freqs;
-
-    public TermFrequencyVector(List<String> terms, List<Integer> freqs) {
-      this.terms = terms;
-      this.freqs = freqs;
-    }
+    public String term;
+    public Integer freq;
+    public List<Integer> positions;
+    public List<Integer> startOffsets;
+    public List<Integer> endOffsets;
   }
 
   public static class SerializableField implements Serializable {
@@ -118,7 +115,7 @@ public class BrowseHit implements Serializable {
     public SerializableExplanation(Explanation explanation) {
       setValue(explanation.getValue());
       setDescription(explanation.getDescription());
-      Explanation []details = explanation.getDetails();
+      Explanation[] details = explanation.getDetails();
       if (details == null) {
         return;
       }
@@ -178,8 +175,8 @@ public class BrowseHit implements Serializable {
 
       SerializableExplanation[] details = getDetails();
       if (details != null) {
-        for (int i = 0 ; i < details.length; i++) {
-          buffer.append(details[i].toString(depth+1));
+        for (int i = 0; i < details.length; i++) {
+          buffer.append(details[i].toString(depth + 1));
         }
       }
 
@@ -261,14 +258,14 @@ public class BrowseHit implements Serializable {
   private BrowseHit[] _groupHits;
   private SerializableExplanation _explanation;
 
-  private Map<String, TermFrequencyVector> _termFreqMap = new HashMap<String, TermFrequencyVector>();
+  private Map<String, List<BoboTerm>> _termVectorMap = new HashMap<String, List<BoboTerm>>();
 
-  public Map<String, TermFrequencyVector> getTermFreqMap() {
-    return _termFreqMap;
+  public Map<String, List<BoboTerm>> getTermVectorMap() {
+    return _termVectorMap;
   }
 
-  public BrowseHit setTermFreqMap(Map<String, TermFrequencyVector> termFreqMap) {
-    _termFreqMap = termFreqMap;
+  public BrowseHit setTermVectorMap(Map<String, List<BoboTerm>> termVectorMap) {
+    _termVectorMap = termVectorMap;
     return this;
   }
 

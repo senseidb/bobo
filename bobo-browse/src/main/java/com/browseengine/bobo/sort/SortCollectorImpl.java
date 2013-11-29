@@ -18,6 +18,7 @@ import java.util.Set;
 
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.DocsAndPositionsEnum;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
@@ -30,7 +31,7 @@ import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.api.Browsable;
 import com.browseengine.bobo.api.BrowseFacet;
 import com.browseengine.bobo.api.BrowseHit;
-import com.browseengine.bobo.api.BrowseHit.TermFrequencyVector;
+import com.browseengine.bobo.api.BrowseHit.BoboTerm;
 import com.browseengine.bobo.api.FacetAccessible;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.facets.CombinedFacetAccessible;
@@ -428,8 +429,8 @@ public class SortCollectorImpl extends SortCollector {
         hit.setStoredFields(reader.document(fdoc.doc));
       }
       if (termVectorsToFetch != null && termVectorsToFetch.size() > 0) {
-        Map<String, TermFrequencyVector> tvMap = new HashMap<String, TermFrequencyVector>();
-        hit.setTermFreqMap(tvMap);
+        Map<String, List<BoboTerm>> tvMap = new HashMap<String, List<BoboTerm>>();
+        hit.setTermVectorMap(tvMap);
         Fields fds = reader.getTermVectors(fdoc.doc);
         for (String field : termVectorsToFetch) {
           Terms terms = fds.terms(field);
@@ -437,15 +438,28 @@ public class SortCollectorImpl extends SortCollector {
             continue;
           }
           TermsEnum termsEnum = terms.iterator(null);
-          List<String> texts = new ArrayList<String>();
-          List<Integer> freqs = new ArrayList<Integer>();
           BytesRef text;
+          DocsAndPositionsEnum docsAndPositions = null;
+          List<BoboTerm> boboTermList = new ArrayList<BoboTerm>();
           while ((text = termsEnum.next()) != null) {
-            texts.add(text.utf8ToString());
-            int freq = (int) termsEnum.totalTermFreq();
-            freqs.add(freq);
+            BoboTerm boboTerm = new BoboTerm();
+            boboTerm.term = text.utf8ToString();
+            boboTerm.freq = (int)termsEnum.totalTermFreq();
+            docsAndPositions = termsEnum.docsAndPositions(null, docsAndPositions);
+            if (docsAndPositions != null) {
+              docsAndPositions.nextDoc();
+              boboTerm.positions = new ArrayList<Integer>();
+              boboTerm.startOffsets = new ArrayList<Integer>();
+              boboTerm.endOffsets = new ArrayList<Integer>();
+              for (int t = 0; t < boboTerm.freq; ++t) {
+                boboTerm.positions.add(docsAndPositions.nextPosition());
+                boboTerm.startOffsets.add(docsAndPositions.startOffset());
+                boboTerm.endOffsets.add(docsAndPositions.endOffset());
+              }
+            }
+            boboTermList.add(boboTerm);
           }
-          tvMap.put(field, new TermFrequencyVector(texts, freqs));
+          tvMap.put(field, boboTermList);
         }
       }
       Map<String, String[]> map = new HashMap<String, String[]>();
