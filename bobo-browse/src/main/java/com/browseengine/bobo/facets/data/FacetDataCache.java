@@ -68,31 +68,13 @@ public class FacetDataCache<T> implements Serializable {
     } else return new BigIntArray(maxDoc);
   }
 
-  protected int[] getValueCounts(AtomicReader reader, String field) throws IOException {
-    // ret[0] is total value count, ret[1] is negative value count
-    int ret[] = new int[2];
+  protected int getDictValueCount(AtomicReader reader, String field) throws IOException {
+    int ret = 0;
     Terms terms = reader.terms(field);
     if (terms == null) {
       return ret;
     }
-    TermsEnum termsEnum = terms.iterator(null);
-    BytesRef text;
-    boolean eof = true;
-    while ((text = termsEnum.next()) != null) {
-      ret[0]++;
-      if (!text.utf8ToString().startsWith("-")) {
-        eof = false;
-        break;
-      }
-      ret[1]++;
-    }
-    if (eof) {
-      return ret;
-    }
-    while (termsEnum.next() != null) {
-      ret[0]++;
-    }
-    return ret;
+    return (int) terms.size();
   }
 
   protected int getNegativeValueCount(AtomicReader reader, String field) throws IOException {
@@ -101,7 +83,6 @@ public class FacetDataCache<T> implements Serializable {
     if (terms == null) {
       return ret;
     }
-
     TermsEnum termsEnum = terms.iterator(null);
     BytesRef text;
     while ((text = termsEnum.next()) != null) {
@@ -118,18 +99,8 @@ public class FacetDataCache<T> implements Serializable {
     String field = fieldName.intern();
     int maxDoc = reader.maxDoc();
 
-    BigSegmentedArray order = this.orderArray;
-    int negativeValueCount = 0;
-    if (order == null) {
-      int counts[] = getValueCounts(reader, field);
-      order = newInstance(counts[0], maxDoc);
-      negativeValueCount = counts[1];
-    } else {
-      // we want to reuse the memory
-      negativeValueCount = getNegativeValueCount(reader, field);
-      order.ensureCapacity(maxDoc); // no need to fill to 0, we are reseting the
-                                    // data anyway
-    }
+    int dictValueCount = getDictValueCount(reader, fieldName);
+    BigSegmentedArray order = newInstance(dictValueCount, maxDoc);
     this.orderArray = order;
 
     IntArrayList minIDList = new IntArrayList();
@@ -140,6 +111,7 @@ public class FacetDataCache<T> implements Serializable {
     @SuppressWarnings("unchecked")
     TermValueList<T> list = listFactory == null ? (TermValueList<T>) new TermStringList()
         : listFactory.createTermList();
+    int negativeValueCount = getNegativeValueCount(reader, field);
 
     int t = 0; // current term number
     list.add(null);
