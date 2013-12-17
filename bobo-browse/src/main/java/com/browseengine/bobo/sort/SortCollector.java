@@ -238,11 +238,9 @@ public abstract class SortCollector extends Collector {
     if (sort == null || sort.length == 0) {
       if (q != null && !(q instanceof MatchAllDocsQuery)) {
         sort = new SortField[] { SortField.FIELD_SCORE };
+      } else {
+        sort = new SortField[] { SortField.FIELD_DOC };
       }
-    }
-
-    if (sort == null || sort.length == 0) {
-      sort = new SortField[] { SortField.FIELD_DOC };
     }
 
     boolean doScoring = false;
