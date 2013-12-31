@@ -50,12 +50,11 @@ public class MultiValueWithWeightFacetDataCache<T> extends MultiValueFacetDataCa
     IntArrayList freqList = new IntArrayList();
     OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
     int negativeValueCount = getNegativeValueCount(reader, field);
-    int t = 0; // current term number
+    int t = 1; // valid term id starts from 1
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
-    t++;
 
     _overflow = false;
 
@@ -150,19 +149,17 @@ public class MultiValueWithWeightFacetDataCache<T> extends MultiValueFacetDataCa
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
+    while (doc < maxdoc && !_nestedArray.contains(doc, 0, true)) {
       ++doc;
     }
-    if (doc <= maxdoc) {
+    if (doc < maxdoc) {
       this.minIDs[0] = doc;
-      doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
+      doc = maxdoc - 1;
+      while (doc >= 0 && !_nestedArray.contains(doc, 0, true)) {
         --doc;
       }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
+      this.maxIDs[0] = doc;
     }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
+    this.freqs[0] = maxdoc - (int) bitset.cardinality();
   }
 }

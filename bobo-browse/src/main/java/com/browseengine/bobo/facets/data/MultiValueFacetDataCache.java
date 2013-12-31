@@ -81,12 +81,11 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     IntArrayList freqList = new IntArrayList();
     OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
     int negativeValueCount = getNegativeValueCount(reader, field);
-    int t = 0; // current term number
+    int t = 1; // valid term id starts from 1
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
-    t++;
 
     _overflow = false;
 
@@ -100,8 +99,6 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
 
         Term term = new Term(field, strText);
         DocsEnum docsEnum = reader.termDocsEnum(term);
-        // freqList.add(tenum.docFreq()); // removed because the df doesn't take into account
-        // the num of deletedDocs
         int df = 0;
         int minID = -1;
         int maxID = -1;
@@ -143,20 +140,18 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
+    while (doc < maxdoc && !_nestedArray.contains(doc, 0, true)) {
       ++doc;
     }
-    if (doc <= maxdoc) {
+    if (doc < maxdoc) {
       this.minIDs[0] = doc;
-      doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
+      doc = maxdoc - 1;
+      while (doc >= 0 && !_nestedArray.contains(doc, 0, true)) {
         --doc;
       }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
+      this.maxIDs[0] = doc;
     }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
+    this.freqs[0] = maxdoc - (int) bitset.cardinality();
   }
 
   /**
@@ -189,12 +184,11 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     IntArrayList freqList = new IntArrayList();
     OpenBitSet bitset = new OpenBitSet(maxdoc + 1);
 
-    int t = 0; // current term number
+    int t = 1; // valid term id starts from 1
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
-    t++;
 
     _overflow = false;
 
@@ -242,20 +236,18 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while (doc <= maxdoc && !_nestedArray.contains(doc, 0, true)) {
+    while (doc < maxdoc && !_nestedArray.contains(doc, 0, true)) {
       ++doc;
     }
-    if (doc <= maxdoc) {
+    if (doc < maxdoc) {
       this.minIDs[0] = doc;
-      doc = maxdoc;
-      while (doc > 0 && !_nestedArray.contains(doc, 0, true)) {
+      doc = maxdoc - 1;
+      while (doc >= 0 && !_nestedArray.contains(doc, 0, true)) {
         --doc;
       }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
+      this.maxIDs[0] = doc;
     }
-    this.freqs[0] = maxdoc + 1 - (int) bitset.cardinality();
+    this.freqs[0] = maxdoc - (int) bitset.cardinality();
   }
 
   protected void logOverflow(String fieldName) {

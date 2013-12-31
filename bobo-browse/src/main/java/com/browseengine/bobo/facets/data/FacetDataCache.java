@@ -113,13 +113,12 @@ public class FacetDataCache<T> implements Serializable {
         : listFactory.createTermList();
     int negativeValueCount = getNegativeValueCount(reader, field);
 
-    int t = 0; // current term number
+    int t = 1; // valid term id starts from 1
     list.add(null);
     minIDList.add(-1);
     maxIDList.add(-1);
     freqList.add(0);
     int totalFreq = 0;
-    t++;
     Terms terms = reader.terms(field);
     if (terms != null) {
       TermsEnum termsEnum = terms.iterator(null);
@@ -167,21 +166,19 @@ public class FacetDataCache<T> implements Serializable {
     this.maxIDs = maxIDList.toIntArray();
 
     int doc = 0;
-    while (doc <= maxDoc && order.get(doc) != 0) {
+    while (doc < maxDoc && order.get(doc) != 0) {
       ++doc;
     }
-    if (doc <= maxDoc) {
+    if (doc < maxDoc) {
       this.minIDs[0] = doc;
       // Try to get the max
-      doc = maxDoc;
-      while (doc > 0 && order.get(doc) != 0) {
+      doc = maxDoc - 1;
+      while (doc >= 0 && order.get(doc) != 0) {
         --doc;
       }
-      if (doc > 0) {
-        this.maxIDs[0] = doc;
-      }
+      this.maxIDs[0] = doc;
     }
-    this.freqs[0] = maxDoc + 1 - totalFreq;
+    this.freqs[0] = maxDoc - totalFreq;
   }
 
   private static int[] convertString(FacetDataCache<?> dataCache, String[] vals) {
