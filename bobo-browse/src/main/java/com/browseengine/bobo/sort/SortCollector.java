@@ -165,7 +165,7 @@ public abstract class SortCollector extends Collector {
       return new DocComparatorSource.LongDocComparatorSource(fieldname);
 
     case DOUBLE:
-      return new DocComparatorSource.LongDocComparatorSource(fieldname);
+      return new DocComparatorSource.DoubleDocComparatorSource(fieldname);
 
     case BYTE:
       return new DocComparatorSource.ByteDocComparatorSource(fieldname);
