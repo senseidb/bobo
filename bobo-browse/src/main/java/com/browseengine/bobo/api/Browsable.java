@@ -46,4 +46,6 @@ public interface Browsable {
   void doClose() throws IOException;
 
   Explanation explain(Query q, int deBasedDoc) throws IOException;
+
+  void close() throws IOException;
 }
