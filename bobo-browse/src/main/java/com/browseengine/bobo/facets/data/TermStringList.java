@@ -1,12 +1,22 @@
 package com.browseengine.bobo.facets.data;
 
+import com.ibm.icu.text.UTF16;
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class TermStringList extends TermValueList<String> {
   private String sanity = null;
   private boolean withDummy = true;
+
+  /**
+   * A string comparator that orders Java strings according to Unicode codepoint
+   * order, same as Lucene, and not code unit order as done by the String class.
+   */
+  private static final Comparator<String> STRING_COMPARATOR =
+    new UTF16.StringComparator(true, false, 0);
 
   public TermStringList(int capacity) {
     super(capacity);
@@ -21,7 +31,7 @@ public class TermStringList extends TermValueList<String> {
   public boolean add(String o) {
     if (_innerList.size() == 0 && o != null) withDummy = false; // the first value added is not null
     if (o == null) o = "";
-    if (sanity != null && sanity.compareTo(o) >= 0) throw new RuntimeException(
+    if (sanity != null && STRING_COMPARATOR.compare(sanity, o) >= 0) throw new RuntimeException(
         "Values need to be added in ascending order. Previous value: " + sanity + " adding value: "
             + o);
     if (_innerList.size() > 0 || !withDummy) sanity = o;
@@ -65,9 +75,9 @@ public class TermStringList extends TermValueList<String> {
           return -1;
         }
       }
-      return Collections.binarySearch(((ArrayList<String>) _innerList), (String) o);
+      return Collections.binarySearch(((ArrayList<String>) _innerList), (String) o, STRING_COMPARATOR);
     } else {
-      return Collections.binarySearch(((ArrayList<String>) _innerList), (String) o);
+      return Collections.binarySearch(((ArrayList<String>) _innerList), (String) o, STRING_COMPARATOR);
     }
   }
 
@@ -85,9 +95,9 @@ public class TermStringList extends TermValueList<String> {
       if (val.equals("")) {
         return _innerList.size() > 1 && "".equals(_innerList.get(1));
       }
-      return Collections.binarySearch(((ArrayList<String>) _innerList), val) >= 0;
+      return Collections.binarySearch(((ArrayList<String>) _innerList), val, STRING_COMPARATOR) >= 0;
     } else {
-      return Collections.binarySearch(((ArrayList<String>) _innerList), val) >= 0;
+      return Collections.binarySearch(((ArrayList<String>) _innerList), val, STRING_COMPARATOR) >= 0;
     }
   }
 
@@ -103,9 +113,9 @@ public class TermStringList extends TermValueList<String> {
           return -1;
         }
       }
-      return Collections.binarySearch(((ArrayList<String>) _innerList), o);
+      return Collections.binarySearch(((ArrayList<String>) _innerList), o, STRING_COMPARATOR);
     } else {
-      return Collections.binarySearch(((ArrayList<String>) _innerList), o);
+      return Collections.binarySearch(((ArrayList<String>) _innerList), o, STRING_COMPARATOR);
     }
   }
 

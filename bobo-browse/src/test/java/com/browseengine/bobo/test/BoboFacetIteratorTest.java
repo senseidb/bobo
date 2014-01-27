@@ -48,6 +48,15 @@ public class BoboFacetIteratorTest extends TestCase {
       tsl1.add("m");
       tsl1.add("s");
       tsl1.add("t");
+      /* Following strings should be in this order according to the Unicode
+       * codepoints.  Java String does not correctly compare surrogate pairs
+       * and is inconsistent with the UTF-8 byte sorting used by Lucene.
+       * Sorting UTF8 byte by byte is consistent with Unicode codepoint
+       * ordering.
+       *
+       */
+      tsl1.add("\ufe6f"); // SMALL DOLLAR SIGN codepoint 0xFE69
+      tsl1.add("\ud83d\ude00"); // GRINNING FACE codepoint 0x1F600
     } catch (Exception e) {
       fail("There should NOT be an exception and the message contains ascending order");
       return;
