@@ -29,6 +29,7 @@ package com.browseengine.bobo.api;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,7 +71,7 @@ public class BrowseRequest implements Serializable {
   private Query _query;
   private int _offset;
   private int _count;
-  private boolean _fetchStoredFields;
+  private Set<String> _fieldsToFetch;
   private Filter _filter;
   private boolean _showExplanation;
   private String _groupBy; // TODO: Leave here for backward compatible reason, will remove it later.
@@ -176,7 +177,7 @@ public class BrowseRequest implements Serializable {
     _facetSpecMap = new HashMap<String, FacetSpec>();
     _facetHandlerDataMap = new HashMap<String, FacetHandlerInitializerParam>();
     _filter = null;
-    _fetchStoredFields = false;
+    _fieldsToFetch = new HashSet<String>();
     _groupBy = null;
     _groupByMulti = null;
     _maxPerGroup = 0;
@@ -187,13 +188,13 @@ public class BrowseRequest implements Serializable {
     _sortSpecs.clear();
     return this;
   }
-
-  public boolean isFetchStoredFields() {
-    return _fetchStoredFields;
+	
+  public Set<String> getFieldsToFetch(){
+    return _fieldsToFetch;
   }
 
-  public BrowseRequest setFetchStoredFields(boolean fetchStoredFields) {
-    _fetchStoredFields = fetchStoredFields;
+  public BrowseRequest setFieldsToFetch(Set<String> fieldsToFetch){
+    _fieldsToFetch = fieldsToFetch;
     return this;
   }
 
@@ -426,7 +427,7 @@ public class BrowseRequest implements Serializable {
     buf.append("sort spec: ").append(_sortSpecs).append('\n');
     buf.append("selections: ").append(_selections).append('\n');
     buf.append("facet spec: ").append(_facetSpecMap).append('\n');
-    buf.append("fetch stored fields: ").append(_fetchStoredFields).append('\n');
+    buf.append("fields to fetch: ").append(_fieldsToFetch).append('\n');
     return buf.toString();
   }
 }

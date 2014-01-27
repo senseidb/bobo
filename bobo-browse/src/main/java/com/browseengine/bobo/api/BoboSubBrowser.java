@@ -306,9 +306,9 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
 
   @Override
   public SortCollector getSortCollector(SortField[] sort, Query q, int offset, int count,
-      boolean fetchStoredFields, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
+      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
       boolean collectDocIdCache) {
-    return SortCollector.buildSortCollector(this, q, sort, offset, count, fetchStoredFields,
+    return SortCollector.buildSortCollector(this, q, sort, offset, count, fieldsToFetch,
       termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
   }
 

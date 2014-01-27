@@ -36,6 +36,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -756,8 +757,7 @@ public class BoboTestCase extends TestCase {
 
     BrowseSelection colorSel = new BrowseSelection("testStored");
     colorSel.addValue("stored");
-    br.addSelection(colorSel);
-    br.setFetchStoredFields(true);
+    br.addSelection(colorSel);    
 
     BrowseResult result = null;
     BoboBrowser boboBrowser = null;
@@ -768,6 +768,13 @@ public class BoboTestCase extends TestCase {
       assertEquals(1, result.getNumHits());
       BrowseHit hit = result.getHits()[0];
       List<SerializableField> storedFields = hit.getStoredFields();
+      assertNull(storedFields);
+
+      br.setFieldsToFetch(Collections.singleton("testStored"));
+      result = boboBrowser.browse(br);
+      assertEquals(1, result.getNumHits());
+      hit = result.getHits()[0];
+      storedFields = hit.getStoredFields();
       assertNotNull(storedFields);
 
       List<String> fieldValues = new ArrayList<String>();
@@ -827,7 +834,7 @@ public class BoboTestCase extends TestCase {
       BrowseHit hit = result.getHits()[0];
       assertNull(hit.getStoredFields());
 
-      br.setFetchStoredFields(true);
+      br.setFieldsToFetch(Collections.singleton("testStored"));
       result = boboBrowser.browse(br);
       assertEquals(1, result.getNumHits());
       hit = result.getHits()[0];
@@ -881,7 +888,7 @@ public class BoboTestCase extends TestCase {
       BrowseHit hit = result.getHits()[0];
       assertNull(hit.getStoredFields());
 
-      br.setFetchStoredFields(true);
+      br.setFieldsToFetch(Collections.<String>emptySet());
       result = boboBrowser.browse(br);
       assertEquals(1, result.getNumHits());
       hit = result.getHits()[0];
