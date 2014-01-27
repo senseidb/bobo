@@ -364,4 +364,8 @@ public class BoboSegmentReader extends FilterAtomicReader {
     return in;
   }
 
+  @Override
+  public Object getCoreCacheKey() {
+    return in.getCoreCacheKey();
+  }
 }
