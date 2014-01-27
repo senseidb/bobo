@@ -178,7 +178,7 @@ public class FacetDataCache<T> implements Serializable {
       }
       this.maxIDs[0] = doc;
     }
-    this.freqs[0] = maxDoc - totalFreq;
+    this.freqs[0] = reader.numDocs() - totalFreq;
   }
 
   private static int[] convertString(FacetDataCache<?> dataCache, String[] vals) {
