@@ -377,4 +377,9 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
       _reader.clearRuntimeFacetHandler();
     }
   }
+
+  @Override
+  public void close() throws IOException {
+    doClose();
+  }
 }
