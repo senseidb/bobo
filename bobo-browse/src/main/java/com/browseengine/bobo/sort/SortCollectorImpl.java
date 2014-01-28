@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.document.DocumentStoredFieldVisitor;
 import org.apache.lucene.index.AtomicReader;
 import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.DocsAndPositionsEnum;
@@ -125,9 +126,10 @@ public class SortCollectorImpl extends SortCollector {
 
   @SuppressWarnings("unchecked")
   public SortCollectorImpl(DocComparatorSource compSource, SortField[] sortFields,
-      Browsable boboBrowser, int offset, int count, boolean doScoring, boolean fetchStoredFields,
-      Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
-    super(sortFields, fetchStoredFields);
+      Browsable boboBrowser, int offset, int count, boolean doScoring, boolean fetchAllFields,
+      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
+      boolean collectDocIdCache) {
+    super(sortFields, fetchAllFields, fieldsToFetch);
     assert (offset >= 0 && count >= 0);
     _boboBrowser = boboBrowser;
     _compSource = compSource;
@@ -412,22 +414,32 @@ public class SortCollectorImpl extends SortCollector {
 
     Map<String, FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
     return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap,
-      _fetchStoredFields, _termVectorsToFetch, groupBy, _groupAccessibles);
+       _fetchAllFields, _fieldsToFetch, _termVectorsToFetch, groupBy, _groupAccessibles);
   }
 
   protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs, SortField[] sortFields,
-      Map<String, FacetHandler<?>> facetHandlerMap, boolean fetchStoredFields,
-      Set<String> termVectorsToFetch, FacetHandler<?> groupBy,
+      Map<String, FacetHandler<?>> facetHandlerMap, boolean fetchAllFields,
+      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, FacetHandler<?> groupBy,
       CombinedFacetAccessible[] groupAccessibles) throws IOException {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
     Collection<FacetHandler<?>> facetHandlers = facetHandlerMap.values();
+
+    if (fieldsToFetch != null && fieldsToFetch.isEmpty()) {
+      fieldsToFetch = null;
+    }
     for (int i = scoreDocs.length - 1; i >= 0; i--) {
       MyScoreDoc fdoc = scoreDocs[i];
       BoboSegmentReader reader = fdoc.reader;
       BrowseHit hit = new BrowseHit();
-      if (fetchStoredFields) {
+
+      if (fetchAllFields) {
         hit.setStoredFields(reader.document(fdoc.doc));
+      } else if (fieldsToFetch != null) {
+        DocumentStoredFieldVisitor fieldVisitor = new DocumentStoredFieldVisitor(fieldsToFetch);
+        reader.document(fdoc.doc, fieldVisitor);
+        hit.setStoredFields(fieldVisitor.getDocument());
       }
+
       if (termVectorsToFetch != null && termVectorsToFetch.size() > 0) {
         Map<String, List<BoboTerm>> tvMap = new HashMap<String, List<BoboTerm>>();
         hit.setTermVectorMap(tvMap);

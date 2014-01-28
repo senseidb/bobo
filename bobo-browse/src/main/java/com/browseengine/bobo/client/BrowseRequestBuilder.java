@@ -7,6 +7,8 @@ import com.browseengine.bobo.api.BrowseSelection;
 import com.browseengine.bobo.api.FacetSpec;
 import com.browseengine.bobo.api.FacetSpec.FacetSortSpec;
 
+import java.util.HashSet;
+
 public class BrowseRequestBuilder {
   private BrowseRequest _req;
   private String _qString;
@@ -83,7 +85,8 @@ public class BrowseRequestBuilder {
     _req = new BrowseRequest();
     _req.setOffset(0);
     _req.setCount(5);
-    _req.setFetchStoredFields(true);
+    _req.setFetchAllFields(false);
+    _req.setFieldsToFetch(new HashSet<String>());
     _qString = null;
     return this;
   }
