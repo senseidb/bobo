@@ -126,9 +126,10 @@ public class SortCollectorImpl extends SortCollector {
 
   @SuppressWarnings("unchecked")
   public SortCollectorImpl(DocComparatorSource compSource, SortField[] sortFields,
-      Browsable boboBrowser, int offset, int count, boolean doScoring, Set<String> fieldsToFetch,
-      Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
-    super(sortFields, fieldsToFetch);
+      Browsable boboBrowser, int offset, int count, boolean doScoring, boolean fetchAllFields,
+      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
+      boolean collectDocIdCache) {
+    super(sortFields, fetchAllFields, fieldsToFetch);
     assert (offset >= 0 && count >= 0);
     _boboBrowser = boboBrowser;
     _compSource = compSource;
@@ -413,12 +414,12 @@ public class SortCollectorImpl extends SortCollector {
 
     Map<String, FacetHandler<?>> facetHandlerMap = _boboBrowser.getFacetHandlerMap();
     return buildHits(resList.toArray(new MyScoreDoc[resList.size()]), _sortFields, facetHandlerMap,
-      _fieldsToFetch, _termVectorsToFetch, groupBy, _groupAccessibles);
+       _fetchAllFields, _fieldsToFetch, _termVectorsToFetch, groupBy, _groupAccessibles);
   }
 
   protected static BrowseHit[] buildHits(MyScoreDoc[] scoreDocs, SortField[] sortFields,
-      Map<String, FacetHandler<?>> facetHandlerMap, Set<String> fieldsToFetch,
-      Set<String> termVectorsToFetch, FacetHandler<?> groupBy,
+      Map<String, FacetHandler<?>> facetHandlerMap, boolean fetchAllFields,
+      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, FacetHandler<?> groupBy,
       CombinedFacetAccessible[] groupAccessibles) throws IOException {
     BrowseHit[] hits = new BrowseHit[scoreDocs.length];
     Collection<FacetHandler<?>> facetHandlers = facetHandlerMap.values();
@@ -431,7 +432,9 @@ public class SortCollectorImpl extends SortCollector {
       BoboSegmentReader reader = fdoc.reader;
       BrowseHit hit = new BrowseHit();
 
-      if (fieldsToFetch != null) {
+      if (fetchAllFields) {
+        hit.setStoredFields(reader.document(fdoc.doc));
+      } else if (fieldsToFetch != null) {
         DocumentStoredFieldVisitor fieldVisitor = new DocumentStoredFieldVisitor(fieldsToFetch);
         reader.document(fdoc.doc, fieldVisitor);
         hit.setStoredFields(fieldVisitor.getDocument());

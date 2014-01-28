@@ -133,11 +133,13 @@ public abstract class SortCollector extends Collector {
 
   protected Collector _collector = null;
   protected final SortField[] _sortFields;
+  protected final boolean _fetchAllFields;
   protected final Set<String> _fieldsToFetch;
   protected boolean _closed = false;
 
-  protected SortCollector(SortField[] sortFields, Set<String> fieldsToFetch) {
+  protected SortCollector(SortField[] sortFields, boolean fetchAllFields, Set<String> fieldsToFetch) {
     _sortFields = sortFields;
+    _fetchAllFields = fetchAllFields;
     _fieldsToFetch = fieldsToFetch;
   }
 
@@ -233,7 +235,7 @@ public abstract class SortCollector extends Collector {
   }
 
   public static SortCollector buildSortCollector(Browsable browser, Query q, SortField[] sort,
-      int offset, int count, Set<String> fieldsToFetch, Set<String> termVectorsToFetch,
+      int offset, int count, boolean fetchAllFields, Set<String> fieldsToFetch, Set<String> termVectorsToFetch,
       String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
     if (sort == null || sort.length == 0) {
       if (q != null && !(q instanceof MatchAllDocsQuery)) {
@@ -263,7 +265,7 @@ public abstract class SortCollector extends Collector {
       compSource = new MultiDocIdComparatorSource(compSources);
     }
     return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring,
-        fieldsToFetch, termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
+        fetchAllFields, fieldsToFetch, termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
   }
 
   public SortCollector setCollector(Collector collector) {

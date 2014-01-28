@@ -40,8 +40,8 @@ public interface Browsable {
   int numDocs();
 
   SortCollector getSortCollector(SortField[] sort, Query q, int offset, int count,
-      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
-      boolean collectDocIdCache);
+                                 boolean fetchAllFields, Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
+                                 boolean collectDocIdCache);
 
   void doClose() throws IOException;
 

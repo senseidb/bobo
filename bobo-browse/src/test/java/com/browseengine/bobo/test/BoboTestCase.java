@@ -789,6 +789,26 @@ public class BoboTestCase extends TestCase {
       assertEquals(1, values.length);
       assertTrue("stored".equals(values[0]));
 
+      br.setFetchAllFields(true);
+      br.setFieldsToFetch(null);
+      result = boboBrowser.browse(br);
+      assertEquals(1, result.getNumHits());
+      hit = result.getHits()[0];
+      storedFields = hit.getStoredFields();
+      assertNotNull(storedFields);
+
+      fieldValues = new ArrayList<String>();
+      for (SerializableField field : storedFields) {
+        if (field.name().equals("testStored") && field.stringValue() != null) {
+          fieldValues.add(field.stringValue());
+        }
+      }
+      values = fieldValues.toArray(new String[fieldValues.size()]);
+
+      assertNotNull(values);
+      assertEquals(1, values.length);
+      assertTrue("stored".equals(values[0]));
+
     } catch (BrowseException e) {
       e.printStackTrace();
       fail(e.getMessage());
@@ -839,6 +859,14 @@ public class BoboTestCase extends TestCase {
       assertEquals(1, result.getNumHits());
       hit = result.getHits()[0];
       String stored = hit.getFieldStringValue("testStored");
+      assertTrue("stored".equals(stored));
+
+      br.setFetchAllFields(true);
+      br.setFieldsToFetch(null);
+      result = boboBrowser.browse(br);
+      assertEquals(1, result.getNumHits());
+      hit = result.getHits()[0];
+      stored = hit.getFieldStringValue("testStored");
       assertTrue("stored".equals(stored));
     } catch (BrowseException e) {
       e.printStackTrace();

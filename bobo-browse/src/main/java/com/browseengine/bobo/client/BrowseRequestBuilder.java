@@ -85,6 +85,7 @@ public class BrowseRequestBuilder {
     _req = new BrowseRequest();
     _req.setOffset(0);
     _req.setCount(5);
+    _req.setFetchAllFields(false);
     _req.setFieldsToFetch(new HashSet<String>());
     _qString = null;
     return this;

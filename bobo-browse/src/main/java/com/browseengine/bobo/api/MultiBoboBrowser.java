@@ -140,8 +140,8 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
           + count);
     }
     SortCollector collector = getSortCollector(req.getSort(), req.getQuery(), offset, count,
-      req.getFieldsToFetch(), req.getTermVectorsToFetch(), req.getGroupBy(), req.getMaxPerGroup(),
-      req.getCollectDocIdCache());
+        req.isFetchAllFields(), req.getFieldsToFetch(), req.getTermVectorsToFetch(), req.getGroupBy(),
+        req.getMaxPerGroup(), req.getCollectDocIdCache());
 
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
     browse(req, collector, facetCollectors, 0);
@@ -269,13 +269,13 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
 
   @Override
   public SortCollector getSortCollector(SortField[] sort, Query q, int offset, int count,
-      Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
-      boolean collectDocIdCache) {
+                                        boolean fetchAllFields, Set<String> fieldsToFetch, Set<String> termVectorsToFetch, String[] groupBy, int maxPerGroup,
+                                        boolean collectDocIdCache) {
     if (_subBrowsers.length == 1) {
-      return _subBrowsers[0].getSortCollector(sort, q, offset, count, fieldsToFetch,
+      return _subBrowsers[0].getSortCollector(sort, q, offset, count, fetchAllFields, fieldsToFetch,
         termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
     }
-    return SortCollector.buildSortCollector(this, q, sort, offset, count, fieldsToFetch,
+    return SortCollector.buildSortCollector(this, q, sort, offset, count, fetchAllFields, fieldsToFetch,
       termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
   }
 
