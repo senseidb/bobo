@@ -56,12 +56,13 @@ public class TermStringList extends TermValueList<String> {
   @Override
   public int indexOf(Object o) {
     if (withDummy) {
-      if (o == null) return -1;
-
+      if (o == null) {
+        return -1;
+      }
       if (o.equals("")) {
         if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
           return 1;
-        } else if (_innerList.size() < 2) {
+        } else {
           return -1;
         }
       }
@@ -81,7 +82,9 @@ public class TermStringList extends TermValueList<String> {
   @Override
   public boolean containsWithType(String val) {
     if (withDummy) {
-      if (val == null) return false;
+      if (val == null) {
+        return false;
+      }
       if (val.equals("")) {
         return _innerList.size() > 1 && "".equals(_innerList.get(1));
       }
@@ -95,11 +98,13 @@ public class TermStringList extends TermValueList<String> {
   @Override
   public int indexOfWithType(String o) {
     if (withDummy) {
-      if (o == null) return -1;
+      if (o == null) {
+        return -1;
+      }
       if (o.equals("")) {
         if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
           return 1;
-        } else if (_innerList.size() < 2) {
+        } else {
           return -1;
         }
       }
