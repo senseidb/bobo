@@ -63,7 +63,9 @@ public class TermStringList extends TermValueList<String> {
         if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
           return 1;
         } else {
-          return -1;
+          // the key is not contained in the list return (-(insertion point) - 1)
+          // the insertion point of empty string should be 1, 0 is for dummy header
+          return -2;
         }
       }
       return Collections.binarySearch(((ArrayList<String>) _innerList), (String) o);
@@ -105,7 +107,9 @@ public class TermStringList extends TermValueList<String> {
         if (_innerList.size() > 1 && "".equals(_innerList.get(1))) {
           return 1;
         } else {
-          return -1;
+          // the key is not contained in the list return (-(insertion point) - 1)
+          // the insertion point of empty string should be 1, 0 is for dummy header
+          return -2;
         }
       }
       return Collections.binarySearch(((ArrayList<String>) _innerList), o);

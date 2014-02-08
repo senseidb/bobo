@@ -208,8 +208,7 @@ public final class FacetRangeFilter extends RandomAccessFilter {
     } else {
       end = dataCache.valArray.indexOf(upper);
       if (end < 0) {
-        end = -(end + 1);
-        end = Math.max(0, end - 1);
+        end = -(end + 1) - 1;
       } else {
         // when the lower value is in the list, we need to consider if we want this lower value
         // included or not;
@@ -260,13 +259,11 @@ public final class FacetRangeFilter extends RandomAccessFilter {
         : null;
     final int[] range = parse(dataCache, _rangeString);
 
-    if (range == null) return null;
-
-    if (range[0] > range[1]) {
-      return EmptyDocIdSet.getInstance();
+    if (range == null) {
+      return null;
     }
 
-    if (range[0] == range[1] && range[0] < 0) {
+    if (range[0] > range[1]) {
       return EmptyDocIdSet.getInstance();
     }
 
