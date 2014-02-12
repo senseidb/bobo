@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.AtomicReaderContextUtil;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.search.Collector;
@@ -262,6 +263,9 @@ public class BoboSearcher extends IndexSearcher {
         AtomicReaderContext atomicContext = indexReaderContext.children() == null ? (AtomicReaderContext) indexReaderContext
             : (AtomicReaderContext) (indexReaderContext.children().get(i));
         int docStart = start;
+        
+        atomicContext = AtomicReaderContextUtil.updateDocBase(atomicContext, docStart);
+        
         if (reader instanceof BoboMultiReader) {
           docStart = start + ((BoboMultiReader) reader).subReaderBase(i);
         }
