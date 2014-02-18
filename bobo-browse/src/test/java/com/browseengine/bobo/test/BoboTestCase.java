@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
@@ -67,6 +68,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -125,6 +127,7 @@ import com.browseengine.bobo.facets.impl.VirtualSimpleFacetHandler;
 import com.browseengine.bobo.index.BoboIndexer;
 import com.browseengine.bobo.index.digest.DataDigester;
 import com.browseengine.bobo.query.FacetBasedBoostScorerBuilder;
+import com.browseengine.bobo.query.RecencyBoostScorerBuilder;
 import com.browseengine.bobo.query.ScoreAdjusterQuery;
 import com.browseengine.bobo.query.scoring.FacetTermQuery;
 import com.browseengine.bobo.sort.DocComparator;
@@ -1891,7 +1894,6 @@ public class BoboTestCase extends TestCase {
     res.close();
   }
 
-  /*
   public void testQueryWithScore() throws Exception {
     BrowseRequest br = new BrowseRequest();
     br.setShowExplanation(false);
@@ -1975,7 +1977,6 @@ public class BoboTestCase extends TestCase {
       fail(e.getMessage());
     }
   }
-  */
 
   public void testBrowseCompactMultiVal() {
     BrowseRequest br = new BrowseRequest();
