@@ -2288,14 +2288,6 @@ public class BoboTestCase extends TestCase {
     simpleOutput.setExpandSelection(true);
     br.setFacetSpec("date", simpleOutput);
 
-    // d1.add(buildMetaField("date","2000/01/01"));
-    // d3.add(buildMetaField("date","2001/12/25"));
-    // d5.add(buildMetaField("date","2002/03/08"));
-    // d2.add(buildMetaField("date","2003/02/14"));
-    // d4.add(buildMetaField("date","2004/11/24"));
-    // d7.add(buildMetaField("date","2006/06/01"));
-    // d6.add(buildMetaField("date","2007/08/01"));
-
     BrowseSelection sel1 = new BrowseSelection("date");
     sel1.setValues(new String[] { "(2000/01/01 TO 2003/02/14]" });
     BrowseSelection sel2 = new BrowseSelection("date");

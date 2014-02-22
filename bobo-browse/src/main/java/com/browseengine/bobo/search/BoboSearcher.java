@@ -8,42 +8,28 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.lucene.index.AtomicReaderContext;
-import org.apache.lucene.index.AtomicReaderContextUtil;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.Filter;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
-import com.browseengine.bobo.api.BoboMultiReader;
 import com.browseengine.bobo.api.BoboSegmentReader;
 import com.browseengine.bobo.docidset.RandomAccessDocIdSet;
 import com.browseengine.bobo.facets.FacetCountCollector;
 import com.browseengine.bobo.facets.FacetCountCollectorSource;
 import com.browseengine.bobo.mapred.BoboMapFunctionWrapper;
 
-public class BoboSearcher extends IndexSearcher {
-  protected List<FacetHitCollector> _facetCollectors;
-  protected BoboSegmentReader[] _subReaders;
+public class BoboSearcher {
+  private List<FacetHitCollector> _facetCollectors;
+  private final BoboSegmentReader _boboSegmentReader;
+  private final AtomicReaderContext _atomicReaderContext;
 
-  public BoboSearcher(BoboSegmentReader reader) {
-    super(reader);
+  public BoboSearcher(AtomicReaderContext ctx) {
+    _atomicReaderContext = ctx;
     _facetCollectors = new LinkedList<FacetHitCollector>();
-    List<BoboSegmentReader> readerList = new ArrayList<BoboSegmentReader>();
-    readerList.add(reader);
-    _subReaders = readerList.toArray(new BoboSegmentReader[readerList.size()]);
-  }
-
-  public BoboSearcher(BoboMultiReader reader) {
-    super(reader);
-    _facetCollectors = new LinkedList<FacetHitCollector>();
-    List<BoboSegmentReader> subReaders = reader.getSubReaders();
-    _subReaders = subReaders.toArray(new BoboSegmentReader[subReaders.size()]);
+    _boboSegmentReader = (BoboSegmentReader) ctx.reader();
   }
 
   public void setFacetHitCollectorList(List<FacetHitCollector> facetHitCollectors) {
@@ -245,124 +231,104 @@ public class BoboSearcher extends IndexSearcher {
     }
   }
 
-  @Override
-  public void search(Query query, Filter filter, Collector collector) throws IOException {
-    Weight weight = createNormalizedWeight(query);
-    search(weight, filter, collector, 0, null);
-  }
-
   public void search(Weight weight, Filter filter, Collector collector, int start,
       BoboMapFunctionWrapper mapReduceWrapper) throws IOException {
     final FacetValidator validator = createFacetValidator();
     int target = 0;
-
-    IndexReader reader = getIndexReader();
-    IndexReaderContext indexReaderContext = reader.getContext();
     if (filter == null) {
-      for (int i = 0; i < _subReaders.length; i++) {
-        AtomicReaderContext atomicContext = indexReaderContext.children() == null ? (AtomicReaderContext) indexReaderContext
-            : (AtomicReaderContext) (indexReaderContext.children().get(i));
-        int docStart = start;
-        
-        atomicContext = AtomicReaderContextUtil.updateDocBase(atomicContext, docStart);
-        
-        if (reader instanceof BoboMultiReader) {
-          docStart = start + ((BoboMultiReader) reader).subReaderBase(i);
-        }
-        collector.setNextReader(atomicContext);
-        validator.setNextReader(_subReaders[i], docStart);
-
-        Scorer scorer = weight.scorer(atomicContext, true, true, _subReaders[i].getLiveDocs());
-        if (scorer != null) {
-          collector.setScorer(scorer);
-          target = scorer.nextDoc();
-          while (target != DocIdSetIterator.NO_MORE_DOCS) {
-            if (validator.validate(target)) {
-              collector.collect(target);
-              target = scorer.nextDoc();
-            } else {
-              target = validator._nextTarget;
-              target = scorer.advance(target);
-            }
+      int docStart = start;
+      collector.setNextReader(_atomicReaderContext);
+      validator.setNextReader(_boboSegmentReader, docStart);
+      Scorer scorer = weight.scorer(_atomicReaderContext, true, true,
+        _boboSegmentReader.getLiveDocs());
+      if (scorer != null) {
+        collector.setScorer(scorer);
+        target = scorer.nextDoc();
+        while (target != DocIdSetIterator.NO_MORE_DOCS) {
+          if (validator.validate(target)) {
+            collector.collect(target);
+            target = scorer.nextDoc();
+          } else {
+            target = validator._nextTarget;
+            target = scorer.advance(target);
           }
         }
-        if (mapReduceWrapper != null) {
-          mapReduceWrapper.mapFullIndexReader(_subReaders[i], validator.getCountCollectors());
-        }
+      }
+      if (mapReduceWrapper != null) {
+        mapReduceWrapper.mapFullIndexReader(_boboSegmentReader, validator.getCountCollectors());
       }
       return;
     }
 
-    for (int i = 0; i < _subReaders.length; i++) {
-      AtomicReaderContext atomicContext = indexReaderContext.children() == null ? (AtomicReaderContext) indexReaderContext
-          : (AtomicReaderContext) (indexReaderContext.children().get(i));
+    DocIdSet filterDocIdSet = filter.getDocIdSet(_atomicReaderContext,
+      _boboSegmentReader.getLiveDocs());
+    // shall we use return or continue here ??
+    if (filterDocIdSet == null) {
+      return;
+    }
+    int docStart = start;
+    collector.setNextReader(_atomicReaderContext);
+    validator.setNextReader(_boboSegmentReader, docStart);
+    Scorer scorer = weight.scorer(_atomicReaderContext, true, false,
+      _boboSegmentReader.getLiveDocs());
+    if (scorer != null) {
+      collector.setScorer(scorer);
+      DocIdSetIterator filterDocIdIterator = filterDocIdSet.iterator(); // CHECKME: use
+                                                                        // ConjunctionScorer here?
 
-      DocIdSet filterDocIdSet = filter.getDocIdSet(atomicContext, _subReaders[i].getLiveDocs());
-      if (filterDocIdSet == null) return; // shall we use return or continue here ??
-      int docStart = start;
-      if (reader instanceof BoboMultiReader) {
-        docStart = start + ((BoboMultiReader) reader).subReaderBase(i);
+      if (filterDocIdIterator == null) {
+        return;
       }
-      collector.setNextReader(atomicContext);
-      validator.setNextReader(_subReaders[i], docStart);
-      Scorer scorer = weight.scorer(atomicContext, true, false, _subReaders[i].getLiveDocs());
-      if (scorer != null) {
-        collector.setScorer(scorer);
-        DocIdSetIterator filterDocIdIterator = filterDocIdSet.iterator(); // CHECKME: use
-                                                                          // ConjunctionScorer here?
 
-        if (filterDocIdIterator == null) continue;
-
-        int doc = -1;
-        target = filterDocIdIterator.nextDoc();
-        if (mapReduceWrapper == null) {
-          while (target < DocIdSetIterator.NO_MORE_DOCS) {
-            if (doc < target) {
-              doc = scorer.advance(target);
-            }
-
-            if (doc == target) // permitted by filter
-            {
-              if (validator.validate(doc)) {
-                collector.collect(doc);
-
-                target = filterDocIdIterator.nextDoc();
-              } else {
-                // skip to the next possible docid
-                target = filterDocIdIterator.advance(validator._nextTarget);
-              }
-            } else // doc > target
-            {
-              if (doc == DocIdSetIterator.NO_MORE_DOCS) break;
-              target = filterDocIdIterator.advance(doc);
-            }
+      int doc = -1;
+      target = filterDocIdIterator.nextDoc();
+      if (mapReduceWrapper == null) {
+        while (target < DocIdSetIterator.NO_MORE_DOCS) {
+          if (doc < target) {
+            doc = scorer.advance(target);
           }
-        } else {
-          // MapReduce wrapper is not null
-          while (target < DocIdSetIterator.NO_MORE_DOCS) {
-            if (doc < target) {
-              doc = scorer.advance(target);
-            }
 
-            if (doc == target) // permitted by filter
-            {
-              if (validator.validate(doc)) {
-                mapReduceWrapper.mapSingleDocument(doc, _subReaders[i]);
-                collector.collect(doc);
+          if (doc == target) // permitted by filter
+          {
+            if (validator.validate(doc)) {
+              collector.collect(doc);
 
-                target = filterDocIdIterator.nextDoc();
-              } else {
-                // skip to the next possible docid
-                target = filterDocIdIterator.advance(validator._nextTarget);
-              }
-            } else // doc > target
-            {
-              if (doc == DocIdSetIterator.NO_MORE_DOCS) break;
-              target = filterDocIdIterator.advance(doc);
+              target = filterDocIdIterator.nextDoc();
+            } else {
+              // skip to the next possible docid
+              target = filterDocIdIterator.advance(validator._nextTarget);
             }
+          } else // doc > target
+          {
+            if (doc == DocIdSetIterator.NO_MORE_DOCS) break;
+            target = filterDocIdIterator.advance(doc);
           }
-          mapReduceWrapper.finalizeSegment(_subReaders[i], validator.getCountCollectors());
         }
+      } else {
+        // MapReduce wrapper is not null
+        while (target < DocIdSetIterator.NO_MORE_DOCS) {
+          if (doc < target) {
+            doc = scorer.advance(target);
+          }
+
+          if (doc == target) // permitted by filter
+          {
+            if (validator.validate(doc)) {
+              mapReduceWrapper.mapSingleDocument(doc, _boboSegmentReader);
+              collector.collect(doc);
+
+              target = filterDocIdIterator.nextDoc();
+            } else {
+              // skip to the next possible docid
+              target = filterDocIdIterator.advance(validator._nextTarget);
+            }
+          } else // doc > target
+          {
+            if (doc == DocIdSetIterator.NO_MORE_DOCS) break;
+            target = filterDocIdIterator.advance(doc);
+          }
+        }
+        mapReduceWrapper.finalizeSegment(_boboSegmentReader, validator.getCountCollectors());
       }
     }
 

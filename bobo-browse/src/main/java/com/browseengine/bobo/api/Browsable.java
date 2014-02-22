@@ -6,17 +6,16 @@ import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
-import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.SortCollector;
 
 public interface Browsable {
 
-  void browse(BrowseRequest req, Collector hitCollector, Map<String, FacetAccessible> facets,
+  void browse(BrowseRequest req, Weight w, Collector hitCollector, Map<String, FacetAccessible> facets,
       int start) throws BrowseException;
 
   IndexReader getIndexReader();
@@ -31,8 +30,6 @@ public interface Browsable {
 
   Map<String, FacetHandler<?>> getFacetHandlerMap();
 
-  void setSimilarity(Similarity similarity);
-
   String[] getFieldVal(int docid, String fieldname) throws IOException;
 
   Object[] getRawFieldVal(int docid, String fieldname) throws IOException;
@@ -44,6 +41,4 @@ public interface Browsable {
       boolean collectDocIdCache);
 
   void doClose() throws IOException;
-
-  Explanation explain(Query q, int deBasedDoc) throws IOException;
 }

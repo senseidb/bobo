@@ -10,10 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.index.CorruptIndexException;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Filter;
@@ -51,17 +48,11 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
     return _reader;
   }
 
-  /**
-   * Constructor.
-   *
-   * @param reader
-   *          A bobo reader instance
-   */
-  public BoboSubBrowser(BoboSegmentReader reader) {
-    super(reader);
-    _reader = reader;
+  public BoboSubBrowser(AtomicReaderContext ctx) {
+    super(ctx);
+    _reader = (BoboSegmentReader) ctx.reader();
     _runtimeFacetHandlerMap = new HashMap<String, FacetHandler<?>>();
-    _runtimeFacetHandlerFactoryMap = reader.getRuntimeFacetHandlerFactoryMap();
+    _runtimeFacetHandlerFactoryMap = _reader.getRuntimeFacetHandlerFactoryMap();
     _allFacetHandlerMap = null;
   }
 
@@ -144,11 +135,12 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
 
   @SuppressWarnings("unchecked")
   @Override
-  public void browse(BrowseRequest req, Collector collector, Map<String, FacetAccessible> facetMap,
-      int start) throws BrowseException {
+  public void browse(BrowseRequest req, Weight w, Collector collector,
+      Map<String, FacetAccessible> facetMap, int start) throws BrowseException {
 
-    if (_reader == null) return;
-
+    if (_reader == null) {
+      return;
+    }
     // initialize all RuntimeFacetHandlers with data supplied by user at run-time.
     _runtimeFacetHandlers = new ArrayList<RuntimeFacetHandler<?>>(
         _runtimeFacetHandlerFactoryMap.size());
@@ -220,10 +212,6 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
             preFilterList.add(filter);
           }
         } else {
-          /*
-           * FacetSpec fspec = new FacetSpec(); // OrderValueAsc, fspec.setMaxCount(0);
-           * fspec.setMinHitCount(1); fspec.setExpandSelection(ospec.isExpandSelection());
-           */
           FacetSpec fspec = ospec;
 
           facetHitCollector = new FacetHitCollector();
@@ -270,9 +258,7 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
       setFacetHitCollectorList(facetHitCollectorList);
 
       try {
-          Query query = req.getQuery();
-          Weight weight = createNormalizedWeight(query);
-          search(weight, finalFilter, collector, start, req.getMapReduceWrapper());
+        search(w, finalFilter, collector, start, req.getMapReduceWrapper());
       } finally {
         for (FacetHitCollector facetCollector : facetHitCollectorList) {
           String name = facetCollector.facetHandler.getName();
@@ -331,18 +317,6 @@ public class BoboSubBrowser extends BoboSearcher implements Browsable {
   @Override
   public int numDocs() {
     return _reader.numDocs();
-  }
-
-  @Override
-  public Document doc(int docid) throws CorruptIndexException, IOException {
-    Document doc = super.doc(docid);
-    for (FacetHandler<?> handler : _runtimeFacetHandlerMap.values()) {
-      String[] vals = handler.getFieldValues(_reader, docid);
-      for (String val : vals) {
-        doc.add(new StringField(handler.getName(), val, Field.Store.NO));
-      }
-    }
-    return doc;
   }
 
   /**

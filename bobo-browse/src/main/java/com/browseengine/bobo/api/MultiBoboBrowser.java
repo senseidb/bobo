@@ -11,14 +11,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiReader;
 import org.apache.lucene.search.Collector;
 import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.similarities.Similarity;
+import org.apache.lucene.search.Weight;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.SortCollector;
@@ -29,7 +31,14 @@ import com.browseengine.bobo.sort.SortCollector;
 public class MultiBoboBrowser extends MultiReader implements Browsable {
   private static Logger logger = Logger.getLogger(MultiBoboBrowser.class);
 
-  protected final Browsable[] _subBrowsers;
+  private IndexSearcher _indexSearcher = null;
+  protected Browsable[] _subBrowsers;
+
+  public MultiBoboBrowser(BoboMultiReader reader) throws IOException {
+    super(reader._subReaders.toArray(new BoboSegmentReader[0]));
+    _indexSearcher = new IndexSearcher(this);
+    initSubBrowsers();
+  }
 
   /**
    *
@@ -38,11 +47,20 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
    * @throws IOException
    */
   public MultiBoboBrowser(Browsable[] browsers) throws IOException {
-    super(getSegmentReaders(browsers), false);
-    _subBrowsers = browsers;
+    super(getSubReaders(browsers), false);
+    _indexSearcher = new IndexSearcher(this);
+    initSubBrowsers();
   }
 
-  private static IndexReader[] getSegmentReaders(Browsable[] browsers) {
+  public void initSubBrowsers() {
+    List<AtomicReaderContext> leaves = getContext().leaves();
+    _subBrowsers = new BoboSubBrowser[leaves.size()];
+    for (int i = 0; i < leaves.size(); ++i) {
+      _subBrowsers[i] = new BoboSubBrowser(leaves.get(i));
+    }
+  }
+
+  private static IndexReader[] getSubReaders(Browsable[] browsers) {
     IndexReader[] readers = new IndexReader[browsers.length];
     for (int i = 0; i < browsers.length; ++i) {
       readers[i] = browsers[i].getIndexReader();
@@ -50,14 +68,9 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
     return readers;
   }
 
-  @Override
-  public void browse(BrowseRequest req, final Collector hc, Map<String, FacetAccessible> facetMap,
-      int start) throws BrowseException {
-    // index empty
-    if (_subBrowsers == null || _subBrowsers.length == 0) {
-      return;
-    }
-
+  public void browse(BrowseRequest req, final Collector hc, Map<String, FacetAccessible> facetMap)
+      throws BrowseException {
+    Weight w = null;
     try {
       Query q = req.getQuery();
       MatchAllDocsQuery matchAllDocsQuery = new MatchAllDocsQuery();
@@ -69,9 +82,19 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
         matchAllDocsQuery.setBoost(0f);
         q = QueriesSupport.combineAnd(matchAllDocsQuery, q);
       }
-      req.setQuery(q);
+      w = _indexSearcher.createNormalizedWeight(q);
     } catch (Exception ioe) {
       throw new BrowseException(ioe.getMessage(), ioe);
+    }
+    browse(req, w, hc, facetMap, 0);
+  }
+
+  @Override
+  public void browse(BrowseRequest req, Weight w, final Collector hc,
+      Map<String, FacetAccessible> facetMap, int start) throws BrowseException {
+    // index empty
+    if (_subBrowsers == null || _subBrowsers.length == 0) {
+      return;
     }
 
     Map<String, List<FacetAccessible>> mergedMap = new HashMap<String, List<FacetAccessible>>();
@@ -79,7 +102,7 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
       Map<String, FacetAccessible> facetColMap = new HashMap<String, FacetAccessible>();
       for (int i = 0; i < _subBrowsers.length; i++) {
         try {
-          _subBrowsers[i].browse(req, hc, facetColMap, (start + readerBase(i)));
+          _subBrowsers[i].browse(req, w, hc, facetColMap, (start + readerBase(i)));
         } finally {
           Set<Entry<String, FacetAccessible>> entries = facetColMap.entrySet();
           for (Entry<String, FacetAccessible> entry : entries) {
@@ -140,11 +163,11 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
           + count);
     }
     SortCollector collector = getSortCollector(req.getSort(), req.getQuery(), offset, count,
-      req.isFetchStoredFields(), req.getTermVectorsToFetch(), req.getGroupBy(), req.getMaxPerGroup(),
-      req.getCollectDocIdCache());
+      req.isFetchStoredFields(), req.getTermVectorsToFetch(), req.getGroupBy(),
+      req.getMaxPerGroup(), req.getCollectDocIdCache());
 
     Map<String, FacetAccessible> facetCollectors = new HashMap<String, FacetAccessible>();
-    browse(req, collector, facetCollectors, 0);
+    browse(req, collector, facetCollectors);
     if (req.getMapReduceWrapper() != null) {
       result.setMapReduceResult(req.getMapReduceWrapper().getResult());
     }
@@ -162,9 +185,7 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
       for (BrowseHit hit : hits) {
         try {
           int doc = hit.getDocid();
-          int idx = readerIndex(doc);
-          int deBasedDoc = doc - readerBase(idx);
-          Explanation expl = _subBrowsers[idx].explain(q, deBasedDoc);
+          Explanation expl = _indexSearcher.explain(q, doc);
           hit.setExplanation(expl);
         } catch (IOException e) {
           logger.error(e.getMessage(), e);
@@ -227,13 +248,6 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   }
 
   @Override
-  public void setSimilarity(Similarity similarity) {
-    for (Browsable subBrowser : _subBrowsers) {
-      subBrowser.setSimilarity(similarity);
-    }
-  }
-
-  @Override
   public Set<String> getFacetNames() {
     Set<String> names = new HashSet<String>();
     for (Browsable subBrowser : _subBrowsers) {
@@ -246,7 +260,9 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   public FacetHandler<?> getFacetHandler(String name) {
     for (Browsable subBrowser : _subBrowsers) {
       FacetHandler<?> subHandler = subBrowser.getFacetHandler(name);
-      if (subHandler != null) return subHandler;
+      if (subHandler != null) {
+        return subHandler;
+      }
     }
     return null;
   }
@@ -290,10 +306,5 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   @Override
   public IndexReader getIndexReader() {
     return this;
-  }
-
-  @Override
-  public Explanation explain(Query q, int deBasedDoc) throws IOException {
-    throw new UnsupportedOperationException();
   }
 }
