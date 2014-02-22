@@ -35,7 +35,11 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   protected Browsable[] _subBrowsers;
 
   public MultiBoboBrowser(BoboMultiReader reader) throws IOException {
-    super(reader._subReaders.toArray(new BoboSegmentReader[0]));
+    this(reader._subReaders);
+  }
+
+  public MultiBoboBrowser(List<BoboSegmentReader> segmentReaders) throws IOException {
+    super(segmentReaders.toArray(new BoboSegmentReader[0]), false);
     _indexSearcher = new IndexSearcher(this);
     initSubBrowsers();
   }
