@@ -82,6 +82,7 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
         matchAllDocsQuery.setBoost(0f);
         q = QueriesSupport.combineAnd(matchAllDocsQuery, q);
       }
+      req.setQuery(q);
       w = _indexSearcher.createNormalizedWeight(q);
     } catch (Exception ioe) {
       throw new BrowseException(ioe.getMessage(), ioe);
