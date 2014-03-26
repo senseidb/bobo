@@ -254,15 +254,6 @@ public class BrowseRequest implements Serializable {
 
   /**
    * @param name is the name of the <b>RuntimeFacetHandler</b>.
-   * @param data is the data Bobo is to use to initialize the corresponding RuntimeFacetHandler.
-   */
-  public BrowseRequest setFacetHandlerData(String name, FacetHandlerInitializerParam data) {
-    _facetHandlerDataMap.put(name, data);
-    return this;
-  }
-
-  /**
-   * @param name is the name of the <b>RuntimeFacetHandler</b>.
    * @return the data Bobo is to use to initialize the corresponding RuntimeFacetHandler.
    */
   public FacetHandlerInitializerParam getFacethandlerData(String name) {

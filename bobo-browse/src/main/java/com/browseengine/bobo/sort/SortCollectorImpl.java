@@ -295,7 +295,9 @@ public class SortCollectorImpl extends SortCollector {
   @Override
   public void setNextReader(AtomicReaderContext context) throws IOException {
     AtomicReader reader = context.reader();
-    assert reader instanceof BoboSegmentReader;
+    if (!(reader instanceof BoboSegmentReader)) {
+      throw new IllegalStateException("The reader is not instance of " + BoboSegmentReader.class);
+    }
     _currentReader = (BoboSegmentReader) reader;
     int docBase = context.docBase;
     _currentComparator = _compSource.getComparator(reader, docBase);
@@ -444,7 +446,7 @@ public class SortCollectorImpl extends SortCollector {
           while ((text = termsEnum.next()) != null) {
             BoboTerm boboTerm = new BoboTerm();
             boboTerm.term = text.utf8ToString();
-            boboTerm.freq = (int)termsEnum.totalTermFreq();
+            boboTerm.freq = (int) termsEnum.totalTermFreq();
             docsAndPositions = termsEnum.docsAndPositions(null, docsAndPositions);
             if (docsAndPositions != null) {
               docsAndPositions.nextDoc();
