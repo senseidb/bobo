@@ -43,9 +43,12 @@ public class SpatialFacetFilter extends RandomAccessFilter {
     }
 
     @Override
-    public boolean get(int docid) {
+    public boolean get(int docId) {
       try {
-        return innerDocIdSet.bits().get(docid);
+        if (docId >= innerDocIdSet.bits().length()) {
+          return false;
+        }
+        return innerDocIdSet.bits().get(docId);
       } catch (IOException e) {
         return false;
       }

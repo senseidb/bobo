@@ -204,7 +204,6 @@ public abstract class SortCollector extends Collector {
     String field = sort.getField();
     FacetHandler<?> facetHandler = browser.getFacetHandler(field);
     if (facetHandler != null) {
-      browser.getFacetHandler(field);
       BoboCustomSortField sortField = new BoboCustomSortField(field, sort.getReverse(),
           facetHandler.getDocComparatorSource());
       return sortField;

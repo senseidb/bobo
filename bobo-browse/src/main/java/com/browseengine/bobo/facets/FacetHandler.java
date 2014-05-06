@@ -273,7 +273,7 @@ public abstract class FacetHandler<D> {
    */
   public String getFieldValue(BoboSegmentReader reader, int id) {
     String[] values = getFieldValues(reader, id);
-    if (values == null) {
+    if (values == null || values.length == 0) {
       return null;
     }
     return values[0];
