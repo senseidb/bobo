@@ -21,6 +21,7 @@ import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.Weight;
+import org.apache.lucene.search.similarities.Similarity;
 
 import com.browseengine.bobo.facets.FacetHandler;
 import com.browseengine.bobo.sort.SortCollector;
@@ -311,5 +312,9 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   @Override
   public IndexReader getIndexReader() {
     return this;
+  }
+
+  public void setSimilarity(Similarity similarity) {
+    _indexSearcher.setSimilarity(similarity);
   }
 }
