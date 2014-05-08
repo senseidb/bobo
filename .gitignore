@@ -24,4 +24,6 @@ TAGS
 cscope.*
 bobo-contrib/target/
 bobo-contrib/MANIFEST.MF
-
+*.iml
+*.idea
+.arcconfig
