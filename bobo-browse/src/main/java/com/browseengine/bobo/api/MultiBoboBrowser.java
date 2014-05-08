@@ -315,6 +315,7 @@ public class MultiBoboBrowser extends MultiReader implements Browsable {
   }
 
   public void setSimilarity(Similarity similarity) {
-    _indexSearcher.setSimilarity(similarity);
+    if (similarity != null)
+      _indexSearcher.setSimilarity(similarity);
   }
 }
