@@ -133,11 +133,9 @@ public class FacetDataCache<T> implements Serializable {
         list.add(strText);
         Term term = new Term(field, strText);
         DocsEnum docsEnum = reader.termDocsEnum(term);
-        // freqList.add(termEnum.docFreq()); // doesn't take into account
-        // deldocs
         int minID = -1;
         int maxID = -1;
-        int docID = -1;
+        int docID;
         int df = 0;
         int valId = (t - 1 < negativeValueCount) ? (negativeValueCount - t + 1) : t;
         while ((docID = docsEnum.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
@@ -160,6 +158,20 @@ public class FacetDataCache<T> implements Serializable {
     }
 
     list.seal();
+    // Process minIDList and maxIDList for negative number
+    for (int i = 1; i < negativeValueCount/2 + 1; ++i) {
+      int top = i;
+      int tail = negativeValueCount - i + 1;
+      int topValue = minIDList.getInt(top);
+      int tailValue = minIDList.getInt(tail);
+      minIDList.set(top, tailValue);
+      minIDList.set(tail, topValue);
+      topValue = maxIDList.getInt(top);
+      tailValue = maxIDList.getInt(tail);
+      maxIDList.set(top, tailValue);
+      maxIDList.set(tail, topValue);
+    }
+
     this.valArray = list;
     this.freqs = freqList.toIntArray();
     this.minIDs = minIDList.toIntArray();

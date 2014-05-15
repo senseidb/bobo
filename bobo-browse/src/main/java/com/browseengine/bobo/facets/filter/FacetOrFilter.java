@@ -75,8 +75,8 @@ public class FacetOrFilter extends RandomAccessFilter {
     private final FacetDataCache<?> _dataCache;
     private final int[] _index;
 
-    @SuppressWarnings("unchecked")
-    FacetOrRandomAccessDocIdSet(FacetHandler<FacetDataCache<?>> facetHandler,
+    @SuppressWarnings("unchecked") FacetOrRandomAccessDocIdSet(
+        FacetHandler<FacetDataCache<?>> facetHandler,
         BoboSegmentReader reader, String[] vals, FacetValueConverter valConverter,
         boolean takeCompliment) {
       _dataCache = facetHandler.getFacetData(reader);
@@ -123,6 +123,7 @@ public class FacetOrFilter extends RandomAccessFilter {
       _doc = Integer.MAX_VALUE;
       _maxID = -1;
       int size = _dataCache.valArray.size();
+
       for (int i = 0; i < size; ++i) {
         if (!bitset.fastGet(i)) {
           continue;
@@ -135,7 +136,9 @@ public class FacetOrFilter extends RandomAccessFilter {
         }
       }
       _doc--;
-      if (_doc < 0) _doc = -1;
+      if (_doc < 0) {
+        _doc = -1;
+      }
     }
 
     @Override

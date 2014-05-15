@@ -13,29 +13,12 @@ public class OrDocIdSet extends ImmutableDocSet implements Serializable {
 
   private static final int INVALID = -1;
 
-  public class AescDocIdSetComparator implements Comparator<DocIdSetIterator>, Serializable {
-
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public int compare(DocIdSetIterator o1, DocIdSetIterator o2) {
-      return o1.docID() - o2.docID();
-    }
-
-  }
-
   List<DocIdSet> sets = null;
 
   private int _size = INVALID;
 
   public OrDocIdSet(List<DocIdSet> docSets) {
     this.sets = docSets;
-    if (sets != null) {
-      for (DocIdSet set : sets) {
-        if (set != null) {
-        }
-      }
-    }
   }
 
   @Override
