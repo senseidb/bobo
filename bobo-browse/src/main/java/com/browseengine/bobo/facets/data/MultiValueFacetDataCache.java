@@ -125,6 +125,19 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     }
 
     list.seal();
+    // Process minIDList and maxIDList for negative number
+    for (int i = 1; i < negativeValueCount/2 + 1; ++i) {
+      int top = i;
+      int tail = negativeValueCount - i + 1;
+      int topValue = minIDList.getInt(top);
+      int tailValue = minIDList.getInt(tail);
+      minIDList.set(top, tailValue);
+      minIDList.set(tail, topValue);
+      topValue = maxIDList.getInt(top);
+      tailValue = maxIDList.getInt(tail);
+      maxIDList.set(top, tailValue);
+      maxIDList.set(tail, topValue);
+    }
 
     try {
       _nestedArray.load(maxdoc + 1, loader);
@@ -229,6 +242,19 @@ public class MultiValueFacetDataCache<T> extends FacetDataCache<T> {
     }
 
     list.seal();
+    // Process minIDList and maxIDList for negative number
+    for (int i = 1; i < negativeValueCount/2 + 1; ++i) {
+      int top = i;
+      int tail = negativeValueCount - i + 1;
+      int topValue = minIDList.getInt(top);
+      int tailValue = minIDList.getInt(tail);
+      minIDList.set(top, tailValue);
+      minIDList.set(tail, topValue);
+      topValue = maxIDList.getInt(top);
+      tailValue = maxIDList.getInt(tail);
+      maxIDList.set(top, tailValue);
+      maxIDList.set(tail, topValue);
+    }
 
     this.valArray = list;
     this.freqs = freqList.toIntArray();
