@@ -111,6 +111,7 @@ public abstract class SortCollector extends Collector {
   public LinkedList<float[]> scorearraylist;
 
   public static int BLOCK_SIZE = 4096;
+  private static SortCollectorFactory _sortCollectorFactory = new DefaultSortCollectorFactory();
 
   protected Collector _collector = null;
   protected final SortField[] _sortFields;
@@ -213,8 +214,14 @@ public abstract class SortCollector extends Collector {
   }
 
   public static SortCollector buildSortCollector(Browsable browser, Query q, SortField[] sort,
+                                                 int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
+                                                 String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
+    return buildSortCollector(browser, q, sort, offset, count, fetchStoredFields, termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache, _sortCollectorFactory);
+  }
+  
+  public static SortCollector buildSortCollector(Browsable browser, Query q, SortField[] sort,
       int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
-      String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
+      String[] groupBy, int maxPerGroup, boolean collectDocIdCache, SortCollectorFactory sortCollectorFactory) {
     if (sort == null || sort.length == 0) {
       if (q != null && !(q instanceof MatchAllDocsQuery)) {
         sort = new SortField[] { SortField.FIELD_SCORE };
@@ -242,10 +249,17 @@ public abstract class SortCollector extends Collector {
       }
       compSource = new MultiDocIdComparatorSource(compSources);
     }
-    return new SortCollectorImpl(compSource, sort, browser, offset, count, doScoring,
+    return sortCollectorFactory.create(compSource, sort, browser, offset, count, doScoring,
         fetchStoredFields, termVectorsToFetch, groupBy, maxPerGroup, collectDocIdCache);
   }
 
+  public static void setSortCollectorFactory(SortCollectorFactory sortCollectorFactory) {
+    if (sortCollectorFactory == null) {
+      throw new IllegalArgumentException("null sortCollectorFactory is not supported.");
+    }
+    _sortCollectorFactory = sortCollectorFactory;
+  }
+  
   public SortCollector setCollector(Collector collector) {
     _collector = collector;
     return this;

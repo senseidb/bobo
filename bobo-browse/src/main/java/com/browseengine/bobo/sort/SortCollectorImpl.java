@@ -84,7 +84,7 @@ public class SortCollectorImpl extends SortCollector {
   private FacetCountCollector[] _facetCountCollectorMulti = null;
 
   private final boolean _doScoring;
-  private Scorer _scorer;
+  protected Scorer _scorer;
   private final int _offset;
   private final int _count;
 
@@ -185,6 +185,16 @@ public class SortCollectorImpl extends SortCollector {
     return _collector == null ? true : _collector.acceptsDocsOutOfOrder();
   }
 
+  /**
+   * Allows sublclasses to mess with the score.
+   * @param score
+   * @return
+   * @throws IOException
+   */
+  public float score(float score) throws IOException {
+      return (_doScoring ? score : 0.0f);
+  }
+
   @Override
   public void collect(int doc) throws IOException {
     ++_totalHits;
@@ -196,7 +206,7 @@ public class SortCollectorImpl extends SortCollector {
         }
 
         if (_count > 0) {
-          final float score = (_doScoring ? _scorer.score() : 0.0f);
+          final float score = score(_scorer.score());
 
           if (_collectDocIdCache) {
             if (_totalHits > _docIdCacheCapacity) {
@@ -218,7 +228,7 @@ public class SortCollectorImpl extends SortCollector {
         return;
       } else {
         if (_count > 0) {
-          final float score = (_doScoring ? _scorer.score() : 0.0f);
+          final float score = score(_scorer.score());
 
           if (_collectDocIdCache) {
             if (_totalHits > _docIdCacheCapacity) {
@@ -271,7 +281,7 @@ public class SortCollectorImpl extends SortCollector {
       }
     } else {
       if (_count > 0) {
-        final float score = (_doScoring ? _scorer.score() : 0.0f);
+        final float score = score(_scorer.score());
 
         if (_queueFull) {
           _tmpScoreDoc.doc = doc;
@@ -371,7 +381,7 @@ public class SortCollectorImpl extends SortCollector {
 
         PrimitiveLongArrayWrapper primitiveLongArrayWrapperTmp = new PrimitiveLongArrayWrapper(null);
 
-        Object rawGroupValue = null;
+        Object rawGroupValue;
 
         if (_facetAccessibleLists != null) {
           _groupAccessibles = new CombinedFacetAccessible[_facetAccessibleLists.length];
