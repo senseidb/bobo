@@ -212,19 +212,27 @@ public abstract class SortCollector extends Collector {
     }
   }
 
+  protected static SortField buildSortFieldFromQuery(Query q) {
+      if (q != null && !(q instanceof MatchAllDocsQuery)) {
+        return SortField.FIELD_SCORE;
+      } else {
+        return SortField.FIELD_DOC;
+      }
+  }
+
   public static SortCollector buildSortCollector(Browsable browser, Query q, SortField[] sort,
       int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
       String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
     if (sort == null || sort.length == 0) {
-      if (q != null && !(q instanceof MatchAllDocsQuery)) {
-        sort = new SortField[] { SortField.FIELD_SCORE };
-      } else {
-        sort = new SortField[] { SortField.FIELD_DOC };
-      }
+      sort = new SortField[] { buildSortFieldFromQuery(q) };
     }
 
     boolean doScoring = false;
     for (SortField sf : sort) {
+      if (sf == null) {
+          sf = buildSortFieldFromQuery(q);
+      }
+
       if (sf.getType() == SortField.Type.SCORE) {
         doScoring = true;
         break;
