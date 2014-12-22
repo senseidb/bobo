@@ -224,15 +224,15 @@ public abstract class SortCollector extends Collector {
       int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
       String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
     if (sort == null || sort.length == 0) {
-      if (q != null && !(q instanceof MatchAllDocsQuery)) {
-        sort = new SortField[] { SortField.FIELD_SCORE };
-      } else {
-        sort = new SortField[] { SortField.FIELD_DOC };
-      }
+      sort = new SortField[] { buildSortFromQuery(q) };
     }
 
     boolean doScoring = false;
     for (SortField sf : sort) {
+      if (sf == null) {
+          sf = buildSortFromQuery(q);
+      }
+
       if (sf.getType() == SortField.Type.SCORE) {
         doScoring = true;
         break;
