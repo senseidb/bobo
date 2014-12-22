@@ -212,6 +212,14 @@ public abstract class SortCollector extends Collector {
     }
   }
 
+  protected static SortField buildSortFromQuery(Query q) {
+      if (q != null && !(q instanceof MatchAllDocsQuery)) {
+        return SortField.FIELD_SCORE;
+      } else {
+        return SortField.FIELD_DOC;
+      }
+  }
+
   public static SortCollector buildSortCollector(Browsable browser, Query q, SortField[] sort,
       int offset, int count, boolean fetchStoredFields, Set<String> termVectorsToFetch,
       String[] groupBy, int maxPerGroup, boolean collectDocIdCache) {
