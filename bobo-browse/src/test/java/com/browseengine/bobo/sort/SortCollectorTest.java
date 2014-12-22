@@ -12,8 +12,8 @@ import org.apache.lucene.search.SortField;
 public class SortCollectorTest extends TestCase {
 
     public void testBuildSortFieldFromQuery() {
-        assertEquals(SortCollector.buildSortFromQuery(null), SortField.FIELD_DOC);
-        assertEquals(SortCollector.buildSortFromQuery(new MatchAllDocsQuery()), SortField.FIELD_DOC);
-        assertEquals(SortCollector.buildSortFromQuery(new BooleanQuery()), SortField.FIELD_SCORE);
+        assertEquals(SortCollector.buildSortFieldFromQuery(null), SortField.FIELD_DOC);
+        assertEquals(SortCollector.buildSortFieldFromQuery(new MatchAllDocsQuery()), SortField.FIELD_DOC);
+        assertEquals(SortCollector.buildSortFieldFromQuery(new BooleanQuery()), SortField.FIELD_SCORE);
     }
 }
