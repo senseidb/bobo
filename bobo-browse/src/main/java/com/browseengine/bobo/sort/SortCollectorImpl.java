@@ -50,13 +50,13 @@ public class SortCollectorImpl extends SortCollector {
       Comparable s2 = o2.getValue();
 
       int r;
-      if (s1 == null) {
-        if (s2 == null) {
+      if ((s1 == null) || ((s1 instanceof String) && s1.equals("null"))) {
+        if ((s2 == null) || ((s2 instanceof String) && s2.equals("null"))) {
           r = 0;
         } else {
           r = -1;
         }
-      } else if (s2 == null) {
+      } else if ((s2 == null) || ((s2 instanceof String) && s2.equals("null"))) {
         r = 1;
       } else {
         int v = s1.compareTo(s2);
